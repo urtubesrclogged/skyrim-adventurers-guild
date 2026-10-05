@@ -86,7 +86,7 @@ Yup. I couldn't have made this mod without it.
 ## About this repository
 
 This is the mod's source, published for transparency: the SKSE plugin is a DLL, so you can read exactly what it does.
-Players should install the mod from its Nexus Mods page, not from here.
+Players should install the mod from [its Nexus Mods page](https://www.nexusmods.com/skyrimspecialedition/mods/193777), not from here.
 
 ## What is where
 
@@ -112,7 +112,7 @@ applies the rank gating in memory, so it works alongside other Missives patches)
 
 Not in this repository:
 
-- **The voice files.** They ship only in the mod's download on Nexus Mods. A copy built from this source is silent
+- **The voice files.** They ship only in the mod's download on [Nexus Mods](https://www.nexusmods.com/skyrimspecialedition/mods/193777). A copy built from this source is silent
   until the `Sound` folder from that download is copied over it.
 - **The generators** for the translation file, the art and the voice lines. Their outputs that the mod needs
   (`config/Interface/Translations`, the textures under `config/PrismaUI`) are included as they are.
