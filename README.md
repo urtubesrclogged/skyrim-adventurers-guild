@@ -7,38 +7,38 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 
 ## Main features
 
-- **A Guild Counter at the inn of each of the nine hold capitals**: Guild Card, Quests, Trophies, Services, Party and
+- A **Guild Counter** at the inn of each of the nine hold capitals: Guild Card, Quests, Trophies, Services, Party and
   Records, in one window that works with mouse, controller and VR lasers.
-- **Your own Guild Card**: your rank, registration date, progress toward the next rank, and career stats.
-- **Rank up from E to S**:
+- Your own **Guild Card**: your rank, registration date, progress toward the next rank, and career stats.
+- **Rank** up from E to S:
   - Registration comes with an assessment that places an experienced character as high as rank C, so the mod is safe
     to add in the middle of a playthrough.
   - Promotion is earned through Reputation and a minimum level (for example, rank D needs 100 Reputation and
     level 12), and is granted by the innkeeper for a small fee.
 - **Appraisal**, a Guild skill bought at the counter in three levels: guild ranks on the names of fellow adventurers,
   threat ranks on enemy health bars and on dungeons, and better prices from merchants.
-- **Two kinds of standing, tracked for you**:
+- Two kinds of standing, tracked for you:
   - **Reputation** is your name in the Guild. It is never spent, and promotion depends on it. Earned from kills
     (scaled by the foe's threat rank), dungeon reports and guild quests.
   - **Merit** is what the Guild owes you. It is spent on Guild Services. Earned from monster trophies, dungeon reports
     and guild quests.
-- **Guild quests** from the boards or straight from the counter, each labelled with its rank and only offered once
+- **Guild Quests** from the boards or straight from the counter, each labelled with its rank and only offered once
   you have earned it:
   - Local Missives, with [Missives](https://www.nexusmods.com/skyrimspecialedition/mods/17576) installed.
   - Provincial Notices, with [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218) installed.
 - **Reports**: hand in finished quests and cleared dungeons at any counter for gold, Merit and Reputation.
 - **Trophies**: sell proof of your hunts to the Guild for Merit.
 - **Guild Services**, paid for with Merit:
-  - Intel that puts undiscovered dungeons on your map.
-  - Guild Training: Vitality, Endurance and Arcana (permanent Health, Stamina and Magicka).
-  - A Guild Library of skill books.
-  - A Guild Shop of spell tomes and potions.
-- **Adventuring parties**:
+  - **Intel** that puts undiscovered dungeons on your map.
+  - Guild **Training**: Vitality, Endurance and Arcana (permanent Health, Stamina and Magicka).
+  - A Guild **Library** of skill books.
+  - A Guild **Shop** of spell tomes and potions.
+- **Adventuring Parties**:
   - Found your own party, name it, choose up to four companions, and manage it as its leader.
   - Party Bond grows as you fight and travel together, and unlocks party bonuses.
   - 14 Affinities to discover, depending on who is in your party. Up to three can be selected at a time.
   - Party analysis, statistics, and a history of your deeds and of former and fallen members.
-- **New dialogue**: nearly 500 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
+- **New Dialogue**: nearly 500 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
 - **SkyrimNet integration** (optional): NPCs know the Guild, its lore and its rules, know your rank and your party,
   and can play along.
 - **Translatable**: all text is in a standard translation file (see [docs/TRANSLATING.md](docs/TRANSLATING.md)).
