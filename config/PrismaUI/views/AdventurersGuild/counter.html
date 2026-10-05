@@ -33,7 +33,9 @@
   .caps { font-variant: small-caps; letter-spacing: 0.08em; }
 
   #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
-  #panel { position: relative; width: 1080px; height: 780px; display: flex; flex-direction: column;
+  /* 1280 wide since 1.1.0 (was 1080): room for languages longer than English and for parties of up to nine.
+     A view smaller than the panel scales it down to fit (fitPanel). */
+  #panel { position: relative; width: 1280px; height: 780px; flex: none; display: flex; flex-direction: column;
            background: url(tex/stone.png) repeat, #2a2723;
            border: 2px solid #15130f; outline: 1px solid var(--bronze-dim); outline-offset: -8px;
            box-shadow: 0 0 80px rgba(0, 0, 0, 0.8), inset 0 0 140px rgba(0, 0, 0, 0.75); }
@@ -45,16 +47,18 @@
 
   header { display: flex; align-items: center; gap: 20px; padding: 22px 30px 14px; }
   .seal { height: 104px; width: auto; flex: none; margin: -6px 0 -16px; }  /* sits 6px lower; same total, header unchanged */
+  header > div:not(.purse) { min-width: 0; flex: 1; }
   h1 { font-size: 29px; font-weight: 400; color: var(--bronze); letter-spacing: 0.05em; white-space: nowrap;
+       overflow: hidden; text-overflow: ellipsis;
        text-shadow: 0 2px 0 #000, 0 -1px 0 rgba(255, 235, 190, 0.12); }
-  .sub { font-size: 16px; color: var(--muted); margin-top: 2px; font-style: italic; }
-  .purse { margin-left: auto; display: flex; gap: 14px; }
+  .sub { font-size: 16px; color: var(--muted); margin-top: 2px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .purse { margin-left: auto; display: flex; gap: 14px; flex: none; }
   .coin { border: 1px solid var(--bronze-dim); padding: 6px 14px; text-align: center; min-width: 110px;
           background: rgba(0, 0, 0, 0.28); }
-  .coin .k { font-size: 13px; color: var(--muted); }
+  .coin .k { font-size: 13px; color: var(--muted); white-space: nowrap; }
   .coin .v { font-size: 24px; color: var(--ink); }
   .btn { font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 20px; color: var(--ink);
-         min-height: 52px; padding: 0 22px; cursor: pointer; border: 1px solid var(--bronze-dim);
+         min-height: 52px; padding: 0 22px; cursor: pointer; white-space: nowrap; flex: none; border: 1px solid var(--bronze-dim);
          background: linear-gradient(var(--iron-hi), var(--iron-lo));
          box-shadow: inset 0 1px 0 rgba(255, 235, 190, 0.08), 0 2px 4px rgba(0, 0, 0, 0.6); }
   .btn:hover { border-color: var(--bronze); color: #fff6df; }
@@ -62,7 +66,7 @@
   #close { width: 56px; padding: 0; font-size: 26px; font-variant: normal; }
 
   nav { display: flex; margin: 0 30px; border-bottom: 1px solid var(--bronze-dim); }
-  nav button { flex: 1; font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.1em; font-size: 21px;
+  nav button { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.1em; font-size: 21px;
                height: 56px; background: none; border: none; color: var(--muted); cursor: pointer; position: relative; }
   nav button.on { color: var(--ink); }
   nav button.on::after { content: ""; position: absolute; left: 18%; right: 18%; bottom: -1px; height: 3px; background: var(--bronze); }
@@ -111,8 +115,8 @@
   .cardstats .v { font-size: 21px; color: var(--paper-ink); }
 
   /* ---------- ledger lists (paged) ---------- */
-  .bar-top { display: flex; align-items: center; justify-content: space-between; height: 56px; margin-bottom: 8px; }
-  .bar-top .sum { font-size: 19px; color: var(--muted); }
+  .bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; margin-bottom: 8px; }
+  .bar-top .sum { font-size: 19px; color: var(--muted); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bar-top .sum b { color: var(--ink); font-weight: 400; }
   .row { height: 74px; display: flex; align-items: center; gap: 16px; padding: 0 14px;
          border-bottom: 1px solid rgba(194, 154, 91, 0.18); }
@@ -130,8 +134,8 @@
   .pager .pg { font-size: 18px; color: var(--muted); min-width: 120px; text-align: center; }
   .pager.inline { position: static; height: auto; gap: 10px; }  /* in a bar-top (Affinity), not pinned to the page foot */
   .pager.inline .pg { min-width: 96px; }
-  .qsec { display: flex; gap: 10px; flex: none; }
-  .qsec button { white-space: nowrap; }
+  .qsec { display: flex; gap: 10px; flex: 0 1 auto; min-width: 0; }
+  .qsec button { white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .subsum { height: 26px; margin: -6px 0 2px; padding: 0 14px; font-size: 17px; color: var(--muted); }
   .subsum b { color: var(--ink); font-weight: 400; }
   .qsec button { font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 19px; height: 52px;
@@ -185,9 +189,9 @@
   .mbond .mbondname { font-size: 13px; font-variant: small-caps; letter-spacing: 0.08em; color: var(--muted); margin-top: 2px; }
   .bond .tiername { font-size: 16px; font-variant: small-caps; letter-spacing: 0.08em; }
   .status { font-size: 15px; font-style: italic; min-width: 96px; text-align: right; }
-  .statuscol { width: 240px; flex: none; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .statuscol { width: 300px; flex: none; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .status.away { color: var(--warn); } .status.fallen { color: #c77a6a; } .status.former { color: var(--dim); } .status.here { color: var(--good); }
-  .found { max-width: 720px; margin: 30px auto 0; text-align: center; }
+  .found { max-width: 860px; margin: 30px auto 0; text-align: center; }
   .found p { color: var(--muted); font-style: italic; font-size: 18px; line-height: 1.5; margin-bottom: 26px; }
   .namefield { display: flex; gap: 12px; align-items: center; }
   .namefield input { flex: 1; min-width: 0; height: 56px; padding: 0 16px; font-family: var(--serif); font-size: 24px; color: var(--paper-ink);
@@ -203,11 +207,13 @@
   .btn.danger { border-color: #8e2b1f; background: linear-gradient(#6b261b, #3f150f); }
   .bond.dormant .pips { opacity: 0.45; } .bond.dormant .tiername { font-style: italic; color: var(--paper-muted); }
 
-  /* party sub-tabs: fixed widths, never wrap, so they never move whatever controls share the row */
-  .psecs { flex: none; }
-  .psecs button { width: 116px; padding: 0; white-space: nowrap; overflow: visible; position: relative; }
-  .psecs button .lbl { display: block; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
-  .bar-top > .psecs + * { flex: none; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* party sub-tabs: at least their English width, wider when the label needs it; never wrapped. overflow stays
+     visible for the notification dot, so the label is cut inside .lbl if it ever has to be */
+  .psecs { flex: 0 1 auto; }
+  .psecs button { min-width: 116px; padding: 0 12px; white-space: nowrap; overflow: visible; position: relative; flex: 0 1 auto; }
+  .psecs button .lbl { display: block; overflow: hidden; text-overflow: ellipsis; }
+  .bar-top > .psecs + * { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-top > .psecs + .pager, .bar-top > .psecs + .pfilter, .bar-top > .psecs + .pbtns { flex: none; overflow: visible; }
   /* ---------- Trait Bonuses (Affinity) sub-tab: a 2 x 4 grid of cards; the Party page shows a one-line summary ---------- */
   .tgrid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 104px); gap: 8px; }  /* 464px under the bar, less the party line */
   .tcard { display: flex; align-items: center; gap: 10px; padding: 3px 12px; border: 1px solid rgba(194, 154, 91, 0.2); background: rgba(0, 0, 0, 0.25); min-width: 0; }
@@ -218,7 +224,7 @@
   .tcard.locked { opacity: 0.55; }
   .tcard .tbody { flex: 1; min-width: 0; }
   .tcard .tname { font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tcard .tstate { font-size: 13px; font-variant: small-caps; letter-spacing: 0.06em; color: var(--muted); margin-left: 6px; }
+  .tcard .tstate { white-space: nowrap; font-size: 13px; font-variant: small-caps; letter-spacing: 0.06em; color: var(--muted); margin-left: 6px; }
   .tcard.active .tstate { color: var(--good); }
   .tcard .teff { font-size: 15px; color: var(--ink); line-height: 1.15; max-height: 35px; overflow: hidden; }  /* up to two lines */
   .tcard .twhy { font-size: 14px; font-style: italic; color: var(--muted); line-height: 1.2; max-height: 34px; overflow: hidden; }
@@ -780,6 +786,37 @@ function renderRecords() {
     pager("records", pages);
 }
 
+/* A view smaller than the panel (a flat screen below 1280 x 780) shows it scaled down, whole. */
+function fitPanel() {
+  const p = $("panel"), k = Math.min(1, innerWidth / p.offsetWidth, innerHeight / p.offsetHeight);
+  p.style.transform = k < 1 ? `scale(${k})` : "";
+}
+addEventListener("resize", fitPanel);
+
+/* Longer languages: a strip whose labels do not fit first loses letter-spacing and button padding, then its text
+   steps down to 90% of its size - never smaller (VR legibility). Past that the label is cut with an ellipsis by
+   its own CSS. English fits as designed, so nothing here changes it. */
+const FIT_BOXES = "header, nav, .bar-top, .row, .tcard, .banner, .tline, .pager, .traits, .radar, .cardstats, .facts, .noteside, .grid > *, .tgrid > *";
+const FIT_TEXT = "button, .lbl, .k, .sum, .pg, .tstate, .tname, .mbondname, .tiername, .status, .title, .detail, .pay, h1, .sub, h4, small, .thint, .tpaused, b, span";
+function fitText() {
+  const over = (box, kids) => box.scrollWidth > box.clientWidth + 1 || kids.some((k) => k.scrollWidth > k.clientWidth + 1 && getComputedStyle(k).overflowX !== "visible");
+  for (const box of document.querySelectorAll(FIT_BOXES)) {
+    const kids = [...box.querySelectorAll(FIT_TEXT)].filter((k) => k.closest(FIT_BOXES) === box || box.matches("header, nav"));
+    for (const k of kids) { k.style.fontSize = ""; k.style.letterSpacing = ""; k.style.paddingLeft = ""; k.style.paddingRight = ""; }
+    if (!kids.length || !over(box, kids)) continue;
+    for (const k of kids) {
+      k.style.letterSpacing = "0.01em";
+      if (k.tagName === "BUTTON" && parseFloat(getComputedStyle(k).paddingLeft) > 10) { k.style.paddingLeft = "10px"; k.style.paddingRight = "10px"; }
+    }
+    if (!over(box, kids)) continue;
+    const base = kids.map((k) => parseFloat(getComputedStyle(k).fontSize));
+    for (const f of [0.96, 0.93, 0.9]) {
+      kids.forEach((k, i) => { k.style.fontSize = (base[i] * f).toFixed(2) + "px"; });
+      if (!over(box, kids)) break;
+    }
+  }
+}
+
 function render() {
   $("merit").textContent = data.merit;
   $("rep").textContent = data.reputation;
@@ -797,6 +834,8 @@ function render() {
   $("main").innerHTML = { card: renderCard, quests: renderQuests, trophies: renderTrophies, services: renderServices, party: renderParty, records: renderRecords }[tab]();
   if (typing && !vrCommitted && $("pname")) { const f = $("pname"); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
   paint();
+  fitPanel();
+  fitText();
 }
 
 window.agSetData = (json) => {
