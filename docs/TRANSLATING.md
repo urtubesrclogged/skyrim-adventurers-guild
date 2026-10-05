@@ -21,8 +21,9 @@ automatically; MCM Helper reads the same file for the mod's menu.
 ## 2. Dialogue, notes, quest and spell names: the plugin
 
 Innkeeper and world dialogue, topic choices, the Guild Missive notes, the registration missive, Appraisal and training
-names live in `AdventurersGuild.esp`. Translate it with **xTranslator** as usual. The plugin is not ESL-flagged and not
-localized (strings are embedded), which xTranslator handles directly. Its records keep fixed FormIDs between versions,
+names live in `AdventurersGuild.esp`. Translate it with **xTranslator** as usual. The plugin is a light plugin (ESL-flagged) and not
+localized (strings are embedded), which xTranslator handles directly. Dynamic String Distributor works as well: ship a
+`SKSE/Plugins/DynamicStringDistributor/AdventurersGuild.esp/<name>.json` and the plugin file itself stays untouched. Its records keep fixed FormIDs between versions,
 so a saved xTranslator dictionary re-applies to updates.
 
 ## 3. Voices (optional)

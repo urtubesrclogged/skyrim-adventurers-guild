@@ -5,10 +5,16 @@
 
 #pragma once
 
+#include "Loc.h"
+
 // What the two board integrations share (MissiveWatch for Missives, NoticeWatch for The Notice Board): the in-memory
 // rank gate and label, and reading a posting's note the way the player would.
 namespace AG::QuestBoard
 {
+	// " [Rank X]" in the player's language ($AG_RankLabel "[Rank {}]"; French: "[Rang {}]"). No space inside the key's
+	// text: editors trim them. Loc is loaded before any label is put on.
+	inline std::string RankSuffix(char a_tier) { return " " + Loc::F("$AG_RankLabel", "[Rank {}]", a_tier); }
+
 	// Papyrus Quest.IsRunning(). NOT CommonLib's TESQuest::IsRunning(), which is only "not stopping" and is
 	// true for every idle quest (it listed all 29 Whiterun missives as posted when 9 were running).
 	inline bool Running(const RE::TESQuest* a_q) { return a_q && a_q->IsEnabled() && !a_q->IsStopping(); }
@@ -29,6 +35,15 @@ namespace AG::QuestBoard
 
 	inline std::string StripRank(std::string a_s)
 	{
+		// the label as this session wrote it (any rank), whatever the language; then the English one, for names
+		// labelled by an older build or another patch
+		for (const char t : { 'E', 'D', 'C', 'B', 'A', 'S' }) {
+			const auto suffix = RankSuffix(t);
+			if (!suffix.empty() && a_s.size() >= suffix.size() && a_s.ends_with(suffix)) {
+				a_s.erase(a_s.size() - suffix.size());
+				return a_s;
+			}
+		}
 		if (auto pos = a_s.rfind(" [Rank "); pos != std::string::npos) a_s.erase(pos);
 		return a_s;
 	}
@@ -38,8 +53,8 @@ namespace AG::QuestBoard
 	{
 		if (!a_named) return;
 		const std::string_view cur = a_named->GetFullName();
-		if (cur.contains("[Rank ")) return;  // already labeled
-		a_named->fullName = std::format("{} [Rank {}]", cur, a_tier);
+		if (StripRank(std::string(cur)) != cur) return;  // already labeled
+		a_named->fullName = std::string(cur) + RankSuffix(a_tier);
 	}
 
 	// "AG_PlayerRankGlobal >= rank" as the FIRST condition, so it is ANDed with the whole existing list (a leading

@@ -3,6 +3,7 @@
 // Free software under the GNU GPL v3 or later, with the additional permissions in EXCEPTIONS.md. NO WARRANTY.
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
+#include "QuestBoard.h"
 #include "MissiveWatch.h"
 
 #include "Counter.h"
@@ -97,7 +98,7 @@ namespace AG::MissiveWatch
 
 		std::string StripRank(std::string a_s)
 		{
-			if (auto pos = a_s.rfind(" [Rank "); pos != std::string::npos) a_s.erase(pos);
+			a_s = QuestBoard::StripRank(std::move(a_s));
 			return a_s;
 		}
 
@@ -115,17 +116,20 @@ namespace AG::MissiveWatch
 			}
 			if (title.empty() || title.find("<Alias") != std::string::npos) title = a_q->GetFullName();
 			title = StripRank(title);
-			if (title.starts_with("Missive: ")) title.erase(0, 9);
+			if (const auto prefix = Loc::T("$AG_MissivePrefix", "Missive:"); !prefix.empty() && title.starts_with(prefix)) {
+				title.erase(0, prefix.size());  // Missives' own title prefix, as its translation writes it
+				title.erase(0, title.find_first_not_of(' '));
+			}
 			return title;
 		}
 
 		void Announce(char a_tier, RE::FormID a_quest)
 		{
 			// The quest's journal name, minus the " [Rank X]" label the patch appends.
-			std::string a_title = "Guild Missive";
+			std::string a_title = Loc::T("$AG_Title_GuildMissive", "Guild Missive");
 			if (auto* q = RE::TESForm::LookupByID<RE::TESQuest>(a_quest)) {
 				a_title = q->GetFullName();
-				if (auto pos = a_title.rfind(" [Rank "); pos != std::string::npos) a_title.erase(pos);
+				a_title = QuestBoard::StripRank(std::move(a_title));
 			}
 			PrismaToast::Show(Loc::T("$AG_Toast_Missive", "MISSIVE COMPLETE"), Loc::T("$AG_Toast_MissiveSub", "Submit your report at any guild counter"));
 			Guild::OnMissiveCompleted(FromLetter(a_tier), a_title);
@@ -193,8 +197,8 @@ namespace AG::MissiveWatch
 		{
 			if (!a_named) return;
 			const std::string_view cur = a_named->GetFullName();
-			if (cur.contains("[Rank ")) return;  // already labeled
-			a_named->fullName = std::format("{} [Rank {}]", cur, a_tier);
+			if (QuestBoard::StripRank(std::string(cur)) != cur) return;  // already labeled
+			a_named->fullName = std::string(cur) + QuestBoard::RankSuffix(a_tier);
 		}
 
 		// "AG_PlayerRankGlobal >= rank" as the FIRST condition, so it is ANDed with the whole existing list (a leading

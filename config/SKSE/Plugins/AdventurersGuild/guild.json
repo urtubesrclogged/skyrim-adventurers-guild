@@ -11,9 +11,9 @@
 		"minLevel":   [1, 12, 24, 36, 48, 60]
 	},
 
-	"_party": "Adventuring parties (docs/PARTIES.md). fee: gold to found a party at a counter. maxMembers: companions besides the player, at most 4 (a party is never more than 5, however many followers a follower mod allows). nameMaxLength: characters in a party name. bondTiers: the Bond (0-100, averaged over active members) at which Strangers, Companions, Comrades, Sworn and Legend start.",
+	"_party": "Adventuring parties (docs/PARTIES.md). fee: gold to found a party at a counter. maxMembers: companions besides the player, at most 9 (a party is never more than 10, however many followers a follower mod allows). nameMaxLength: characters in a party name. bondTiers: the Bond (0-100, averaged over active members) at which Strangers, Companions, Comrades, Sworn and Legend start.",
 	"_partyBond": "Bond each member present gains (present = an active member who is alive, following you and loaded in the area with you; nothing grows with no member present). perFieldHour: per in-game hour in the field together (a jump bigger than maxTickHours between checks - waiting, sleeping, fast travel - is not field time). kill: per foe your side kills, by its threat rank E..S, x bigKill for dragons, giants and bosses, at most killDailyCap per member per day. dungeon / missive: per clear or completed missive, by rank E..S. Every gain shrinks as Bond rises: x (1 - bond / diminish), at least x0.2.",
-	"party": { "fee": 100, "maxMembers": 4, "nameMaxLength": 32, "bondTiers": [0, 15, 35, 60, 85],
+	"party": { "fee": 100, "maxMembers": 9, "nameMaxLength": 32, "bondTiers": [0, 15, 35, 60, 85],
 		"bond": { "perFieldHour": 0.06, "maxTickHours": 0.5, "kill": [0.05, 0.1, 0.2, 0.35, 0.5, 0.8], "bigKill": 3, "killDailyCap": 5,
 			"dungeon": [1, 1.5, 2, 3, 4, 5], "missive": [1, 1.5, 2.5, 4, 5, 6], "diminish": 150 },
 		"_renown": "How far the party's name travels (SkyrimNet: who has heard of it). Points: 3 per dungeon cleared and per missive, 5 per great beast or boss, 0.2 per kill, 1 per day in the field together. At renown[0] NPCs everywhere know the party's name ('talked about in the holds'); at renown[1] it is famous across Skyrim. Guild reps and the party's own members always know it.",

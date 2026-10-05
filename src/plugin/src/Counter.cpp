@@ -440,7 +440,15 @@ namespace AG::Counter
 		SKSE::GetTaskInterface()->AddTask([] {
 			if (!g_open.load() || !Valid()) return;
 			auto data = Guild::CounterData();
-			data["branch"] = Branch();
+			{
+				// the branch city in the player's language: $AG_City_<Name>, optional for translators (English otherwise).
+				// Branch() itself stays English: it is also the key the postings are filtered by.
+				const auto city = Branch();
+				std::string key = "$AG_City_";
+				for (const char c : city)
+					if (std::isalnum(static_cast<unsigned char>(c))) key += c;
+				data["branch"] = city.empty() ? city : Loc::T(key, city);
+			}
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());
 			data["notices"] = NoticeWatch::Postings();

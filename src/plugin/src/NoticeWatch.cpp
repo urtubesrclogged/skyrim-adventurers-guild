@@ -74,7 +74,7 @@ namespace AG::NoticeWatch
 				}
 				if (Counter::IsOpen()) Counter::Refresh();  // accepted, failed, done: the counter's list follows
 				if (a_event->stage != n.done) return RE::BSEventNotifyControl::kContinue;
-				std::string title = "Guild Notice";
+				std::string title = Loc::T("$AG_Title_GuildNotice", "Guild Notice");
 				if (auto* q = RE::TESForm::LookupByID<RE::TESQuest>(a_event->formID)) title = QuestBoard::StripRank(q->GetFullName());
 				PrismaToast::Show(Loc::T("$AG_Toast_Notice", "NOTICE COMPLETE"), Loc::T("$AG_Toast_MissiveSub", "Submit your report at any guild counter"));
 				Guild::OnNoticeCompleted(FromLetter(n.tier), title);

@@ -777,13 +777,16 @@ for (int si = 0; si < 3; si++)
         return fx;
     }
     ConditionFloat Or(ConditionFloat c) { c.Flags |= Condition.Flag.OR; return c; }
-    // Bond: regeneration per tier above Strangers, armor per member present
+    // Bond: regeneration per tier above Strangers, and a flat armor bonus while anyone is present (1.1.0: it was
+    // "per member present", four stacking effects; with parties of up to nine that ran away). The four records stay,
+    // in the same order, because every later effect's FormID follows from them: the first carries the bonus, the
+    // other three have no magnitude and a condition that never holds.
     for (int k = 1; k <= 4; k++)
         Add($"AG_MGEF_BondHeal{k}", "Party Bond: health regeneration", ActorValue.HealRateMult, bl["healRatePerTier"]!.GetValue<float>(), GlobalCmp(gTier, CompareOperator.GreaterThanOrEqualTo, k));
     for (int k = 1; k <= 4; k++)
         Add($"AG_MGEF_BondStamina{k}", "Party Bond: stamina regeneration", ActorValue.StaminaRateMult, bl["staminaRatePerTier"]!.GetValue<float>(), GlobalCmp(gTier, CompareOperator.GreaterThanOrEqualTo, k));
     for (int k = 1; k <= 4; k++)
-        Add($"AG_MGEF_BondArmor{k}", "Party Bond: armor", ActorValue.DamageResist, bl["armorPerMember"]!.GetValue<float>(), GlobalCmp(gPresent, CompareOperator.GreaterThanOrEqualTo, k));
+        Add($"AG_MGEF_BondArmor{k}", "Party Bond: armor", ActorValue.DamageResist, k == 1 ? bl["armor"]!.GetValue<float>() : 0f, GlobalCmp(gPresent, CompareOperator.GreaterThanOrEqualTo, k == 1 ? 1 : 1000));
     // Traits
     for (int ti = 0; ti < traits.Count; ti++)
     {

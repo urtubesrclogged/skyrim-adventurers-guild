@@ -6,8 +6,8 @@
 	"_maxActive": "How many unlocked traits may be switched on at once (the first ones unlocked start on).",
 	"maxActive": 3,
 
-	"_blessing": "Bond blessing, only while at least one member is present. Per Bond tier above Strangers: health and stamina regeneration (percent). Per member present: armor rating.",
-	"blessing": { "healRatePerTier": 10, "staminaRatePerTier": 10, "armorPerMember": 10 },
+	"_blessing": "Bond blessing, only while at least one member is present. Per Bond tier above Strangers: health and stamina regeneration (percent). armor: a flat armor rating while at least one member is present, however many there are.",
+	"blessing": { "healRatePerTier": 10, "staminaRatePerTier": 10, "armor": 20 },
 
 	"_detect": "How the DLL recognises vampires (a race keyword), werewolves (a faction, or the player's PlayerIsWerewolf global), housecarls, sellswords, the College, the Dawnguard and your spouse (factions).",
 	"detect": {

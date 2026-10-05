@@ -24,7 +24,7 @@ namespace AG::Party
 		struct Config
 		{
 			int                  fee{ 100 };
-			int                  maxMembers{ 4 };  // companions besides the player: a party is at most 5
+			int                  maxMembers{ 9 };  // companions besides the player: a party is at most 10
 			int                  nameMax{ 32 };
 			std::array<float, 5> tiers{ 0.0f, 15.0f, 35.0f, 60.0f, 85.0f };  // Bond at which each tier starts
 			// Bond gains (guild.json party.bond), for each member present; see docs/PARTIES.md
@@ -102,7 +102,7 @@ namespace AG::Party
 		{
 			float                         range{ 4096.0f };
 			int                           maxActive{ 3 };
-			float                         healPerTier{ 10.0f }, staminaPerTier{ 10.0f }, armorPerMember{ 10.0f };
+			float                         healPerTier{ 10.0f }, staminaPerTier{ 10.0f }, armor{ 20.0f };
 			std::vector<RE::BGSKeyword*>  vampireKw;
 			std::vector<RE::TESFaction*>  werewolfFactions, housecarlFactions;
 			std::vector<RE::TESFaction*>  hirelingFactions, collegeFactions, dawnguardFactions, spouseFactions;
@@ -746,7 +746,7 @@ namespace AG::Party
 				if (j.contains("party")) {
 					const auto& p = j.at("party");
 					c.fee = std::max(0, p.value("fee", c.fee));
-					c.maxMembers = std::clamp(p.value("maxMembers", c.maxMembers), 1, 4);  // hard cap: follower mods allow dozens
+					c.maxMembers = std::clamp(p.value("maxMembers", c.maxMembers), 1, 9);  // hard cap: follower mods allow dozens
 					c.nameMax = std::clamp(p.value("nameMaxLength", c.nameMax), 8, 64);
 					if (p.contains("bondTiers") && p.at("bondTiers").is_array() && p.at("bondTiers").size() == 5)
 						for (int i = 0; i < 5; ++i) c.tiers[i] = p.at("bondTiers")[i].get<float>();
@@ -784,7 +784,7 @@ namespace AG::Party
 					const auto& b = j.at("blessing");
 					t.healPerTier = b.value("healRatePerTier", t.healPerTier);
 					t.staminaPerTier = b.value("staminaRatePerTier", t.staminaPerTier);
-					t.armorPerMember = b.value("armorPerMember", t.armorPerMember);
+					t.armor = b.value("armor", t.armor);  // flat, while anyone is present
 				}
 				const auto& d = j.value("detect", nlohmann::json::object());
 				t.vampireKw = FormsOf<RE::BGSKeyword>(d.value("vampire", nlohmann::json::object()).value("keywords", nlohmann::json::array()));
@@ -1138,7 +1138,7 @@ namespace AG::Party
 			a["maxTraits"] = g_tcfg.maxActive;
 			const int btier = present ? TierOf(MeanLocked(*p)) : -1;
 			a["blessing"] = { { "heal", btier > 0 ? btier * g_tcfg.healPerTier : 0.0f }, { "stamina", btier > 0 ? btier * g_tcfg.staminaPerTier : 0.0f },
-				{ "armor", present * g_tcfg.armorPerMember } };
+				{ "armor", present ? g_tcfg.armor : 0.0f } };
 			// the party's record together
 			a["stats"] = { { "days", p->stats.hours / 24.0f }, { "kills", p->stats.kills }, { "bigKills", p->stats.bigKills },
 				{ "dungeons", p->stats.dungeons }, { "missives", p->stats.missives },
@@ -1211,7 +1211,9 @@ namespace AG::Party
 		// ready-made phrases for the prompts ("Jenassa, Lydia and Faendal")
 		auto phrase = [](const std::vector<std::string>& v) {
 			std::string s;
-			for (std::size_t i = 0; i < v.size(); ++i) s += (i == 0 ? "" : i + 1 == v.size() ? " and " : ", ") + v[i];
+			const std::size_t shown = v.size() > 5 ? 4 : v.size();  // a long roster: four names, then how many more
+			for (std::size_t i = 0; i < shown; ++i) s += (i == 0 ? "" : i + 1 == v.size() ? " and " : ", ") + v[i];
+			if (shown < v.size()) s = Loc::F("$AG_Party_AndOthers", "{} and {} others", s, v.size() - shown);
 			return s;
 		};
 		j["name"] = p->name;
