@@ -234,9 +234,10 @@ namespace AG::Dungeons
 
 		void OnEntered(RE::BGSLocation* a_dungeon)
 		{
-			// Threat ranks are the Guild's knowledge: a player who has not registered is told nothing, and the dungeon
-			// is not marked as visited, so its first-visit notice comes on the first visit as a member.
-			if (!Guild::Registered()) return;
+			// Reading a dungeon's threat rank is Appraisal (the Guild skill bought at the counter), as it is for the ranks
+			// on names and health bars: a player who has not registered, or a member without Appraisal I, is told nothing.
+			// The dungeon is not marked as visited either, so its first-visit notice comes on the first visit with it.
+			if (!Guild::Registered() || Guild::AppraisalLevel() < 1) return;
 			const auto key = Adventurers::StableKey(a_dungeon);
 			int  rank;
 			bool first = false;
@@ -281,7 +282,11 @@ namespace AG::Dungeons
 			if (Guild::Registered()) {
 				const int gold = Guild::DungeonGold(rank), merit = Guild::DungeonMerit(rank), rep = Guild::DungeonRep(rank);
 				Guild::AddReport("dungeon", Loc::F("$AG_Report_Cleared", "Cleared {}", name), Loc::F("$AG_Report_DungeonDetail", "Threat Rank {} dungeon", Letter(rank)), gold, merit, rep);
-				Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReport", "{} · Rank {} · report to the Guild for your reward", name, Letter(rank)), rank);
+				// a member is always told to report it; the rank (and its badge) only with Appraisal
+				if (Guild::AppraisalLevel() >= 1)
+					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReport", "{} · Rank {} · report to the Guild for your reward", name, Letter(rank)), rank);
+				else
+					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReportPlain", "{} · report to the Guild for your reward", name), -1);
 				Guild::Notify("AG_DungeonCleared", name, static_cast<float>(rank));
 				Party::OnDungeonCleared(rank);
 				if (Counter::IsOpen()) Counter::Refresh();
