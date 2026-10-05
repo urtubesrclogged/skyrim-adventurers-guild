@@ -18,6 +18,17 @@ namespace AG::ControlsGuard
 		int           g_visible = 0;
 		int           g_kept = 0;  // times KeepOn had to act since the first panel appeared (logged when the last one goes)
 		std::uint32_t g_before = 0;
+		bool          g_masked = false;      // the counter switched fighting off and owes it back
+		bool          g_savedMasked = false; // the save being loaded was made in that state
+
+		void SetFighting(bool a_on)
+		{
+			if (auto* map = RE::ControlMap::GetSingleton()) {
+				auto& enabled = map->GetRuntimeData().enabledControls;
+				if (a_on) enabled.set(UEFlag::kFighting);
+				else enabled.reset(UEFlag::kFighting);
+			}
+		}
 
 		std::uint32_t Enabled()
 		{
@@ -56,6 +67,46 @@ namespace AG::ControlsGuard
 				}
 			});
 		}).detach();
+	}
+
+	void Mask()
+	{
+		if (!REL::Module::IsVR()) return;
+		std::lock_guard l(g_lock);
+		if (g_masked || !(Enabled() & static_cast<std::uint32_t>(UEFlag::kFighting))) return;  // already off: not ours to give back
+		SetFighting(false);
+		g_masked = true;
+	}
+
+	void Unmask()
+	{
+		std::lock_guard l(g_lock);
+		if (!g_masked) return;
+		g_masked = false;
+		SetFighting(true);
+	}
+
+	bool Masked()
+	{
+		std::lock_guard l(g_lock);
+		return g_masked;
+	}
+
+	void Saved(bool a_masked)
+	{
+		std::lock_guard l(g_lock);
+		g_savedMasked = a_masked;
+	}
+
+	void OnGameLoaded()
+	{
+		std::lock_guard l(g_lock);
+		g_masked = false;  // whatever was open before the load is gone
+		if (!std::exchange(g_savedMasked, false)) return;
+		if (!(Enabled() & static_cast<std::uint32_t>(UEFlag::kFighting))) {
+			SetFighting(true);
+			SKSE::log::info("ControlsGuard: this save was made with the guild counter open - fighting controls turned back on");
+		}
 	}
 
 	void KeepOn()

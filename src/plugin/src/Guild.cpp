@@ -1,3 +1,4 @@
+#include "ControlsGuard.h"
 #include "Guild.h"
 
 #include "Adventurers.h"
@@ -304,6 +305,7 @@ namespace AG::Guild
 				j["appraisal"] = g_appraisal.load();
 				j["training"] = g_training;
 				j["dormant"] = g_dormant.load();
+				j["counterMask"] = ControlsGuard::Masked();  // the engine saves the control flags (ControlsGuard.h)
 				auto& reports = j["reports"] = nlohmann::json::array();
 				for (auto& r : g_reports) reports.push_back({ { "kind", r.kind }, { "title", r.title }, { "detail", r.detail }, { "gold", r.gold }, { "merit", r.merit }, { "rep", r.rep } });
 				auto& history = j["history"] = nlohmann::json::array();
@@ -370,6 +372,7 @@ namespace AG::Guild
 						g_trophiesSold = j.value("trophiesSold", 0);
 						g_appraisal = std::clamp(j.value("appraisal", 0), 0, 3);
 						g_dormant = j.value("dormant", false);
+						ControlsGuard::Saved(j.value("counterMask", false));
 						if (j.contains("training")) {
 							auto v = j.at("training").get<std::vector<int>>();
 							for (std::size_t i = 0; i < g_training.size() && i < v.size(); ++i) g_training[i] = std::max(0, v[i]);

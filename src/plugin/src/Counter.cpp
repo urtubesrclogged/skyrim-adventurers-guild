@@ -408,6 +408,7 @@ namespace AG::Counter
 		// after the data (tasks run in order): controller users open with the first button highlighted
 		SKSE::GetTaskInterface()->AddTask([] { Js(std::format("window.agInputMode({})", g_padMode.load())); });
 		ControlsGuard::Shown();
+		ControlsGuard::Mask();  // VR: a trigger pull on the counter must not ready the weapon
 		g_api->Show(g_view);
 		g_api->Focus(g_view, true);
 		SKSE::log::info("Counter: opened");
@@ -418,6 +419,7 @@ namespace AG::Counter
 		if (!g_open.exchange(false) || !Valid()) return;
 		g_api->Unfocus(g_view);
 		g_api->Hide(g_view);
+		ControlsGuard::Unmask();
 		ControlsGuard::Hidden();
 	}
 

@@ -17,4 +17,16 @@ namespace AG::ControlsGuard
 	// casting and weapon draw mid-fight for as long as the player's hand points at it. Called repeatedly on the game
 	// thread while such a panel is up, this turns back on whatever was on before it appeared.
 	void KeepOn();
+
+	// The counter, in VR. PrismaVR's masking cannot be relied on: under SteamVR it does not happen at all (measured in
+	// FUS, PrismaUI 1.5.0: every control stays on with the laser on the panel), so the trigger pull that clicks a
+	// button also readies the player's weapon. The counter therefore switches fighting off itself while it is open,
+	// as the game's own menus do, and back on when it closes. The flag is written directly, the way PrismaVR does it
+	// (no event: nothing sheathes or reacts). Mask() after Shown(), Unmask() before Hidden().
+	void Mask();
+	void Unmask();
+	bool Masked();  // for the co-save: the engine saves the control flags, so a save made with the counter open has
+	                // fighting off; Saved(true) on load + OnGameLoaded() turn it back on
+	void Saved(bool a_masked);
+	void OnGameLoaded();
 }

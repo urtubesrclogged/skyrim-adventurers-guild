@@ -1,3 +1,4 @@
+#include "ControlsGuard.h"
 #include "Adventurers.h"
 #include "Counter.h"
 #include "Diag.h"
@@ -58,6 +59,7 @@ namespace
 		case SKSE::MessagingInterface::kPostLoadGame:
 		case SKSE::MessagingInterface::kNewGame:
 			AG::Guild::OnGameLoaded();
+			AG::ControlsGuard::OnGameLoaded();
 			AG::MissiveWatch::WithdrawAboveRank();
 			AG::NoticeWatch::WithdrawAboveRank();
 			SKSE::log::info("Game loaded: player level {}, {}", RE::PlayerCharacter::GetSingleton()->GetLevel(), AG::Guild::Dump());
