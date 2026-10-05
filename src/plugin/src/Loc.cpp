@@ -5,6 +5,7 @@
 
 #include "Loc.h"
 
+#include <SimpleIni.h>
 #include <mutex>
 #include <unordered_map>
 
@@ -68,6 +69,15 @@ namespace AG::Loc
 		std::string language = "ENGLISH";
 		if (auto* ini = RE::INISettingCollection::GetSingleton()) {
 			if (auto* s = ini->GetSetting("sLanguage:General"); s && s->GetType() == RE::Setting::Type::kString && s->data.s && *s->data.s) language = s->data.s;
+		}
+		// For translators and testing: [Debug] Language = FRENCH in AdventurersGuild.ini loads that translation file
+		// whatever the game's own language is (the game then stays in its language; only this mod's text changes).
+		{
+			CSimpleIniA ini;
+			ini.SetUnicode();
+			if (ini.LoadFile("Data/SKSE/Plugins/AdventurersGuild.ini") >= 0) {
+				if (const std::string forced = ini.GetValue("Debug", "Language", ""); !forced.empty()) language = forced;
+			}
 		}
 		for (auto& c : language) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
 		std::unordered_map<std::string, std::string> map;

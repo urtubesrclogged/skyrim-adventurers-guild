@@ -234,6 +234,9 @@ namespace AG::Dungeons
 
 		void OnEntered(RE::BGSLocation* a_dungeon)
 		{
+			// Threat ranks are the Guild's knowledge: a player who has not registered is told nothing, and the dungeon
+			// is not marked as visited, so its first-visit notice comes on the first visit as a member.
+			if (!Guild::Registered()) return;
 			const auto key = Adventurers::StableKey(a_dungeon);
 			int  rank;
 			bool first = false;
@@ -282,9 +285,8 @@ namespace AG::Dungeons
 				Guild::Notify("AG_DungeonCleared", name, static_cast<float>(rank));
 				Party::OnDungeonCleared(rank);
 				if (Counter::IsOpen()) Counter::Refresh();
-			} else {
-				Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedJoin", "{} · Rank {} · the Guild pays for clears like this", name, Letter(rank)), rank);
 			}
+			// not registered: no notice (1.1.0; it used to show the rank and that the Guild pays for clears)
 			SKSE::log::info("Dungeons: cleared {} [{}] rank {}", name, key, Letter(rank));
 		}
 
