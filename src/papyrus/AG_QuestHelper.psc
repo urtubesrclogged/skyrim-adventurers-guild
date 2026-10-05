@@ -1,3 +1,7 @@
+; Adventurers Guild - Copyright (C) 2026 urtubesrclogged
+; SPDX-License-Identifier: GPL-3.0-or-later (with the additional permissions in EXCEPTIONS.md). NO WARRANTY.
+; Source and license: https://github.com/urtubesrclogged/skyrim-adventurers-guild
+
 ScriptName AG_QuestHelper Hidden
 {Called by AdventurersGuild.dll through a Papyrus static call: quest objective display has no native
 CommonLib equivalent.}

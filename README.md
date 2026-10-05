@@ -119,9 +119,14 @@ Not in this repository:
 
 ## License
 
-- **Code**: MIT, see [LICENSE](LICENSE).
-- **Assets** (art, voices, dialogue, lore and other text): all rights reserved with the permissions in
-  [ASSETS.md](ASSETS.md).
+- **Code** (the SKSE plugin, the Papyrus scripts, the plugin generator and the build scripts): Copyright (C) 2026
+  urtubesrclogged. Free software under the GNU General Public License, version 3 or (at your option) any later
+  version, with the additional permissions in [EXCEPTIONS.md](EXCEPTIONS.md). See [LICENSE](LICENSE). The plugin is
+  built on [CommonLibVR](https://github.com/alandtse/CommonLibVR), which is under the same license. It is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+- **Assets** (art, voices, dialogue, lore and other text) are separate works, not covered by the GPL: all rights
+  reserved with the permissions in [ASSETS.md](ASSETS.md).
 - **Third-party code and dependencies**: see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Author: urtubesrclogged (Nexus Mods, GitHub, Discord).

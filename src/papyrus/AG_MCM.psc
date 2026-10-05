@@ -1,3 +1,7 @@
+; Adventurers Guild - Copyright (C) 2026 urtubesrclogged
+; SPDX-License-Identifier: GPL-3.0-or-later (with the additional permissions in EXCEPTIONS.md). NO WARRANTY.
+; Source and license: https://github.com/urtubesrclogged/skyrim-adventurers-guild
+
 ScriptName AG_MCM Extends SKI_ConfigBase
 {The Adventurers Guild MCM, written on SkyUI's own API (SkyUI 5 / SkyUI VR) - no MCM Helper. MCM Helper 1.6+ needs
 SkyUI 6, which has no VR version, and every MCM Helper menu loses its pages there. Settings live in this script

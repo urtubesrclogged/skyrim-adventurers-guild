@@ -1,3 +1,7 @@
+; Adventurers Guild - Copyright (C) 2026 urtubesrclogged
+; SPDX-License-Identifier: GPL-3.0-or-later (with the additional permissions in EXCEPTIONS.md). NO WARRANTY.
+; Source and license: https://github.com/urtubesrclogged/skyrim-adventurers-guild
+
 ScriptName AG_SkyrimNetActions Extends Quest
 {SkyrimNet custom actions for the Adventurers Guild (external/adventurersguild.skyrimnet/actions/*.yaml). Attached to
 AG_GuildDialogueQuest. Each is called with the speaking NPC; AdventurersGuild.dll applies the same fees and checks as

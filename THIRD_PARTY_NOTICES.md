@@ -1,6 +1,7 @@
 # Third-party notices
 
-Adventurers Guild's own code is MIT-licensed (see LICENSE). It builds on the following work by others.
+Adventurers Guild's own code is licensed under the GNU GPL version 3 or later, with the additional permissions in
+EXCEPTIONS.md (see LICENSE). It builds on the following work by others.
 
 ## Included in this repository
 
@@ -13,14 +14,14 @@ Adventurers Guild's own code is MIT-licensed (see LICENSE). It builds on the fol
 
 | Project | Used by | License |
 |---|---|---|
-| [CommonLibVR / CommonLibSSE-NG](https://github.com/alandtse/CommonLibVR) (alandtse, ng branch) | SKSE plugin | MIT |
+| [CommonLibVR / CommonLibSSE-NG](https://github.com/alandtse/CommonLibVR) (alandtse, ng branch) | SKSE plugin (statically linked) | GPL-3.0-or-later WITH its Modding Exception and GPL-3.0 Linking Exception. This is why the plugin is GPL-3.0-or-later. |
 | [spdlog](https://github.com/gabime/spdlog) | SKSE plugin (logging) | MIT |
 | [fmt](https://github.com/fmtlib/fmt) | SKSE plugin | MIT |
 | [nlohmann/json](https://github.com/nlohmann/json) | SKSE plugin (config, co-save) | MIT |
 | [SimpleIni](https://github.com/brofield/simpleini) | SKSE plugin (INI) | MIT |
 | [xbyak](https://github.com/herumi/xbyak), [rapidcsv](https://github.com/d99kris/rapidcsv), [toml11](https://github.com/ToruNiina/toml11), [DirectXMath](https://github.com/microsoft/DirectXMath), [DirectXTK](https://github.com/microsoft/DirectXTK) | CommonLib dependencies (vcpkg) | BSD-3-Clause / MIT |
 | [OpenVR headers](https://github.com/ValveSoftware/openvr) (shipped with CommonLibVR) | SKSE plugin, VR keyboard | BSD-3-Clause |
-| [Mutagen](https://github.com/Mutagen-Modding/Mutagen) (`Mutagen.Bethesda.Skyrim`, `Mutagen.Bethesda.FormKeys.SkyrimSE`) | `tools/EspGen` (builds AdventurersGuild.esp) | GPL-3.0. EspGen's own source is MIT; a compiled EspGen binary, which links Mutagen, may only be distributed under GPL-3.0. The generated .esp is not covered. |
+| [Mutagen](https://github.com/Mutagen-Modding/Mutagen) (`Mutagen.Bethesda.Skyrim`, `Mutagen.Bethesda.FormKeys.SkyrimSE`) | `tools/EspGen` (builds AdventurersGuild.esp) | GPL-3.0. EspGen's own source is GPL-3.0-or-later like the rest of this repository. The generated .esp is not covered by Mutagen's license. |
 | [Caprica](https://github.com/Orvid/Caprica) | Papyrus compiler (build) | MIT |
 
 ## Runtime requirements (installed by the player, not redistributed)

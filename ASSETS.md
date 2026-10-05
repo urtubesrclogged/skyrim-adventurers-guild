@@ -1,6 +1,8 @@
 # Asset permissions
 
-The source code of Adventurers Guild is MIT-licensed (see LICENSE). Everything else in the mod is **not**: the art
+The source code of Adventurers Guild, and the compiled plugin built from it, are free software under the GNU GPL
+version 3 or later with the permissions in EXCEPTIONS.md (see LICENSE): you may modify and redistribute them under
+those terms. Everything else in the mod is **not**: the art
 (the guild crest, rank badges and UI textures), the voice files, and the written content (dialogue, lore, the
 knowledge pack, notices and descriptions). Copyright (c) 2026 urtubesrclogged. All rights reserved, except:
 

@@ -1,3 +1,7 @@
+; Adventurers Guild - Copyright (C) 2026 urtubesrclogged
+; SPDX-License-Identifier: GPL-3.0-or-later (with the additional permissions in EXCEPTIONS.md). NO WARRANTY.
+; Source and license: https://github.com/urtubesrclogged/skyrim-adventurers-guild
+
 Scriptname AG_SkyrimNet_Decorators
 {SkyrimNet decorator functions. Registered by AG_SkyrimNetInit; not attached to any form.}
 

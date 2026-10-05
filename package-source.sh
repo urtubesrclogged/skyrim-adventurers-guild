@@ -15,7 +15,7 @@ import fnmatch, os, re, sys, zipfile
 root, out = sys.argv[1], sys.argv[2]
 
 INCLUDE = [
-    "LICENSE", "README.md", "ASSETS.md", "THIRD_PARTY_NOTICES.md", ".gitignore", "local.env.example",
+    "LICENSE", "EXCEPTIONS.md", "README.md", "ASSETS.md", "THIRD_PARTY_NOTICES.md", ".gitignore", "local.env.example",
     "build.ps1", "deploy.sh", "package.sh", "package-source.sh",
     "src/plugin/CMakeLists.txt", "src/plugin/vcpkg.json", "src/plugin/src/*",
     "src/papyrus/*.psc", "src/papyrus/headers/*.psc",

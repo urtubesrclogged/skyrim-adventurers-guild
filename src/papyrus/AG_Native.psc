@@ -1,3 +1,7 @@
+; Adventurers Guild - Copyright (C) 2026 urtubesrclogged
+; SPDX-License-Identifier: GPL-3.0-or-later (with the additional permissions in EXCEPTIONS.md). NO WARRANTY.
+; Source and license: https://github.com/urtubesrclogged/skyrim-adventurers-guild
+
 ScriptName AG_Native Native Hidden
 {Native bridge to AdventurersGuild.dll (SKSE). Rank 0..5 = E..S, -1 = none / not registered.
 Guild rank = adventurers only (the player's is earned at the Guild). Threat rank = anything you fight.}

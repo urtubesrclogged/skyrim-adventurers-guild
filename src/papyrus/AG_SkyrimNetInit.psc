@@ -1,3 +1,7 @@
+; Adventurers Guild - Copyright (C) 2026 urtubesrclogged
+; SPDX-License-Identifier: GPL-3.0-or-later (with the additional permissions in EXCEPTIONS.md). NO WARRANTY.
+; Source and license: https://github.com/urtubesrclogged/skyrim-adventurers-guild
+
 ScriptName AG_SkyrimNetInit Extends ReferenceAlias
 {Optional SkyrimNet integration: registers the guild_rank_of / threat_rank_of decorators and turns guild
 registration, promotions and Deeds of Skyrim unlocks into remembered SkyrimNet events. Attached to
