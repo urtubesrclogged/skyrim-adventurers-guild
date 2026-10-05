@@ -1,0 +1,56 @@
+{
+	"_comment": "Adventurers Guild tuning. Rank index 0..5 = E..S. Live-reload in game: AG_Native.ReloadConfig (DevBench: call AG_Native ReloadConfig '[]').",
+
+	"registrationFee": 50,
+	"_promotionFee": "Gold the Guild charges to process a promotion (shown in the dialogue option).",
+	"promotionFee": 50,
+
+	"_promotion": "Promotion to rank N needs guild Reputation >= reputation[N] AND level >= minLevel[N]. Reputation is standing: earned from missives, dungeon reports and kills, never spent. minLevel matches the threat bands in AdventurersGuild.ini, so a rank-X adventurer is at least a rank-X threat. Apply at any innkeeper once eligible.",
+	"promotion": {
+		"reputation": [0, 100, 300, 700, 1500, 3000],
+		"minLevel":   [1, 12, 24, 36, 48, 60]
+	},
+
+	"_party": "Adventuring parties (docs/PARTIES.md). fee: gold to found a party at a counter. maxMembers: companions besides the player, at most 4 (a party is never more than 5, however many followers a follower mod allows). nameMaxLength: characters in a party name. bondTiers: the Bond (0-100, averaged over active members) at which Strangers, Companions, Comrades, Sworn and Legend start.",
+	"_partyBond": "Bond each member present gains (present = an active member who is alive, following you and loaded in the area with you; nothing grows with no member present). perFieldHour: per in-game hour in the field together (a jump bigger than maxTickHours between checks - waiting, sleeping, fast travel - is not field time). kill: per foe your side kills, by its threat rank E..S, x bigKill for dragons, giants and bosses, at most killDailyCap per member per day. dungeon / missive: per clear or completed missive, by rank E..S. Every gain shrinks as Bond rises: x (1 - bond / diminish), at least x0.2.",
+	"party": { "fee": 100, "maxMembers": 4, "nameMaxLength": 32, "bondTiers": [0, 15, 35, 60, 85],
+		"bond": { "perFieldHour": 0.06, "maxTickHours": 0.5, "kill": [0.05, 0.1, 0.2, 0.35, 0.5, 0.8], "bigKill": 3, "killDailyCap": 5,
+			"dungeon": [1, 1.5, 2, 3, 4, 5], "missive": [1, 1.5, 2.5, 4, 5, 6], "diminish": 150 },
+		"_renown": "How far the party's name travels (SkyrimNet: who has heard of it). Points: 3 per dungeon cleared and per missive, 5 per great beast or boss, 0.2 per kill, 1 per day in the field together. At renown[0] NPCs everywhere know the party's name ('talked about in the holds'); at renown[1] it is famous across Skyrim. Guild reps and the party's own members always know it.",
+		"renown": [15, 60] },
+
+	"_registrationCap": "Registration places an experienced newcomer by level (minLevel table above), never above this rank.",
+	"registrationCap": "C",
+
+	"_currencies": "Two currencies. Merit is spent on guild services (intel, Appraisal, training). Reputation is standing: promotion reads it and nothing spends it. Trophies pay Merit only (see trophies.json), kills Reputation only, missives and dungeon reports both. Rewards below your rank pay the same as at rank.",
+
+	"_missiveMerit": "Paid when a completed Missive's report is handed in, by the missive's rank.",
+	"missiveMerit": { "E": 5, "D": 10, "C": 15, "B": 25 },
+	"missiveRep":   { "E": 8, "D": 15, "C": 30, "B": 55 },
+	"_dungeonMerit": "Paid for reporting a cleared dungeon, by the dungeon's threat rank (once per dungeon per save, quest or not).",
+	"dungeonMerit": { "E": 5,  "D": 10, "C": 20, "B": 30, "A": 40,  "S": 50 },
+	"dungeonRep":   { "E": 10, "D": 20, "C": 40, "B": 70, "A": 110, "S": 170 },
+	"_dungeonGold": "Gold the Guild pays for the same report.",
+	"dungeonGold": { "E": 50, "D": 100, "C": 175, "B": 275, "A": 400, "S": 600 },
+	"_intelMerit": "Merit to buy a dungeon's location at the counter (Services > Intel), by its threat rank. Only dungeons at or below the player's guild rank are listed.",
+	"intelMerit": { "E": 5, "D": 8, "C": 12, "B": 18, "A": 25, "S": 35 },
+
+	"_kills": "Reputation credited the moment a hostile foe dies, by its threat rank (level band plus the creature adjustment in AdventurersGuild.ini [Threat]). Big game pays more, by the engine's race size class (mods set it for their creatures too): Large (centurions, cave bears, atronachs) largeMultiplier, Extra Large (dragons, giants, mammoths) extraLargeMultiplier. A foe placed as a dungeon Boss pays bossMultiplier. The highest multiplier applies, never the product. Your kill pays in full; a follower's or your summon's kill pays followerShare; if someone else (a guard, a bystander) finishes a foe your side hit in the last assistSeconds, that assist pays assistShare. Never paid twice. Summoned or reanimated foes pay nothing. Silent: no HUD line per kill.",
+	"kills": {
+		"reputation": { "E": 0.5, "D": 1, "C": 2, "B": 3, "A": 4, "S": 5 },
+		"bossMultiplier": 5,
+		"largeMultiplier": 2,
+		"extraLargeMultiplier": 5,
+		"followerShare": 0.5,
+		"assistShare": 0.5,
+		"assistSeconds": 30
+	},
+
+	"_appraisal": "Appraisal is a passive Guild skill bought at the counter. Without it no rank labels are shown. Index 0..2 = Appraisal I..III. sellBonus (percent, merchants pay you more) is baked into the ESP perks by tools/EspGen; trophyBonus (percent extra Merit on trophies) is applied by the DLL. Appraisal III also reveals hidden ranks.",
+	"appraisal": {
+		"merit":       [10, 75, 250],
+		"rank":        [0, 1, 3],
+		"sellBonus":   [0, 5, 10],
+		"trophyBonus": [0, 25, 50]
+	}
+}

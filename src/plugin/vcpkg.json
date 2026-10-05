@@ -1,0 +1,15 @@
+{
+  "name": "adventurers-guild",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "directxmath",
+    "directxtk",
+    "fmt",
+    "nlohmann-json",
+    "rapidcsv",
+    "simpleini",
+    "spdlog",
+    "toml11",
+    "xbyak"
+  ]
+}

@@ -1,0 +1,304 @@
+{
+  "skyrimnet_knowledge_pack": {
+    "format_version": 3,
+    "name": "Adventurers Guild",
+    "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
+    "version": "1.7.0",
+    "entries": [
+      {
+        "key": "ag_basics",
+        "display_name": "The Adventurers Guild",
+        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. In Skyrim it has no guildhall: its members gather at the Guild counter in the inn of each hold capital, where the innkeeper signs up newcomers, buys the trophies of a good hunt and hears cases for promotion, and the Guild's jobs, the Guild Missives, go up on the hold's missive board.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_reputation",
+        "display_name": "How folk see Guild adventurers",
+        "content": "Most folk are glad to see an Adventurers Guild adventurer. They clear the bandits off the roads, the trolls off the passes and the draugr out of the barrows when the Jarl's guards cannot, and a ranked adventurer rarely pays for their own drink in a grateful town. Bards sing of the great ranks, children play at being S-rank heroes, and a high rank letter turns heads.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers",
+          "reputation"
+        ]
+      },
+      {
+        "key": "ag_counters",
+        "display_name": "Where the Guild keeps its counters",
+        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlelight Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. There is no counter on Solstheim.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "inns",
+          "counters"
+        ]
+      },
+      {
+        "key": "ag_ranks",
+        "display_name": "What a Guild rank means",
+        "content": "An Adventurers Guild rank is a badge of honour earned by deeds, never bought: missives finished, dungeons cleared, great beasts slain. E and D are adventurers making their start; C are seasoned hands; B and A are veterans whose names travel from hold to hold; S, for Sealed, marks a living legend whose deeds the Guild's Registrar-General sealed personally. There have never been many, and hardly one is left in Skyrim.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "ranks"
+        ]
+      },
+      {
+        "key": "ag_missives",
+        "display_name": "Guild Missives",
+        "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. An adventurer may take missives up to their own rank, and each one done is reported at a Guild counter for gold and standing.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "missives",
+          "jobs"
+        ]
+      },
+      {
+        "key": "ag_dwindling",
+        "display_name": "Why so few adventurers remain",
+        "content": "Skyrim has few adventurers left, and not for want of work: the roads, barrows and caves are as dangerous as ever. The losses came in waves. Many of the Adventurers Guild's registered members died fighting the Aldmeri Dominion in the Great War, when the Legion called them up as auxiliaries. More were lost or set aside in the civil war. And since the Thalmor got hold of the Guild's ledgers, adventurers on its books keep disappearing. Underneath it all, the Guild always had an uphill fight in Skyrim, against the Companions and without halls of its own.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.9,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "war",
+          "history",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_rumor_thalmor",
+        "display_name": "The disappearances",
+        "content": "People whisper that adventurers registered with the Adventurers Guild keep vanishing, and that the Thalmor are behind it.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "thalmor",
+          "rumor"
+        ]
+      },
+      {
+        "key": "ag_founding",
+        "display_name": "The Guild's founding",
+        "content": "The Adventurers Guild was chartered in the Imperial City in 4E 170 by Emperor Titus Mede II. Its heart is the Wayfarers' Hall in the Market District, where the Registrar-General seals the names of legends.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "history",
+          "cyrodiil"
+        ]
+      },
+      {
+        "key": "ag_history",
+        "display_name": "History of the Adventurers Guild",
+        "content": "Emperor Titus Mede II chartered the Adventurers Guild in 4E 170, two years after his coronation, to turn the Empire's roving swords to good use: hunting the monsters and bandits the Legion could not reach, and standing ready when the Empire called. It took up the freelance work of the old Fighters Guild, but opened its doors to anyone with courage, man or mer, and let them rise by their deeds alone. From the Wayfarers' Hall in the Imperial City its Registrar-General ranks adventurers and seals the names of legends. In the Great War the Legion called up the Guild's adventurers as auxiliaries, and many died heroes at the Imperial City and the Red Ring; Skyrim sent more than its share.",
+        "condition_expr": "is_in_faction(actorUUID, \"CollegeofWinterholdFaction\") or is_in_faction(actorUUID, \"BardSingerFaction\") or is_in_faction(actorUUID, \"JobJarlFaction\") or is_in_faction(actorUUID, \"JobStewardFaction\")",
+        "always_inject": false,
+        "importance": 0.7,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "history",
+          "cyrodiil",
+          "great war"
+        ]
+      },
+      {
+        "key": "ag_compromise",
+        "display_name": "Why the Guild has no halls in Skyrim",
+        "content": "When the Adventurers Guild came to Skyrim, within a few years of its charter, the Jarls would grant no land to an Imperial-chartered guild and the Companions claimed Skyrim's glory as their own. High King Istlod brokered a compromise: the Guild may keep a counter in the inn of each hold capital and nothing more, no halls and no officers with authority in a hold, which is why Skyrim has no Guild Masters. It suited the adventurers well enough: the Guild lives where the ale, the stories and the work are. The innkeepers serve as its reps, signing up newcomers and hearing cases for promotion, and the Guild's jobs go up on the Jarls' missive boards.",
+        "condition_expr": "is_in_faction(actorUUID, \"CollegeofWinterholdFaction\") or is_in_faction(actorUUID, \"BardSingerFaction\") or is_in_faction(actorUUID, \"JobJarlFaction\") or is_in_faction(actorUUID, \"JobStewardFaction\") or is_in_faction(actorUUID, \"JobInnkeeperFaction\") or is_in_faction(actorUUID, \"CompanionsFaction\")",
+        "always_inject": false,
+        "importance": 0.7,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "history",
+          "jarls"
+        ]
+      },
+      {
+        "key": "ag_ledgers",
+        "display_name": "What the Thalmor did with the Guild's registers",
+        "content": "Every adventurer's name and deeds go by courier to the Wayfarers' Hall in the Imperial City. Under the White-Gold Concordat the Thalmor demanded copies of the Guild's registers, to find Talos worshippers among the armed population; the Registrar-General protested and was overruled, and the Justiciars still get updates. Since then adventurers on the books have been vanishing, often veterans who fought the Dominion. Nobody can prove the Thalmor are behind it, but most in the Guild believe it. The Guild cannot openly defy them, so it looks after its own quietly: the reps write down less than they used to, some adventurers sign on under road names, and an innkeeper will warn a newcomer, over a drink, what not to say where a Justiciar can hear. The Guild's official line is that it has no quarrel with the Aldmeri Dominion.",
+        "condition_expr": "is_in_faction(actorUUID, \"JobInnkeeperFaction\")",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "thalmor",
+          "ledgers",
+          "secret"
+        ]
+      },
+      {
+        "key": "ag_companions",
+        "display_name": "The Companions and the Adventurers Guild",
+        "content": "The Adventurers Guild is the Companions' friendly rival for work and glory in Skyrim. Two proud traditions: the Companions have Jorrvaskr, the honour of Ysgramor's line and a Circle that chooses its own; the Guild takes anyone with courage and lets them rise by their deeds. There is real respect between them, and many a Companion has shared a drink and a hunt with Guild adventurers, but the Companions still hold themselves the finer warriors, and say so.",
+        "condition_expr": "is_in_faction(actorUUID, \"CompanionsFaction\")",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "companions"
+        ]
+      },
+      {
+        "key": "ag_oath",
+        "display_name": "The Guild's Neutrality Oath",
+        "content": "The Adventurers Guild swears its members to a Neutrality Oath in the civil war: it posts no war contracts, and a member who takes up Legion or Stormcloak colours, or a guard's post, is recorded as set aside. That is why so many guards and soldiers are retired adventurers who still carry an old rank. Since 4E 201 the Guild's membership in Skyrim has halved.",
+        "condition_expr": "is_in_faction(actorUUID, \"GuardDialogueFaction\") or is_in_faction(actorUUID, \"CWImperialFaction\") or is_in_faction(actorUUID, \"CWSonsFaction\")",
+        "always_inject": false,
+        "importance": 0.7,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "civil war",
+          "oath"
+        ]
+      },
+      {
+        "key": "ag_stormcloak",
+        "display_name": "A Stormcloak's view of the Guild",
+        "content": "To a Stormcloak the Adventurers Guild is an Imperial instrument: its charter comes from the Emperor who signed the White-Gold Concordat, and its registers ended up in Thalmor hands, which only proves the Empire sells Nords to the elves. Ulfric tolerates the Guild's counter at Candlelight Hall because trolls care nothing for politics.",
+        "condition_expr": "is_in_faction(actorUUID, \"CWSonsFaction\")",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "stormcloaks",
+          "empire"
+        ]
+      },
+      {
+        "key": "ag_imperial",
+        "display_name": "The Legion's view of the Guild",
+        "content": "The Legion remembers that the Adventurers Guild's registered adventurers fought beside it as auxiliaries in the Great War, and many died at the Imperial City and the Red Ring. Officers respect the Guild but resent its Neutrality Oath now that the Legion needs every sword against the Stormcloaks.",
+        "condition_expr": "is_in_faction(actorUUID, \"CWImperialFaction\")",
+        "always_inject": false,
+        "importance": 0.7,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "legion",
+          "great war"
+        ]
+      },
+      {
+        "key": "ag_thalmor",
+        "display_name": "What the Thalmor know of the Guild",
+        "content": "Under the White-Gold Concordat the Thalmor hold copies of the Adventurers Guild's registers, a convenient list of armed Nords and veterans who once fought the Dominion. The Guild's quiet suspicion of the Thalmor is well known to you, and faintly amusing: it can do nothing about it.",
+        "condition_expr": "is_in_faction(actorUUID, \"ThalmorFaction\")",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "thalmor",
+          "ledgers"
+        ]
+      },
+      {
+        "key": "ag_solstheim",
+        "display_name": "The Guild on Solstheim",
+        "content": "The Adventurers Guild keeps no counter on Solstheim. House Redoran lets its members work on the island but does not recognise their ranks, and the Skaal judge a warrior by deeds, not by any mainland rank letter.",
+        "condition_expr": "is_in_faction(actorUUID, \"DLC2RavenRockGuardFaction\") or is_in_faction(actorUUID, \"DLC2SkaalVillageCitizenFaction\")",
+        "always_inject": false,
+        "importance": 0.7,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "solstheim"
+        ]
+      },
+      {
+        "key": "ag_parties",
+        "display_name": "Adventuring parties",
+        "content": "Adventurers of the Adventurers Guild often band together as a party, registered at an Adventurers Guild counter under a name of their own choosing. The Adventurers Guild writes each party into its ledger: who marched with it, who left, and who fell. A party shares its road, its dangers and its glory, and a good party name is worn with pride, shouted in a tavern toast and painted on a shield.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "party",
+          "parties",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_party_bond",
+        "display_name": "A party's bond",
+        "content": "Adventurers speak of a party's bond: how well its members fight as one. A new party are Strangers; with shared fights they become Companions, then Comrades; the tried and true are Sworn; and a very few become Legend. Bond cannot be bought or ordered. It is earned only on the road together, fights shared, barrows cleared and missives done side by side, and a party with a deep bond fights with a strength no lone adventurer has.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "party",
+          "bond",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_party_fame",
+        "display_name": "Famous parties",
+        "content": "In the inns, folk trade tales of adventuring parties the way they trade tales of heroes. A party's name starts to travel once it has cleared enough barrows and hunted enough great beasts, and the most famous are recognised on sight in every hold, their deeds sung by bards.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "party",
+          "fame",
+          "taverns"
+        ]
+      },
+      {
+        "key": "ag_party_fallen",
+        "display_name": "Remembering the fallen",
+        "content": "When a party member falls, the Adventurers Guild keeps their name in its ledger with the place they fell. Adventurers raise a cup to them at the counter, and a party carries its fallen in its stories.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.3,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "party",
+          "fallen",
+          "memorial"
+        ]
+      }
+    ]
+  }
+}

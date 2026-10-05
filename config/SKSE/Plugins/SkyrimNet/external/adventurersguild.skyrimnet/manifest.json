@@ -1,0 +1,30 @@
+{
+  "id": "adventurersguild.skyrimnet",
+  "type": "bundle",
+  "title": "Adventurers Guild",
+  "tagline": "SkyrimNet knowledge of the Adventurers Guild: its lore, its ranks, and your place in its ledger.",
+  "description": "Ships with the Adventurers Guild mod (AdventurersGuild.esp).\n\nNPCs know the Guild's history and its troubles in Skyrim, each according to who they are: innkeepers who keep a Guild counter read your page of the ledger (rank, Reputation, reports waiting, how far you are from promotion); Companions, guards, soldiers, scholars and the Thalmor each know their side of the story. Guild ranks show on adventurers' bios, and your missives, dungeon clears and great kills become remembered events.\n\nCONTENTS\nknowledge/adventurers_guild_lore.sknpack  - the Guild's lore, targeted by faction\nprompts/submodules/character_bio/0026_guild_rank.prompt  - guild rank, retired status, liaison duties and the player's ledger\nprompts/submodules/guidelines/0511_guild_guidelines.prompt  - how ranks and the Guild work, for every NPC\n\nThe decorators (guild_rank_of, threat_rank_of, ag_player) and events come from AdventurersGuild.dll / AG_SkyrimNetInit.",
+  "author": "adventurersguild",
+  "tags": [
+    "adventurers guild",
+    "guild",
+    "ranks",
+    "lore",
+    "knowledge"
+  ],
+  "nsfw": false,
+  "icon": "scroll",
+  "mods": [
+    {
+      "name": "Adventurers Guild",
+      "file": "adventurersguild.esp",
+      "required": true
+    }
+  ],
+  "languages": [
+    "en"
+  ],
+  "version": "1.7.0",
+  "changelog": "First content-library release: lore knowledge pack, player ledger for liaisons, remembered guild events.",
+  "min_skyrimnet_version": "0.25.0"
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guild Notice</title>
+<!--
+  Adventurers Guild toast: a parchment notice that unrolls beneath the carved guild emblem (registration,
+  promotion, missive turn-ins). Non-interactive, plays over live gameplay. Same visual language as
+  the guild counter (tex/ is shared). Entry point: window.rkFlourish({title, subtitle}).
+  Timeline: 0.3s fade-in (0.5s unroll), hold d.hold seconds (MCM "Notice duration", default 5), 0.5s fade-out.
+  PrismaToast.cpp hides the view shortly after.
+-->
+<style>
+  :root { --serif: "Palatino Linotype", "Book Antiqua", Palatino, Constantia, Georgia, serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; font-family: var(--serif); }
+  #notice { position: fixed; top: 13%; left: 50%; width: 620px; margin-left: -310px; opacity: 0; }
+  .scroll { position: relative; padding: 30px 60px 26px 150px; min-height: 130px;
+            background: url(tex/parchment.png), #d8c9a2; color: #3a2c1b;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), inset 0 0 40px rgba(110, 80, 40, 0.5);
+            border-top: 3px solid #5b4a33; border-bottom: 3px solid #5b4a33; transform-origin: 50% 0; }
+  .rod { position: absolute; left: -14px; right: -14px; height: 14px; border-radius: 7px;
+         background: linear-gradient(#6a5436, #3b2d1c); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); }
+  .rod.top { top: -10px; } .rod.bottom { bottom: -10px; }
+  .seal { position: absolute; left: 36px; top: 50%; height: 118px; width: 100px; object-fit: contain; margin-top: -59px; }
+  #title { font-size: 34px; font-variant: small-caps; letter-spacing: 0.08em; line-height: 1.1; color: #3a2616; }
+  #sub { font-size: 20px; font-style: italic; color: #6e5a40; margin-top: 8px; }
+  .rule { height: 1px; background: rgba(80, 60, 30, 0.4); margin-top: 10px; }
+
+  #notice.play .scroll { animation: unroll 0.55s cubic-bezier(.2, .8, .2, 1) both; }
+  #notice.play .seal { animation: stamp 0.45s cubic-bezier(.3, 1.6, .5, 1) 0.4s both; }
+  @keyframes unroll { 0% { transform: scaleY(0.05); } 100% { transform: scaleY(1); } }
+  @keyframes stamp { 0% { transform: scale(1.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+</style>
+</head>
+<body>
+<div id="notice">
+  <div class="scroll">
+    <div class="rod top"></div>
+    <img class="seal" src="tex/emblem.png" alt="" />
+    <div id="title"></div>
+    <div class="rule"></div>
+    <div id="sub"></div>
+    <div class="rod bottom"></div>
+  </div>
+</div>
+<script>
+"use strict";
+window.rkFlourish = (json) => {
+  let d = json;
+  try { if (typeof json === "string") d = JSON.parse(json); } catch (e) { return; }
+  const n = document.getElementById("notice");
+  document.getElementById("title").textContent = d.title || "";
+  document.getElementById("sub").textContent = d.subtitle || "";
+  const seal = document.querySelector("#notice .seal");
+  seal.src = d.seal || "tex/emblem.png";   // a rank plaque (dungeon threat, promotion) or the guild emblem
+  n.classList.remove("play");
+  void n.offsetWidth;  // restart the animation
+  n.classList.add("play");
+  const hold = Math.max(1, Number(d.hold) || 5), total = hold + 0.8;
+  if (n._life) n._life.cancel();
+  // Linear overall timeline: easing belongs to each fade only. (An overall "ease" stretched the fades and ate
+  // into the hold - the notice felt no longer than before.) 0.3 s in, `hold` s fully visible, 0.5 s out.
+  n._life = n.animate([{ opacity: 0, easing: "ease-out" }, { opacity: 1, offset: 0.3 / total }, { opacity: 1, offset: (0.3 + hold) / total, easing: "ease-in" }, { opacity: 0 }],
+                      { duration: total * 1000, easing: "linear", fill: "forwards" });
+};
+</script>
+</body>
+</html>

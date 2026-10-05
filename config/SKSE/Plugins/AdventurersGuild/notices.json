@@ -1,0 +1,33 @@
+{
+	"_comment": "The Notice Board SE (notice board.esp, MannyGT) - optional. Read only when that plugin is loaded; nothing of it is overridden (src/plugin/src/NoticeWatch.h). The mod has no difficulty tiers, so each quest's guild rank is set here: change 'rank' (E D C B A S) to taste. done: the stage that completes the quest. noteAlias / note: the alias and book of the notice on the board ('' / absent: this quest posts none). gate: true puts 'guild rank >= rank' on the quest so the boards do not post it below that rank. Only quests the boards start themselves are gated (a failed start is retried next time a board loads); the others start on their own, two of them once only, so they are labelled and counted but open to every rank. A gated notice that is posted above your rank but not yet taken is taken down; nothing you have taken is ever taken back.",
+	"plugin": "notice board.esp",
+	"rankGlobal": "0x000800",
+	"boardActivator": "0x003E10",
+	"boardContainerRef": "0x003E1E",
+	"questList": "0x0063F5",
+	"quests": [
+		{ "formId": "0x002300", "name": "Gather Ingredients",              "rank": "E", "done": 30,  "gate": true,  "noteAlias": "Note",   "note": "0x002303" },
+		{ "formId": "0x003895", "name": "Collect Blacksmithing Materials", "rank": "E", "done": 30,  "gate": true,  "noteAlias": "Note",   "note": "0x003896" },
+		{ "formId": "0x006959", "name": "Gather Pelts",                    "rank": "E", "done": 30,  "gate": true,  "noteAlias": "Note",   "note": "0x00695B" },
+		{ "formId": "0x005E88", "name": "Item Delivery",                   "rank": "E", "done": 30,  "gate": true,  "noteAlias": "Note",   "note": "0x005E89" },
+		{ "formId": "0x00CB3A", "name": "Discovery",                       "rank": "E", "done": 20,  "gate": true,  "noteAlias": "Note",   "note": "0x00CB3B" },
+		{ "formId": "0x0048E7", "name": "Book Collecting",                 "rank": "E", "done": 30,  "gate": false, "noteAlias": "Note",   "note": "0x0048F5" },
+
+		{ "formId": "0x000D62", "name": "Retrieve Item",                   "rank": "D", "done": 30,  "gate": true,  "noteAlias": "Note",   "note": "0x001D92" },
+		{ "formId": "0x006EC6", "name": "Armor Retrieving",                "rank": "D", "done": 20,  "gate": false, "noteAlias": "Note",   "note": "0x0079C1" },
+		{ "formId": "0x0089F9", "name": "Bounty Bandits",                  "rank": "D", "done": 200, "gate": true,  "noteAlias": "Letter", "note": "0x0089FE" },
+		{ "formId": "0x017DAE", "name": "Slay the Beast",                  "rank": "D", "done": 200, "gate": true,  "noteAlias": "Letter", "note": "0x017DAD" },
+
+		{ "formId": "0x029C7F", "name": "Slay the Undead",                 "rank": "C", "done": 200, "gate": true,  "noteAlias": "Letter", "note": "0x029C84" },
+		{ "formId": "0x00AFFB", "name": "Bounty Forsworn",                 "rank": "C", "done": 200, "gate": true,  "noteAlias": "Letter", "note": "0x00B000" },
+		{ "formId": "0x0089EE", "name": "Rescue a Citizen",                "rank": "C", "done": 100, "gate": true,  "noteAlias": "Letter", "note": "0x0089EF" },
+		{ "formId": "0x01831A", "name": "Escaped Criminal",                "rank": "C", "done": 200, "gate": false, "noteAlias": "Letter", "note": "0x018317" },
+		{ "formId": "0x00C5CD", "name": "Dwemer Technology",               "rank": "C", "done": 30,  "gate": false, "noteAlias": "Note",   "note": "0x00C5D1" },
+
+		{ "formId": "0x00B001", "name": "Bounty Giant",                    "rank": "B", "done": 200, "gate": true,  "noteAlias": "Letter", "note": "0x00B002" },
+		{ "formId": "0x0250DF", "name": "Investigation",                   "rank": "B", "done": 100, "gate": true,  "noteAlias": "QuestNote", "note": "0x0250E0" },
+		{ "formId": "0x00B5A3", "name": "Help the Mercenary",              "rank": "B", "done": 60,  "gate": true,  "noteAlias": "" },
+
+		{ "formId": "0x00B007", "name": "Bounty Dragon",                   "rank": "A", "done": 200, "gate": true,  "noteAlias": "Letter", "note": "0x00B00C" }
+	]
+}

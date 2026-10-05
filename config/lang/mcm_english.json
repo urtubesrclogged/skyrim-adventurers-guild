@@ -1,0 +1,23 @@
+{
+ "$AG_MCM_ModName": "Adventurers Guild",
+ "$AG_MCM_System": "System",
+ "$AG_MCM_System_Labels_Header": "Rank labels",
+ "$AG_MCM_System_bShowLabels_Text": "Show rank labels",
+ "$AG_MCM_System_bShowLabels_Help": "One switch for every rank label: an adventurer's guild rank after their name, e.g. \"Lydia (C)\"; the threat rank on an enemy's health bar, e.g. \"[C]\"; and your own rank beside your level in the menus. Other people's ranks need the Guild's Appraisal skill (Services at a counter). Default: on.",
+ "$AG_MCM_System_Notices_Header": "Guild notices",
+ "$AG_MCM_System_bShowNotices_Text": "Show guild notices",
+ "$AG_MCM_System_bShowNotices_Help": "The parchment notice for registration, promotion, promotion ready, a completed missive, and entering or clearing a dungeon. Default: on.",
+ "$AG_MCM_System_fNoticeSeconds_Text": "Notice duration",
+ "$AG_MCM_System_fNoticeSeconds_Help": "How many seconds a guild notice stays on screen, plus a brief fade in and out. Default: 5.",
+ "$AG_MCM_Debug": "Debug",
+ "$AG_MCM_Debug_Log_Header": "Troubleshooting",
+ "$AG_MCM_Debug_bDetailedLog_Text": "Detailed log",
+ "$AG_MCM_Debug_bDetailedLog_Help": "Adds each kill and each Guild counter action to AdventurersGuild.log (Documents/My Games/your Skyrim/SKSE). When reporting a problem: turn this on, reproduce the problem, then send that file before starting the game again. Default: off.",
+ "$AG_MCM_Debug_Uninstall_Header": "Uninstalling Adventurers Guild",
+ "$AG_MCM_Debug_Prepare_Text": "Prepare to Uninstall",
+ "$AG_MCM_Debug_Prepare_Help": "Takes back every Guild ability, perk and party bonus from you and your companions, removes Guild items and stops the Guild's quests, so no stat changes stay in your save. Then save, quit and remove the mod.",
+ "$AG_MCM_Debug_Cancel_Text": "Cancel Uninstall",
+ "$AG_MCM_Debug_Cancel_Help": "Changed your mind? Restores your Guild abilities, party bonuses and the Guild's quests. Your Guild record was never touched.",
+ "$AG_MCM_Debug_Yes": "Prepare",
+ "$AG_MCM_Debug_No": "Cancel"
+}

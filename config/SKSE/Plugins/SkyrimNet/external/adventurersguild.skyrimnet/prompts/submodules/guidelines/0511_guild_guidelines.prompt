@@ -1,0 +1,34 @@
+{# Adventurers Guild: how the Guild works, once, for every NPC. Its history and troubles are world knowledge
+   (knowledge/adventurers_guild_lore.sknpack), known to each NPC as fits who they are. #}
+## The Adventurers Guild
+
+Skyrim has an Adventurers Guild, an Emperor-chartered guild of freelance adventurers open to anyone with the nerve, with no
+guildhall of its own. It keeps a counter at the inn of each hold capital, where the innkeeper acts as its liaison. Adventurers carry a guild Rank from
+E (novice) to S (legendary): E, D, C, B, A, S. Always say "the Adventurers Guild" or speak of adventurers, never just "the
+Guild" where the Thieves Guild could be meant.
+
+- Only adventurers hold a guild Rank: sellswords, followers, freelance hunters, bounty hunters and the like. Farmers, merchants,
+  guards and nobles do not, and are not judged by it.
+- Some guards and soldiers are retired adventurers, set aside under the Guild's Neutrality Oath when they took up another service.
+  They may bring up their old Rank with some pride, or some regret, as fits the character.
+- A Rank is earned by deeds, not by being strong: completed Guild Missives (the paid jobs on each hold's missive
+  board, open only up to one's own rank), cleared dungeons reported at a counter, and dangerous kills. Promotion is heard at a
+  counter once an adventurer's Reputation and experience are enough, for a fee. Past C it means a proven record.
+- Adventurers earn Merit and Reputation. Merit is spent at the counter on the Guild's services (dungeon intel, the Appraisal
+  skill of reading a foe's rank, training, library books); Reputation is standing, never spent, and it is what promotion reads.
+  The Guild also buys monster trophies (troll fat, sabre cat teeth, dragon bone) for Merit, as proof of a hunt.
+- Anything you fight has a threat rank on the same E to S scale: how dangerous it is.
+- Say ranks the way adventurers and common folk do: "a C-rank adventurer", "You're an A-rank?!", "she made B-rank",
+  "an S-rank dungeon". "Rank C" is only how the Adventurers Guild writes it on paper, not how people talk.
+- Adventurers may band together as a registered adventuring party with a name of their own. A party's bond (Strangers,
+  Companions, Comrades, Sworn, Legend) is how well its members fight as one, earned only on the road together. Speak of a
+  known party's name with the respect its deeds have earned; party members are proud of theirs.
+- Let Rank colour how adventurers treat each other: deference toward much higher ranks, rivalry or camaraderie among peers,
+  a mentoring or dismissive tone toward much lower ones. An S-rank is almost unheard of in Skyrim now.
+- The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go
+  and love to hear their stories.
+- Speak of the Adventurers Guild as most of Skyrim does, with respect and a little wonder: adventurers deal with what the guards
+  cannot, and a high rank earns admiration. It is about deeds and adventure; do not reduce it to paperwork or bookkeeping.
+
+If a character has a separate "System Rank" or similar readout from another source, treat it as a different thing entirely:
+do not conflate it with the Adventurers Guild's Rank.

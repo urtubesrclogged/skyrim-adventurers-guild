@@ -1,0 +1,5 @@
+# keep line endings as authored: bash scripts must stay LF
+* -text
+*.sh text eol=lf
+# UTF-16 translation file: never touch its bytes
+config/Interface/Translations/*.txt binary

@@ -1,0 +1,332 @@
+{
+ "_comment": "All Adventurers Guild innkeeper dialogue. tools/EspGen turns this into dialogue records (INFO FormIDs are pinned in dialogue.ids.json, which voice files are named after - never renumber). The voice pipeline reads the same file. Keep lines short: they will be voiced.",
+ "_liaisons": "The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed).",
+ "liaisons": [
+  {
+   "npc": "Hulda",
+   "city": "Whiterun",
+   "inn": "the Bannered Mare",
+   "register": "Welcome to the Adventurers Guild! Here's your guild card. The Companions will sneer, but the Guild pays on time, and the work's never dull.",
+   "business": "Guild business? Pull up a stool. Saadia, mind the bar.",
+   "promoteAsk": "Let's see what the ledger says about you. Well, well! You've earned your next rank. There's just the Guild's fee to make it official.",
+   "promote": "Congratulations! I've updated your guild card. The first round's on you tonight.",
+   "about": [
+    "Whiterun sits at the crossroads of Skyrim, so every job in the hold comes through my door first.",
+    "Giants on the plains, bandits on the roads. There's never a shortage of work for a steady blade.",
+    "The Guild's thinner than it was. The Great War took good people, the civil war took more. We could use new blood."
+   ],
+   "registerAsk": "Looking to join the Adventurers Guild? Good, we could use new blood. There's a small fee to put your name down, that's all.",
+   "businessByRank": {
+    "C": "Back again? Word's getting around about you. Pull up a stool.",
+    "B": "One of my best, back at my counter. Saadia, a mead for our veteran.",
+    "A": "An A-rank adventurer at my counter. Saadia, the good mead, and it's on the house.",
+    "S": "An S-rank at the Bannered Mare. Whiterun will talk about this for a year. What can I do for you?"
+   }
+  },
+  {
+   "npc": "CorpulusVinius",
+   "city": "Solitude",
+   "inn": "the Winking Skeever",
+   "register": "Welcome to the Adventurers Guild! Here's your guild card. Solitude's never short of work, and now you're first in line.",
+   "business": "Ah, an adventurer with business. My favourite kind of customer. Let's have your card.",
+   "promoteAsk": "Promotion, is it? The ledger agrees, and I'm glad of it. Settle the Guild's fee and I'll draw up the papers.",
+   "promote": "Congratulations. Your guild card is updated, and Solitude will hear of it by supper.",
+   "about": [
+    "The Guild's busiest counter is right here in the capital. Merchants, nobles, even the Blue Palace post work.",
+    "Mind the Thalmor on the docks, though. They don't care for anyone asking questions.",
+    "Adventurers keep going missing these days. Keep your head down around the Embassy, if you take my meaning."
+   ],
+   "registerAsk": "An adventurer wanting to sign on? Splendid! Solitude always has work for a capable blade. The Guild asks a small fee to join.",
+   "businessByRank": {
+    "C": "Ah, our rising star. Solitude's merchants have started asking for you by name.",
+    "B": "A veteran at my counter! The Blue Palace's steward asked after you, you know. Your card?",
+    "A": "Our A-rank! Half of Solitude wants to hire you and the other half wants to meet you. Your card?",
+    "S": "An S-rank in the Winking Skeever. I'll have Sorex frame your signature. What do you need?"
+   }
+  },
+  {
+   "npc": "Elda",
+   "city": "Windhelm",
+   "inn": "Candlelight Hall",
+   "register": "There. Your name's in the book and the guild card's yours. Don't make me regret it.",
+   "business": "Candlelight Hall keeps the Guild's counter, and honest folk keep Candlelight Hall. What do you need?",
+   "promoteAsk": "Let me look. Hm, you've earned it, I'll grant you that. Pay the fee and it's done.",
+   "promote": "There, your guild card says so now. Don't let it go to your head.",
+   "about": [
+    "Eastmarch is cold and the roads are worse. There's always a trollslayer wanted somewhere.",
+    "Keep your wits about you in the Grey Quarter. Guild work doesn't pay if you're dead in an alley.",
+    "Half the adventurers who drank here went off to one war or another. Fewer came back than I'd like."
+   ],
+   "registerAsk": "Joining the Guild, are you? Hm, you look like you can hold a blade. Pay the fee and we'll see.",
+   "businessByRank": {
+    "C": "You again. You've kept yourself alive, I'll give you that. What do you need?",
+    "B": "Well. Even I've heard your name in Windhelm. Sit. What is it?",
+    "A": "They're calling you one of Skyrim's finest in Windhelm. Don't let it go to your head. What is it?",
+    "S": "An S-rank. In Candlelight Hall. Don't let it go to your head. What do you need?"
+   }
+  },
+  {
+   "npc": "Keerava",
+   "city": "Riften",
+   "inn": "the Bee and Barb",
+   "register": "Welcome to the Guild. Here's your card. Keep your hands out of other people's pockets and you'll do fine.",
+   "business": "Guild business. Good. At least one guild in Riften does its work in the open.",
+   "promoteAsk": "Talen, bring me the ledger. Well. You've been busy, and the Guild noticed. The fee, and the rank is yours.",
+   "promote": "Congratulations. Your guild card's updated. Try to stay alive long enough to enjoy it.",
+   "about": [
+    "The Rift's got more bandits than honest folk, and the Black-Briars like it that way.",
+    "If a missive looks too easy in Riften, read it twice. Someone's usually getting paid to look away.",
+    "Adventurers have been vanishing since the war. Nobody says who's doing it. Everybody knows."
+   ],
+   "registerAsk": "You want to join the Adventurers Guild? Good. Riften needs honest blades more than most. There's a fee, of course.",
+   "businessByRank": {
+    "C": "Back in one piece. That's more than most manage. What's the business?",
+    "B": "Our veteran. Talen, keep the good stuff behind the bar for this one. What do you need?",
+    "A": "An A-rank in Riften. Even the Thieves Guild knows better than to pick your pockets. Business?",
+    "S": "An S-rank in the Bee and Barb. Even the Black-Briars will mind their manners. Business?"
+   }
+  },
+  {
+   "npc": "Kleppr",
+   "city": "Markarth",
+   "inn": "the Silver-Blood Inn",
+   "register": "Welcome to the Guild. Your card, friend. Mind the Silver-Bloods, they own this inn and the Guild's rent too.",
+   "business": "Guild business, yes. Quickly now, before someone important walks in.",
+   "promoteAsk": "Let me check the ledger. You've earned your next rank, friend. Pay the fee and we'll make it official, quietly.",
+   "promote": "Congratulations. Your guild card's updated. Wear the new rank carefully in this city.",
+   "about": [
+    "The Reach is Forsworn country. The Guild pays well out here, because not everyone comes back.",
+    "Anything you hear in Markarth, the Silver-Bloods heard first. Remember that.",
+    "We lost a lot of good adventurers to the wars. The ones left are the stubborn kind. That's the kind I like."
+   ],
+   "registerAsk": "Joining the Guild? Welcome, friend. Quietly now, this is the Silver-Bloods' inn. There's a small fee to sign on.",
+   "businessByRank": {
+    "C": "You're making a name for yourself, friend. Carefully, now. What is it?",
+    "B": "A veteran. The Silver-Bloods have noticed you. Let's keep this quiet.",
+    "A": "One of the Guild's finest, in Markarth. The Silver-Bloods are nervous. I rather like it. What is it?",
+    "S": "An S-rank, here. Thonar himself asked if you'd drink with him. Business first?"
+   }
+  },
+  {
+   "npc": "ValgaVinicia",
+   "city": "Falkreath",
+   "inn": "the Dead Man's Drink",
+   "register": "Welcome to the Guild. Here's your card. Falkreath has more graves than guests, so try not to add to them.",
+   "business": "Guild business. Good. Better you than the undertaker.",
+   "promoteAsk": "Let's see if the ledger has you marked for promotion or the graveyard. Promotion! Good for you. Pay the fee and I'll write it in.",
+   "promote": "Congratulations! Your guild card's updated. And you're still breathing. Rare, for Falkreath.",
+   "about": [
+    "Half the missives in Falkreath end at the graveyard. The other half end there later.",
+    "The woods are thick with wolves and worse. Bring back proof of the hunt, and the Guild pays.",
+    "Falkreath's cemetery is full of adventurers from the Great War. The Guild never forgets them."
+   ],
+   "registerAsk": "Signing on with the Guild? Brave of you. Falkreath will keep you busy. There's just a small fee first.",
+   "businessByRank": {
+    "C": "Still breathing? Good for you. What's the business?",
+    "B": "You've outlived most of the adventurers who drank here. Sit down. What do you need?",
+    "A": "A-rank, and still breathing. Falkreath's never seen the like. What do you need?",
+    "S": "An S-rank. The undertaker's going to be disappointed. What can I do for you?"
+   }
+  },
+  {
+   "npc": "Jonna",
+   "city": "Morthal",
+   "inn": "the Moorside Inn",
+   "register": "Welcome to the Guild! Here's your card. Morthal's lucky to have you.",
+   "business": "Guild business. Come closer, folk in Morthal like to listen.",
+   "promoteAsk": "Let me check the ledger. Morthal doesn't see many rise this far, but you have. There's a small fee, then it's official.",
+   "promote": "Congratulations! I've updated your guild card. Morthal's proud of you, even if it won't say so.",
+   "about": [
+    "Things come out of the marsh fog that don't belong in any bestiary. The Guild pays well for every one of them.",
+    "Ever since Hroggar's house burned, people have been whispering. Vampires, some say.",
+    "There used to be more of you. The war, and then, people just stopped coming back. Be careful out there."
+   ],
+   "registerAsk": "The Guild? Out here? Well, Morthal could certainly use the help. There's a small fee to join.",
+   "businessByRank": {
+    "C": "You've been busy out there, haven't you? Morthal notices. What is it?",
+    "B": "Our veteran's back! The whole town's safer for it. What do you need?",
+    "A": "Morthal's own hero, back at my counter. What can I do for you?",
+    "S": "An S-rank, in Morthal. I never thought I'd see the day. What can I do for you?"
+   }
+  },
+  {
+   "npc": "Thoring",
+   "city": "Dawnstar",
+   "inn": "the Windpeak Inn",
+   "register": "There, you're in. Here's your guild card. Nobody sleeps in Dawnstar lately anyway, might as well work.",
+   "business": "Guild business at this hour? Not like anyone's sleeping. Go on.",
+   "promoteAsk": "Karita, fetch the lamp. Well, look at that. You've earned your next rank. Pay the fee and I'll mark it down.",
+   "promote": "Congratulations. Your guild card's updated. Maybe now you'll sleep better than the rest of us.",
+   "about": [
+    "The Pale's all ice and mines and giants. Miners post more work than anyone.",
+    "And the nightmares. Everyone in town's having them. If the Guild can fix that, I'll pay the bounty myself.",
+    "Fewer adventurers every year. The wars, and worse. Glad you're here."
+   ],
+   "registerAsk": "Joining the Guild? Good. Dawnstar needs all the help it can get. Just the fee, and you're in.",
+   "businessByRank": {
+    "C": "You've done good work around here. Karita's even written a verse about it. What is it?",
+    "B": "A veteran, here in Dawnstar. The miners will be glad to hear it. Go on.",
+    "A": "One of the Guild's best, in Dawnstar. The Pale's lucky to have you. Go on.",
+    "S": "An S-rank. At my counter. Nobody in Dawnstar's going to believe me. What do you need?"
+   },
+   "afterQuest": {
+    "quest": "DA16",
+    "_comment": "Waking Nightmare (Vaermina's nightmares on Dawnstar): once it is completed, these replace the lines that talk about them.",
+    "business": "Guild business? Go on. Now that the nightmares are over, I can actually keep my eyes open for it.",
+    "register": "There, you're in. Here's your guild card. The Pale always has work for a steady blade.",
+    "promote": "Congratulations. Your guild card's updated. Drinks are on the house, now that we're all sleeping again.",
+    "about": [
+     "The Pale's all ice and mines and giants. Miners post more work than anyone.",
+     "The nightmares are over, thank the gods. Now it's just the giants and the cold.",
+     "Fewer adventurers every year. The wars, and worse. Glad you're here."
+    ]
+   }
+  },
+  {
+   "npc": "Dagur",
+   "city": "Winterhold",
+   "inn": "the Frozen Hearth",
+   "register": "Welcome to the Guild! Your card. The counter's the only thing in Winterhold still standing that isn't the College.",
+   "business": "Guild business. Most of it comes from the College, mages who won't leave their tower.",
+   "promoteAsk": "Haran, where did we put that book? Ah, you've earned a promotion! The Guild just wants its fee first.",
+   "promote": "Congratulations! Your guild card's updated. Most exciting thing to happen here since the Collapse.",
+   "about": [
+    "Winterhold was a great city once, before the Collapse. Now it's the College and my inn.",
+    "Mages post the strangest missives. Ice wraith teeth, frost salts, things from the ruins.",
+    "The Guild's not what it was before the war. It could be again, with the right people."
+   ],
+   "registerAsk": "Want to join the Guild? Winterhold could use some excitement. There's a small fee to sign you up.",
+   "businessByRank": {
+    "C": "Back again? The mages keep asking whether you're free. What is it?",
+    "B": "A veteran in Winterhold. Most exciting thing since the Collapse. What do you need?",
+    "A": "One of the Guild's best, in Winterhold. The College keeps asking after you. What do you need?",
+    "S": "An S-rank, here. Even the Arch-Mage will want to meet you. How can I be of service?"
+   }
+  }
+ ],
+ "_staff": "Other people who work at a guild inn point you to their rep.",
+ "staff": [
+  {
+   "npcs": [
+    "Saadia",
+    "Mikael"
+   ],
+   "line": "Guild business goes through Hulda. She's the Guild's rep here."
+  },
+  {
+   "npcs": [
+    "SorexVinius"
+   ],
+   "line": "My father runs the Guild's counter. Talk to him."
+  },
+  {
+   "npcs": [
+    "TalenJei"
+   ],
+   "line": "Keerava handles anything to do with the Guild."
+  },
+  {
+   "npcs": [
+    "Frabbi"
+   ],
+   "line": "Guild? Talk to my husband. That's his business, not mine."
+  },
+  {
+   "npcs": [
+    "Karita"
+   ],
+   "line": "My father keeps the Guild's counter. I just sing."
+  }
+ ],
+ "_referrals": "Innkeepers outside the hold capitals: no counter, but they know where to send you.",
+ "referrals": [
+  {
+   "npcs": [
+    "Orgnar"
+   ],
+   "line": "Guild business goes to the Bannered Mare in Whiterun. Hulda's the Guild's rep. Half a day north."
+  },
+  {
+   "npcs": [
+    "Delphine"
+   ],
+   "line": "I just run an inn. Try the Bannered Mare in Whiterun."
+  },
+  {
+   "npcs": [
+    "Wilhelm",
+    "Lynly"
+   ],
+   "line": "Ivarstead's too small for a Guild counter. Try the Bee and Barb in Riften."
+  },
+  {
+   "npcs": [
+    "Mralki"
+   ],
+   "line": "Rorikstead's a farming town. For the Guild you want the Bannered Mare in Whiterun."
+  },
+  {
+   "npcs": [
+    "Faida"
+   ],
+   "line": "The Winking Skeever in Solitude handles Guild business. Just follow the road across the bridge."
+  },
+  {
+   "npcs": [
+    "Iddra"
+   ],
+   "line": "You want Windhelm for that. Candlelight Hall keeps the Guild's counter."
+  },
+  {
+   "npcs": [
+    "Hadring"
+   ],
+   "line": "Nightgate's a waystation, friend, not a Guild house. Windhelm's your best bet."
+  },
+  {
+   "npcs": [
+    "Eydis"
+   ],
+   "line": "No Guild counter out here. The Silver-Blood Inn in Markarth is closest."
+  },
+  {
+   "npcs": [
+    "AmbarysRendar"
+   ],
+   "line": "The Guild keeps its counter at Candlelight Hall. Nords prefer their business kept among Nords."
+  },
+  {
+   "npcs": [
+    "DLC2RRGeldisSadri"
+   ],
+   "line": "The Guild? You're a long way from Skyrim, friend. Take the ship back to Windhelm."
+  }
+ ],
+ "_generic": "Any other innkeeper, including ones added by other mods.",
+ "generic": "The Adventurers Guild keeps its counters in the hold capitals, near the missive boards. You won't find one out here.",
+ "_prompts": "What the player says.",
+ "prompts": {
+  "register": "I'd like to register with the Adventurers Guild.",
+  "business": "I have guild business.",
+  "promote": "I'd like to apply for promotion.",
+  "about": "What's Guild work like around here?",
+  "registerPay": "Here's the fee. (<Global=AG_RegisterFee> gold)",
+  "promotePay": "Here's the fee. (<Global=AG_PromotionFee> gold)",
+  "later": "Not now."
+ },
+ "_nofee": "What a guild liaison says when the player picks register/promote without the fee in hand (no Goodbye; voiced per liaison voice type).",
+ "nofee": {
+  "register": "Joining the Guild takes a small fee. Come back when you can cover it.",
+  "promote": "You've earned it, no question. But the Guild still wants its fee. Come back with the coin."
+ },
+ "_ask": "The liaison names the fee before registering / promoting; the player then chooses to pay or not (voiced per liaison voice type). A liaison's own \"<role>Ask\" line (promoteAsk: checks the ledger, congratulates, then the fee) replaces this for them; their \"<role>\" line is then what they say once paid.",
+ "ask": {
+  "register": "There's a small fee to join the Adventurers Guild. Will you pay it?",
+  "promote": "The Guild charges a fee to see a promotion through. Will you pay it?"
+ },
+ "_later": "The liaison's answer to \"Not now.\"",
+ "later": {
+  "register": "Suit yourself. The Guild will be here when you're ready.",
+  "promote": "As you like. The rank will be waiting for you."
+ }
+}

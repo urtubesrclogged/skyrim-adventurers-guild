@@ -1,0 +1,42 @@
+{
+	"_comment": "What Merit buys at the guild counter. Rank index 0..5 = E..S. 'form' editor IDs are resolved by tools/EspGen against the vanilla masters (a typo fails the build).",
+
+	"_library": "Guild Library: for each skill, the next vanilla skill book the player hasn't read. Book N (1-5) needs rank N-1 and costs meritByTier[N-1].",
+	"library": {
+		"skills": ["OneHanded", "TwoHanded", "Marksman", "Block", "LightArmor", "HeavyArmor", "Sneak", "Lockpicking",
+		           "Smithing", "Alchemy", "Restoration", "Destruction", "Alteration", "Conjuration", "Illusion", "Speechcraft"],
+		"meritByTier": [15, 25, 40, 60, 90]
+	},
+
+	"_tomes": "Spell tomes useful to any adventurer, regardless of school.",
+	"tomes": [
+		{ "form": "SpellTomeCandlelight",    "merit": 10, "rank": 0 },
+		{ "form": "SpellTomeHealing",        "merit": 10, "rank": 0 },
+		{ "form": "SpellTomeOakflesh",       "merit": 15, "rank": 0 },
+		{ "form": "SpellTomeClairvoyance",   "merit": 15, "rank": 0 },
+		{ "form": "SpellTomeFastHealing",    "merit": 25, "rank": 1 },
+		{ "form": "SpellTomeMagelight",      "merit": 25, "rank": 1 },
+		{ "form": "SpellTomeMuffle",         "merit": 25, "rank": 1 },
+		{ "form": "SpellTomeDetectLife",     "merit": 40, "rank": 2 },
+		{ "form": "SpellTomeWaterbreathing", "merit": 40, "rank": 2 },
+		{ "form": "SpellTomeStoneflesh",     "merit": 40, "rank": 2 },
+		{ "form": "SpellTomeCloseWounds",    "merit": 60, "rank": 3 },
+		{ "form": "SpellTomeInvisibility",   "merit": 80, "rank": 4 }
+	],
+
+	"_supplies": "Potions, bought one at a time.",
+	"supplies": [
+		{ "form": "RestoreHealth02",  "merit": 3,  "rank": 0 },
+		{ "form": "RestoreStamina02", "merit": 3,  "rank": 0 },
+		{ "form": "RestoreMagicka02", "merit": 3,  "rank": 0 },
+		{ "form": "CureDisease",      "merit": 4,  "rank": 0 },
+		{ "form": "CurePoison",       "merit": 3,  "rank": 0 },
+		{ "form": "RestoreHealth04",  "merit": 6,  "rank": 2 },
+		{ "form": "RestoreMagicka04", "merit": 6,  "rank": 2 },
+		{ "form": "FortifyCarry02",   "merit": 8,  "rank": 2 },
+		{ "form": "RestoreHealth05",  "merit": 10, "rank": 3 }
+	],
+
+	"_training": "Guild Training: a permanent +amount to max Health / Stamina / Magicka per purchase, at most perRank purchases per stat for each guild rank reached (E = perRank, D = 2*perRank ...). Purchase n (1-based) costs baseMerit + stepMerit*(n-1). Max purchases per stat = perRank*6 (the ESP carries that many steps).",
+	"training": { "amount": 10, "perRank": 2, "baseMerit": 40, "stepMerit": 20 }
+}

@@ -1,0 +1,47 @@
+# Adventurers Guild: SkyrimNet custom action (AG_SkyrimNetActions on AG_GuildDialogueQuest). AdventurersGuild.dll
+# applies the same fees and checks as the innkeeper dialogue and refuses anyone but one of the nine Guild reps.
+# Liaison check mirrors SeverActions: get_faction_rank >= 0 (members are 0+, non-members -1). Do NOT add "tags:" --
+# a tag names a SkyrimNet eligibility tag group, and an unknown one silently makes the action ineligible. Do NOT add
+# "customCategory:" either -- that nests the action under a category that needs its own definition file (SeverActions'
+# cat_*.yaml); without one the action is never offered. Plain top-level action = neither field.
+name: "AG_HearPromotionCase"
+description: "You keep this hold's Adventurers Guild counter, and {{ player.name }}'s record has earned them a promotion. Use ONLY when {{ player.name }} asks to be promoted AND agrees to pay the promotion fee. Otherwise, do NOT use this action."
+
+questEditorId: "AG_GuildDialogueQuest"
+scriptName: "AG_SkyrimNetActions"
+executionFunctionName: "Promote_Execute"
+
+parameterMapping:
+  - type: "speaker"
+    name: "akSpeaker"
+    description: "the Adventurers Guild rep doing the guild business"
+
+eligibilityRules:
+  - conditions:
+      - decoratorName: "get_faction_rank"
+        arguments: ["currentActor", "AG_GuildLiaisonFaction"]
+        comparisonOperator: ">="
+        expectedValue: 0
+    logicalOperator: "AND"
+    required: true
+  - conditions:
+      - decoratorName: "get_global_value"
+        arguments: ["AG_RegisteredGlobal"]
+        comparisonOperator: "=="
+        expectedValue: 1
+    logicalOperator: "AND"
+    required: true
+  - conditions:
+      - decoratorName: "get_global_value"
+        arguments: ["AG_PromotionReadyGlobal"]
+        comparisonOperator: "=="
+        expectedValue: 1
+    logicalOperator: "AND"
+    required: true
+
+
+eventString: "{{ actor.name }} heard {{ player.name }}'s case and promoted them in the Adventurers Guild"
+isShortLived: false
+
+enabled: true
+defaultPriority: 5

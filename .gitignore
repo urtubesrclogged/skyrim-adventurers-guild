@@ -1,0 +1,26 @@
+# this machine's paths
+local.env
+
+# build output
+build/
+src/plugin/build/
+tools/EspGen/bin/
+tools/EspGen/obj/
+__pycache__/
+release/
+
+# large or derived local data
+snapshots/
+tools/voice_cache/
+config/Sound/
+
+# private working files: only the plugin generator under tools/ is published
+BACKLOG.md
+/tools/*
+!/tools/EspGen/
+
+# check-public.sh (the pre-push hook) refuses a push if any of the above is tracked anyway.
+
+# screenshots are kept out of the repository (they go on the mod page)
+docs/images/
+docs/SCREENSHOTS.md

@@ -1,0 +1,12 @@
+{
+	"_comment": "Rank blessings: hidden perks in AdventurersGuild.esp granted when the player reaches the rank. formId = local FormID inside the plugin (hex).",
+	"plugin": "AdventurersGuild.esp",
+	"blessings": [
+		{ "rank": "E", "name": "Eager to Learn",       "formId": "800" },
+		{ "rank": "D", "name": "Foundations",          "formId": "801" },
+		{ "rank": "C", "name": "Tough Stuff",          "formId": "802" },
+		{ "rank": "B", "name": "So Fast",              "formId": "803" },
+		{ "rank": "A", "name": "Deadly",               "formId": "804" },
+		{ "rank": "S", "name": "Legendary Reputation", "formId": "805" }
+	]
+}

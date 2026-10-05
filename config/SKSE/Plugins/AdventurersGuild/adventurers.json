@@ -1,0 +1,25 @@
+{
+	"_comment": "Who holds a GUILD rank. Everyone else you fight shows a THREAT rank instead. Editor IDs are resolved by tools/EspGen against the vanilla masters (a typo fails the build) into adventurers.resolved.json. Order of checks: player -> already recruited -> current teammate (joins on the spot) -> joinOnRecruit exception (no guild rank until recruited) -> members -> chance groups -> none.",
+
+	"_members": "Guild members from the start: anyone who can be a follower or hired. Custom followers usually add PotentialFollowerFaction; ones that don't are caught when they first become your teammate.",
+	"members": { "factions": ["PotentialFollowerFaction", "PotentialHireling", "CurrentHireling", "CurrentFollowerFaction"] },
+
+	"_joinOnRecruit": "Followers whose story makes guild membership unlikely until they travel with you. They register when first recruited.",
+	"joinOnRecruit": {
+		"factions": [
+			"CompanionsFaction", "PlayerHousecarlFaction",
+			"HousecarlWhiterunCrimeFaction", "HousecarlSolitudeCrimeFaction", "HousecarlWindhelmCrimeFaction",
+			"HousecarlRiftenCrimeFaction", "HousecarlMarkarthCrimeFaction",
+			"DLC1SeranaFaction", "DLC1DawnguardFaction", "DarkBrotherhoodFaction"
+		]
+	},
+
+	"_chance": "Random world NPCs. The roll is a hash of the reference's FormID, so the same NPC always gets the same answer (no save data). kind: member = '(C)', retired = '(C, retired)', hidden = rank kept secret (only high Appraisal reveals it). First matching group wins.",
+	"chance": [
+		{ "id": "assassin",  "kind": "hidden",  "percent": 30, "factions": ["DarkBrotherhoodFaction", "DLC2MoragTongFaction"] },
+		{ "id": "hunter",    "kind": "member",  "percent": 60, "factions": ["HunterFaction", "WEServicesHunterFaction", "DLC2HunterFaction"] },
+		{ "id": "mercenary", "kind": "member",  "percent": 60, "factions": ["WEBountyHunter", "CaravanGuard", "WERoad02BodyguardFaction"] },
+		{ "id": "guard",     "kind": "retired", "percent": 15, "factions": ["IsGuardFaction"] },
+		{ "id": "soldier",   "kind": "retired", "percent": 10, "factions": ["CWImperialFaction", "CWSonsFaction"] }
+	]
+}

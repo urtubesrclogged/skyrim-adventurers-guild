@@ -1,0 +1,41 @@
+# Adventurers Guild: SkyrimNet custom action (AG_SkyrimNetActions on AG_GuildDialogueQuest). The SPEAKER signs themselves
+# up: AdventurersGuild.dll remembers them like a recruited follower (co-save), so they carry a Guild rank from their level
+# on their name, in SkyrimNet and on the Appraisal card. Offered only while ag_join_status says "can_join" (not a
+# member, retired adventurer, serving guard, child or Guild rep); the DLL re-checks the same thing when it runs. The Guild's paperwork is implied (a letter to the nearest counter).
+# Liaison check mirrors SeverActions: get_faction_rank >= 0 (members are 0+, non-members -1). Do NOT add "tags:" --
+# a tag names a SkyrimNet eligibility tag group, and an unknown one silently makes the action ineligible. Do NOT add
+# "customCategory:" either -- that nests the action under a category that needs its own definition file (SeverActions'
+# cat_*.yaml); without one the action is never offered. Plain top-level action = neither field.
+name: "AG_JoinAdventurersGuild"
+description: "Join the Adventurers Guild yourself and become a registered adventurer. Use ONLY when you have decided, in this conversation, to become an adventurer of the Adventurers Guild: {{ player.name }} invites or urges you to join and you agree, or you choose it yourself. Your name goes into the Guild's ledger (a letter to the nearest counter will do). It is a real commitment, so do NOT use it for idle talk about the Guild, a maybe, or a refusal."
+
+questEditorId: "AG_GuildDialogueQuest"
+scriptName: "AG_SkyrimNetActions"
+executionFunctionName: "Join_Execute"
+
+parameterMapping:
+  - type: "speaker"
+    name: "akSpeaker"
+    description: "the NPC who is joining the Adventurers Guild"
+
+eligibilityRules:
+  - conditions:
+      - decoratorName: "ag_join_status"
+        arguments: ["currentActor"]
+        comparisonOperator: "=="
+        expectedValue: "can_join"
+    logicalOperator: "AND"
+    required: true
+  - conditions:
+      - decoratorName: "get_faction_rank"
+        arguments: ["currentActor", "AG_GuildLiaisonFaction"]
+        comparisonOperator: "<"
+        expectedValue: 0
+    logicalOperator: "AND"
+    required: true
+
+eventString: "{{ actor.name }} joined the Adventurers Guild"
+isShortLived: true  # the lasting memory is AG_SkyrimNetInit's AG_AdventurerJoined event
+
+enabled: true
+defaultPriority: 5

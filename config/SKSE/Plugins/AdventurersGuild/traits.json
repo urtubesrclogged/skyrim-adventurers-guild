@@ -1,0 +1,40 @@
+{
+	"_comment": "Party Bond blessing and Party Traits (docs/PARTIES.md). tools/EspGen reads this to build the AG_PartyBlessing ability (one effect per bonus, gated by globals the DLL sets) and resolves the editor IDs into traits.resolved.json for the DLL. Changing an effect value needs an EspGen rebuild; the DLL shows the same numbers on the counter.",
+
+	"_range": "A member only receives the blessing's own effects within this many game units of the player (about 60 m; a condition on the ability, checked by the engine). Who counts as present for Bond and affinities has no distance test: alive, following and loaded.",
+	"range": 4096,
+	"_maxActive": "How many unlocked traits may be switched on at once (the first ones unlocked start on).",
+	"maxActive": 3,
+
+	"_blessing": "Bond blessing, only while at least one member is present. Per Bond tier above Strangers: health and stamina regeneration (percent). Per member present: armor rating.",
+	"blessing": { "healRatePerTier": 10, "staminaRatePerTier": 10, "armorPerMember": 10 },
+
+	"_detect": "How the DLL recognises vampires (a race keyword), werewolves (a faction, or the player's PlayerIsWerewolf global), housecarls, sellswords, the College, the Dawnguard and your spouse (factions).",
+	"detect": {
+		"vampire": { "keywords": ["Vampire"] },
+		"werewolf": { "factions": ["CompanionsCircle", "WerewolfFaction"], "globals": ["PlayerIsWerewolf"] },
+		"housecarl": { "factions": ["JobHousecarlFaction"] },
+		"hireling": { "factions": ["PotentialHireling", "CurrentHireling"] },
+		"college": { "factions": ["CollegeofWinterholdFaction"] },
+		"dawnguard": { "factions": ["DLC1DawnguardFaction"] },
+		"spouse": { "factions": ["PlayerMarriedFaction"] }
+	},
+
+	"_traits": "Unlock conditions are fixed in the DLL (they count the player and the members present). damage: weapon damage percent. armor: armor rating (40 is about 5% less physical damage). magicResist: percent. carry: carry weight. healing: health regeneration and Restoration spell power, percent. magickaRegen: percent. health: points. skillRate: skills improve this percent faster (vanilla Well Rested is 10). goldRewards: percent more gold from the Adventurers Guild (applied by the DLL). days: in-field days a trait needs. targets: only against combat targets in these factions / with these keywords. Beast Buds replaces Creatures of the Night. APPEND new traits at the end: the order fixes their FormIDs.",
+	"traits": [
+		{ "id": "night", "name": "Creatures of the Night", "unlock": "A vampire or werewolf travels with you", "effect": "+10% weapon damage at night", "damage": 10, "night": true },
+		{ "id": "beast", "name": "Beast Buds", "unlock": "A vampire and a werewolf travel with you", "effect": "+20% weapon damage at night", "damage": 20, "night": true },
+		{ "id": "diversity", "name": "Diversity Adversity", "unlock": "Four or more of you, all of different races", "effect": "+10% weapon damage vs the Thalmor and Stormcloaks", "damage": 10, "targets": { "factions": ["ThalmorFaction", "CWSonsFaction"] } },
+		{ "id": "brothers", "name": "Battle Brothers", "unlock": "Three or more of you, all men", "effect": "+5% weapon damage", "damage": 5 },
+		{ "id": "sisters", "name": "Shield Sisters", "unlock": "Three or more of you, all women", "effect": "+40 armor (about 5% less physical damage)", "armor": 40 },
+		{ "id": "carry", "name": "Sworn to Carry", "unlock": "A housecarl travels with you", "effect": "+25 carry weight", "carry": 25 },
+		{ "id": "kindred", "name": "Kindred", "unlock": "Three or more of you, all of one race", "effect": "+5% magic resistance", "magicResist": 5 },
+		{ "id": "duo", "name": "Two Against the World", "unlock": "Just you and one companion", "effect": "+5% weapon damage, +10% healing", "damage": 5, "healing": 10 },
+		{ "id": "coin", "name": "Coin-Bound", "unlock": "Every companion is a sellsword", "effect": "+10% gold from the Adventurers Guild", "goldRewards": 10 },
+		{ "id": "nobody", "name": "Nobody Left Behind", "unlock": "30 days in the field together, and no one has fallen", "effect": "+10% healing, +20 armor", "healing": 10, "armor": 20, "days": 30 },
+		{ "id": "memory", "name": "In Their Memory", "unlock": "The party has lost one of its own", "effect": "+5% weapon damage", "damage": 5 },
+		{ "id": "study", "name": "Study Group", "unlock": "Two or more of you from the College of Winterhold", "effect": "+25% magicka regeneration", "magickaRegen": 25 },
+		{ "id": "allies", "name": "Unlikely Allies", "unlock": "A vampire and one of the Dawnguard travel together", "effect": "+10% weapon damage vs the undead", "damage": 10, "targets": { "keywords": ["ActorTypeUndead", "Vampire"] } },
+		{ "id": "honeymoon", "name": "Honeymoon Adventure", "unlock": "Your spouse travels with you", "effect": "+30 health", "health": 30 }
+	]
+}
