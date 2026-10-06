@@ -75,6 +75,10 @@ namespace AG::GuildCard
 				SKSE::GetTaskInterface()->AddTask([] {
 					if (RE::BookMenu::GetTargetForm() != g_card) return;
 					if (!Guild::Registered() || Guild::Dormant()) return;  // the note's own text is shown instead
+					// Read where it lies in the world: the Book Menu we are about to close is also where "Take" lives, so
+					// the card is picked up as it is read (a card on the floor could otherwise be read but never taken).
+					if (auto ref = RE::BookMenu::GetTargetReference(); ref)
+						if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->PickUpObject(ref.get(), 1, false, true);
 					OpenWhenClear();
 				});
 				return RE::BSEventNotifyControl::kContinue;
