@@ -6,7 +6,7 @@
 //   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics)
 //   0x900-0x9FF  Missives note variants per rank (MissivesPatch.cs)
 //   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json
-//   0x810-0x81F  registration quest + missive
+//   0x810-0x81F  registration quest + missive; 0x81A the physical Guild Card (1.2.0)
 //   0x8C0-0x8CF  world awareness: greetings quest/topics, retired-adventurer faction, recent-promotion global,
 //                liaison faction (0x8C6) and reports-waiting global (0x8C7) for the SkyrimNet actions
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
@@ -639,6 +639,32 @@ var note = new Book(FK(0x811), Rel)
         "<p align=\"right\">- The Adventurers Guild</p>",
 };
 mod.Books.Add(note);
+
+// The physical Guild Card (1.2.0): a note the DLL hands over at registration and renames at each promotion. Reading it
+// opens the counter's Guild Card page (GuildCard.cpp watches the Book Menu); this text is only seen if that cannot
+// happen (PrismaUI missing, or the card in the hands of someone the Guild does not know).
+var card = new Book(FK(0x81A), Rel)
+{
+    EditorID = "AG_GuildCard",
+    Name = "Adventurers Guild Card",
+    Model = noteSrc.Model?.DeepCopy(),
+    ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
+    PickUpSound = noteSrc.PickUpSound is { } cpu ? new FormLinkNullable<ISoundDescriptorGetter>(cpu.FormKey) : null,
+    PutDownSound = noteSrc.PutDownSound is { } cpd ? new FormLinkNullable<ISoundDescriptorGetter>(cpd.FormKey) : null,
+    InventoryArt = noteSrc.InventoryArt is { } cia ? new FormLinkNullable<IStaticGetter>(cia.FormKey) : null,
+    Flags = noteSrc.Flags,
+    Type = noteSrc.Type,
+    Value = 0,
+    Weight = 0,
+    Description = "",
+    BookText =
+        "<p align=\"center\"><font size=\"30\">ADVENTURERS GUILD</font></p>" +
+        "<p align=\"center\">Member's Card</p><br>" +
+        "<p>The bearer is a registered adventurer of the Guild. Rank, standing and record are kept in the Guild's ledger " +
+        "and may be confirmed at the inn of any hold capital.</p><br>" +
+        "<p align=\"right\">- The Adventurers Guild</p>",
+};
+mod.Books.Add(card);
 
 // ---------- Appraisal: a passive Guild skill (0x820-0x82F) ----------
 // One perk per tier; AdventurersGuild.dll keeps exactly the purchased tier's perk on the player. Each

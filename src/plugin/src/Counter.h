@@ -14,6 +14,7 @@ namespace AG::Counter
 	void OpenAfterDialogue(std::string a_branch);  // opens once the Dialogue Menu closes; a_branch = the liaison's city
 	std::string Branch();                           // city of the counter currently open ("" = none / debug)
 	void Open();
+	void OpenCard();           // the Guild Card page alone (the physical card, read anywhere)
 	void Close();
 	bool IsOpen();
 	void Refresh();            // push fresh data if open (any thread)

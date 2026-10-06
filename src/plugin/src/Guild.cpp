@@ -4,6 +4,7 @@
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
 #include "ControlsGuard.h"
+#include "GuildCard.h"
 #include "Guild.h"
 
 #include "Adventurers.h"
@@ -190,6 +191,7 @@ namespace AG::Guild
 			}
 			SyncGlobals();
 			CallQuestFn("CompleteRegistrationQuest");
+			GuildCard::Sync(true);  // "Here's your guild card."
 			PrismaToast::Show(Loc::T("$AG_Toast_Registration", "GUILD REGISTRATION"), Loc::F("$AG_Toast_RankAdventurer", "Rank {} Adventurer", Letter(rank)), std::format("tex/rank_{}.png", Letter(rank)));
 			Hud(rank > 0 ? Loc::F("$AG_Reg_Assessed", "Your experience has been assessed: you are registered as a Rank {} adventurer.", Letter(rank))
 			             : Loc::T("$AG_Reg_RankE", "You are registered as a Rank E adventurer."));
@@ -222,6 +224,7 @@ namespace AG::Guild
 			SyncGlobals();
 			PrismaToast::Show(Loc::T("$AG_Toast_Promoted", "PROMOTED"), Loc::F("$AG_Toast_RankAdventurer", "Rank {} Adventurer", Letter(rank)), std::format("tex/rank_{}.png", Letter(rank)));
 			Hud(Loc::F("$AG_Promo_Done", "The Guild has promoted you to Rank {}.", Letter(rank)));
+			GuildCard::Sync(true);  // "I've updated your guild card."
 			SendModEvent("AG_RankChanged", LetterStr(rank), static_cast<float>(rank));
 			SKSE::log::info("Guild: promoted to rank {}", Letter(rank));
 		}

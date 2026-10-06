@@ -77,6 +77,7 @@
   nav .badge { display: inline-block; min-width: 24px; height: 24px; line-height: 24px; margin-left: 8px; border-radius: 12px;
                background: var(--wax); color: #f3e3c6; font-size: 14px; font-variant: normal; letter-spacing: 0; vertical-align: 2px; }
 
+  #panel.cardonly { height: 722px; } #panel.cardonly nav { display: none; }  /* the physical guild card: one page, no tabs */
   main { height: 546px; padding: 18px 30px 0; overflow: hidden; position: relative; }
   footer { height: 50px; padding: 12px 30px; font-style: italic; color: var(--good); font-size: 17px; }
 
@@ -839,6 +840,9 @@ function render() {
   $("where").textContent = data.branch ? t("$AG_UI_Branch", "Skyrim Region · {0} Branch", data.branch) : t("$AG_UI_Region", "Skyrim Region");
   const counts = { quests: (data.reports || []).length, trophies: ((data.trophies || {}).items || []).length,
                    party: (((data.party || {}).active || {}).traits || []).filter((x) => x.new).length };
+  /* opened from the physical guild card: the Guild Card page alone, a shorter panel with no tabs */
+  $("panel").classList.toggle("cardonly", !!data.cardOnly);
+  if (data.cardOnly) tab = "card";
   for (const b of document.querySelectorAll("#tabs button")) {
     const tb = b.dataset.tab;
     b.classList.toggle("on", tb === tab);

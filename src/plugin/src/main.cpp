@@ -8,6 +8,7 @@
 #include "Counter.h"
 #include "Diag.h"
 #include "Dungeons.h"
+#include "GuildCard.h"
 #include "Guild.h"
 #include "Party.h"
 #include "Kills.h"
@@ -54,6 +55,7 @@ namespace
 			AG::LevelDisplay::Register();
 			AG::PrismaToast::Install();
 			AG::Counter::Install();
+			AG::GuildCard::Install();
 			AG::MissiveWatch::Register();
 			AG::NoticeWatch::Register();
 			AG::Dungeons::Install();
@@ -64,6 +66,7 @@ namespace
 		case SKSE::MessagingInterface::kPostLoadGame:
 		case SKSE::MessagingInterface::kNewGame:
 			AG::Guild::OnGameLoaded();
+			AG::GuildCard::Sync(false);  // a member from before 1.2.0, or one who lost theirs, gets a card
 			AG::ControlsGuard::OnGameLoaded();
 			AG::MissiveWatch::WithdrawAboveRank();
 			AG::NoticeWatch::WithdrawAboveRank();

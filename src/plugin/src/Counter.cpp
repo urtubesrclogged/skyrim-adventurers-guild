@@ -35,6 +35,7 @@ namespace AG::Counter
 		PrismaView                  g_view{ 0 };
 		std::atomic<bool>           g_open{ false };
 		std::atomic<bool>           g_pending{ false };
+		std::atomic<bool>           g_cardOnly{ false };  // opened from the physical card: the Guild Card page alone
 		std::mutex                  g_branchLock;
 		std::string                 g_branch;
 
@@ -387,6 +388,7 @@ namespace AG::Counter
 			g_branch = std::move(a_branch);
 		}
 		g_pending = true;
+		g_cardOnly = false;
 		// If the Dialogue Menu is somehow already gone, open right away.
 		SKSE::GetTaskInterface()->AddTask([] {
 			auto* ui = RE::UI::GetSingleton();
@@ -403,8 +405,10 @@ namespace AG::Counter
 			return;
 		}
 		g_open = true;
-		Party::AtCounter();  // chosen affinities the roster no longer fits are unselected on every visit
-		NoticeWatch::Post();  // newly allowed notices go up here as they would at a board
+		if (!g_cardOnly.load()) {  // only a real visit to a counter does counter business
+			Party::AtCounter();  // chosen affinities the roster no longer fits are unselected on every visit
+			NoticeWatch::Post();  // newly allowed notices go up here as they would at a board
+		}
 		// the page's text in the player's language (it keeps English fallbacks for anything missing)
 		g_api->Invoke(g_view, ("window.agStrings(" + Loc::UiStrings().dump() + ")").c_str());
 		// the headset keyboard is ours only under real SteamVR (see ShowKeyboard); flat and OpenComposite keep the text field
@@ -416,7 +420,20 @@ namespace AG::Counter
 		ControlsGuard::Mask();  // VR: a trigger pull on the counter must not ready the weapon
 		g_api->Show(g_view);
 		g_api->Focus(g_view, true);
-		SKSE::log::info("Counter: opened");
+		if (g_cardOnly.load()) SKSE::log::info("Counter: opened as the guild card");
+		else SKSE::log::info("Counter: opened");
+	}
+
+	void OpenCard()
+	{
+		if (g_open.load()) return;
+		{
+			std::lock_guard l(g_branchLock);
+			g_branch.clear();  // not at any branch
+		}
+		g_cardOnly = true;
+		Open();
+		if (!g_open.load()) g_cardOnly = false;  // could not open (not registered, no PrismaUI)
 	}
 
 	void Close()
@@ -424,6 +441,7 @@ namespace AG::Counter
 		if (!g_open.exchange(false) || !Valid()) return;
 		g_api->Unfocus(g_view);
 		g_api->Hide(g_view);
+		g_cardOnly = false;
 		ControlsGuard::Unmask();
 		ControlsGuard::Hidden();
 	}
@@ -449,6 +467,7 @@ namespace AG::Counter
 					if (std::isalnum(static_cast<unsigned char>(c))) key += c;
 				data["branch"] = city.empty() ? city : Loc::T(key, city);
 			}
+			data["cardOnly"] = g_cardOnly.load();
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());
 			data["notices"] = NoticeWatch::Postings();
