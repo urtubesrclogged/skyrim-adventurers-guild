@@ -119,6 +119,7 @@ namespace AG
 		std::string ActionRegister(Tag*, RE::Actor* a_liaison) { return Guild::ActionRegister(a_liaison); }
 		std::string ActionPromote(Tag*, RE::Actor* a_liaison) { return Guild::ActionPromote(a_liaison); }
 		std::string ActionReports(Tag*, RE::Actor* a_liaison) { return Guild::ActionReports(a_liaison); }
+		std::string ActionReplaceCard(Tag*, RE::Actor* a_liaison) { return Guild::ActionReplaceCard(a_liaison); }
 		std::string ActionJoinGuild(Tag*, RE::Actor* a_actor) { return Adventurers::Join(a_actor); }
 		std::string GetJoinStatus(Tag*, RE::Actor* a_actor) { return Adventurers::JoinStatus(a_actor); }
 
@@ -199,6 +200,7 @@ namespace AG
 		REG(ActionRegister);
 		REG(ActionPromote);
 		REG(ActionReports);
+		REG(ActionReplaceCard);
 		REG(ActionJoinGuild);
 		REG(GetPartyInfo);
 		REG(GetPartyName);

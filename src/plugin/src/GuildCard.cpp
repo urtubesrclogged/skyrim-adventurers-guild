@@ -21,11 +21,38 @@ namespace AG::GuildCard
 		RE::TESObjectBOOK*    g_card{ nullptr };
 		std::atomic<bool>     g_opening{ false };
 		std::atomic<bool>     g_issued{ false };  // the free first card has been handed over (co-save)
+		RE::TESGlobal*        g_gMissing{ nullptr };  // AG_CardMissingGlobal: 1 while a member carries no card (SkyrimNet eligibility)
 		std::atomic<int>      g_hotkey{ -1 };     // SkyUI key code (DirectInput scan code; mouse 256+, gamepad 266+), <= 0 none
 
 		// The menus a card can be read from. They pause the game or sit over the world; the card opens after them.
 		constexpr std::string_view kUnder[]{ RE::BookMenu::MENU_NAME, RE::InventoryMenu::MENU_NAME, RE::ContainerMenu::MENU_NAME,
 			RE::TweenMenu::MENU_NAME, RE::FavoritesMenu::MENU_NAME, RE::BarterMenu::MENU_NAME, RE::GiftMenu::MENU_NAME };
+
+		// game thread
+		void UpdateMissing()
+		{
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			if (!g_gMissing || !g_card || !pc) return;
+			g_gMissing->value = Guild::Registered() && !Guild::Dormant() && pc->GetItemCount(g_card) <= 0 ? 1.0f : 0.0f;
+		}
+
+		// the card entering or leaving the player's inventory (dropped, stored, sold, picked up, handed over)
+		class CarrySink : public RE::BSTEventSink<RE::TESContainerChangedEvent>
+		{
+		public:
+			static CarrySink* Get()
+			{
+				static CarrySink s;
+				return &s;
+			}
+
+			RE::BSEventNotifyControl ProcessEvent(const RE::TESContainerChangedEvent* a_e, RE::BSTEventSource<RE::TESContainerChangedEvent>*) override
+			{
+				if (a_e && g_card && a_e->baseObj == g_card->GetFormID() && (a_e->oldContainer == 0x14 || a_e->newContainer == 0x14))
+					SKSE::GetTaskInterface()->AddTask(UpdateMissing);
+				return RE::BSEventNotifyControl::kContinue;
+			}
+		};
 
 		bool AnyUnder()
 		{
@@ -186,10 +213,25 @@ namespace AG::GuildCard
 		}
 		if (auto* ui = RE::UI::GetSingleton()) ui->AddEventSink<RE::MenuOpenCloseEvent>(Sink::Get());
 		if (auto* input = RE::BSInputDeviceManager::GetSingleton()) input->AddEventSink(KeySink::Get());
+		g_gMissing = dh->LookupForm<RE::TESGlobal>(0x81E, kPlugin);
+		if (auto* src = RE::ScriptEventSourceHolder::GetSingleton()) src->AddEventSink<RE::TESContainerChangedEvent>(CarrySink::Get());
 		SKSE::log::info("GuildCard: watching for the card being read");
 	}
 
+	namespace
+	{
+		void SyncCard(bool a_announce);
+	}
+
 	void Sync(bool a_announce)
+	{
+		SyncCard(a_announce);
+		UpdateMissing();  // also on every load, registration and promotion
+	}
+
+	namespace
+	{
+	void SyncCard(bool a_announce)
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!g_card || !pc || !Guild::Registered() || Guild::Dormant()) return;
@@ -200,6 +242,7 @@ namespace AG::GuildCard
 		pc->AddObjectToContainer(g_card, nullptr, 1, nullptr);
 		SKSE::log::info("GuildCard: first card issued (rank {})", rank >= 0 ? Letter(rank) : '-');
 		if (a_announce) RE::SendHUDMessage::ShowHUDMessage(Loc::T("$AG_Hud_CardIssued", "Guild card added. Read it to see your standing with the Guild.").c_str());
+	}
 	}
 
 	bool Has()

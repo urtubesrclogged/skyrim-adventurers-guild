@@ -35,7 +35,7 @@
         - {{ player.name }} leads the adventuring party {{ lp.name }}, registered with the Adventurers Guild: {{ lp.membersText }}; their bond is {{ lp.bondTier }}, {{ lp.days }} days on the road together, {{ lp.dungeons }} dungeons and {{ lp.missives }} missives; the party is {{ lp.renownWord }}{% if lp.fallenText != "" %}; lost: {{ lp.fallenText }}{% endif %}
             {% endif %}
                 {% if led.hasCard == false %}
-        - {{ player.name }} no longer carries their guild card: a replacement costs exactly {{ led.cardFee }} gold (never quote any other amount), and they only need to ask for one at this counter
+        - {{ player.name }} no longer carries their guild card: a replacement costs exactly {{ led.cardFee }} gold (never quote any other amount); when they ask for one and agree to the fee, hands it over with the AG_ReplaceGuildCard action
                 {% endif %}
                 {% if led.reportsWaiting.count > 0 %}
         - {{ player.name }} has {{ led.reportsWaiting.count }} finished job(s) not yet reported to the Guild, worth {{ led.reportsWaiting.gold }} gold, {{ led.reportsWaiting.merit }} Merit and {{ led.reportsWaiting.reputation }} Reputation when handed in at a counter

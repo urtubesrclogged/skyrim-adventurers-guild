@@ -6,7 +6,7 @@
 //   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics)
 //   0x900-0x9FF  Missives note variants per rank (MissivesPatch.cs)
 //   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json
-//   0x810-0x81F  registration quest + missive; 0x81A the physical Guild Card (1.2.0), 0x81B-0x81D its replacement topic + fee
+//   0x810-0x81F  registration quest + missive; 0x81A the physical Guild Card (1.2.0), 0x81B-0x81E its replacement topic, fee and "missing" flag
 //   0x8C0-0x8CF  world awareness: greetings quest/topics, retired-adventurer faction, recent-promotion global,
 //                liaison faction (0x8C6) and reports-waiting global (0x8C7) for the SkyrimNet actions
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
@@ -157,6 +157,7 @@ var gPromoReady = Global(0x802, "AG_PromotionReadyGlobal", 0);
 var gRegFee = Global(0x814, "AG_RegisterFee", 50);
 var gPromoFee = Global(0x815, "AG_PromotionFee", 50);
 var gCardFee = Global(0x81D, "AG_CardFee", 25);            // a replacement guild card (the DLL sets it from guild.json)
+Global(0x81E, "AG_CardMissingGlobal", 0);                  // 1 while a member carries no card (SkyrimNet action eligibility; DLL keeps it)
 
 // ---------- MCM quest (SkyUI / MCM Helper wiring, structure unchanged from the proven Ranks quest) ----------
 var cfgFk = FK(0x803);

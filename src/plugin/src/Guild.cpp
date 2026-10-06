@@ -1071,6 +1071,15 @@ namespace AG::Guild
 		return msg;
 	}
 
+	std::string ActionReplaceCard(RE::Actor* a_liaison)
+	{
+		if (!Adventurers::IsLiaison(a_liaison)) return "not a Guild rep";
+		if (!Registered()) return "not registered";
+		const auto msg = GuildCard::Replace();
+		if (!msg.empty()) Hud(msg);
+		return msg;
+	}
+
 	void DebugRegister() { DoRegister(); }
 	void DebugPromote() { DoPromote(); }
 

@@ -25,6 +25,7 @@ String Function ActionOpenCounter(Actor akLiaison) Global Native
 String Function ActionRegister(Actor akLiaison) Global Native
 String Function ActionPromote(Actor akLiaison) Global Native
 String Function ActionReports(Actor akLiaison) Global Native
+String Function ActionReplaceCard(Actor akLiaison) Global Native
 ; an NPC signing themselves up (AG_JoinAdventurersGuild): refused for members, retired adventurers, children, Guild reps
 String Function ActionJoinGuild(Actor akActor) Global Native
 String Function GetJoinStatus(Actor akActor) Global Native

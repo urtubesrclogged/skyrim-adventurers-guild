@@ -81,6 +81,7 @@ namespace AG::Guild
 	std::string ActionRegister(RE::Actor* a_liaison);
 	std::string ActionPromote(RE::Actor* a_liaison);
 	std::string ActionReports(RE::Actor* a_liaison);
+	std::string ActionReplaceCard(RE::Actor* a_liaison);  // a new guild card for the fee, as the dialogue line does
 
 	// SkyrimNet and other listeners: an SKSE mod event from the player ("AG_DungeonCleared", name, rank...).
 	// AG_SkyrimNetInit turns these into remembered events; nothing depends on anyone listening.

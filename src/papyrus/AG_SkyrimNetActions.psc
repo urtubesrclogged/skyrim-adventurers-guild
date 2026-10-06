@@ -23,6 +23,10 @@ Function Reports_Execute(Actor akSpeaker)
 	Debug.Trace("[AdventurersGuild] SkyrimNet action Reports: " + AG_Native.ActionReports(akSpeaker))
 EndFunction
 
+Function ReplaceCard_Execute(Actor akSpeaker)
+	Debug.Trace("[AdventurersGuild] SkyrimNet action ReplaceCard: " + AG_Native.ActionReplaceCard(akSpeaker))
+EndFunction
+
 ; any NPC (not a rep) deciding to become an adventurer
 Function Join_Execute(Actor akSpeaker)
 	Debug.Trace("[AdventurersGuild] SkyrimNet action Join: " + AG_Native.ActionJoinGuild(akSpeaker))
