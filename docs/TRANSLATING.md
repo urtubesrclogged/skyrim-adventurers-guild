@@ -64,3 +64,17 @@ Rank letters (E to S) are the same in every language.
 `tools/make_translations.py` regenerates the English file from every `Loc::T`/`Loc::F` call in the DLL, `t()` and
 `data-t` in the counter page, and `config/lang/mcm_english.json` (`build.ps1 -Only lang`). New player-facing text
 must go through those, never as a bare string, or it cannot be translated.
+
+## Since 1.2.0
+
+New keys, all optional (English is shown for any you leave out):
+
+* The physical Guild Card: `$AG_Item_GuildCardRank` (the item's name, `{}` is the rank letter), `$AG_Hud_CardIssued`,
+  `$AG_Card_HaveOne`, `$AG_Card_NoGold`, `$AG_Card_Replaced`, `$AG_Card_NotCarried`.
+* `$AG_Dlg_ReplaceCard`: the player's line asking an innkeeper for a replacement card (`{}` is the fee). The
+  innkeepers' spoken replies are in the plugin file, like the rest of the dialogue.
+* Field Notes on the card: `$AG_UI_TodoHead`, `$AG_UI_TodoQuests`, `$AG_UI_TodoReports`, `$AG_UI_TodoTrophies`,
+  `$AG_UI_TodoPromotion`.
+* MCM: `$AG_MCM_System_Card_Header`, `$AG_MCM_System_iCardKey_Text`, `$AG_MCM_System_iCardKey_Help`,
+  `$AG_MCM_CardKeyConflict` (keep the `
+` line breaks and the `{}`).
