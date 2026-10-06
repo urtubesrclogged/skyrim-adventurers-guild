@@ -6,7 +6,7 @@
 //   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics)
 //   0x900-0x9FF  Missives note variants per rank (MissivesPatch.cs)
 //   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json
-//   0x810-0x81F  registration quest + missive; 0x81A the physical Guild Card (1.2.0)
+//   0x810-0x81F  registration quest + missive; 0x81A the physical Guild Card (1.2.0), 0x81B-0x81D its replacement topic + fee
 //   0x8C0-0x8CF  world awareness: greetings quest/topics, retired-adventurer faction, recent-promotion global,
 //                liaison faction (0x8C6) and reports-waiting global (0x8C7) for the SkyrimNet actions
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
@@ -156,6 +156,7 @@ var gPromoReady = Global(0x802, "AG_PromotionReadyGlobal", 0);
 // and required by the liaison lines; the DLL sets both from guild.json on load.
 var gRegFee = Global(0x814, "AG_RegisterFee", 50);
 var gPromoFee = Global(0x815, "AG_PromotionFee", 50);
+var gCardFee = Global(0x81D, "AG_CardFee", 25);            // a replacement guild card (the DLL sets it from guild.json)
 
 // ---------- MCM quest (SkyUI / MCM Helper wiring, structure unchanged from the proven Ranks quest) ----------
 var cfgFk = FK(0x803);
@@ -204,6 +205,7 @@ var dlgQuest = new Quest(FK(0x804), Rel)
 dlgQuest.VirtualMachineAdapter = new QuestAdapter { Scripts = { new ScriptEntry { Name = "AG_SkyrimNetActions" } } };
 dlgQuest.TextDisplayGlobals.Add(new FormLink<IGlobalGetter>(gRegFee.FormKey));
 dlgQuest.TextDisplayGlobals.Add(new FormLink<IGlobalGetter>(gPromoFee.FormKey));
+dlgQuest.TextDisplayGlobals.Add(new FormLink<IGlobalGetter>(gCardFee.FormKey));
 mod.Quests.Add(dlgQuest);
 
 // The nine Guild reps join this hidden faction as they load (AdventurersGuild.dll), so SkyrimNet actions can pick them
@@ -237,6 +239,13 @@ ConditionGlobal Gold(GlobalShort fee, bool enough)
         ComparisonValue = new FormLink<IGlobalGetter>(fee.FormKey),
         Data = d,
     };
+}
+// The player (the dialogue target) carries none of an item.
+ConditionFloat HasNone(FormKey item)
+{
+    var d = new GetItemCountConditionData { RunOnType = Condition.RunOnType.Target };
+    d.ItemOrList.Link.SetTo(item);
+    return new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = d };
 }
 ConditionFloat GlobalIs(GlobalShort g, float v)
 {
@@ -274,7 +283,7 @@ ConditionFloat IsNpc(FormKey npc, bool or)
     if (or) c.Flags |= Condition.Flag.OR;
     return c;
 }
-var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new() };
+var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new() };
 var liaisonKeys = new List<string>();
 var prompts = dlg["prompts"]!;
 
@@ -286,8 +295,10 @@ var prompts = dlg["prompts"]!;
 //     player: "Not now."                          liaison: "<role>:later", back to the topic list
 // Liaison INFO FormIDs never change; the pay topic's editor ID truncates to the same 15 characters as the old
 // single topic's (voice file names use it), so the existing voiced lines still match.
+// payNow (the replacement guild card): the fee is in the player's own line, so there is no ask and no second choice.
+// The liaison line (DLL acts on it) plays if the player has the gold, else "<role>:nofee", both in the one topic.
 void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodbyeForLiaison, ConditionFloat[] state, bool referrals,
-               GlobalShort? fee = null, uint payTopicId = 0, uint laterTopicId = 0)
+               GlobalShort? fee = null, uint payTopicId = 0, uint laterTopicId = 0, bool payNow = false)
 {
     var branch = new DialogBranch(FK(branchId), Rel)
     {
@@ -336,7 +347,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
 
     // the per-liaison lines: in the pay topic when there's a fee, else straight in the topic
     DialogTopic? pay = null, later = null;
-    if (fee is not null)
+    if (fee is not null && !payNow)
     {
         pay = NewTopic(payTopicId, $"AG_Topic{stem}Pay", prompts[$"{role}Pay"]!.GetValue<string>());
         later = NewTopic(laterTopicId, $"AG_Topic{stem}Later", prompts["later"]!.GetValue<string>());
@@ -406,8 +417,8 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     {
         var poor = AnyLiaison();
         poor.Add(Gold(fee, false));
-        Info(pay!, $"{role}:nofee", new[] { Line("nofee") }, false, poor);
-        Info(later!, $"{role}:later", new[] { Line("later") }, false, AnyLiaison());
+        Info(pay ?? topic, $"{role}:nofee", new[] { Line("nofee") }, false, poor);
+        if (later is not null) Info(later, $"{role}:later", new[] { Line("later") }, false, AnyLiaison());
     }
     if (referrals)
     {
@@ -436,6 +447,8 @@ MakeTopic(0x805, 0x806, "Register", "register", true, new[] { GlobalIs(gRegister
 MakeTopic(0x808, 0x809, "Promote", "promote", true, new[] { GlobalIs(gRegistered, 1), GlobalIs(gPromoReady, 1) }, true, gPromoFee, 0x818, 0x819);
 MakeTopic(0x80B, 0x80C, "Business", "business", true, new[] { GlobalIs(gRegistered, 1) }, true);
 MakeTopic(0x812, 0x813, "About", "about", false, Array.Empty<ConditionFloat>(), false);
+// A lost guild card: only offered to a member who carries none, and the choice itself pays (no confirmation).
+MakeTopic(0x81B, 0x81C, "Replace", "replace", false, new[] { GlobalIs(gRegistered, 1), HasNone(FK(0x81A)) }, false, gCardFee, payNow: true);
 
 // ---------- world awareness: greetings from named NPCs and guards (config/world_dialogue.json) ----------
 // One Hello topic in its own quest, the pattern proven by Bandit Lines Expansion: priority-50 start-game quest,

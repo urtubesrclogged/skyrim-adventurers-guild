@@ -18,12 +18,16 @@ namespace AG::GuildCard
 
 	// The card is named for the player's current rank, and the FIRST one is free: handed over at registration, or to a
 	// member from before 1.2.0 when their save loads. After that a missing card (sold, dropped, left in a chest) is
-	// not given again here: Replace() sells a new one at a counter. Game thread. a_announce: say so on the HUD when
+	// not given again here: Replace() sells a new one (a liaison's dialogue line). Game thread. a_announce: say so on the HUD when
 	// one is handed over (not during a load screen).
 	void Sync(bool a_announce);
 
 	bool        Has();      // the player carries a card
-	std::string Replace();  // at a counter: a new card for Guild::CardFee() gold; the line for the counter's status bar
+	std::string Replace();  // a liaison hands over a new card for Guild::CardFee() gold; the line for the HUD
+
+	// MCM: a key that opens the card (a book cannot be favourited). SkyUI key code, 0 or less = none (the default).
+	void SetHotkey(int a_key);
+	int  Hotkey();
 
 	// co-save (Guild.cpp): the free first card has been handed over
 	bool Issued();

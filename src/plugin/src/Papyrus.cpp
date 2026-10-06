@@ -10,6 +10,7 @@
 #include "Diag.h"
 #include "Dungeons.h"
 #include "Guild.h"
+#include "GuildCard.h"
 #include "Loc.h"
 #include "Party.h"
 #include "Kills.h"
@@ -91,6 +92,11 @@ namespace AG
 		void SetShowThreatRank(Tag*, bool a_on) { Names::SetShowThreat(a_on); }
 		bool GetShowLevelSuffix(Tag*) { return LevelDisplay::Enabled(); }
 		void SetShowLevelSuffix(Tag*, bool a_on) { LevelDisplay::SetEnabled(a_on); }
+		void SetCardHotkey(Tag*, std::int32_t a_key) { GuildCard::SetHotkey(a_key); }
+		RE::BSFixedString CardKeyConflictText(Tag*, RE::BSFixedString a_other)
+		{
+			return Loc::F("$AG_MCM_CardKeyConflict", "This key is already used by:\n{}\n\nUse it for the Guild Card anyway?", a_other.c_str());
+		}
 		bool GetDetailedLog(Tag*) { return Diag::DetailedLog(); }
 		void SetDetailedLog(Tag*, bool a_on) { Diag::SetDetailedLog(a_on); }
 		bool GetShowRankUpToast(Tag*) { return PrismaToast::Enabled(); }
@@ -176,6 +182,8 @@ namespace AG
 		REG(SetShowThreatRank);
 		REG(GetShowLevelSuffix);
 		REG(SetShowLevelSuffix);
+		REG(SetCardHotkey);
+		REG(CardKeyConflictText);
 		REG(GetDetailedLog);
 		REG(SetDetailedLog);
 		REG(GetShowRankUpToast);

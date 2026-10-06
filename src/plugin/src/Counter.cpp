@@ -208,7 +208,6 @@ namespace AG::Counter
 				}
 				std::string msg;
 				if (arg == "claim") msg = Guild::ClaimAll();
-				else if (arg == "card:replace") msg = GuildCard::Replace();
 				else if (arg.starts_with("service:")) msg = Guild::BuyService(arg.substr(8));
 				else if (arg.starts_with("turnin:")) msg = Shop::TurnIn(arg.substr(7));
 				else if (arg.starts_with("accept:")) msg = NoticeWatch::Owns(arg.substr(7)) ? NoticeWatch::Accept(arg.substr(7)) : MissiveWatch::Accept(arg.substr(7));
@@ -426,6 +425,8 @@ namespace AG::Counter
 		else SKSE::log::info("Counter: opened");
 	}
 
+	bool IsCardOnly() { return g_open.load() && g_cardOnly.load(); }
+
 	void OpenCard()
 	{
 		if (g_open.load()) return;
@@ -470,7 +471,6 @@ namespace AG::Counter
 				data["branch"] = city.empty() ? city : Loc::T(key, city);
 			}
 			data["cardOnly"] = g_cardOnly.load();
-			data["card"] = { { "has", GuildCard::Has() }, { "fee", Guild::CardFee() } };  // a lost card is replaced on the Guild Card page
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());
 			data["notices"] = NoticeWatch::Postings();

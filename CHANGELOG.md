@@ -7,7 +7,8 @@
   rank, progress toward the next rank and career record, without a trip to a hold capital.
 - The innkeeper hands it over when you register, and it is updated to your new rank at each promotion. Members from
   earlier versions receive theirs when they load their save.
-- The first card is free. If you sell or lose it, any Guild counter replaces it for 25 gold (Guild Card page).
+- The first card is free. If you sell or lose it, ask the innkeeper at any Guild counter for a replacement (25 gold).
+- Optional key to open the card (MCM, System page). None is set by default; in VR a VRIK gesture can press it.
 
 ## 1.1.0
 

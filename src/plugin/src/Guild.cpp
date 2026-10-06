@@ -96,9 +96,10 @@ namespace AG::Guild
 		RE::TESGlobal*       g_gReady{ nullptr };
 		RE::TESGlobal*       g_gRegFee{ nullptr };
 		RE::TESGlobal*       g_gPromoFee{ nullptr };
+		RE::TESGlobal* g_gCardFee{ nullptr };
 		// Liaison dialogue lines by role (dialogue.resolved.json). Staff/referral lines are not listed,
 		// so choosing a topic at a non-guild inn only gets the innkeeper's pointer to the right city.
-		std::unordered_set<RE::FormID> g_infoRegister, g_infoPromote, g_infoBusiness;
+		std::unordered_set<RE::FormID> g_infoRegister, g_infoPromote, g_infoBusiness, g_infoReplace;
 		RE::TESQuest*        g_regQuest{ nullptr };
 		RE::TESObjectBOOK*   g_regMissive{ nullptr };
 		RE::TESBoundObject*  g_gold{ nullptr };
@@ -277,6 +278,11 @@ namespace AG::Guild
 					SKSE::GetTaskInterface()->AddTask(DoRegister);
 				} else if (g_infoPromote.contains(id)) {
 					SKSE::GetTaskInterface()->AddTask(DoPromote);
+				} else if (g_infoReplace.contains(id)) {
+					// "Here, a fresh one.": the player's own line named the fee, so it is paid without asking again
+					SKSE::GetTaskInterface()->AddTask([] {
+						if (auto msg = GuildCard::Replace(); !msg.empty()) RE::SendHUDMessage::ShowHUDMessage(msg.c_str());
+					});
 				} else if (g_infoBusiness.contains(id)) {
 					// the line is a Goodbye: the counter opens as the menu closes, labelled with this branch
 					Counter::OpenAfterDialogue(Adventurers::LiaisonCity(a_e->speakerRef.get()));
@@ -509,6 +515,7 @@ namespace AG::Guild
 		g_gReady = Own<RE::TESGlobal>(0x802);
 		g_gRegFee = Own<RE::TESGlobal>(0x814);
 		g_gPromoFee = Own<RE::TESGlobal>(0x815);
+		g_gCardFee = Own<RE::TESGlobal>(0x81D);
 		g_gRecentPromo = Own<RE::TESGlobal>(0x8C5);
 		g_retiredFaction = Own<RE::TESFaction>(0x8C4);
 		g_liaisonFaction = Own<RE::TESFaction>(0x8C6);
@@ -527,6 +534,7 @@ namespace AG::Guild
 			load("register", g_infoRegister);
 			load("promote", g_infoPromote);
 			load("business", g_infoBusiness);
+			load("replace", g_infoReplace);
 		} catch (const std::exception& e) {
 			SKSE::log::error("Guild: dialogue.resolved.json error: {} - guild dialogue will do nothing", e.what());
 		}
@@ -788,6 +796,7 @@ namespace AG::Guild
 		if (g_gReady) g_gReady->value = ready ? 1.0f : 0.0f;
 		if (g_gRegFee) g_gRegFee->value = static_cast<float>(g_cfg.fee);
 		if (g_gPromoFee) g_gPromoFee->value = static_cast<float>(g_cfg.promotionFee);
+		if (g_gCardFee) g_gCardFee->value = static_cast<float>(g_cfg.cardFee);
 		if (announce) {
 			Hud(Loc::F("$AG_Hud_Ready", "You are eligible for promotion to Rank {}. Any innkeeper can hear your case.", Letter(next)));
 			PrismaToast::Show(Loc::T("$AG_Toast_Ready", "PROMOTION READY"), Loc::F("$AG_Toast_ReadySub", "Rank {} awaits · a guild liaison can hear your case", Letter(next)),

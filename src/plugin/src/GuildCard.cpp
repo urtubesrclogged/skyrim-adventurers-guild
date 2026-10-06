@@ -21,6 +21,7 @@ namespace AG::GuildCard
 		RE::TESObjectBOOK*    g_card{ nullptr };
 		std::atomic<bool>     g_opening{ false };
 		std::atomic<bool>     g_issued{ false };  // the free first card has been handed over (co-save)
+		std::atomic<int>      g_hotkey{ -1 };     // SkyUI key code (DirectInput scan code; mouse 256+, gamepad 266+), <= 0 none
 
 		// The menus a card can be read from. They pause the game or sit over the world; the card opens after them.
 		constexpr std::string_view kUnder[]{ RE::BookMenu::MENU_NAME, RE::InventoryMenu::MENU_NAME, RE::ContainerMenu::MENU_NAME,
@@ -86,6 +87,88 @@ namespace AG::GuildCard
 		};
 	}
 
+	namespace
+	{
+		// SKSE's key codes for the gamepad (what SkyUI's key-map option stores)
+		int PadKey(std::uint32_t a_id)
+		{
+			switch (a_id) {
+			case 0x0001: return 266;  // D-pad up
+			case 0x0002: return 267;
+			case 0x0004: return 268;
+			case 0x0008: return 269;
+			case 0x0010: return 270;  // Start
+			case 0x0020: return 271;  // Back
+			case 0x0040: return 272;  // left thumb
+			case 0x0080: return 273;
+			case 0x0100: return 274;  // left shoulder
+			case 0x0200: return 275;
+			case 0x1000: return 276;  // A
+			case 0x2000: return 277;
+			case 0x4000: return 278;
+			case 0x8000: return 279;
+			case 0x0009: return 280;  // left trigger
+			case 0x000A: return 281;
+			default: return -1;
+			}
+		}
+
+		// The key opens the card in the world, and closes it again. Never while another menu has the keyboard.
+		void OnHotkey()
+		{
+			auto* ui = RE::UI::GetSingleton();
+			if (!ui || !g_card) return;
+			if (Counter::IsOpen()) {
+				if (Counter::IsCardOnly()) Counter::Close();
+				return;
+			}
+			if (ui->GameIsPaused() || ui->IsItemMenuOpen() || ui->IsApplicationMenuOpen() || ui->IsMenuOpen(RE::DialogueMenu::MENU_NAME) ||
+				ui->IsMenuOpen(RE::CraftingMenu::MENU_NAME) || ui->IsMenuOpen(RE::Console::MENU_NAME))
+				return;
+			if (!Guild::Registered() || Guild::Dormant()) return;
+			if (!Has()) {
+				RE::SendHUDMessage::ShowHUDMessage(Loc::T("$AG_Card_NotCarried", "You are not carrying your guild card.").c_str());
+				return;
+			}
+			Counter::OpenCard();
+		}
+
+		class KeySink : public RE::BSTEventSink<RE::InputEvent*>
+		{
+		public:
+			static KeySink* Get()
+			{
+				static KeySink s;
+				return &s;
+			}
+
+			RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* a_events, RE::BSTEventSource<RE::InputEvent*>*) override
+			{
+				const int key = g_hotkey.load();
+				if (key <= 0) return RE::BSEventNotifyControl::kContinue;
+				for (auto* e = a_events ? *a_events : nullptr; e; e = e->next) {
+					const auto* b = e->AsButtonEvent();
+					if (!b || !b->IsDown()) continue;
+					int code = -1;
+					switch (e->GetDevice()) {
+					case RE::INPUT_DEVICE::kKeyboard: code = static_cast<int>(b->GetIDCode()); break;
+					case RE::INPUT_DEVICE::kMouse: code = 256 + static_cast<int>(b->GetIDCode()); break;
+					case RE::INPUT_DEVICE::kGamepad: code = PadKey(b->GetIDCode()); break;
+					default: break;
+					}
+					if (code == key) SKSE::GetTaskInterface()->AddTask(OnHotkey);
+				}
+				return RE::BSEventNotifyControl::kContinue;
+			}
+		};
+	}
+
+	void SetHotkey(int a_key)
+	{
+		if (g_hotkey.exchange(a_key) != a_key) SKSE::log::info("GuildCard: hotkey {}", a_key > 0 ? std::to_string(a_key) : "none");
+	}
+	int Hotkey() { return g_hotkey.load(); }
+
 	void Install()
 	{
 		auto* dh = RE::TESDataHandler::GetSingleton();
@@ -95,6 +178,7 @@ namespace AG::GuildCard
 			return;
 		}
 		if (auto* ui = RE::UI::GetSingleton()) ui->AddEventSink<RE::MenuOpenCloseEvent>(Sink::Get());
+		if (auto* input = RE::BSInputDeviceManager::GetSingleton()) input->AddEventSink(KeySink::Get());
 		SKSE::log::info("GuildCard: watching for the card being read");
 	}
 
@@ -104,7 +188,7 @@ namespace AG::GuildCard
 		if (!g_card || !pc || !Guild::Registered() || Guild::Dormant()) return;
 		const int rank = Guild::Rank();
 		if (rank >= 0) g_card->fullName = Loc::F("$AG_Item_GuildCardRank", "Adventurers Guild Card (Rank {})", Letter(rank));
-		if (g_issued.exchange(true)) return;  // the free one has been given: a missing card is replaced at a counter, for a fee
+		if (g_issued.exchange(true)) return;  // the free one has been given: a missing card is replaced by a liaison, for a fee
 		if (pc->GetItemCount(g_card) > 0) return;
 		pc->AddObjectToContainer(g_card, nullptr, 1, nullptr);
 		SKSE::log::info("GuildCard: first card issued (rank {})", rank >= 0 ? Letter(rank) : '-');

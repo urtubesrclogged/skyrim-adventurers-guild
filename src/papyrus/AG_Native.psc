@@ -46,6 +46,8 @@ Bool Function GetShowThreatRank() Global Native
 Function SetShowThreatRank(Bool abOn) Global Native
 Bool Function GetShowLevelSuffix() Global Native
 Function SetShowLevelSuffix(Bool abOn) Global Native
+String Function CardKeyConflictText(String asOther) Global Native ; "already used by ...: use it anyway?" in the game's language
+Function SetCardHotkey(Int aiKey) Global Native              ; key that opens the Guild Card (SkyUI key code; 0 or less = none)
 Bool Function GetDetailedLog() Global Native                ; the detailed support log (each kill, each counter action)
 Function SetDetailedLog(Bool abOn) Global Native
 Bool Function GetShowRankUpToast() Global Native

@@ -1,6 +1,6 @@
 {
  "_comment": "All Adventurers Guild innkeeper dialogue. tools/EspGen turns this into dialogue records (INFO FormIDs are pinned in dialogue.ids.json, which voice files are named after - never renumber). The voice pipeline reads the same file. Keep lines short: they will be voiced.",
- "_liaisons": "The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed).",
+ "_liaisons": "The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask).",
  "liaisons": [
   {
    "npc": "Hulda",
@@ -21,7 +21,8 @@
     "B": "One of my best, back at my counter. Saadia, a mead for our veteran.",
     "A": "An A-rank adventurer at my counter. Saadia, the good mead, and it's on the house.",
     "S": "An S-rank at the Bannered Mare. Whiterun will talk about this for a year. What can I do for you?"
-   }
+   },
+   "replace": "Lost it already? Happens to the best of them. Here, a fresh one. Try to keep this one out of the mead."
   },
   {
    "npc": "CorpulusVinius",
@@ -42,7 +43,8 @@
     "B": "A veteran at my counter! The Blue Palace's steward asked after you, you know. Your card?",
     "A": "Our A-rank! Half of Solitude wants to hire you and the other half wants to meet you. Your card?",
     "S": "An S-rank in the Winking Skeever. I'll have Sorex frame your signature. What do you need?"
-   }
+   },
+   "replace": "Lost your card? Careless, but easily mended. There you are, good as new."
   },
   {
    "npc": "Elda",
@@ -63,7 +65,8 @@
     "B": "Well. Even I've heard your name in Windhelm. Sit. What is it?",
     "A": "They're calling you one of Skyrim's finest in Windhelm. Don't let it go to your head. What is it?",
     "S": "An S-rank. In Candlelight Hall. Don't let it go to your head. What do you need?"
-   }
+   },
+   "replace": "Lost it? Of course you did. Here's another. Mind it this time."
   },
   {
    "npc": "Keerava",
@@ -84,7 +87,8 @@
     "B": "Our veteran. Talen, keep the good stuff behind the bar for this one. What do you need?",
     "A": "An A-rank in Riften. Even the Thieves Guild knows better than to pick your pockets. Business?",
     "S": "An S-rank in the Bee and Barb. Even the Black-Briars will mind their manners. Business?"
-   }
+   },
+   "replace": "Lost, or lifted? In Riften it's usually lifted. Here's a new one. Keep it somewhere your purse isn't."
   },
   {
    "npc": "Kleppr",
@@ -105,7 +109,8 @@
     "B": "A veteran. The Silver-Bloods have noticed you. Let's keep this quiet.",
     "A": "One of the Guild's finest, in Markarth. The Silver-Bloods are nervous. I rather like it. What is it?",
     "S": "An S-rank, here. Thonar himself asked if you'd drink with him. Business first?"
-   }
+   },
+   "replace": "Lost your card? In Markarth that's the least of what people lose. There, a new one."
   },
   {
    "npc": "ValgaVinicia",
@@ -126,7 +131,8 @@
     "B": "You've outlived most of the adventurers who drank here. Sit down. What do you need?",
     "A": "A-rank, and still breathing. Falkreath's never seen the like. What do you need?",
     "S": "An S-rank. The undertaker's going to be disappointed. What can I do for you?"
-   }
+   },
+   "replace": "Oh, you've lost it? No harm done. Here's a new card, dear."
   },
   {
    "npc": "Jonna",
@@ -147,7 +153,8 @@
     "B": "Our veteran's back! The whole town's safer for it. What do you need?",
     "A": "Morthal's own hero, back at my counter. What can I do for you?",
     "S": "An S-rank, in Morthal. I never thought I'd see the day. What can I do for you?"
-   }
+   },
+   "replace": "Lost in the marsh, I'd wager. Half of Morthal's belongings are. Here's a new card."
   },
   {
    "npc": "Thoring",
@@ -180,7 +187,8 @@
      "The nightmares are over, thank the gods. Now it's just the giants and the cold.",
      "Fewer adventurers every year. The wars, and worse. Glad you're here."
     ]
-   }
+   },
+   "replace": "Lost your card? It happens. Here's a new one, and the ledger still knows your name."
   },
   {
    "npc": "Dagur",
@@ -201,7 +209,8 @@
     "B": "A veteran in Winterhold. Most exciting thing since the Collapse. What do you need?",
     "A": "One of the Guild's best, in Winterhold. The College keeps asking after you. What do you need?",
     "S": "An S-rank, here. Even the Arch-Mage will want to meet you. How can I be of service?"
-   }
+   },
+   "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
   }
  ],
  "_staff": "Other people who work at a guild inn point you to their rep.",
@@ -312,12 +321,14 @@
   "about": "What's Guild work like around here?",
   "registerPay": "Here's the fee. (<Global=AG_RegisterFee> gold)",
   "promotePay": "Here's the fee. (<Global=AG_PromotionFee> gold)",
-  "later": "Not now."
+  "later": "Not now.",
+  "replace": "I've lost my guild card. I need a replacement. (<Global=AG_CardFee> gold)"
  },
  "_nofee": "What a guild liaison says when the player picks register/promote without the fee in hand (no Goodbye; voiced per liaison voice type).",
  "nofee": {
   "register": "Joining the Guild takes a small fee. Come back when you can cover it.",
-  "promote": "You've earned it, no question. But the Guild still wants its fee. Come back with the coin."
+  "promote": "You've earned it, no question. But the Guild still wants its fee. Come back with the coin.",
+  "replace": "A new card costs coin. Come back when you can cover it."
  },
  "_ask": "The liaison names the fee before registering / promoting; the player then chooses to pay or not (voiced per liaison voice type). A liaison's own \"<role>Ask\" line (promoteAsk: checks the ledger, congratulates, then the fee) replaces this for them; their \"<role>\" line is then what they say once paid.",
  "ask": {

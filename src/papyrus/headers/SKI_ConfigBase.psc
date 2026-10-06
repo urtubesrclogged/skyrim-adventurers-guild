@@ -10,6 +10,7 @@ Int Property LEFT_TO_RIGHT = 1 AutoReadOnly
 Int Property TOP_TO_BOTTOM = 2 AutoReadOnly
 Int Property OPTION_FLAG_NONE = 0 AutoReadOnly
 Int Property OPTION_FLAG_DISABLED = 1 AutoReadOnly
+Int Property OPTION_FLAG_WITH_UNMAP = 4 AutoReadOnly
 
 Int Function GetVersion()
 	Return 0
@@ -43,6 +44,9 @@ EndEvent
 Event OnSliderAcceptST(Float a_value)
 EndEvent
 
+Event OnKeyMapChangeST(Int a_keyCode, String a_conflictControl, String a_conflictName)
+EndEvent
+
 Function SetCursorFillMode(Int a_fillMode)
 EndFunction
 
@@ -61,6 +65,12 @@ Function AddToggleOptionST(String a_stateName, String a_text, Bool a_checked, In
 EndFunction
 
 Function AddSliderOptionST(String a_stateName, String a_text, Float a_value, String a_formatString = "{0}", Int a_flags = 0)
+EndFunction
+
+Function AddKeyMapOptionST(String a_stateName, String a_text, Int a_keyCode, Int a_flags = 0)
+EndFunction
+
+Function SetKeyMapOptionValueST(Int a_keyCode, Bool a_noUpdate = False, String a_stateName = "")
 EndFunction
 
 Function SetToggleOptionValueST(Bool a_checked, Bool a_noUpdate = False, String a_stateName = "")

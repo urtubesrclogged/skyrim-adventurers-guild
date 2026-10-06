@@ -18,10 +18,12 @@ Bool bLabelsCarriedOver = False
 Bool bShowToast = True
 Float fToastSeconds = 5.0
 Bool bDetailedLog = False
+; the key that opens the Guild Card: none until the player picks one (0 or less = none)
+Int iCardKey = -1
 Bool bRegistrationWasRunning = False
 
 Int Function GetVersion()
-	Return 2
+	Return 3
 EndFunction
 
 Event OnConfigInit()
@@ -64,6 +66,7 @@ Function Apply()
 	AG_Native.SetShowRankUpToast(bShowToast)
 	AG_Native.SetToastSeconds(fToastSeconds)
 	AG_Native.SetDetailedLog(bDetailedLog)
+	AG_Native.SetCardHotkey(iCardKey)
 EndFunction
 
 Event OnPageReset(String a_page)
@@ -75,6 +78,9 @@ Event OnPageReset(String a_page)
 		AddHeaderOption("$AG_MCM_System_Notices_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Toast", "$AG_MCM_System_bShowNotices_Text", bShowToast, OPTION_FLAG_NONE)
 		AddSliderOptionST("ToastSeconds", "$AG_MCM_System_fNoticeSeconds_Text", fToastSeconds, "{0} s", OPTION_FLAG_NONE)
+		AddEmptyOption()
+		AddHeaderOption("$AG_MCM_System_Card_Header", OPTION_FLAG_NONE)
+		AddKeyMapOptionST("CardKey", "$AG_MCM_System_iCardKey_Text", CardKeyShown(), OPTION_FLAG_WITH_UNMAP)
 	ElseIf a_page == Pages[1]
 		AddHeaderOption("$AG_MCM_Debug_Log_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("DetailedLog", "$AG_MCM_Debug_bDetailedLog_Text", bDetailedLog, OPTION_FLAG_NONE)
@@ -137,6 +143,40 @@ State ToastSeconds
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText("$AG_MCM_System_fNoticeSeconds_Help")
+	EndEvent
+EndState
+
+; ---- System: the key that opens the Guild Card. None by default, so it cannot collide with another mod's key;
+; SkyUI reports a cleared key as -1. ----
+Int Function CardKeyShown()
+	If iCardKey > 0
+		Return iCardKey
+	EndIf
+	Return -1
+EndFunction
+
+State CardKey
+	Event OnKeyMapChangeST(Int a_keyCode, String a_conflictControl, String a_conflictName)
+		If a_keyCode > 0 && a_conflictControl != ""
+			String other = a_conflictControl
+			If a_conflictName != ""
+				other = a_conflictControl + " (" + a_conflictName + ")"
+			EndIf
+			If !ShowMessage(AG_Native.CardKeyConflictText(other), True, "$AG_MCM_Debug_Yes", "$AG_MCM_Debug_No")
+				Return
+			EndIf
+		EndIf
+		iCardKey = a_keyCode
+		SetKeyMapOptionValueST(CardKeyShown(), False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		iCardKey = -1
+		SetKeyMapOptionValueST(-1, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_System_iCardKey_Help")
 	EndEvent
 EndState
 
