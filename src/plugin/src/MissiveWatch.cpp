@@ -358,6 +358,18 @@ namespace AG::MissiveWatch
 		if (!stale.empty()) SKSE::log::info("MissiveWatch: withdrew {} posted missive(s) above guild rank {}", stale.size(), rank);
 	}
 
+	int InProgress()
+	{
+		if (!g_active) return 0;
+		int n = 0;
+		std::lock_guard l(g_lock);
+		for (auto& [id, tier] : g_watch) {
+			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
+			if (q && Running(q) && q->GetCurrentStageID() != 0 && !q->IsCompleted()) ++n;  // stage 0 is "posted on a board"
+		}
+		return n;
+	}
+
 	nlohmann::json Postings(const std::string& a_city)
 	{
 		auto out = nlohmann::json::array();

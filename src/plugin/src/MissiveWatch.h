@@ -35,6 +35,7 @@ namespace AG::MissiveWatch
 	// The guild counter's view of the local board: missives currently posted (running, stage 0) in the
 	// hold whose capital is a_city, at or below the player's rank. [{id, tier, title}]
 	nlohmann::json Postings(const std::string& a_city);
+	int            InProgress();  // missives the player has taken and not yet finished
 	// The posting's note as the player would read it: its text with every <Alias=...> filled in from the
 	// quest instance, book markup removed. {id, tier, title, posted, text}
 	nlohmann::json Details(const std::string& a_formIdHex);

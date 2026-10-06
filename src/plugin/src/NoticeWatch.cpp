@@ -221,6 +221,18 @@ namespace AG::NoticeWatch
 		vm->DispatchStaticCall("AG_QuestHelper", "PostNotices", RE::MakeFunctionArguments(static_cast<RE::BGSListForm*>(list)), cb);
 	}
 
+	int InProgress()
+	{
+		if (!g_active) return 0;
+		int n = 0;
+		std::lock_guard l(g_lock);
+		for (auto& [id, notice] : g_watch) {
+			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
+			if (q && QuestBoard::Running(q) && q->GetCurrentStageID() != 0 && !q->IsCompleted()) ++n;  // stage 0 is "posted on a board"
+		}
+		return n;
+	}
+
 	nlohmann::json Postings()
 	{
 		auto out = nlohmann::json::array();

@@ -31,6 +31,7 @@ namespace AG::NoticeWatch
 
 	// Notices on the board now (running, not yet accepted, the note still in the board). [{id, tier, title}]
 	nlohmann::json Postings();
+	int            InProgress();  // notices the player has taken and not yet finished
 	bool           Owns(const std::string& a_formIdHex);  // one of this mod's quests (the counter's Take / Details)
 	// The notice as the player would read it. {id, tier, title, posted, text, kind: "notice"}
 	nlohmann::json Details(const std::string& a_formIdHex);

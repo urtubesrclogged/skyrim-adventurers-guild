@@ -471,6 +471,7 @@ namespace AG::Counter
 				data["branch"] = city.empty() ? city : Loc::T(key, city);
 			}
 			data["cardOnly"] = g_cardOnly.load();
+			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress();  // the card's "to do" note
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());
 			data["notices"] = NoticeWatch::Postings();
