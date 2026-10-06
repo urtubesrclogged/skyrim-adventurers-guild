@@ -10,6 +10,7 @@
 #include "RankCore.h"
 
 #include <filesystem>
+#include <map>
 #include <set>
 #include <fstream>
 #include <mutex>
@@ -236,7 +237,10 @@ namespace AG::Shop
 			auto* dh = RE::TESDataHandler::GetSingleton();
 			if (!a_cfg.enabled || !dh) return 0;
 			int added = 0, creatures = 0, looters = 0;
-			std::unordered_set<RE::FormID> seen;
+			// part -> the creatures that carry it, by name (the commonest names the group: "Echatere", not the one
+			// named beast that happened to come first)
+			std::vector<RE::TESBoundObject*>                                order;
+			std::unordered_map<RE::FormID, std::map<std::string, int>> carriers;
 			for (auto* npc : dh->GetFormArray<RE::TESNPC>()) {
 				if (!npc || Vanilla(npc)) continue;
 				auto* race = npc->GetRace();
@@ -283,15 +287,26 @@ namespace AG::Shop
 					continue;
 				}
 				++creatures;
-				auto group = npc->GetName() && *npc->GetName() ? std::string(npc->GetName()) : std::string(race->GetName() ? race->GetName() : "");
+				const auto name = npc->GetName() && *npc->GetName() ? std::string(npc->GetName()) : std::string(race->GetName() ? race->GetName() : "");
 				for (auto* p : parts) {
-					if (!seen.insert(p->GetFormID()).second) continue;
 					if (std::ranges::find(g_trophies, p, &Trophy::form) != g_trophies.end() || VariantOfLocked(p) >= 0) continue;  // already one
-					const int merit = std::clamp(static_cast<int>(std::lround(static_cast<double>(p->GetGoldValue()) / std::max(1, a_cfg.goldPerMerit))), 1, std::max(1, a_cfg.maxMerit));
-					g_trophies.push_back({ std::format("mod:{:08X}", p->GetFormID()), p, merit, group, {}, p->GetGoldValue() });
-					SKSE::log::debug("Shop: {} ({:08X}, {} gold) is a trophy worth {} Merit: carried by {}", Name(p), p->GetFormID(), p->GetGoldValue(), merit, group);
-					++added;
+					auto [it, fresh] = carriers.try_emplace(p->GetFormID());
+					if (fresh) order.push_back(p);
+					++it->second[name];
 				}
+			}
+			for (auto* p : order) {
+				std::string group;
+				int         most = 0;
+				for (auto& [name, n] : carriers[p->GetFormID()])
+					if (!name.empty() && n > most) {
+						most = n;
+						group = name;
+					}
+				const int merit = std::clamp(static_cast<int>(std::lround(static_cast<double>(p->GetGoldValue()) / std::max(1, a_cfg.goldPerMerit))), 1, std::max(1, a_cfg.maxMerit));
+				g_trophies.push_back({ std::format("mod:{:08X}", p->GetFormID()), p, merit, group, {}, p->GetGoldValue() });
+				SKSE::log::debug("Shop: {} ({:08X}, {} gold) is a trophy worth {} Merit: carried by {}", Name(p), p->GetFormID(), p->GetGoldValue(), merit, group);
+				++added;
 			}
 			SKSE::log::info("Shop: {} trophies from {} hostile creatures added by other mods; {} more carry loot and were left out (the detailed log lists them)", added, creatures, looters);
 			return added;
