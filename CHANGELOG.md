@@ -7,8 +7,8 @@
   rank, progress toward the next rank and career record, without a trip to a hold capital.
 - The innkeeper hands it over when you register, and it is updated to your new rank at each promotion. Members from
   earlier versions receive theirs when they load their save.
-- Read away from a counter, the card also notes what is waiting for your next visit: reports to hand in, quests in
-  progress and trophies to sell.
+- Read away from a counter, the card carries Field Notes: reports ready, quests in progress, trophies to sell, and
+  a note when you are eligible for promotion.
 - The first card is free. If you sell or lose it, ask the innkeeper at any Guild counter for a replacement (25 gold).
 - Optional key to open the card (MCM, System page). None is set by default. In VR, VRIK's gesture
   menu offers "Adventurers Guild: Guild Card" as an action.

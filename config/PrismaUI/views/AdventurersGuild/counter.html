@@ -86,13 +86,17 @@
   .medallion { width: 250px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 18px; }
   .plaque { width: 236px; height: auto; margin-top: -4px; }
   .medallion .cap { font-size: 22px; color: var(--ink); margin-top: -6px; }
-  /* the physical card only: what is waiting at a counter, at the foot of the medallion column */
-  .medallion .todo { width: 100%; margin-top: auto; padding: 10px 6px 0; border-top: 1px solid rgba(194, 154, 91, 0.3); }
-  .todo .thead { font-size: 14px; color: var(--muted); letter-spacing: 0.08em; text-align: center; margin-bottom: 6px; }
-  .todo .trow { display: flex; align-items: baseline; gap: 8px; font-size: 17px; color: var(--ink); line-height: 1.5; }
+  /* the physical card only: field notes, a scrap of parchment at the foot of the medallion column */
+  .medallion .todo { width: 100%; margin-top: auto; padding: 10px 14px 12px; background: url(tex/parchment.png), #d8c9a2; color: var(--paper-ink);
+                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75), inset 0 0 22px rgba(110, 80, 40, 0.45); transform: rotate(-1.2deg); }
+  .todo .thead { font-size: 14px; color: var(--paper-muted); letter-spacing: 0.08em; text-align: center; margin-bottom: 4px;
+                 padding-bottom: 4px; border-bottom: 1px solid rgba(80, 60, 30, 0.25); }
+  .todo .trow { display: flex; align-items: baseline; gap: 8px; font-size: 17px; line-height: 1.45; }
   .todo .trow .k { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .todo .trow .v { color: var(--bronze); font-size: 19px; }
-  .todo .trow.none, .todo .trow.none .v { color: var(--muted); }
+  .todo .trow .v { font-size: 19px; }
+  .todo .trow.none { color: var(--paper-muted); }
+  .todo .tpromo { margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(80, 60, 30, 0.25); text-align: center; font-size: 16px;
+                  font-weight: 700; color: var(--wax); line-height: 1.2; }
   .medallion .mat { font-size: 16px; color: var(--muted); font-style: italic; margin-top: -10px; }
   .paper { flex: 1; background: url(tex/parchment.png), #d8c9a2; color: var(--paper-ink); padding: 22px 30px;
            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(110, 80, 40, 0.45); position: relative; }
@@ -431,15 +435,16 @@ function cardParty() {
   return `<div class="partyline"><span class="lead">${esc(t("$AG_UI_CardLeader", "Leader of"))}</span> <b>${esc(act.name)}</b>
     <span class="meta">· ${esc(n === 1 ? t("$AG_UI_NMember", "{0} member", 1) : t("$AG_UI_NMembers", "{0} members", n))}</span></div>`;
 }
-/* The card read away from a counter: what is waiting for the next visit to one (nothing can be done about it here) */
+/* The card read away from a counter: field notes, a scrap of paper with what the member has on the go */
 function cardTodo() {
   if (!data.cardOnly || !data.registered) return "";
   const trophies = ((data.trophies || {}).items || []).reduce((n, x) => n + (x.count || 0), 0);
-  const rows = [[t("$AG_UI_TodoReports", "Reports to hand in"), (data.reports || []).length],
+  const rows = [[t("$AG_UI_TodoReports", "Reports ready"), (data.reports || []).length],
     [t("$AG_UI_TodoQuests", "Quests in progress"), data.inProgress || 0],
     [t("$AG_UI_TodoTrophies", "Trophies to sell"), trophies]];
-  return `<div class="todo"><div class="thead caps">${esc(t("$AG_UI_TodoHead", "At the counter"))}</div>
-    ${rows.map(([k, v]) => `<div class="trow ${v ? "" : "none"}"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("")}</div>`;
+  return `<div class="todo"><div class="thead caps">${esc(t("$AG_UI_TodoHead", "Field Notes"))}</div>
+    ${rows.map(([k, v]) => `<div class="trow ${v ? "" : "none"}"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("")}
+    ${data.ready && data.next ? `<div class="tpromo">${esc(t("$AG_UI_TodoPromotion", "Eligible for promotion!"))}</div>` : ""}</div>`;
 }
 function renderCard() {
   const n = data.next, m = data.missives || [], tr = data.training || [];
