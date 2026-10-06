@@ -468,6 +468,13 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             var conds = npcs.Select((fk, i) => (Condition)IsNpc(fk, i < npcs.Count - 1)).ToList();  // A OR B OR C, then AND state
             if (g["whileAlive"] is JsonNode wa) conds.Add(Dead(wa.GetValue<string>(), false));
             if (g["whenDead"] is JsonNode wd) conds.Add(Dead(wd.GetValue<string>(), true));
+            if (g["unlessInFaction"] is JsonNode uf)  // asked of another reference, not of the speaker
+            {
+                var fd = new GetInFactionConditionData { RunOnType = Condition.RunOnType.Reference };
+                fd.Reference.SetTo(KeyFk(uf["ref"]!.GetValue<string>()));
+                fd.Faction.Link.SetTo(idx["factions"][uf["faction"]!.GetValue<string>()]);
+                conds.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = fd });
+            }
             // a second line for the same people (after their innkeeper's death) needs its own key
             var gk = $"{role}:{kind}:{g["npcs"]![0]!.GetValue<string>()}" + (g["whenDead"] is JsonNode dd ? ":after" + dd.GetValue<string>() : "");
             Info(topic, gk, new[] { g["line"]!.GetValue<string>() }, false, conds);

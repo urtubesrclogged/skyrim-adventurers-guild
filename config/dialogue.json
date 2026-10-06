@@ -52,7 +52,7 @@
     "Hulda kept this counter for years and never charged what it was worth. I mean to do right by her, and turn a profit doing it."
    ],
    "replace": "Lost your guild card? Replacements cost, I'm afraid. A merchant can't give away stock. Here you are.",
-   "away": "Guild business? Not out here. I keep the Adventurers Guild's counter at the Bannered Mare. Come and find me there of an evening."
+   "away": "Guild business? Not out here. I keep the Adventurers Guild's counter at the Bannered Mare. Come and find me when I'm there."
   },
   {
    "npc": "CorpulusVinius",
@@ -243,7 +243,7 @@
    "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
   }
  ],
- "_staff": "Other people who work at a guild inn point you to their rep. whileAlive / whenDead = an NPC editor ID the line needs alive / dead (the innkeeper it names; their successor).",
+ "_staff": "Other people who work at a guild inn point you to their rep. whileAlive / whenDead = an NPC editor ID the line needs alive / dead (the innkeeper it names; their successor). unlessInFaction {ref, faction} = the line is skipped while that reference is in that faction (Mikael's 'I got the inn' line, if Ysolda is the innkeeper after all).",
  "staff": [
   {
    "npcs": [
@@ -252,6 +252,18 @@
    ],
    "line": "Guild business goes through Hulda. She's the Guild's rep here.",
    "whileAlive": "Hulda"
+  },
+  {
+   "npcs": [
+    "Mikael"
+   ],
+   "whenDead": "Hulda",
+   "whileAlive": "Ysolda",
+   "unlessInFaction": {
+    "ref": "Skyrim.esm|0x01A69A",
+    "faction": "JobInnkeeperFaction"
+   },
+   "line": "I got the inn, but Ysolda got the Guild gig. Go find her if you have Guild business."
   },
   {
    "npcs": [
