@@ -9,6 +9,7 @@
 #include "Loc.h"
 #include "RankCore.h"
 
+#include <set>
 #include <fstream>
 #include <mutex>
 #include <unordered_set>
@@ -189,6 +190,7 @@ namespace AG::Shop
 			bool enabled{ true };
 			int  goldPerMerit{ 10 };
 			int  maxMerit{ 5 };
+			int  maxPartsPerCreature{ 5 };  // more distinct parts than this is an alchemist's or a looter's pockets, not a body
 		};
 
 		bool Vanilla(const RE::TESForm* a_form)
@@ -231,7 +233,7 @@ namespace AG::Shop
 		{
 			auto* dh = RE::TESDataHandler::GetSingleton();
 			if (!a_cfg.enabled || !dh) return 0;
-			int added = 0, creatures = 0;
+			int added = 0, creatures = 0, looters = 0;
 			std::unordered_set<RE::FormID> seen;
 			for (auto* npc : dh->GetFormArray<RE::TESNPC>()) {
 				if (!npc || Vanilla(npc)) continue;
@@ -240,32 +242,46 @@ namespace AG::Shop
 				std::vector<RE::TESNPC*> ai, inv;
 				Bases(npc, UseFlag::kAIData, 0, ai);
 				if (!std::ranges::any_of(ai, [](RE::TESNPC* b) { return b->GetAggressionLevel() >= RE::ACTOR_AGGRESSION::kAggressive; })) continue;
-				++creatures;
 				Bases(npc, UseFlag::kInventory, 0, inv);
-				std::vector<RE::TESBoundObject*> parts;
+				std::vector<RE::TESBoundObject*> all, parts;
 				for (auto* b : inv) {
 					b->ForEachContainerObject([&](RE::ContainerObject& e) {
-						Parts(e.obj, 0, parts);
+						Parts(e.obj, 0, all);
 						return RE::BSContainer::ForEachResult::kContinue;
 					});
-					Parts(b->deathItem, 0, parts);
+					Parts(b->deathItem, 0, all);
 				}
-				for (auto* p : parts) {
-					if (!p || !seen.insert(p->GetFormID()).second) continue;
-					if (Vanilla(p) || p->GetGoldValue() <= 0 || Name(p).empty()) continue;
+				// what of it could be a part of the creature: another mod's, worth something, a hide or part if misc
+				std::set<std::string> names;
+				for (auto* p : all) {
+					if (!p || Vanilla(p) || p->GetGoldValue() <= 0 || Name(p).empty()) continue;
 					if (p->Is(RE::FormType::Misc)) {
 						auto* kw = p->As<RE::BGSKeywordForm>();
 						if (!kw || !(kw->HasKeywordString("VendorItemAnimalHide") || kw->HasKeywordString("VendorItemAnimalPart"))) continue;
 					}
+					if (std::ranges::find(parts, p) == parts.end()) parts.push_back(p);
+					names.insert(Name(p));
+				}
+				if (parts.empty()) continue;
+				// A beast drops a few parts of itself. One that carries dozens of different ingredients (a Falmer
+				// alchemist, a mod's "creature" merchant) is carrying loot, and none of it is proof of a hunt.
+				if (static_cast<int>(names.size()) > a_cfg.maxPartsPerCreature) {
+					++looters;
+					SKSE::log::debug("Shop: {} ({:08X}) carries {} different parts - loot, not trophies", Name(npc), npc->GetFormID(), names.size());
+					continue;
+				}
+				++creatures;
+				auto group = npc->GetName() && *npc->GetName() ? std::string(npc->GetName()) : std::string(race->GetName() ? race->GetName() : "");
+				for (auto* p : parts) {
+					if (!seen.insert(p->GetFormID()).second) continue;
 					if (std::ranges::find(g_trophies, p, &Trophy::form) != g_trophies.end() || VariantOfLocked(p) >= 0) continue;  // already one
 					const int merit = std::clamp(static_cast<int>(std::lround(static_cast<double>(p->GetGoldValue()) / std::max(1, a_cfg.goldPerMerit))), 1, std::max(1, a_cfg.maxMerit));
-					const auto group = Name(npc);
 					g_trophies.push_back({ std::format("mod:{:08X}", p->GetFormID()), p, merit, group, {}, p->GetGoldValue() });
 					SKSE::log::debug("Shop: {} ({:08X}, {} gold) is a trophy worth {} Merit: carried by {}", Name(p), p->GetFormID(), p->GetGoldValue(), merit, group);
 					++added;
 				}
 			}
-			SKSE::log::info("Shop: {} trophies from {} hostile creatures added by other mods (the detailed log lists them)", added, creatures);
+			SKSE::log::info("Shop: {} trophies from {} hostile creatures added by other mods; {} more carry loot and were left out (the detailed log lists them)", added, creatures, looters);
 			return added;
 		}
 	}
@@ -335,6 +351,7 @@ namespace AG::Shop
 					modCreatures.enabled = m.value("enabled", modCreatures.enabled);
 					modCreatures.goldPerMerit = m.value("goldPerMerit", modCreatures.goldPerMerit);
 					modCreatures.maxMerit = m.value("maxMerit", modCreatures.maxMerit);
+					modCreatures.maxPartsPerCreature = m.value("maxPartsPerCreature", modCreatures.maxPartsPerCreature);
 				}
 			}
 			AddModCreatureTrophies(modCreatures);  // after the listed ones: an item already a trophy, or a variant of one, stays that
