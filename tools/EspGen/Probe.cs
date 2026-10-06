@@ -121,8 +121,14 @@ static class Probe
                     if (filter == null || filter.IsMatch(line)) Console.WriteLine(line);
                 }
                 var vm = q.VirtualMachineAdapter;
-                if (vm != null) foreach (var fa in vm.Aliases) Console.WriteLine($"   alias scripts [{fa.Property.Alias}]: {string.Join(",", fa.Scripts.Select(x => x.Name))}");
+                if (vm != null) foreach (var fa in vm.Aliases) Console.WriteLine($"   alias scripts [{fa.Property.Alias}]: " + string.Join("; ", fa.Scripts.Select(x => x.Name + "(" + string.Join(", ", x.Properties.Select(pr => pr.Name + (pr is IScriptObjectPropertyGetter o ? "=alias " + o.Alias + " of " + N(o.Object.FormKey) : ""))) + ")")));
             }
+            return;
+        }
+        if (what == "cells") {      // interior cells by editor ID
+            foreach (var m in mods)
+                foreach (var c in m.EnumerateMajorRecords<ICellGetter>().Where(c => re.IsMatch(c.EditorID ?? "")))
+                    Console.WriteLine($"{m.ModKey.FileName}|0x{c.FormKey.ID:X6}  {c.EditorID}  {c.Name?.String}");
             return;
         }
         if (what == "effects") {    // magic effects (editor ID or name matching): archetype and actor value

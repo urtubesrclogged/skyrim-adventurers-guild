@@ -987,7 +987,7 @@ namespace AG::Guild
 		for (auto* actor : Adventurers::SucceededLiaisons())
 			if (!actor->IsInFaction(g_liaisonFaction)) {
 				actor->AddToFaction(g_liaisonFaction, 0);
-				SKSE::log::info("Guild: {} has taken over an inn and keeps its Adventurers Guild counter now", actor->GetDisplayFullName());
+				SKSE::log::info("Guild: {} keeps a dead liaison's Adventurers Guild counter now", actor->GetDisplayFullName());
 			}
 	}
 

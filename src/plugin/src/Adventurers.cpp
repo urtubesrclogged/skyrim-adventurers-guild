@@ -36,25 +36,33 @@ namespace AG::Adventurers
 		};
 		std::unordered_map<RE::FormID, Named> g_named;  // by actor base
 
-		// A liaison's successor: keeps the counter once the game has put them in the dead innkeeper's place.
+		// A liaison's successor (dialogue.json "successor"): keeps the counter once the liaison they follow is dead,
+		// whoever runs the inn. With the Unofficial Patch Mikael takes the Bannered Mare over; Ysolda takes the counter.
 		struct Successor
 		{
-			RE::FormID    npc{ 0 }, of{ 0 };  // actor bases
-			RE::TESQuest* quest{ nullptr };   // the hold's Dialogue quest ...
-			std::uint32_t alias{ 0 };         // ... and its Innkeeper alias
-			std::string   city;
+			RE::FormID       npc{ 0 }, of{ 0 };  // actor bases
+			RE::TESQuest*    quest{ nullptr };   // the hold's Dialogue quest ...
+			std::uint32_t    alias{ 0 };         // ... and its Innkeeper alias: the game swaps the backup in on death
+			RE::FormID       ref{ 0 };           // the successor's own reference
+			RE::TESObjectCELL* cell{ nullptr };  // the inn: Guild business only there
+			std::string      city;
 		};
 		std::vector<Successor> g_successors;
 
-		// g_lock held or not: reads only game state. The actor in the Innkeeper alias, if it is this successor, alive.
-		RE::Actor* Holding(const Successor& a_s)
+		// Reads only game state. The successor, if the liaison they follow is dead and they are alive.
+		RE::Actor* Active(const Successor& a_s)
 		{
 			if (!a_s.quest) return nullptr;
-			auto  ref = a_s.quest->GetAliasedRef(a_s.alias).get();
-			auto* actor = ref ? ref->As<RE::Actor>() : nullptr;
-			auto* base = actor ? actor->GetActorBase() : nullptr;
-			return base && base->GetFormID() == a_s.npc && !actor->IsDead() ? actor : nullptr;
+			auto  held = a_s.quest->GetAliasedRef(a_s.alias).get();
+			auto* holder = held ? held->As<RE::Actor>() : nullptr;
+			auto* hbase = holder ? holder->GetActorBase() : nullptr;
+			// the Innkeeper alias still holds the original, alive: nothing has happened
+			if (hbase && hbase->GetFormID() == a_s.of && !holder->IsDead()) return nullptr;
+			auto* actor = RE::TESForm::LookupByID<RE::Actor>(a_s.ref);
+			return actor && !actor->IsDead() ? actor : nullptr;
 		}
+		// ... and where they can do the Guild's business
+		bool AtInn(const Successor& a_s, RE::Actor* a_actor) { return !a_s.cell || (a_actor && a_actor->GetParentCell() == a_s.cell); }
 
 		struct ChanceGroup
 		{
@@ -235,7 +243,14 @@ namespace AG::Adventurers
 						SKSE::log::warn("Adventurers: a liaison successor does not resolve ({}) - they will not take the counter over", su.dump());
 						continue;
 					}
-					g_successors.push_back({ npc->GetFormID(), of->GetFormID(), q->As<RE::TESQuest>(), su.value("alias", 0u), su.value("city", "") });
+					auto* ref = FormOfKey(su.value("ref", ""));
+					auto* cell = FormOfKey(su.value("cell", ""));
+					if (!ref) {
+						SKSE::log::warn("Adventurers: a liaison successor's reference does not resolve - they will not take the counter over");
+						continue;
+					}
+					g_successors.push_back({ npc->GetFormID(), of->GetFormID(), q->As<RE::TESQuest>(), su.value("alias", 0u), ref->GetFormID(),
+						cell ? cell->As<RE::TESObjectCELL>() : nullptr, su.value("city", "") });
 				}
 			}
 			if (j.contains("joinOnRecruit")) g_joinOnRecruit = Factions(j.at("joinOnRecruit"), "joinOnRecruit");
@@ -359,7 +374,7 @@ namespace AG::Adventurers
 		std::lock_guard l(g_lock);
 		if (g_liaisons.contains(base->GetFormID())) return true;
 		for (auto& su : g_successors)
-			if (su.npc == base->GetFormID()) return Holding(su) == a_actor;
+			if (su.npc == base->GetFormID()) return Active(su) == a_actor && AtInn(su, a_actor);  // only at her inn
 		return false;
 	}
 
@@ -368,7 +383,7 @@ namespace AG::Adventurers
 		std::vector<RE::Actor*> out;
 		std::lock_guard          l(g_lock);
 		for (auto& su : g_successors)
-			if (auto* a = Holding(su)) out.push_back(a);
+			if (auto* a = Active(su)) out.push_back(a);
 		return out;
 	}
 
@@ -386,7 +401,7 @@ namespace AG::Adventurers
 		auto it = base ? g_liaisonCity.find(base->GetFormID()) : g_liaisonCity.end();
 		if (it != g_liaisonCity.end()) return it->second;
 		for (auto& su : g_successors)
-			if (base && su.npc == base->GetFormID() && Holding(su) == actor) return su.city;
+			if (base && su.npc == base->GetFormID() && Active(su) == actor) return su.city;
 		return {};
 	}
 

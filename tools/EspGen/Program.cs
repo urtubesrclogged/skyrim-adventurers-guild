@@ -229,6 +229,19 @@ ConditionFloat Dead(string edid, bool dead)
     d.Npc.Link.SetTo(Npc(edid));
     return new ConditionFloat { CompareOperator = dead ? CompareOperator.GreaterThanOrEqualTo : CompareOperator.EqualTo, ComparisonValue = dead ? 1 : 0, Data = d };
 }
+// "Plugin.esp|0x00ABCD" (the form the DLL's keys use) as a FormKey
+FormKey KeyFk(string key)
+{
+    var bar = key.IndexOf('|');
+    return new FormKey(ModKey.FromFileName(key[..bar]), Convert.ToUInt32(key[(bar + 1)..], 16));
+}
+// The speaker is (not) in an interior cell.
+ConditionFloat InCell(FormKey cell, bool inside)
+{
+    var d = new GetInCellConditionData();
+    d.Cell.Link.SetTo(cell);
+    return new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = inside ? 1 : 0, Data = d };
+}
 ConditionFloat InFaction(FormKey faction)
 {
     var d = new GetInFactionConditionData();
@@ -329,6 +342,15 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     };
     var topic = NewTopic(topicId, $"AG_Topic{stem}", prompts[role]!.GetValue<string>());
     var prevOf = new Dictionary<DialogTopic, DialogResponses>();
+    // conditions that make a successor (Ysolda after Hulda) this liaison: in the DLL's faction, and at her inn
+    List<Condition> Succeeded(JsonNode l)
+    {
+        var c = new List<Condition>();
+        if (l["successor"] is not JsonNode su) return c;
+        c.Add(InFaction(liaisonFaction.FormKey));
+        if (su["cell"] is JsonNode cell) c.Add(InCell(KeyFk(cell.GetValue<string>()), true));
+        return c;
+    }
     DialogResponses Info(DialogTopic t, string key, string[] lines, bool goodbye, IEnumerable<Condition> who)
     {
         var info = new DialogResponses(FK(InfoId(key)), Rel)
@@ -354,6 +376,12 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     }
     string Line(string section) => dlg[section]![role]!.GetValue<string>();
 
+    // A successor away from her inn says so, on every topic that does business (first, so nothing else answers for her)
+    if (role != "about")
+        foreach (var l in dlg["liaisons"]!.AsArray())
+            if (l!["successor"] is JsonNode su && su["cell"] is JsonNode cell && l["away"] is JsonNode away)
+                Info(topic, $"{role}:away:{l["npc"]!.GetValue<string>()}", new[] { away.GetValue<string>() }, false,
+                    new Condition[] { IsNpc(Npc(l["npc"]!.GetValue<string>()), false), InFaction(liaisonFaction.FormKey), InCell(KeyFk(cell.GetValue<string>()), false) });
     // the per-liaison lines: in the pay topic when there's a fee, else straight in the topic
     DialogTopic? pay = null, later = null;
     if (fee is not null && !payNow)
@@ -368,7 +396,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             if (l![$"{role}Ask"] is not JsonNode own) continue;
             var npc = l["npc"]!.GetValue<string>();
             var askWho = new List<Condition> { IsNpc(Npc(npc), false) };
-            if (l["successor"] is not null) askWho.Add(InFaction(liaisonFaction.FormKey));
+            askWho.AddRange(Succeeded(l));
             asks.Add(Info(topic, $"{role}:ask:{npc}", new[] { own.GetValue<string>() }, false, askWho));
         }
         asks.Add(Info(topic, $"{role}:ask", new[] { Line("ask") }, false, AnyLiaison()));
@@ -388,7 +416,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         List<Condition> Who()
         {
             var w = new List<Condition> { IsNpc(Npc(npc), false) };
-            if (l["successor"] is not null) w.Add(InFaction(liaisonFaction.FormKey));  // only once they keep the counter
+            w.AddRange(Succeeded(l));  // only once they keep the counter, and only at their inn
             if (fee is not null) w.Add(Gold(fee, true));
             return w;
         }
@@ -459,7 +487,8 @@ foreach (var l in dlg["liaisons"]!.AsArray())
     var k = Key(Npc(l!["npc"]!.GetValue<string>()));
     if (l["successor"] is JsonNode su)
     {
-        successors.Add(new { npc = k, of = Key(Npc(su["of"]!.GetValue<string>())), quest = su["quest"]!.GetValue<string>(), alias = su["alias"]!.GetValue<int>(), city = l["city"]!.GetValue<string>() });
+        successors.Add(new { npc = k, of = Key(Npc(su["of"]!.GetValue<string>())), quest = su["quest"]!.GetValue<string>(), alias = su["alias"]!.GetValue<int>(),
+            @ref = su["ref"]?.GetValue<string>() ?? "", cell = su["cell"]?.GetValue<string>() ?? "", city = l["city"]!.GetValue<string>() });
         continue;
     }
     liaisonKeys.Add(k);
@@ -573,6 +602,8 @@ foreach (var ln in world["lines"]!.AsArray())
     if (ln["whileAlive"] is JsonNode wal) conds.Add(Dead(wal.GetValue<string>(), false));
     if (ln["whenDead"] is JsonNode wdd) conds.Add(Dead(wdd.GetValue<string>(), true));
     if (ln["liaison"] is not null) conds.Add(InFaction(liaisonFaction.FormKey));
+    if (ln["inFaction"] is JsonNode inf) conds.Add(InFaction(FactionFk(inf.GetValue<string>())));
+    if (ln["notInFaction"] is JsonNode nif) { var nc = InFaction(FactionFk(nif.GetValue<string>())); nc.ComparisonValue = 0; conds.Add(nc); }
     // who holds Whiterun: the condition vanilla puts on Sinmir's own lines (CWOwner 2 = the Stormcloaks)
     if (ln["owner"] is JsonNode ow)
     {
