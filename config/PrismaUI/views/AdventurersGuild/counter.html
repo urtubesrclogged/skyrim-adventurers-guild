@@ -87,8 +87,14 @@
   .plaque { width: 236px; height: auto; margin-top: -4px; }
   .medallion .cap { font-size: 22px; color: var(--ink); margin-top: -6px; }
   /* the physical card only: field notes, a scrap of parchment at the foot of the medallion column */
-  .medallion .todo { width: 100%; margin-top: auto; padding: 10px 14px 12px; background: url(tex/parchment.png), #d8c9a2; color: var(--paper-ink);
-                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75), inset 0 0 22px rgba(110, 80, 40, 0.45); transform: rotate(-1.2deg); }
+  .medallion .todo { width: 100%; margin-top: auto; padding: 12px 16px 14px; color: var(--paper-ink); position: relative;
+                     transform: rotate(-1.2deg); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.8)); }
+  /* the scrap itself: torn edges (the shadow above follows them) */
+  .medallion .todo::before { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 0;
+                     background: radial-gradient(ellipse at center, rgba(110, 80, 40, 0) 55%, rgba(110, 80, 40, 0.38) 100%), url(tex/parchment.png), #d8c9a2;
+                     -webkit-clip-path: polygon(0.0% 1.0%, 7.1% 0.5%, 14.3% 2.1%, 21.4% 0.2%, 28.6% 1.7%, 35.7% 1.2%, 42.9% 0.2%, 50.0% 1.6%, 57.1% 0.1%, 64.3% 1.4%, 71.4% 0.2%, 78.6% 0.3%, 85.7% 1.4%, 92.9% 2.6%, 99.8% 0.0%, 99.6% 11.1%, 98.7% 22.2%, 98.1% 33.3%, 98.8% 44.4%, 99.2% 55.6%, 98.0% 66.7%, 99.9% 77.8%, 98.3% 88.9%, 100.0% 99.1%, 92.9% 99.5%, 85.7% 99.6%, 78.6% 99.0%, 71.4% 97.4%, 64.3% 99.4%, 57.1% 98.1%, 50.0% 98.0%, 42.9% 98.8%, 35.7% 98.2%, 28.6% 99.8%, 21.4% 99.8%, 14.3% 99.3%, 7.1% 97.8%, 0.9% 100.0%, 0.6% 88.9%, 1.2% 77.8%, 0.9% 66.7%, 0.6% 55.6%, 1.6% 44.4%, 1.4% 33.3%, 0.5% 22.2%, 1.1% 11.1%);
+                     clip-path: polygon(0.0% 1.0%, 7.1% 0.5%, 14.3% 2.1%, 21.4% 0.2%, 28.6% 1.7%, 35.7% 1.2%, 42.9% 0.2%, 50.0% 1.6%, 57.1% 0.1%, 64.3% 1.4%, 71.4% 0.2%, 78.6% 0.3%, 85.7% 1.4%, 92.9% 2.6%, 99.8% 0.0%, 99.6% 11.1%, 98.7% 22.2%, 98.1% 33.3%, 98.8% 44.4%, 99.2% 55.6%, 98.0% 66.7%, 99.9% 77.8%, 98.3% 88.9%, 100.0% 99.1%, 92.9% 99.5%, 85.7% 99.6%, 78.6% 99.0%, 71.4% 97.4%, 64.3% 99.4%, 57.1% 98.1%, 50.0% 98.0%, 42.9% 98.8%, 35.7% 98.2%, 28.6% 99.8%, 21.4% 99.8%, 14.3% 99.3%, 7.1% 97.8%, 0.9% 100.0%, 0.6% 88.9%, 1.2% 77.8%, 0.9% 66.7%, 0.6% 55.6%, 1.6% 44.4%, 1.4% 33.3%, 0.5% 22.2%, 1.1% 11.1%); }
+  .medallion .todo > * { position: relative; z-index: 1; }
   .todo .thead { font-size: 14px; color: var(--paper-muted); letter-spacing: 0.08em; text-align: center; margin-bottom: 4px;
                  padding-bottom: 4px; border-bottom: 1px solid rgba(80, 60, 30, 0.25); }
   .todo .trow { display: flex; align-items: baseline; gap: 8px; font-size: 17px; line-height: 1.45; }
@@ -439,8 +445,8 @@ function cardParty() {
 function cardTodo() {
   if (!data.cardOnly || !data.registered) return "";
   const trophies = ((data.trophies || {}).items || []).reduce((n, x) => n + (x.count || 0), 0);
-  const rows = [[t("$AG_UI_TodoReports", "Reports ready"), (data.reports || []).length],
-    [t("$AG_UI_TodoQuests", "Quests in progress"), data.inProgress || 0],
+  const rows = [[t("$AG_UI_TodoQuests", "Quests in progress"), data.inProgress || 0],
+    [t("$AG_UI_TodoReports", "Reports ready"), (data.reports || []).length],
     [t("$AG_UI_TodoTrophies", "Trophies to sell"), trophies]];
   return `<div class="todo"><div class="thead caps">${esc(t("$AG_UI_TodoHead", "Field Notes"))}</div>
     ${rows.map(([k, v]) => `<div class="trow ${v ? "" : "none"}"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("")}
