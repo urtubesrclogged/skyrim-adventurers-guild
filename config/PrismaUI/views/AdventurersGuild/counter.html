@@ -296,6 +296,7 @@
   #padhints { position: absolute; right: 30px; bottom: 12px; display: none; align-items: center; gap: 18px;
               font-size: 16px; color: var(--muted); font-variant: small-caps; letter-spacing: 0.06em; }
   body.pad #padhints { display: flex; }
+  #panel.cardonly #padhints .nocard { display: none; }  /* the card alone: nothing to move between, only Back */
   body.pad footer { padding-right: 560px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #padhints .key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px;
                    margin-right: 6px; border: 1px solid var(--bronze); border-radius: 13px; color: var(--ink);
@@ -329,9 +330,9 @@
     </nav>
     <main id="main"></main>
     <footer id="status"></footer>
-    <div id="padhints"><span><span class="key">✚</span><span data-t="$AG_UI_PadMove">Move</span></span><span><span class="key">A</span><span data-t="$AG_UI_PadSelect">Select</span></span>
-      <span><span class="key">B</span><span data-t="$AG_UI_PadBack">Back</span></span><span><span class="key sq">LB</span><span class="key sq">RB</span><span data-t="$AG_UI_PadTabs">Tabs</span></span>
-      <span><span class="key sq">LT</span><span class="key sq">RT</span><span data-t="$AG_UI_PadPages">Pages</span></span></div>
+    <div id="padhints"><span class="nocard"><span class="key">✚</span><span data-t="$AG_UI_PadMove">Move</span></span><span class="nocard"><span class="key">A</span><span data-t="$AG_UI_PadSelect">Select</span></span>
+      <span><span class="key">B</span><span data-t="$AG_UI_PadBack">Back</span></span><span class="nocard"><span class="key sq">LB</span><span class="key sq">RB</span><span data-t="$AG_UI_PadTabs">Tabs</span></span>
+      <span class="nocard"><span class="key sq">LT</span><span class="key sq">RT</span><span data-t="$AG_UI_PadPages">Pages</span></span></div>
   </div>
 </div>
 <script>
@@ -961,6 +962,7 @@ function move(dir) {
   if (best) { focusKey = keyOf(best); mark(best); }
 }
 function stepTab(d) {
+  if (data && data.cardOnly) return;
   setTab(TABS[(TABS.indexOf(tab) + d + TABS.length) % TABS.length]);
   if (navOn()) focusFirst();
 }
