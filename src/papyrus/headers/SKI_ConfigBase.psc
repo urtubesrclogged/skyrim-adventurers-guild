@@ -50,11 +50,18 @@ EndEvent
 Function SetCursorFillMode(Int a_fillMode)
 EndFunction
 
+Function SetCursorPosition(Int a_position)
+EndFunction
+
 Int Function AddHeaderOption(String a_text, Int a_flags = 0)
 	Return 0
 EndFunction
 
 Int Function AddEmptyOption()
+	Return 0
+EndFunction
+
+Int Function AddTextOption(String a_text, String a_value, Int a_flags = 0)
 	Return 0
 EndFunction
 

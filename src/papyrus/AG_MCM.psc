@@ -104,6 +104,16 @@ Event OnPageReset(String a_page)
 		AddHeaderOption("$AG_MCM_Debug_Uninstall_Header", OPTION_FLAG_NONE)
 		AddTextOptionST("Prepare", "$AG_MCM_Debug_Prepare_Text", "", OPTION_FLAG_NONE)
 		AddTextOptionST("Cancel", "$AG_MCM_Debug_Cancel_Text", "", OPTION_FLAG_NONE)
+		; right-hand column: the optional mods this one works with, and what the DLL found of each (read-only)
+		SetCursorPosition(1)
+		AddHeaderOption("$AG_MCM_Debug_Mods_Header", OPTION_FLAG_NONE)
+		String[] names = AG_Native.GetIntegrationNames()
+		String[] found = AG_Native.GetIntegrationStates()
+		Int i = 0
+		While i < names.Length && i < found.Length
+			AddTextOption(names[i], found[i], OPTION_FLAG_NONE)
+			i += 1
+		EndWhile
 	EndIf
 EndEvent
 

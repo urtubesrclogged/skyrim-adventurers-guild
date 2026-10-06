@@ -78,3 +78,5 @@ New keys, all optional (English is shown for any you leave out):
 * MCM: `$AG_MCM_System_Card_Header`, `$AG_MCM_System_iCardKey_Text`, `$AG_MCM_System_iCardKey_Help`,
   `$AG_MCM_CardKeyConflict` (keep the `
 ` line breaks and the `{}`).
+* MCM Debug page, optional integrations: `$AG_MCM_Debug_Mods_Header`, and the states `$AG_MCM_Int_None`,
+  `$AG_MCM_Int_Active`, `$AG_MCM_Int_Inactive`. Mod names themselves are not translated.

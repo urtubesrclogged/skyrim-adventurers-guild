@@ -13,6 +13,12 @@
 - Optional key to open the card (MCM, System page). None is set by default. In VR, VRIK's gesture
   menu offers "Adventurers Guild: Guild Card" as an action.
 
+**Other**
+- MCM, Debug page: the optional mods Adventurers Guild works with (Missives, The Notice Board, SkyrimNet) and
+  whether each was detected.
+- SkyrimNet: NPCs know what each rank is trusted with, and about the guild card; an innkeeper can hand over a
+  replacement card in conversation.
+
 ## 1.1.0
 
 **Parties**

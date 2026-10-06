@@ -6,6 +6,9 @@
 #include "Diag.h"
 
 #include "Counter.h"
+#include "Loc.h"
+#include "MissiveWatch.h"
+#include "NoticeWatch.h"
 
 #include <SimpleIni.h>
 #include <Windows.h>
@@ -17,6 +20,7 @@ namespace AG::Diag
 	namespace
 	{
 		std::atomic<bool> g_ini{ false }, g_mcm{ false };
+		std::atomic<bool> g_skyrimNet{ false };  // AG_SkyrimNetInit registered every decorator with SkyrimNet this session
 		std::uint32_t     g_skse = 0;
 
 		void Apply()
@@ -66,8 +70,6 @@ namespace AG::Diag
 			(g_skse >> 24) & 0xFF, (g_skse >> 16) & 0xFF, (g_skse >> 4) & 0xFFF, AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH,
 			g_ini.load() || g_mcm.load() ? "on" : "off");
 		SKSE::log::info("Environment: AdventurersGuild.esp {}", Plugin("AdventurersGuild.esp"));
-		// required
-		SKSE::log::info("Environment: PrismaUI {} (the counter and notices need it)", Module(L"PrismaUI.dll"));
 		SKSE::log::info("Environment: SkyUI_SE.esp {} (the MCM needs it)", Plugin("SkyUI_SE.esp"));
 		if (REL::Module::IsVR()) {
 			SKSE::log::info("Environment: Skyrim VR ESL Support {} (VR needs it for a light plugin)", Module(L"skyrimvresl.dll"));
@@ -77,6 +79,26 @@ namespace AG::Diag
 		SKSE::log::info("Environment: optional - Missives.esp {}; notice board.esp {}; SkyrimNet {}", Plugin("Missives.esp"), Plugin("notice board.esp"),
 			Module(L"SkyrimNet.dll"));
 	}
+
+	std::vector<std::pair<std::string, std::string>> Integrations()
+	{
+		auto*      data = RE::TESDataHandler::GetSingleton();
+		const auto plugin = [&](std::string_view a_name) {
+			const auto* file = data ? data->LookupModByName(a_name) : nullptr;
+			return file && file->GetCompileIndex() != 0xFF;
+		};
+		const auto none = Loc::T("$AG_MCM_Int_None", "Not Detected");
+		const auto active = Loc::T("$AG_MCM_Int_Active", "Active");
+		const auto inactive = Loc::T("$AG_MCM_Int_Inactive", "Inactive");
+		std::vector<std::pair<std::string, std::string>> out;
+		// optional: what this mod acted on, not only what is in the load order
+		out.emplace_back("Missives", !plugin("Missives.esp") ? none : MissiveWatch::Active() ? active : inactive);
+		out.emplace_back("The Notice Board", !plugin("notice board.esp") ? none : NoticeWatch::Active() ? active : inactive);
+		out.emplace_back("SkyrimNet", !GetModuleHandleW(L"SkyrimNet.dll") ? none : g_skyrimNet.load() ? active : inactive);
+		return out;
+	}
+
+	void SetSkyrimNetReady(bool a_ready) { g_skyrimNet = a_ready; }
 
 	bool DetailedLog() { return g_mcm.load(); }
 

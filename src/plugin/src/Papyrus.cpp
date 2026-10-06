@@ -98,6 +98,20 @@ namespace AG
 		{
 			return Loc::F("$AG_MCM_CardKeyConflict", "This key is already used by:\n{}\n\nUse it for the Guild Card anyway?", a_other.c_str());
 		}
+		// MCM Debug page: detected mods, as two arrays of the same length
+		void SetSkyrimNetReady(Tag*, bool a_ready) { Diag::SetSkyrimNetReady(a_ready); }
+		std::vector<std::string> GetIntegrationNames(Tag*)
+		{
+			std::vector<std::string> out;
+			for (auto& [name, state] : Diag::Integrations()) out.push_back(name);
+			return out;
+		}
+		std::vector<std::string> GetIntegrationStates(Tag*)
+		{
+			std::vector<std::string> out;
+			for (auto& [name, state] : Diag::Integrations()) out.push_back(state);
+			return out;
+		}
 		bool GetDetailedLog(Tag*) { return Diag::DetailedLog(); }
 		void SetDetailedLog(Tag*, bool a_on) { Diag::SetDetailedLog(a_on); }
 		bool GetShowRankUpToast(Tag*) { return PrismaToast::Enabled(); }
@@ -187,6 +201,9 @@ namespace AG
 		REG(SetCardHotkey);
 		REG(ToggleGuildCard);
 		REG(CardKeyConflictText);
+		REG(SetSkyrimNetReady);
+		REG(GetIntegrationNames);
+		REG(GetIntegrationStates);
 		REG(GetDetailedLog);
 		REG(SetDetailedLog);
 		REG(GetShowRankUpToast);

@@ -16,4 +16,10 @@ namespace AG::Diag
 	void LogEnvironment();                   // at kDataLoaded: game, SKSE, our plugin, and the mods we depend on
 	bool DetailedLog();                      // the MCM's switch
 	void SetDetailedLog(bool a_on);
+
+	// MCM Debug page: the optional mods this one works with, and what was found. {name, state} rows; the state is in
+	// the player's language and says what the mod actually acted on (Active: loaded and hooked up; Inactive: loaded, but this
+	// mod could not hook it up; Not Detected: not loaded).
+	std::vector<std::pair<std::string, std::string>> Integrations();
+	void SetSkyrimNetReady(bool a_ready);  // from AG_SkyrimNetInit, each load
 }

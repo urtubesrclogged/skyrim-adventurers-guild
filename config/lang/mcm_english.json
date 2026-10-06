@@ -16,6 +16,7 @@
  "$AG_MCM_Debug_Log_Header": "Troubleshooting",
  "$AG_MCM_Debug_bDetailedLog_Text": "Detailed log",
  "$AG_MCM_Debug_bDetailedLog_Help": "Adds each kill and each Guild counter action to AdventurersGuild.log (Documents/My Games/your Skyrim/SKSE). When reporting a problem: turn this on, reproduce the problem, then send that file before starting the game again. Default: off.",
+ "$AG_MCM_Debug_Mods_Header": "Optional integrations",
  "$AG_MCM_Debug_Uninstall_Header": "Uninstalling Adventurers Guild",
  "$AG_MCM_Debug_Prepare_Text": "Prepare to Uninstall",
  "$AG_MCM_Debug_Prepare_Help": "Takes back every Guild ability, perk and party bonus from you and your companions, removes Guild items and stops the Guild's quests, so no stat changes stay in your save. Then save, quit and remove the mod.",

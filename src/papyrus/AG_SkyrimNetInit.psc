@@ -26,6 +26,8 @@ Function Initialize()
 	Int d = SkyrimNetApi.RegisterDecorator("ag_join_status", "AG_SkyrimNet_Decorators", "GetJoinStatusOf")
 	Int e = SkyrimNetApi.RegisterDecorator("ag_party", "AG_SkyrimNet_Decorators", "GetPartyOf")
 	Debug.Trace("[AdventurersGuild] SkyrimNet decorators: guild_rank_of " + (a == 0) as String + ", threat_rank_of " + (b == 0) as String + ", ag_player " + (c == 0) as String + ", ag_join_status " + (d == 0) as String + ", ag_party " + (e == 0) as String)
+	; the MCM's Debug page shows SkyrimNet as active only when every decorator registered
+	AG_Native.SetSkyrimNetReady(a == 0 && b == 0 && c == 0 && d == 0 && e == 0)
 
 	RegisterForModEvent("AG_Registered", "OnGuildRegistered")
 	RegisterForModEvent("AG_RankChanged", "OnGuildRankChanged")
