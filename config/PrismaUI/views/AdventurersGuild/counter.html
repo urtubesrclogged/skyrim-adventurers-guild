@@ -268,9 +268,12 @@
   .radar { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center;
            border: 1px solid rgba(194, 154, 91, 0.2); background: rgba(0, 0, 0, 0.25); padding: 6px 10px 8px; }
   .radar h4 { font-weight: 400; font-size: 17px; font-variant: small-caps; letter-spacing: 0.08em; color: var(--muted); align-self: flex-start; }
-  .radar svg { width: 100%; height: 254px; }
-  /* more than five on the chart: a legend of up to three rows, so the chart gives up a little height */
-  .radars.many .radar svg { height: 226px; }
+  /* The chart takes all the height the legend leaves (one row or three): the busier it gets, the more it needs.
+     The heading sits over its top-left corner and costs it nothing. */
+  .radar { position: relative; }
+  .radar h4 { position: absolute; top: 6px; left: 10px; }
+  .radar svg { width: 100%; flex: 1 1 0; min-height: 0; }
+  /* more than five on the chart: a tighter legend, so its rows take as little from the chart as they can */
   .radars.many .rlegend { gap: 2px 12px; font-size: 13px; line-height: 1.25; }
   .radar svg text { font-family: var(--serif); font-size: 15px; fill: var(--muted); }
   .rlegend { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 14px; color: var(--ink); }
@@ -675,7 +678,7 @@ let onlyHere = false;
    pure destruction mage is a strong caster however little conjuration they know. */
 function scores(m) { const sk = m.skills || []; return AXES.map((a) => Math.max(...a.s.map((i) => sk[i] || 0))); }
 function radarSvg(rings) {
-  const W = 440, H = 292, cx = W / 2, cy = H / 2 + 2, R = 118, n = AXES.length;
+  const W = 440, H = 280, cx = W / 2, cy = H / 2 + 4, R = 118, n = AXES.length;  /* as tight as the labels allow */
   const pt = (i, v) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / n, r = (R * Math.max(0, Math.min(100, v))) / 100; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
   let g = "";
   for (const lv of [25, 50, 75, 100]) g += `<polygon points="${AXES.map((_, i) => pt(i, lv).join(",")).join(" ")}" fill="none" stroke="rgba(194,154,91,${lv === 100 ? 0.35 : 0.14})"/>`;
