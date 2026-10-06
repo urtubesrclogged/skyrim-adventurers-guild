@@ -322,7 +322,7 @@
   "registerPay": "Here's the fee. (<Global=AG_RegisterFee> gold)",
   "promotePay": "Here's the fee. (<Global=AG_PromotionFee> gold)",
   "later": "Not now.",
-  "replace": "I've lost my guild card. I need a replacement. (<Global=AG_CardFee> gold)"
+  "replace": "I've lost my guild card. I need a replacement."
  },
  "_nofee": "What a guild liaison says when the player picks register/promote without the fee in hand (no Goodbye; voiced per liaison voice type).",
  "nofee": {

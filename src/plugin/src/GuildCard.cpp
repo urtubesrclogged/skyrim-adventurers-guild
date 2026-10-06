@@ -168,6 +168,7 @@ namespace AG::GuildCard
 		if (g_hotkey.exchange(a_key) != a_key) SKSE::log::info("GuildCard: hotkey {}", a_key > 0 ? std::to_string(a_key) : "none");
 	}
 	int Hotkey() { return g_hotkey.load(); }
+	void Toggle() { SKSE::GetTaskInterface()->AddTask(OnHotkey); }
 
 	void Install()
 	{

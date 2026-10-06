@@ -27,6 +27,7 @@ namespace AG::GuildCard
 
 	// MCM: a key that opens the card (a book cannot be favourited). SkyUI key code, 0 or less = none (the default).
 	void SetHotkey(int a_key);
+	void Toggle();  // what the key does: open the card in the world, or close it (also the VRIK gesture action)
 	int  Hotkey();
 
 	// co-save (Guild.cpp): the free first card has been handed over

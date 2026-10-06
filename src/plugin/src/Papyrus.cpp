@@ -93,6 +93,7 @@ namespace AG
 		bool GetShowLevelSuffix(Tag*) { return LevelDisplay::Enabled(); }
 		void SetShowLevelSuffix(Tag*, bool a_on) { LevelDisplay::SetEnabled(a_on); }
 		void SetCardHotkey(Tag*, std::int32_t a_key) { GuildCard::SetHotkey(a_key); }
+		void ToggleGuildCard(Tag*) { GuildCard::Toggle(); }
 		RE::BSFixedString CardKeyConflictText(Tag*, RE::BSFixedString a_other)
 		{
 			return Loc::F("$AG_MCM_CardKeyConflict", "This key is already used by:\n{}\n\nUse it for the Guild Card anyway?", a_other.c_str());
@@ -183,6 +184,7 @@ namespace AG
 		REG(GetShowLevelSuffix);
 		REG(SetShowLevelSuffix);
 		REG(SetCardHotkey);
+		REG(ToggleGuildCard);
 		REG(CardKeyConflictText);
 		REG(GetDetailedLog);
 		REG(SetDetailedLog);

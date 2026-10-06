@@ -205,7 +205,6 @@ var dlgQuest = new Quest(FK(0x804), Rel)
 dlgQuest.VirtualMachineAdapter = new QuestAdapter { Scripts = { new ScriptEntry { Name = "AG_SkyrimNetActions" } } };
 dlgQuest.TextDisplayGlobals.Add(new FormLink<IGlobalGetter>(gRegFee.FormKey));
 dlgQuest.TextDisplayGlobals.Add(new FormLink<IGlobalGetter>(gPromoFee.FormKey));
-dlgQuest.TextDisplayGlobals.Add(new FormLink<IGlobalGetter>(gCardFee.FormKey));
 mod.Quests.Add(dlgQuest);
 
 // The nine Guild reps join this hidden faction as they load (AdventurersGuild.dll), so SkyrimNet actions can pick them
@@ -448,6 +447,8 @@ MakeTopic(0x808, 0x809, "Promote", "promote", true, new[] { GlobalIs(gRegistered
 MakeTopic(0x80B, 0x80C, "Business", "business", true, new[] { GlobalIs(gRegistered, 1) }, true);
 MakeTopic(0x812, 0x813, "About", "about", false, Array.Empty<ConditionFloat>(), false);
 // A lost guild card: only offered to a member who carries none, and the choice itself pays (no confirmation).
+// The DLL writes the fee into the player's line (Guild.cpp): a <Global=> tag added to a quest that is already
+// running in a save shows as "[...]".
 MakeTopic(0x81B, 0x81C, "Replace", "replace", false, new[] { GlobalIs(gRegistered, 1), HasNone(FK(0x81A)) }, false, gCardFee, payNow: true);
 
 // ---------- world awareness: greetings from named NPCs and guards (config/world_dialogue.json) ----------

@@ -97,6 +97,7 @@ namespace AG::Guild
 		RE::TESGlobal*       g_gRegFee{ nullptr };
 		RE::TESGlobal*       g_gPromoFee{ nullptr };
 		RE::TESGlobal* g_gCardFee{ nullptr };
+		RE::TESTopic*  g_replaceTopic{ nullptr };  // the player's "I've lost my guild card" line: the DLL writes the fee into it
 		// Liaison dialogue lines by role (dialogue.resolved.json). Staff/referral lines are not listed,
 		// so choosing a topic at a non-guild inn only gets the innkeeper's pointer to the right city.
 		std::unordered_set<RE::FormID> g_infoRegister, g_infoPromote, g_infoBusiness, g_infoReplace;
@@ -516,6 +517,7 @@ namespace AG::Guild
 		g_gRegFee = Own<RE::TESGlobal>(0x814);
 		g_gPromoFee = Own<RE::TESGlobal>(0x815);
 		g_gCardFee = Own<RE::TESGlobal>(0x81D);
+		g_replaceTopic = Own<RE::TESTopic>(0x81C);
 		g_gRecentPromo = Own<RE::TESGlobal>(0x8C5);
 		g_retiredFaction = Own<RE::TESFaction>(0x8C4);
 		g_liaisonFaction = Own<RE::TESFaction>(0x8C6);
@@ -797,6 +799,8 @@ namespace AG::Guild
 		if (g_gRegFee) g_gRegFee->value = static_cast<float>(g_cfg.fee);
 		if (g_gPromoFee) g_gPromoFee->value = static_cast<float>(g_cfg.promotionFee);
 		if (g_gCardFee) g_gCardFee->value = static_cast<float>(g_cfg.cardFee);
+		if (g_replaceTopic)
+			g_replaceTopic->fullName = Loc::F("$AG_Dlg_ReplaceCard", "I've lost my guild card. I need a replacement. ({} gold)", g_cfg.cardFee);
 		if (announce) {
 			Hud(Loc::F("$AG_Hud_Ready", "You are eligible for promotion to Rank {}. Any innkeeper can hear your case.", Letter(next)));
 			PrismaToast::Show(Loc::T("$AG_Toast_Ready", "PROMOTION READY"), Loc::F("$AG_Toast_ReadySub", "Rank {} awaits · a guild liaison can hear your case", Letter(next)),

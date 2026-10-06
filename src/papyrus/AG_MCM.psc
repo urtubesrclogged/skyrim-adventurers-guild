@@ -34,6 +34,7 @@ Event OnConfigInit()
 	fToastSeconds = AG_Native.GetToastSeconds()
 	bDetailedLog = AG_Native.GetDetailedLog()
 	Apply()
+	RegisterCardAction()
 EndEvent
 
 Event OnVersionUpdate(Int a_version)
@@ -50,7 +51,22 @@ EndEvent
 Event OnGameReload()
 	Parent.OnGameReload()
 	Apply()
+	RegisterCardAction()
 EndEvent
+
+; The mod event "AG_OpenGuildCard" opens (or closes) the Guild Card: any mod can send it. With VRIK installed it is
+; also offered as a gesture action in VRIK's own MCM, since a VRIK gesture cannot press an arbitrary key.
+Function RegisterCardAction()
+	RegisterForModEvent("AG_OpenGuildCard", "OnOpenGuildCard")
+	If Game.GetModByName("vrik.esp") != 255
+		VRIK.VrikAddGestureAction("AG_OpenGuildCard", "Adventurers Guild: Guild Card")
+	EndIf
+EndFunction
+
+; a plain Function: a mod event is dispatched by function name
+Function OnOpenGuildCard(String asEvent, String asArg, Float afArg, Form akSender)
+	AG_Native.ToggleGuildCard()
+EndFunction
 
 Function SetPages()
 	Pages = new String[2]

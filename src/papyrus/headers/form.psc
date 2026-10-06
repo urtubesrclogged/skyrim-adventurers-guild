@@ -7,3 +7,5 @@ Function UnregisterForUpdateGameTime() native
 
 Event OnUpdateGameTime()
 EndEvent
+
+Function RegisterForModEvent(String eventName, String callbackName) Native

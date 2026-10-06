@@ -8,7 +8,8 @@
 - The innkeeper hands it over when you register, and it is updated to your new rank at each promotion. Members from
   earlier versions receive theirs when they load their save.
 - The first card is free. If you sell or lose it, ask the innkeeper at any Guild counter for a replacement (25 gold).
-- Optional key to open the card (MCM, System page). None is set by default; in VR a VRIK gesture can press it.
+- Optional key to open the card (MCM, System page). None is set by default. In VR, VRIK's gesture
+  menu offers "Adventurers Guild: Guild Card" as an action.
 
 ## 1.1.0
 
