@@ -4,6 +4,17 @@
 	"_members": "Guild members from the start: anyone who can be a follower or hired. Custom followers usually add PotentialFollowerFaction; ones that don't are caught when they first become your teammate.",
 	"members": { "factions": ["PotentialFollowerFaction", "PotentialHireling", "CurrentHireling", "CurrentFollowerFaction"] },
 
+	"_named": "Named NPCs the Guild has on its books whatever their factions say. npcs = editor IDs (resolved by tools/EspGen). level = the least level they have in game (raised in memory when the game loads, no record is edited), which also sets their rank: 24 is C. retiredWhen = a location, a keyword on it and the value that means they have taken another service (Sinmir is made captain of the guard when the Stormcloaks hold Whiterun: CWOwner 2); until then they are an active member. note / retiredNote = a line for their SkyrimNet bio.",
+	"named": [
+		{
+			"npcs": ["Sinmir"],
+			"level": 24,
+			"retiredWhen": { "location": "Skyrim.esm|0x018A56", "keyword": "Skyrim.esm|0x02A456", "value": 2 },
+			"note": "A seasoned C-rank adventurer who drinks at the Bannered Mare between jobs and still takes Guild Missives. Proud of his rank and sure he deserves a higher one; talks down to adventurers ranked below him, treats an equal as a rival, and is grudging toward anyone above. Holds the Whiterun guards in open contempt: an adventurer is paid when the job is done.",
+			"retiredNote": "Was a C-rank adventurer until the Stormcloaks made him commander of the Whiterun guard; the Adventurers Guild set his name aside for it, and he insists that was the Guild's loss. Still judges people by their Guild rank, and runs the watch the way an adventurer would."
+		}
+	],
+
 	"_joinOnRecruit": "Followers whose story makes guild membership unlikely until they travel with you. They register when first recruited.",
 	"joinOnRecruit": {
 		"factions": [

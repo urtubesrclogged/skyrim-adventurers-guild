@@ -18,6 +18,7 @@ Int Function GetThreatRank(Actor akActor) Global Native
 String Function GetRankLetter(Int aiRank) Global Native
 Int Function GetRankFromLevel(Int aiLevel) Global Native
 Bool Function IsGuildLiaison(Actor akActor) Global Native  ; innkeeper and not a story exception (e.g. Delphine)
+String Function GetActorGuildNote(Actor akActor) Global Native  ; a named member's line for their SkyrimNet bio, or ""
 String Function GetPlayerLedger() Global Native            ; the player's ledger page as JSON (SkyrimNet ag_player)
 ; SkyrimNet actions (AG_SkyrimNetActions): a Guild rep doing guild business in an AI conversation. Same fees and
 ; checks as the dialogue; refused for anyone but one of the nine reps. Return a short status for the log.

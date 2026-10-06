@@ -9,6 +9,9 @@
     {% elif ag.status == "retired" %}
         - Adventurers Guild: retired {{ ag.letter }}-rank adventurer, set aside under the Guild's Neutrality Oath when they took up another service; still quietly proud of the old rank
     {% endif %}
+    {% if ag.note != "" %}
+        - {{ ag.note }}
+    {% endif %}
     {# Adventuring parties (ag_party, from AdventurersGuild.dll). The player's party is only common knowledge once it has
        a reputation (renown >= 1); its own members and the Guild reps (below) always know it. #}
     {% set pt = ag_party(actorUUID) %}

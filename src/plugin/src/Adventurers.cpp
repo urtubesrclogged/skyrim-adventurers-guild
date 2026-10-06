@@ -18,6 +18,24 @@ namespace AG::Adventurers
 {
 	namespace
 	{
+		// A named NPC the Guild has on its books (adventurers.json "named"): Sinmir, a C-rank who drinks at the
+		// Bannered Mare. Active until the world says they took another service (the Stormcloaks make him captain).
+		struct Named
+		{
+			RE::BGSLocation* where{ nullptr };
+			RE::BGSKeyword*  keyword{ nullptr };
+			float            value{ 0.0f };
+			std::string      note, retiredNote;
+			bool Retired() const
+			{
+				if (!where || !keyword) return false;
+				for (auto& d : where->keywordData)
+					if (d.keyword == keyword) return d.data == value;
+				return false;
+			}
+		};
+		std::unordered_map<RE::FormID, Named> g_named;  // by actor base
+
 		struct ChanceGroup
 		{
 			std::string                    id;
@@ -190,6 +208,33 @@ namespace AG::Adventurers
 				}
 			}
 			if (j.contains("joinOnRecruit")) g_joinOnRecruit = Factions(j.at("joinOnRecruit"), "joinOnRecruit");
+			g_named.clear();
+			for (auto& n : j.value("named", nlohmann::json::array())) {
+				Named nm;
+				nm.note = n.value("note", "");
+				nm.retiredNote = n.value("retiredNote", "");
+				if (n.contains("retiredWhen")) {
+					auto& w = n.at("retiredWhen");
+					auto* loc = FormOfKey(w.value("location", ""));
+					auto* kw = FormOfKey(w.value("keyword", ""));
+					nm.where = loc ? loc->As<RE::BGSLocation>() : nullptr;
+					nm.keyword = kw ? kw->As<RE::BGSKeyword>() : nullptr;
+					nm.value = w.value("value", 0.0f);
+					if (!nm.where || !nm.keyword) SKSE::log::warn("Adventurers: named member's retiredWhen does not resolve - they stay an active member");
+				}
+				const int level = n.value("level", 0);
+				for (auto& k : n.value("npcs", nlohmann::json::array())) {
+					auto* f = FormOfKey(k.get<std::string>());
+					auto* npc = f ? f->As<RE::TESNPC>() : nullptr;
+					if (!npc) continue;
+					// the level their rank is read from: raised here, in memory (no plugin edits their record)
+					if (level > 0 && npc->actorData.level < level) {
+						SKSE::log::info("Adventurers: {} is level {} in the game's records - raised to {} for their Guild rank", npc->GetName(), npc->actorData.level, level);
+						npc->actorData.level = static_cast<std::uint16_t>(level);
+					}
+					g_named[npc->GetFormID()] = nm;
+				}
+			}
 			for (auto& c : j.value("chance", nlohmann::json::array())) {
 				ChanceGroup g;
 				g.id = c.value("id", std::string("?"));
@@ -199,8 +244,8 @@ namespace AG::Adventurers
 				g.factions = Factions(c, g.id.c_str());
 				g_chance.push_back(std::move(g));
 			}
-			SKSE::log::info("Adventurers: {} member factions, {} join-on-recruit factions, {} chance groups",
-				g_members.size(), g_joinOnRecruit.size(), g_chance.size());
+			SKSE::log::info("Adventurers: {} member factions, {} join-on-recruit factions, {} chance groups, {} named members",
+				g_members.size(), g_joinOnRecruit.size(), g_chance.size(), g_named.size());
 		} catch (const std::exception& e) {
 			SKSE::log::error("Adventurers: adventurers.resolved.json error: {}", e.what());
 		}
@@ -214,7 +259,10 @@ namespace AG::Adventurers
 		{
 			std::lock_guard l(g_lock);
 			const auto key = StableKey(a_actor);
-			if (g_recruited.contains(key)) {
+			auto*      base = a_actor->GetActorBase();
+			if (auto nm = base ? g_named.find(base->GetFormID()) : g_named.end(); nm != g_named.end()) {
+				kind = nm->second.Retired() ? Kind::kRetired : Kind::kMember;  // asked each time: the world can change it
+			} else if (g_recruited.contains(key)) {
 				kind = Kind::kMember;
 			} else if (a_actor->IsPlayerTeammate()) {
 				// Anyone travelling with the player is an adventurer. Those who were not already a
@@ -287,6 +335,15 @@ namespace AG::Adventurers
 		std::lock_guard l(g_lock);
 		auto it = base ? g_liaisonCity.find(base->GetFormID()) : g_liaisonCity.end();
 		return it == g_liaisonCity.end() ? std::string() : it->second;
+	}
+
+	std::string Note(RE::Actor* a_actor)
+	{
+		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		std::lock_guard l(g_lock);
+		auto it = base ? g_named.find(base->GetFormID()) : g_named.end();
+		if (it == g_named.end()) return {};
+		return it->second.Retired() ? it->second.retiredNote : it->second.note;
 	}
 
 	const char* KindName(Kind a_kind)

@@ -9,7 +9,7 @@ Scriptname AG_SkyrimNet_Decorators
 ; status is "member", "retired" or "none" (a hidden membership reads as none: the secret is kept).
 String Function GetGuildRankOf(Actor akActor) Global
 	If !akActor
-		Return "{\"status\":\"none\",\"letter\":\"?\",\"rank\":-1,\"liaison\":false}"
+		Return "{\"status\":\"none\",\"letter\":\"?\",\"rank\":-1,\"liaison\":false,\"note\":\"\"}"
 	EndIf
 	Int r = AG_Native.GetActorGuildRank(akActor)
 	String status = AG_Native.GetActorGuildStatus(akActor)
@@ -21,7 +21,8 @@ String Function GetGuildRankOf(Actor akActor) Global
 	If AG_Native.IsGuildLiaison(akActor)
 		liaison = "true"
 	EndIf
-	Return "{\"status\":\"" + status + "\",\"letter\":\"" + letter + "\",\"rank\":" + r + ",\"liaison\":" + liaison + "}"
+	; a named member's own line (adventurers.json): plain text, no quotes in it
+	Return "{\"status\":\"" + status + "\",\"letter\":\"" + letter + "\",\"rank\":" + r + ",\"liaison\":" + liaison + ",\"note\":\"" + AG_Native.GetActorGuildNote(akActor) + "\"}"
 EndFunction
 
 ; ag_join_status(actor) -> "can_join", or why not: member / retired / guard / child / guild_rep / invalid.

@@ -548,23 +548,35 @@ foreach (var ln in world["lines"]!.AsArray())
     if (ln["promoted"] is JsonNode pr) { conds.Add(GlobalCmp(gRecentPromo, CompareOperator.EqualTo, "EDCBAS".IndexOf(pr.GetValue<string>()))); kind = "promoted"; }
     if (ln["questDone"] is JsonNode qd) conds.Add(QuestDone(qd.GetValue<string>(), true));
     if (ln["questNotDone"] is JsonNode qn) conds.Add(QuestDone(qn.GetValue<string>(), false));
+    // who holds Whiterun: the condition vanilla puts on Sinmir's own lines (CWOwner 2 = the Stormcloaks)
+    if (ln["owner"] is JsonNode ow)
+    {
+        var od = new GetKeywordDataForLocationConditionData();
+        od.Location.Link.SetTo(Skyrim.Location.WhiterunLocation.FormKey);
+        od.Keyword.Link.SetTo(Skyrim.Keyword.CWOwner.FormKey);
+        conds.Add(new ConditionFloat { CompareOperator = ow.GetValue<string>() == "sons" ? CompareOperator.EqualTo : CompareOperator.NotEqualTo, ComparisonValue = 2, Data = od });
+    }
     var status = ln["status"]?.GetValue<string>() ?? "registered";
     if (status != "any") conds.Add(GlobalIs(gRegistered, status == "unregistered" ? 0 : 1));  // "any": registered or not
     if (ln["rank"] is JsonNode rk) conds.AddRange(RankConds(rk.GetValue<string>()));
 
     if (ln["topic"] is JsonNode prompt)  // a player topic (Ysolda's), not a greeting
     {
-        ysoldaBranch ??= new DialogBranch(FK(0x8C2), Rel)
+        // one player topic per NPC: branch and topic FormIDs are fixed here (append only)
+        var whoId = ln["who"]!.GetValue<string>();
+        var (branchId, topicId) = whoId switch { "Ysolda" => (0x8C2u, 0x8C3u), "Sinmir" => (0x8C8u, 0x8C9u), _ => (0u, 0u) };
+        if (branchId == 0) { Console.Error.WriteLine($"ERROR world_dialogue.json: no topic FormIDs assigned for '{whoId}' (tools/EspGen/Program.cs)"); errors++; continue; }
+        ysoldaBranch = new DialogBranch(FK(branchId), Rel)
         {
-            EditorID = "AG_BranchWorldYsolda",
+            EditorID = "AG_BranchWorld" + whoId,
             Quest = new FormLink<IQuestGetter>(worldQuest.FormKey),
             Category = DialogBranch.CategoryType.Player,
             Flags = DialogBranch.Flag.TopLevel,
-            StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(0x8C3)),
+            StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(topicId)),
         };
-        var t = new DialogTopic(FK(0x8C3), Rel)
+        var t = new DialogTopic(FK(topicId), Rel)
         {
-            EditorID = "AG_TopicWorldYsolda",
+            EditorID = "AG_TopicWorld" + whoId,
             Name = prompt.GetValue<string>(),
             Priority = 50,
             Branch = new FormLinkNullable<IDialogBranchGetter>(ysoldaBranch.FormKey),
@@ -582,7 +594,7 @@ foreach (var ln in world["lines"]!.AsArray())
         worldCount++;
         continue;
     }
-    conds.Add(Chance(chance[kind]!.GetValue<int>()));
+    conds.Add(Chance(ln["chance"]?.GetValue<int>() ?? chance[kind]!.GetValue<int>()));
     conds.AddRange(voices);  // the OR group last, so it stands alone
     var info = new DialogResponses(FK(InfoId("world:" + id)), Rel)
     {

@@ -39,6 +39,8 @@ namespace AG::Adventurers
 	Info        Of(RE::Actor* a_actor);  // NPCs only; the player's rank lives in Guild
 	const char* KindName(Kind a_kind);
 	std::string Describe(RE::Actor* a_actor);  // debug: kind, rank and the rule that decided it
+	// A named member's line for their SkyrimNet bio (adventurers.json "named": note / retiredNote), or "".
+	std::string Note(RE::Actor* a_actor);
 
 	// An NPC signs themselves up (SkyrimNet action AG_JoinAdventurersGuild): remembered like a recruited follower, so
 	// they hold a rank from their level from now on. Refused for members, retired adventurers (Neutrality Oath),

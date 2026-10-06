@@ -56,6 +56,7 @@ namespace AG
 		}
 
 		bool IsGuildLiaison(Tag*, RE::Actor* a_actor) { return Adventurers::IsLiaison(a_actor); }
+		std::string GetActorGuildNote(Tag*, RE::Actor* a_actor) { return Adventurers::Note(a_actor); }
 
 		void ReloadConfig(Tag*)
 		{
@@ -192,6 +193,7 @@ namespace AG
 		REG(CancelUninstall);
 		REG(UninstallText);
 		REG(IsGuildLiaison);
+		REG(GetActorGuildNote);
 		REG(GetShowGuildRank);
 		REG(SetShowGuildRank);
 		REG(GetShowThreatRank);

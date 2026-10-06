@@ -1,5 +1,5 @@
 {
-	"_comment": "World awareness of the Adventurers Guild: greetings (Hello) from named NPCs and guards across the holds and Solstheim, built by tools/EspGen into AG_WorldDialogueQuest; INFO FormIDs are pinned in dialogue.ids.json under 'world:<id>' (voice files are named after them). Every line names the Adventurers Guild or an adventurer, never a bare 'Guild' (the Thieves Guild is right there in Riften). Fields: who = NPC editor ID, or guards = hold name / 'any' / 'retired'; status = unregistered | registered (default) | any; rank = 'E' exact, 'B+' at or above, 'E-C' inclusive range, '<B' below; promoted = the rank just reached (shown for a few days, see guild.json); chance = % of greetings that use the line when it applies; questDone / questNotDone = a quest editor ID the line waits for (or stops at) completion of.",
+	"_comment": "World awareness of the Adventurers Guild: greetings (Hello) from named NPCs and guards across the holds and Solstheim, built by tools/EspGen into AG_WorldDialogueQuest; INFO FormIDs are pinned in dialogue.ids.json under 'world:<id>' (voice files are named after them). Every line names the Adventurers Guild or an adventurer, never a bare 'Guild' (the Thieves Guild is right there in Riften). Fields: who = NPC editor ID, or guards = hold name / 'any' / 'retired'; status = unregistered | registered (default) | any; rank = 'E' exact, 'B+' at or above, 'E-C' inclusive range, '<B' below; promoted = the rank just reached (shown for a few days, see guild.json); chance = % of greetings that use the line when it applies; questDone / questNotDone = a quest editor ID the line waits for (or stops at) completion of. owner = 'sons' | 'notSons': whether the Stormcloaks hold Whiterun (the condition vanilla puts on Sinmir's own lines; he is captain of the guard under them). chance on a line overrides the table below for it. topic = a player line instead of a greeting: one per NPC (its records are numbered in tools/EspGen).",
 
 	"guardVoices": ["MaleGuard", "MaleNord", "MaleNordCommander", "MaleCommander", "MaleSoldier", "FemaleNord"],
 	"solstheimGuardVoices": ["DLC2MaleDarkElfCynical", "MaleDarkElf"],
@@ -138,6 +138,26 @@
 		{"id": "ranmir", "who": "Ranmir", "rank": "<B", "text": "An adventurer, huh? I used to be an adventurer, y'know. Then I... well. Then I found the Frozen Hearth."},
 		{"id": "ranmir_hi", "who": "Ranmir", "rank": "B+", "text": "The finest adventurer in Skyrim, drinking right here! Buy me one, would you? For old times' sake."},
 		{"id": "neloth", "who": "DLC2Neloth", "rank": "<B", "text": "An adventurer. How quaint. If the Adventurers Guild can teach you to fetch things properly, you may yet be of use to me."},
-		{"id": "neloth_hi", "who": "DLC2Neloth", "rank": "B+", "text": "Ah, the famous adventurer. The Adventurers Guild must be very proud. I, of course, am merely mildly impressed. Don't let it go to your head."}
+		{"id": "neloth_hi", "who": "DLC2Neloth", "rank": "B+", "text": "Ah, the famous adventurer. The Adventurers Guild must be very proud. I, of course, am merely mildly impressed. Don't let it go to your head."},
+
+		{"id": "sinmir_new", "who": "Sinmir", "owner": "notSons", "chance": 33, "status": "unregistered", "text": "You've the look of someone hunting for work. The Adventurers Guild takes names at the bar. Try not to embarrass the rest of us."},
+		{"id": "sinmir_e", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "E", "text": "E-rank? I've scraped tougher things than you off my boots. Come back when your guild card means something."},
+		{"id": "sinmir_d", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "D", "text": "D-rank. So you can kill a wolf without help. The Adventurers Guild must be thrilled."},
+		{"id": "sinmir_low", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "E-D", "text": "Fresh ink on your guild card and already strutting. The missive board will cure you of that."},
+		{"id": "sinmir_c", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "C", "text": "C-rank, same as me. Don't think that makes us equals. I earned mine before the war thinned the ranks."},
+		{"id": "sinmir_c2", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "C", "text": "Another C-rank adventurer in Whiterun. Stay off the good missives and we'll get along."},
+		{"id": "sinmir_b", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "B", "text": "B-rank. Hmph. Hulda's ledger must be getting generous."},
+		{"id": "sinmir_a", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "A", "text": "An A-rank adventurer, drinking where I drink. Suppose I'll have to stop calling myself the best blade in this hall."},
+		{"id": "sinmir_s", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "S", "text": "S-rank. Shor's bones. I'd heard there were none left. I'd be honored to buy you a drink."},
+		{"id": "sinmir_job1", "who": "Sinmir", "owner": "notSons", "chance": 33, "text": "Took a missive out past the western watchtower. Bandits. The guards had walked right by them for a week."},
+		{"id": "sinmir_job2", "who": "Sinmir", "owner": "notSons", "chance": 33, "text": "A guard gets paid to stand at a gate. An adventurer gets paid when the job's done. That's the difference."},
+		{"id": "sinmir_job3", "who": "Sinmir", "owner": "notSons", "chance": 33, "text": "I've a missive waiting and a mug to finish. In that order, once the mug's done."},
+		{"id": "sinmir_promo_c", "who": "Sinmir", "owner": "notSons", "promoted": "C", "text": "Made C-rank, did you? Took you long enough. Welcome to real work."},
+		{"id": "sinmir_promo_b", "who": "Sinmir", "owner": "notSons", "promoted": "B", "text": "B-rank already? Luck. Has to be luck."},
+		{"id": "sinmir_topic", "who": "Sinmir", "owner": "notSons", "status": "any", "topic": "You're with the Adventurers Guild?", "text": "C-rank, and I'd be higher if Hulda's ledger counted every bandit I've dropped. Someone has to do what the guards won't."},
+		{"id": "sinmir_cap1", "who": "Sinmir", "owner": "sons", "chance": 33, "status": "any", "text": "Commander of the guard now. The Adventurers Guild set my name aside for it. Their loss, Whiterun's gain."},
+		{"id": "sinmir_cap2", "who": "Sinmir", "owner": "sons", "chance": 33, "status": "any", "text": "I was a C-rank adventurer before I took the watch. These guards will learn to work like one."},
+		{"id": "sinmir_cap_low", "who": "Sinmir", "owner": "sons", "chance": 33, "rank": "<B", "text": "Keep your missives outside the walls, adventurer. Inside them, you answer to me."},
+		{"id": "sinmir_cap_hi", "who": "Sinmir", "owner": "sons", "chance": 33, "rank": "B+", "text": "If the watch had three blades like yours I'd sleep at night. Don't tell the men I said that."}
 	]
 }
