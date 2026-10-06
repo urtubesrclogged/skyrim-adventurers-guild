@@ -9,6 +9,7 @@
 #include "Loc.h"
 #include "RankCore.h"
 
+#include <filesystem>
 #include <set>
 #include <fstream>
 #include <mutex>
@@ -264,6 +265,12 @@ namespace AG::Shop
 					// meat and fish are food, whatever kind of record the mod made them (Zombie Flesh, Rainbow Fish)
 					const auto words = Words(Name(p));
 					if (std::ranges::any_of(a_cfg.notTrophies, [&](const std::string& w) { return std::ranges::find(words, w) != words.end(); })) continue;
+					// ... or by its model, which no translation changes ("deadpondfish03.nif" is Bruma's Nibenay Snapper)
+					if (auto* model = p->As<RE::TESModel>(); model && model->GetModel() && *model->GetModel()) {
+						std::string file = std::filesystem::path(model->GetModel()).stem().string();
+						std::ranges::transform(file, file.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+						if (std::ranges::any_of(a_cfg.notTrophies, [&](const std::string& w) { return file.find(w) != std::string::npos; })) continue;
+					}
 					if (std::ranges::find(parts, p) == parts.end()) parts.push_back(p);
 					names.insert(Name(p));
 				}
