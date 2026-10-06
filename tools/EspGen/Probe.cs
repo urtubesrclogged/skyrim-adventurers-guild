@@ -76,6 +76,55 @@ static class Probe
                     }
             return;
         }
+        if (what == "npcdetail") {  // scripts (with object properties), packages and their conditions: what an NPC is wired to do
+            var names = mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
+            var pkgs = mods.SelectMany(m => m.Packages).GroupBy(x => x.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            foreach (var n in mods.SelectMany(m => m.Npcs).GroupBy(n => n.FormKey).Select(g => g.Last()).Where(n => re.IsMatch(n.EditorID ?? "")))
+            {
+                Console.WriteLine($"== {n.EditorID}");
+                foreach (var sc in n.VirtualMachineAdapter?.Scripts ?? [])
+                    Console.WriteLine($"   script {sc.Name}: " + string.Join(", ", sc.Properties.Select(pr => pr.Name + (pr is IScriptObjectPropertyGetter o ? "=" + names.GetValueOrDefault(o.Object.FormKey, o.Object.FormKey.ToString()) : ""))));
+                foreach (var pk in n.Packages)
+                {
+                    if (!pkgs.TryGetValue(pk.FormKey, out var p)) continue;
+                    var cs = string.Join("; ", p.Conditions.Select(c => c.Data.GetType().Name.Replace("ConditionDataBinaryOverlay", "") + "(" + string.Join(",", c.Data.GetType().GetProperties()
+                        .Select(q => { object? v = null; try { v = q.GetValue(c.Data); } catch { } var link = v?.GetType().GetProperty("Link")?.GetValue(v); var fk = link?.GetType().GetProperty("FormKey")?.GetValue(link); return fk is FormKey k && !k.IsNull ? names.GetValueOrDefault(k, k.ToString()) : null; })
+                        .Where(x => x != null)) + $") {c.CompareOperator} {(c is IConditionFloatGetter f ? f.ComparisonValue : 0)}"));
+                    Console.WriteLine($"   package {p.EditorID}  when: {cs}");
+                }
+            }
+            return;
+        }
+        if (what == "refsto") {     // every record that links to the NPC(s) matched (top-level records; INFOs via their topic)
+            var keys = mods.SelectMany(m => m.Npcs).Where(n => re.IsMatch(n.EditorID ?? "")).Select(n => n.FormKey).ToHashSet();
+            foreach (var m in mods)
+                foreach (var r in m.EnumerateMajorRecords())
+                {
+                    if (r is INpcGetter || r is IPlacedGetter || r is IDialogResponsesGetter || r is IDialogTopicGetter) continue;
+                    bool hit; try { hit = r.EnumerateFormLinks().Any(l => keys.Contains(l.FormKey)); } catch { continue; }
+                    if (hit) Console.WriteLine($"{m.ModKey.FileName}	{r.GetType().Name.Replace("BinaryOverlay", "")}	{r.FormKey.ID:X6}	{r.EditorID}");
+                }
+            return;
+        }
+        if (what == "aliases") {    // a quest's aliases: who fills each, the factions and packages it gives, its scripts and fill conditions
+            var names = mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
+            string N(FormKey k) => k.IsNull ? "-" : names.GetValueOrDefault(k, k.ToString());
+            foreach (var q in mods.SelectMany(m => m.Quests).GroupBy(x => x.FormKey).Select(g => g.Last()).Where(x => re.IsMatch(x.EditorID ?? "")))
+            {
+                Console.WriteLine($"== {q.EditorID}");
+                var filter = args.Length > 3 ? new Regex(args[3], RegexOptions.IgnoreCase) : null;
+                foreach (var al in q.Aliases)
+                {
+                    var line = $"   [{al.ID}] {al.Name}  unique={N(al.UniqueActor.FormKey)} forced={N(al.ForcedReference.FormKey)} flags={al.Flags}" +
+                        $" | factions: {string.Join(",", al.Factions.Select(f => N(f.FormKey)))} | packages: {string.Join(",", al.PackageData.Select(f => N(f.FormKey)))}" +
+                        $" | conditions: {string.Join("; ", al.Conditions.Select(c => c.Data.GetType().Name.Replace("ConditionDataBinaryOverlay", "") + " " + string.Join(",", c.Data.EnumerateFormLinks().Select(l => N(l.FormKey))) + $" {c.CompareOperator} {(c is IConditionFloatGetter f ? f.ComparisonValue : 0)}"))}";
+                    if (filter == null || filter.IsMatch(line)) Console.WriteLine(line);
+                }
+                var vm = q.VirtualMachineAdapter;
+                if (vm != null) foreach (var fa in vm.Aliases) Console.WriteLine($"   alias scripts [{fa.Property.Alias}]: {string.Join(",", fa.Scripts.Select(x => x.Name))}");
+            }
+            return;
+        }
         if (what == "effects") {    // magic effects (editor ID or name matching): archetype and actor value
             foreach (var m in mods)
                 foreach (var e in m.MagicEffects.Where(e => re.IsMatch(e.EditorID ?? "") || re.IsMatch(e.Name?.String ?? "")))
