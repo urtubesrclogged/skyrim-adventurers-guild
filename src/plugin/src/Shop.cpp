@@ -238,7 +238,8 @@ namespace AG::Shop
 			for (auto* npc : dh->GetFormArray<RE::TESNPC>()) {
 				if (!npc || Vanilla(npc)) continue;
 				auto* race = npc->GetRace();
-				if (!race || race->HasKeywordString("ActorTypeNPC")) continue;  // people are not hunted for parts
+				// people are not hunted for parts: the keyword, or a face-generated head (custom human races often lack the keyword)
+				if (!race || race->HasKeywordString("ActorTypeNPC") || race->data.flags.any(RE::RACE_DATA::Flag::kFaceGenHead)) continue;
 				std::vector<RE::TESNPC*> ai, inv;
 				Bases(npc, UseFlag::kAIData, 0, ai);
 				if (!std::ranges::any_of(ai, [](RE::TESNPC* b) { return b->GetAggressionLevel() >= RE::ACTOR_AGGRESSION::kAggressive; })) continue;
