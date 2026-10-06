@@ -14,6 +14,8 @@
   Stormcloaks take Whiterun and make him captain of the guard, the Guild sets him aside and his lines change.
 - If Hulda dies and Ysolda takes over the Bannered Mare, Ysolda becomes Whiterun's Guild rep, fully voiced:
   registration, promotion, the counter, reports and replacement cards.
+- In Markarth, Dawnstar, Winterhold, Morthal and Falkreath a dead innkeeper's town loses its counter, and someone
+  still at the inn says so (Frabbi, Karita, Haran, Lurbuk, Narri).
 
 ## 1.2.0
 

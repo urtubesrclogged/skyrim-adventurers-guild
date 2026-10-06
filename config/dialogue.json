@@ -275,13 +275,50 @@
    "npcs": [
     "Frabbi"
    ],
-   "line": "Guild? Talk to my husband. That's his business, not mine."
+   "line": "Guild? Talk to my husband. That's his business, not mine.",
+   "whileAlive": "Kleppr"
   },
   {
    "npcs": [
     "Karita"
    ],
-   "line": "My father keeps the Guild's counter. I just sing."
+   "line": "My father keeps the Guild's counter. I just sing.",
+   "whileAlive": "Thoring"
+  },
+  {
+   "npcs": [
+    "Frabbi"
+   ],
+   "whenDead": "Kleppr",
+   "line": "The Adventurers Guild? That was Kleppr's ledger, not mine. I've an inn to run on my own now. Try the counter in another hold."
+  },
+  {
+   "npcs": [
+    "Karita"
+   ],
+   "whenDead": "Thoring",
+   "line": "Father kept the Adventurers Guild's counter. I'm working on my certification, I am. One day this will be the finest counter in Skyrim. Until then, you'll want another hold."
+  },
+  {
+   "npcs": [
+    "Haran"
+   ],
+   "whenDead": "Dagur",
+   "line": "Dagur kept the Adventurers Guild's ledger. I can pour your mead and rent you a bed, but the counter closed with him."
+  },
+  {
+   "npcs": [
+    "Lurbuk"
+   ],
+   "whenDead": "Jonna",
+   "line": "Jonna kept the Adventurers Guild's counter. There's no one to keep it now. I could sing you something about it?"
+  },
+  {
+   "npcs": [
+    "Narri"
+   ],
+   "whenDead": "ValgaVinicia",
+   "line": "Valga handled the Adventurers Guild's business. With her gone there's no counter in Falkreath. You'll have to ride to another hold."
   }
  ],
  "_referrals": "Innkeepers outside the hold capitals: no counter, but they know where to send you.",
