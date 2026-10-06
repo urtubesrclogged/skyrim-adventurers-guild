@@ -136,11 +136,28 @@ namespace AG::Adventurers
 		return nullptr;
 	}
 
+	namespace
+	{
+		std::atomic<int> g_keysChanged{ 0 }, g_keysLost{ 0 };
+	}
+
 	std::string CanonicalKey(const std::string& a_key)
 	{
+		if (a_key.empty()) return a_key;
 		auto* f = FormOfKey(a_key);
-		return f ? StableKey(f) : a_key;
+		if (!f) {
+			++g_keysLost;
+			return a_key;
+		}
+		auto key = StableKey(f);
+		if (key != a_key) {
+			++g_keysChanged;
+			SKSE::log::info("Adventurers: saved key {} corrected to {}", a_key, key);
+		}
+		return key;
 	}
+
+	std::pair<int, int> TakeKeyStats() { return { g_keysChanged.exchange(0), g_keysLost.exchange(0) }; }
 
 	void Load()
 	{

@@ -64,4 +64,7 @@ namespace AG::Adventurers
 	RE::TESForm* FormOfKey(const std::string& a_key);
 	// A saved key as StableKey writes it today (unchanged if its form cannot be found, e.g. the mod was removed).
 	std::string  CanonicalKey(const std::string& a_key);
+	// How CanonicalKey fared since the last call (reset by it): keys it changed, and keys whose form it could not find.
+	// Logged after a co-save loads: on a save whose keys were always right, both are 0.
+	std::pair<int, int> TakeKeyStats();
 }

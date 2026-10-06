@@ -403,6 +403,10 @@ namespace AG::Guild
 				}
 			}
 			SKSE::log::info("Guild: co-save loaded ({})", Dump());
+			if (const auto [changed, lost] = Adventurers::TakeKeyStats(); changed || lost)
+				SKSE::log::info("Guild: saved keys - {} corrected (written by a build before 1.1.0), {} no longer found (their mod is not loaded)", changed, lost);
+			else
+				SKSE::log::info("Guild: saved keys - all as written");
 		}
 
 		void OnRevert(SKSE::SerializationInterface*)
