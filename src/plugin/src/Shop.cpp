@@ -190,6 +190,7 @@ namespace AG::Shop
 			bool enabled{ true };
 			int  goldPerMerit{ 10 };
 			int  maxMerit{ 5 };
+			std::vector<std::string> notTrophies{ "meat", "flesh", "fish" };  // a word of the item's name: food, not proof of a hunt
 			int  maxPartsPerCreature{ 5 };  // more distinct parts than this is an alchemist's or a looter's pockets, not a body
 		};
 
@@ -260,6 +261,9 @@ namespace AG::Shop
 						auto* kw = p->As<RE::BGSKeywordForm>();
 						if (!kw || !(kw->HasKeywordString("VendorItemAnimalHide") || kw->HasKeywordString("VendorItemAnimalPart"))) continue;
 					}
+					// meat and fish are food, whatever kind of record the mod made them (Zombie Flesh, Rainbow Fish)
+					const auto words = Words(Name(p));
+					if (std::ranges::any_of(a_cfg.notTrophies, [&](const std::string& w) { return std::ranges::find(words, w) != words.end(); })) continue;
 					if (std::ranges::find(parts, p) == parts.end()) parts.push_back(p);
 					names.insert(Name(p));
 				}
@@ -353,6 +357,11 @@ namespace AG::Shop
 					modCreatures.goldPerMerit = m.value("goldPerMerit", modCreatures.goldPerMerit);
 					modCreatures.maxMerit = m.value("maxMerit", modCreatures.maxMerit);
 					modCreatures.maxPartsPerCreature = m.value("maxPartsPerCreature", modCreatures.maxPartsPerCreature);
+					if (m.contains("notTrophies")) {
+						modCreatures.notTrophies.clear();
+						for (auto& w : m.at("notTrophies"))
+							for (auto& t : Words(w.get<std::string>())) modCreatures.notTrophies.push_back(t);  // same spelling rules as item names
+					}
 				}
 			}
 			AddModCreatureTrophies(modCreatures);  // after the listed ones: an item already a trophy, or a variant of one, stays that

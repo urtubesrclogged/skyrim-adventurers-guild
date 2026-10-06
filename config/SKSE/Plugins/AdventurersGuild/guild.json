@@ -56,11 +56,12 @@
 		"trophyBonus": [0, 25, 50]
 	},
 
-	"_modCreatureTrophies": "Parts of creatures other mods add. The trophy list (trophies.json) names vanilla monster parts; these are found from the game's records instead: an ingredient, or a misc item tagged as an animal hide or part, that another mod defines and that a creature which starts fights (Aggressive or worse) carries or drops. Harmless wildlife adds nothing, and meat is never a trophy. Merit = the item's gold value / goldPerMerit, between 1 and maxMerit. A creature carrying more than maxPartsPerCreature different parts is carrying loot (a Falmer alchemist's ingredients), and none of it counts. Set enabled to false to buy only the listed trophies.",
+	"_modCreatureTrophies": "Parts of creatures other mods add. The trophy list (trophies.json) names vanilla monster parts; these are found from the game's records instead: an ingredient, or a misc item tagged as an animal hide or part, that another mod defines and that a creature which starts fights (Aggressive or worse) carries or drops. Harmless wildlife adds nothing, and meat is never a trophy. Merit = the item's gold value / goldPerMerit, between 1 and maxMerit. A creature carrying more than maxPartsPerCreature different parts is carrying loot (a Falmer alchemist's ingredients), and none of it counts. An item with one of the notTrophies words in its name is food, never a trophy (add your language's words if you play in another language). Set enabled to false to buy only the listed trophies.",
 	"modCreatureTrophies": {
 		"enabled": true,
 		"goldPerMerit": 10,
 		"maxMerit": 5,
-		"maxPartsPerCreature": 5
+		"maxPartsPerCreature": 5,
+		"notTrophies": ["meat", "flesh", "fish"]
 	}
 }

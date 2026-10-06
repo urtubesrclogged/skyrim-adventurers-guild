@@ -4,7 +4,8 @@
 
 **Trophies**
 - The Guild now buys parts from hostile creatures added by other mods. An ingredient, hide or other animal part counts
-  when a creature that starts fights carries or drops it; harmless wildlife adds nothing, and meat is never a trophy.
+  when a creature that starts fights carries or drops it; harmless wildlife adds nothing, and meat and fish are never
+  trophies. A "creature" with an alchemist's pockets full of ingredients is carrying loot, and none of that counts.
   Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
 - `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
 
