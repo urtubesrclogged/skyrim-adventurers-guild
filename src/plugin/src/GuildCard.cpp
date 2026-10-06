@@ -123,8 +123,10 @@ namespace AG::GuildCard
 				return;
 			}
 			if (ui->GameIsPaused() || ui->IsItemMenuOpen() || ui->IsApplicationMenuOpen() || ui->IsMenuOpen(RE::DialogueMenu::MENU_NAME) ||
-				ui->IsMenuOpen(RE::CraftingMenu::MENU_NAME) || ui->IsMenuOpen(RE::Console::MENU_NAME))
+				ui->IsMenuOpen(RE::CraftingMenu::MENU_NAME) || ui->IsMenuOpen(RE::Console::MENU_NAME)) {
+				SKSE::log::info("GuildCard: open requested while a menu is up - ignored");
 				return;
+			}
 			if (!Guild::Registered() || Guild::Dormant()) return;
 			if (!Has()) {
 				RE::SendHUDMessage::ShowHUDMessage(Loc::T("$AG_Card_NotCarried", "You are not carrying your guild card.").c_str());
@@ -168,7 +170,11 @@ namespace AG::GuildCard
 		if (g_hotkey.exchange(a_key) != a_key) SKSE::log::info("GuildCard: hotkey {}", a_key > 0 ? std::to_string(a_key) : "none");
 	}
 	int Hotkey() { return g_hotkey.load(); }
-	void Toggle() { SKSE::GetTaskInterface()->AddTask(OnHotkey); }
+	void Toggle()
+	{
+		SKSE::log::info("GuildCard: open/close requested by a mod event");
+		SKSE::GetTaskInterface()->AddTask(OnHotkey);
+	}
 
 	void Install()
 	{
