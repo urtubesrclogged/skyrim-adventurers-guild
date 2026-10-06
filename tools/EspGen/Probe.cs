@@ -50,6 +50,32 @@ static class Probe
                             Console.WriteLine($"{m.ModKey.FileName}\t{t.EditorID}\t{t.Subtype}\t\"{r.Text?.String}\"");
             return;
         }
+        if (what == "sayswhen") {   // like "says", with each INFO's other conditions and the NPC's level: WHEN they say it
+            var npc = mods.SelectMany(m => m.Npcs).GroupBy(n => n.FormKey).Select(g => g.Last()).FirstOrDefault(n => re.IsMatch(n.EditorID ?? ""));
+            if (npc is null) { Console.WriteLine("no NPC matches"); return; }
+            var names = mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
+            Console.WriteLine($"{npc.EditorID}: level {(npc.Configuration.Level is INpcLevelGetter nl ? nl.Level.ToString() : npc.Configuration.Level is IPcLevelMultGetter pm ? "player x" + pm.LevelMult : "?")} (calc {npc.Configuration.CalcMinLevel}-{npc.Configuration.CalcMaxLevel}), flags {npc.Configuration.Flags}, class {names.GetValueOrDefault(npc.Class.FormKey, "?")}, aggression {npc.AIData.Aggression}, confidence {npc.AIData.Confidence}");
+            string Cond(IConditionGetter c)
+            {
+                var d = c.Data;
+                var ps = d.GetType().GetProperties().Where(p => p.Name is not ("RunOnType" or "Reference" or "Unknown3" or "UseAliases" or "UsePackageData" or "StaticRegistration" or "Function"))
+                    .Select(p => { object? v = null; try { v = p.GetValue(d); } catch { }
+                        var link = v?.GetType().GetProperty("Link")?.GetValue(v) ?? v;
+                        var fk = link?.GetType().GetProperty("FormKey")?.GetValue(link);
+                        return fk is FormKey k ? names.GetValueOrDefault(k, k.ToString()) : (v is string or int or float or bool or Enum ? v.ToString() : null); })
+                    .Where(x => !string.IsNullOrEmpty(x));
+                var cmp = c is IConditionFloatGetter f ? f.ComparisonValue.ToString() : "global";
+                return $"{d.GetType().Name.Replace("ConditionDataBinaryOverlay", "").Replace("ConditionData", "")}({string.Join(",", ps)}) {c.CompareOperator} {cmp}{(c.Flags.HasFlag(Condition.Flag.OR) ? " OR" : "")}";
+            }
+            foreach (var m in mods)
+                foreach (var t in m.DialogTopics)
+                    foreach (var i in t.Responses.Where(i => i.Conditions.Any(c => c.Data is IGetIsIDConditionDataGetter g && g.Object.Link.FormKey == npc.FormKey)))
+                    {
+                        Console.WriteLine($"[{t.EditorID} / {t.Subtype}] {string.Join(" | ", i.Responses.Select(r => "\"" + r.Text?.String + "\""))}");
+                        Console.WriteLine("      when: " + string.Join("; ", i.Conditions.Where(c => c.Data is not IGetIsIDConditionDataGetter).Select(Cond)));
+                    }
+            return;
+        }
         if (what == "effects") {    // magic effects (editor ID or name matching): archetype and actor value
             foreach (var m in mods)
                 foreach (var e in m.MagicEffects.Where(e => re.IsMatch(e.EditorID ?? "") || re.IsMatch(e.Name?.String ?? "")))
