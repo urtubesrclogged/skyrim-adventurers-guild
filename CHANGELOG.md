@@ -15,7 +15,7 @@
 
 **Other**
 - MCM, Debug page: the optional mods Adventurers Guild works with (Missives, The Notice Board, SkyrimNet) and
-  whether each was detected.
+  whether each is Active, Inactive or Not Detected.
 - SkyrimNet: NPCs know what each rank is trusted with, and about the guild card; an innkeeper can hand over a
   replacement card in conversation.
 
