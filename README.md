@@ -34,7 +34,7 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   - A Guild **Library** of skill books.
   - A Guild **Shop** of spell tomes and potions.
 - **Adventuring Parties**:
-  - Found your own party, name it, choose up to four companions, and manage it as its leader.
+  - Found your own party, name it, choose up to nine companions, and manage it as its leader.
   - Party Bond grows as you fight and travel together, and unlocks party bonuses.
   - 14 Affinities to discover, depending on who is in your party. Up to three can be selected at a time.
   - Party analysis, statistics, and a history of your deeds and of former and fallen members.

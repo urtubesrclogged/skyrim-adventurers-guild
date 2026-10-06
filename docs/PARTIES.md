@@ -9,7 +9,7 @@ The Guild keeps a party ledger. Parties have their own measure, **Bond**, which 
   player picks the founders from the follower adventurers at their side and names it (typed; in VR through the
   headset keyboard).
 - **Eligible to join:** a Guild member (any Adventurers kind "member", which every teammate becomes) who is an
-  **active follower** (player teammate) and not already an active member. Size cap: `party.maxMembers`, default and hard maximum 4 companions (a party is at most 5 with the player), whatever a follower mod allows.
+  **active follower** (player teammate) and not already an active member. Size cap: `party.maxMembers`, default and hard maximum 9 companions (a party is at most 10 with the player; 4 until 1.1.0), whatever a follower mod allows.
 - **Remove:** any active member, following or not. They stay on the ledger as **former** (date left).
 - **Death:** an active member who dies is recorded as **fallen** (date and place).
 - **Disband:** behind a clear confirmation (a warning naming the party; the controller highlight starts on "Keep the
@@ -103,7 +103,7 @@ Vilkas are not flagged like vampires).
   - **A member's score** on an axis = their **best** skill on it, 0-100. Nobody specialises in heavy and light armour
     at once, and a pure destruction mage is a strong caster however little conjuration they know, so the best skill is
     fairer than an average and axes with 1 or 4 skills stay comparable.
-  - **Left, Members:** one ring per member (the player included, up to 5), showing how each contributes.
+  - **Left, Members:** one ring per member (the player included, up to 10, on one chart at a fixed 0-100 scale), showing how each contributes.
   - **Right, Party:** two rings: **strongest** (the best member's score on each axis) and **average** (the mean over
     the members shown).
   - **Toggle "Present Only"** (off by default), with a helper line beneath it ("Showing all members" / "Showing only

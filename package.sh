@@ -30,7 +30,7 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
             n += 1
     # the translator's guide, the licenses and credits travel with the mod (docs/ at the archive root; not in Data)
     for f, arc in [("docs/TRANSLATING.md", "docs/TRANSLATING.md"), ("LICENSE", "docs/LICENSE.txt"),
-                   ("EXCEPTIONS.md", "docs/EXCEPTIONS.md"), ("docs/DOWNLOAD_README.txt", "docs/README.txt"),
+                   ("EXCEPTIONS.md", "docs/EXCEPTIONS.md"), ("CHANGELOG.md", "docs/CHANGELOG.md"), ("docs/DOWNLOAD_README.txt", "docs/README.txt"),
                    ("ASSETS.md", "docs/ASSETS.md"), ("THIRD_PARTY_NOTICES.md", "docs/THIRD_PARTY_NOTICES.md")]:
         z.write(os.path.join(root, f), arc)
         n += 1

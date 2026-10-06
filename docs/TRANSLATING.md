@@ -42,6 +42,23 @@ the same names. The names come from fixed dialogue FormIDs, so they stay stable 
 Item, book and spell names in the counter come from the game's own records and are already in your language.
 Rank letters (E to S) are the same in every language.
 
+## Since 1.1.0
+
+* **Room for your language.** The counter is wider, buttons and tabs grow with their text, and a label that still
+  does not fit is tightened and shown slightly smaller (never below 90%) before it is ever cut. You should not need
+  to shorten a translation to make it fit; if something is cut, please report it with a screenshot.
+* **New keys**, all optional (English is shown for any you leave out):
+  * `$AG_City_Whiterun`, `$AG_City_Solitude`, `$AG_City_Windhelm`, `$AG_City_Riften`, `$AG_City_Markarth`,
+    `$AG_City_Falkreath`, `$AG_City_Morthal`, `$AG_City_Dawnstar`, `$AG_City_Winterhold`: the branch city shown on
+    the counter ("Whiterun Branch").
+  * `$AG_RankLabel` (`[Rank {}]`): the label added after quest and note names, e.g. `[Rang {}]`.
+  * `$AG_MissivePrefix` (`Missive:`): set this to the prefix YOUR translation of Missives puts before its quest
+    titles (e.g. `Missive :`), so the counter can leave it out of its lists.
+  * `$AG_Title_GuildMissive`, `$AG_Title_GuildNotice`, `$AG_Party_AndOthers`, `$AG_Toast_ClearedReportPlain`.
+* **Do not rely on spaces** at the start or end of a text: some editors remove them.
+* **Testing without changing the game's language:** in `SKSE/Plugins/AdventurersGuild.ini`, under `[Debug]`, set
+  `Language = FRENCH` (your language's name). Only this mod's text changes.
+
 ## For the mod author
 
 `tools/make_translations.py` regenerates the English file from every `Loc::T`/`Loc::F` call in the DLL, `t()` and
