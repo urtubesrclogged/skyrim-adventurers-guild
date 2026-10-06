@@ -146,7 +146,7 @@
 		{"id": "sinmir_low", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "E-D", "text": "Fresh ink on your guild card and already strutting. The missive board will cure you of that."},
 		{"id": "sinmir_c", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "C", "text": "C-rank, same as me. Don't think that makes us equals. I earned mine before the war thinned the ranks."},
 		{"id": "sinmir_c2", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "C", "text": "Another C-rank adventurer in Whiterun. Stay off the good missives and we'll get along."},
-		{"id": "sinmir_b", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "B", "text": "B-rank. Hmph. Hulda's ledger must be getting generous."},
+		{"id": "sinmir_b", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "B", "text": "B-rank. Hulda's ledger must be getting generous."},
 		{"id": "sinmir_a", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "A", "text": "An A-rank adventurer, drinking where I drink. Suppose I'll have to stop calling myself the best blade in this hall."},
 		{"id": "sinmir_s", "who": "Sinmir", "owner": "notSons", "chance": 33, "rank": "S", "text": "S-rank. Shor's bones. I'd heard there were none left. I'd be honored to buy you a drink."},
 		{"id": "sinmir_job1", "who": "Sinmir", "owner": "notSons", "chance": 33, "text": "Took a missive out past the western watchtower. Bandits. The guards had walked right by them for a week."},
