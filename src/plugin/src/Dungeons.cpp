@@ -369,8 +369,10 @@ namespace AG::Dungeons
 		g_reported.clear();
 		g_current = nullptr;
 		try {
-			if (a_j.contains("visited")) g_visited = a_j.at("visited").get<std::unordered_map<std::string, int>>();
-			for (auto& k : a_j.value("reported", nlohmann::json::array())) g_reported.insert(k.get<std::string>());
+			// keys from before 1.1.0 are corrected (Adventurers::StableKey), so a dungeon keeps its record
+			if (a_j.contains("visited"))
+				for (auto& [k, v] : a_j.at("visited").get<std::unordered_map<std::string, int>>()) g_visited[Adventurers::CanonicalKey(k)] = v;
+			for (auto& k : a_j.value("reported", nlohmann::json::array())) g_reported.insert(Adventurers::CanonicalKey(k.get<std::string>()));
 		} catch (const std::exception& e) {
 			SKSE::log::error("Dungeons: co-save parse error: {}", e.what());
 		}

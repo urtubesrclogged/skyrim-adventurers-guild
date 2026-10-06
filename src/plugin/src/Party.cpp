@@ -177,13 +177,8 @@ namespace AG::Party
 		// A StableKey back to the actor ("Plugin.esp|0x00ABCD" or "FF|0x..."); nullptr if gone.
 		RE::Actor* Resolve(const std::string& a_key)
 		{
-			const auto bar = a_key.find('|');
-			if (bar == std::string::npos) return nullptr;
-			const auto file = a_key.substr(0, bar);
-			const auto id = static_cast<RE::FormID>(std::stoul(a_key.substr(bar + 1), nullptr, 16));
-			if (file == "FF") return RE::TESForm::LookupByID<RE::Actor>(id);
-			auto* dh = RE::TESDataHandler::GetSingleton();
-			return dh ? dh->LookupForm<RE::Actor>(id, file) : nullptr;
+			auto* f = Adventurers::FormOfKey(a_key);
+			return f ? f->As<RE::Actor>() : nullptr;
 		}
 
 		// A party name as typed: control characters dropped, whitespace collapsed, trimmed, capped (UTF-8 safe).
@@ -1287,17 +1282,20 @@ namespace AG::Party
 			g_traitOn = a_j.value("traitsOn", std::vector<std::string>{});
 			for (auto& s : a_j.value("traitsSeen", std::vector<std::string>{})) g_traitSeen.insert(s);
 			for (auto& s : a_j.value("traitsNew", std::vector<std::string>{})) g_traitNew.insert(s);
-			for (auto& s : a_j.value("blessed", std::vector<std::string>{})) g_blessed.insert(s);
+			for (auto& s : a_j.value("blessed", std::vector<std::string>{})) g_blessed.insert(Adventurers::CanonicalKey(s));
 			if (a_j.contains("facts") && a_j.at("facts").is_object())
-				for (auto& [k, v] : a_j.at("facts").items()) g_facts[k] = FactsFrom(v);
+				for (auto& [k, v] : a_j.at("facts").items()) g_facts[Adventurers::CanonicalKey(k)] = FactsFrom(v);
 		}
 		if (a_j.is_object() && a_j.contains("skills") && a_j.at("skills").is_object())
 			for (auto& [k, v] : a_j.at("skills").items())
-				if (v.is_array() && v.size() == kSkills.size()) g_skills[k] = v.get<Skills>();
+				if (v.is_array() && v.size() == kSkills.size()) g_skills[Adventurers::CanonicalKey(k)] = v.get<Skills>();
 		// {"parties":[...],"bonds":{key:bond}}; the first build saved a bare array with a bond per member
 		const nlohmann::json list = a_j.is_array() ? a_j : a_j.value("parties", nlohmann::json::array());
 		if (a_j.is_object() && a_j.contains("bonds") && a_j.at("bonds").is_object())
-			for (auto& [k, v] : a_j.at("bonds").items()) g_bonds[k] = v.get<float>();
+			for (auto& [k, v] : a_j.at("bonds").items()) {
+				auto& b = g_bonds[Adventurers::CanonicalKey(k)];  // keys from before 1.1.0 are corrected; two keys for one actor keep the higher Bond
+				b = std::max(b, v.get<float>());
+			}
 		if (!list.is_array()) return;
 		for (auto& jp : list) {
 			Record p;
@@ -1307,7 +1305,7 @@ namespace AG::Party
 			p.disbanded = jp.value("disbanded", -1.0f);
 			for (auto& jm : jp.value("members", nlohmann::json::array()))
 			{
-				p.members.push_back({ jm.value("key", std::string()), jm.value("name", std::string()), jm.value("status", std::string("former")),
+				p.members.push_back({ Adventurers::CanonicalKey(jm.value("key", std::string())), jm.value("name", std::string()), jm.value("status", std::string("former")),
 					jm.value("joined", -1.0f), jm.value("left", -1.0f), jm.value("where", std::string()), jm.value("kills", 0) });
 				if (jm.contains("bond")) g_bonds[p.members.back().key] = std::max(BondLocked(p.members.back().key), jm.value("bond", 0.0f));
 			}

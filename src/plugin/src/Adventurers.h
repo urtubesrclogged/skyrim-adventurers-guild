@@ -59,4 +59,9 @@ namespace AG::Adventurers
 
 	// "Plugin.esp|0x00ABCD" for a form, stable across load-order changes ("FF|0x..." for runtime refs)
 	std::string StableKey(const RE::TESForm* a_form);
+	// The form a saved key names, or nullptr. Also understands keys written by builds before 1.1.0, which named the
+	// wrong plugin for a form another mod overrides (see StableKey).
+	RE::TESForm* FormOfKey(const std::string& a_key);
+	// A saved key as StableKey writes it today (unchanged if its form cannot be found, e.g. the mod was removed).
+	std::string  CanonicalKey(const std::string& a_key);
 }

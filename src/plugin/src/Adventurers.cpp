@@ -97,8 +97,49 @@ namespace AG::Adventurers
 	{
 		if (!a_form) return {};
 		if (a_form->IsDynamicForm()) return std::format("FF|0x{:08X}", a_form->GetFormID());
-		const auto* file = a_form->GetFile(0);
-		return file ? std::format("{}|0x{:06X}", file->GetFilename(), a_form->GetLocalFormID()) : std::format("?|0x{:08X}", a_form->GetFormID());
+		// "Plugin|local id" of the plugin the form COMES FROM, which its FormID says: the top byte is that plugin's
+		// load index (0xFE + three more digits for a light plugin). Not GetFile(0): for a reference that other mods
+		// edit, that returned one of the editing plugins on SE 1.5.97 (Jenassa in a list with Interesting NPCs was
+		// keyed "3DNPC.esp|0x0E1BA9"), a key that then resolves to nothing - the party could not find its own
+		// member, so presence, Bond and Affinities all treated her as unknown.
+		const auto  id = a_form->GetFormID();
+		auto*       dh = RE::TESDataHandler::GetSingleton();
+		const bool  light = (id >> 24) == 0xFE;
+		const auto* file = !dh ? nullptr : light ? dh->LookupLoadedLightModByIndex(static_cast<std::uint16_t>((id >> 12) & 0xFFF)) : dh->LookupLoadedModByIndex(static_cast<std::uint8_t>(id >> 24));
+		return file ? std::format("{}|0x{:06X}", file->GetFilename(), light ? (id & 0xFFF) : (id & 0xFFFFFF)) : std::format("?|0x{:08X}", id);
+	}
+
+	RE::TESForm* FormOfKey(const std::string& a_key)
+	{
+		const auto bar = a_key.find('|');
+		if (bar == std::string::npos) return nullptr;
+		const auto    file = a_key.substr(0, bar);
+		RE::FormID    id = 0;
+		try {
+			id = static_cast<RE::FormID>(std::stoul(a_key.substr(bar + 1), nullptr, 16));
+		} catch (...) {
+			return nullptr;
+		}
+		if (file == "FF" || file == "?") return RE::TESForm::LookupByID(id);
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		if (!dh) return nullptr;
+		if (auto* f = dh->LookupForm(id, file)) return f;
+		// A key from before 1.1.0 may name a plugin that only EDITS the form. The form then belongs to one of that
+		// plugin's masters: the same local id, looked up in each of them.
+		if (const auto* named = dh->LookupModByName(file); named && named->masterPtrs) {
+			for (std::uint32_t i = 0; i < named->masterCount; ++i) {
+				const auto* m = named->masterPtrs[i];
+				if (!m) continue;
+				if (auto* f = dh->LookupForm(id, m->GetFilename())) return f;
+			}
+		}
+		return nullptr;
+	}
+
+	std::string CanonicalKey(const std::string& a_key)
+	{
+		auto* f = FormOfKey(a_key);
+		return f ? StableKey(f) : a_key;
 	}
 
 	void Load()
@@ -269,7 +310,7 @@ namespace AG::Adventurers
 		g_recruited.clear();
 		g_cache.clear();
 		if (a_j.is_array()) {
-			for (auto& k : a_j) g_recruited.insert(k.get<std::string>());
+			for (auto& k : a_j) g_recruited.insert(CanonicalKey(k.get<std::string>()));  // keys from before 1.1.0 are corrected
 		}
 	}
 
