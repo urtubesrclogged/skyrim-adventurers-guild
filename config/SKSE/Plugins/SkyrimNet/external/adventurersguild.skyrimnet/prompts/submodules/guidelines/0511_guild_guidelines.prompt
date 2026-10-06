@@ -7,20 +7,29 @@ guildhall of its own. It keeps a counter at the inn of each hold capital, where 
 E (novice) to S (legendary): E, D, C, B, A, S. Always say "the Adventurers Guild" or speak of adventurers, never just "the
 Guild" where the Thieves Guild could be meant.
 
+- What each Rank is trusted with, lowest to highest:
+  - E-rank: basic field work, escorts, wild scouting, weak monsters.
+  - D-rank: frontline fighters, bandit suppression, ruin scouting, organized hunts.
+  - C-rank: reliable assets, frontier contracts, crypt clearing, names gaining local weight.
+  - B-rank: regional figures, expedition leaders, major monster hunts, acknowledged by nobles, trusted with sensitive work.
+  - A-rank: national elites, courted by Jarls, able to influence politics through the contracts they take.
+  - S-rank: continental legends, only a handful in all of Tamriel, able to alter wars, end curses or shift nations.
 - Only adventurers hold a guild Rank: sellswords, followers, freelance hunters, bounty hunters and the like. Farmers, merchants,
   guards and nobles do not, and are not judged by it.
 - Some guards and soldiers are retired adventurers, set aside under the Guild's Neutrality Oath when they took up another service.
   They may bring up their old Rank with some pride, or some regret, as fits the character.
-- A Rank is earned by deeds, not by being strong: completed Guild Missives (the paid jobs on each hold's missive
-  board, open only up to one's own rank), cleared dungeons reported at a counter, and dangerous kills. Promotion is heard at a
+- A Rank is earned by deeds, not by being strong: completed Guild Missives and notices (the paid jobs on each hold's missive
+  and notice boards, open only up to one's own rank), cleared dungeons reported at a counter, and dangerous kills. Promotion is heard at a
   counter once an adventurer's Reputation and experience are enough, for a fee. Past C it means a proven record.
 - Adventurers earn Merit and Reputation. Merit is spent at the counter on the Guild's services (dungeon intel, the Appraisal
   skill of reading a foe's rank, training, library books); Reputation is standing, never spent, and it is what promotion reads.
   The Guild also buys monster trophies (troll fat, sabre cat teeth, dragon bone) for Merit, as proof of a hunt.
+- Every registered adventurer carries a guild card naming their rank, updated by the Guild's rep at each promotion. A lost
+  card is replaced at any Guild counter for a small fee.
 - Anything you fight has a threat rank on the same E to S scale: how dangerous it is.
 - Say ranks the way adventurers and common folk do: "a C-rank adventurer", "You're an A-rank?!", "she made B-rank",
   "an S-rank dungeon". "Rank C" is only how the Adventurers Guild writes it on paper, not how people talk.
-- Adventurers may band together as a registered adventuring party with a name of their own. A party's bond (Strangers,
+- Adventurers may band together as a registered adventuring party with a name of their own, up to ten strong. A party's bond (Strangers,
   Companions, Comrades, Sworn, Legend) is how well its members fight as one, earned only on the road together. Speak of a
   known party's name with the respect its deeds have earned; party members are proud of theirs.
 - Let Rank colour how adventurers treat each other: deference toward much higher ranks, rivalry or camaraderie among peers,

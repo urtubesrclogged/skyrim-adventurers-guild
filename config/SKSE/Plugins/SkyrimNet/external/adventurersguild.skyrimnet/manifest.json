@@ -24,7 +24,7 @@
   "languages": [
     "en"
   ],
-  "version": "1.7.0",
-  "changelog": "First content-library release: lore knowledge pack, player ledger for liaisons, remembered guild events.",
+  "version": "1.8.0",
+  "changelog": "1.8.0 (Adventurers Guild 1.2.0): what each rank is trusted with, from E to S, known to every NPC; the guild card (a liaison knows when yours is lost and what a replacement costs); notices from the hold notice boards as Guild work; parties of up to ten.",
   "min_skyrimnet_version": "0.25.0"
 }

@@ -997,12 +997,15 @@ namespace AG::Guild
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		const int level = pc ? pc->GetLevel() : 1;
 		const auto trophies = Shop::TrophiesData();
+		const bool hasCard = GuildCard::Has();
 		std::lock_guard l(g_lock);
 		nlohmann::json j;
 		j["registered"] = g_registered;
 		// the real fees, so a liaison quotes them instead of inventing a number
 		j["registrationFee"] = g_cfg.fee;
 		j["promotionFee"] = g_cfg.promotionFee;
+		j["cardFee"] = g_cfg.cardFee;
+		j["hasCard"] = hasCard;  // a liaison knows when the card is lost, and what a new one costs
 		if (!g_registered) return j.dump();
 		j["rank"] = LetterStr(g_rank);
 		j["merit"] = g_merit;
