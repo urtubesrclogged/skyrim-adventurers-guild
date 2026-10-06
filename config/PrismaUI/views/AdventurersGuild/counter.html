@@ -124,6 +124,7 @@
   .bar-top .sum b { color: var(--ink); font-weight: 400; }
   .row { height: 74px; display: flex; align-items: center; gap: 16px; padding: 0 14px;
          border-bottom: 1px solid rgba(194, 154, 91, 0.18); }
+  .row.tight { height: 66px; }  /* a paged Party list: four rows above the pager */
   .row .body { flex: 1; min-width: 0; }
   .row .title { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .detail { font-size: 15px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -268,10 +269,9 @@
            border: 1px solid rgba(194, 154, 91, 0.2); background: rgba(0, 0, 0, 0.25); padding: 6px 10px 8px; }
   .radar h4 { font-weight: 400; font-size: 17px; font-variant: small-caps; letter-spacing: 0.08em; color: var(--muted); align-self: flex-start; }
   .radar svg { width: 100%; height: 254px; }
-  .radar h4 { width: 100%; display: flex; align-items: center; justify-content: space-between; min-height: 24px; }
-  .rpager { display: flex; align-items: center; gap: 8px; font-variant: normal; letter-spacing: 0; margin: -4px 0 -8px 0; }
-  .rpager .btn { min-height: 36px; width: 44px; padding: 0; font-size: 22px; font-variant: normal; }
-  .rpager .pg { font-size: 14px; color: var(--muted); }
+  /* more than five on the chart: a legend of up to three rows, so the chart gives up a little height */
+  .radars.many .radar svg { height: 226px; }
+  .radars.many .rlegend { gap: 2px 12px; font-size: 13px; line-height: 1.25; }
   .radar svg text { font-family: var(--serif); font-size: 15px; fill: var(--muted); }
   .rlegend { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 14px; color: var(--ink); }
   .rlegend i { display: inline-block; width: 12px; height: 12px; margin-right: 5px; vertical-align: -1px; }
@@ -357,7 +357,7 @@ const metal = (l) => METAL_EN[l] ? t("$AG_UI_Metal" + l, METAL_EN[l]) : "";
 let data = { registered: false, letter: "-", merit: 0, reputation: 0, reports: [], services: [], history: [],
              missives: [0,0,0,0,0,0], trophies: { items: [], total: 0, bonus: 0 }, appraisal: 0, training: [0,0,0] };
 let tab = "card", section = null, qsec = null, note = null;
-const page = { quests: 0, board: 0, notices: 0, analysis: 0, trophies: 0, records: 0, services: 0, party: 0, recruit: 0, ledger: 0, founders: 0, traits: 0 };
+const page = { quests: 0, board: 0, notices: 0, trophies: 0, records: 0, services: 0, party: 0, recruit: 0, ledger: 0, founders: 0, traits: 0 };
 
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function day(d) {
@@ -647,10 +647,13 @@ function renderParty() {
           : t("$AG_UI_PartyBondDormant", "Party Bond: {0} · dormant, no companion with you", tierName(act.tier)))}</div></div></div>`;
   const tools = pconfirm ? "" : `<span style="display:flex;gap:10px"><button class="btn" data-pedit="rename">${esc(t("$AG_UI_Rename", "Rename"))}</button>
         <button class="btn" data-pconfirm="1">${esc(t("$AG_UI_Disband", "Disband"))}</button></span>`;
-  const per = 4;  /* banner + tools leave room for four rows above the pager */
+  /* Under the banner and the affinity line there are 328px: four full rows (74px) fill them when everyone fits on one
+     page. A bigger party needs the pager's 60px at the foot, so its rows are 66px (class "tight"). */
+  const per = 4;
   const { items, pages } = paged("party", act.members, per);
+  const tight = pages > 1 ? " tight" : "";
   return `<div class="bar-top">${tabs}${tools}</div>${head}${pconfirm || pedit ? "" : traitLine(act)}` +
-    (items.length ? items.map((m) => `<div class="row"><span class="tier">${esc(m.letter || "?")}</span><div class="body"><div class="title">${esc(m.name)}</div>
+    (items.length ? items.map((m) => `<div class="row${tight}"><span class="tier">${esc(m.letter || "?")}</span><div class="body"><div class="title">${esc(m.name)}</div>
         <div class="detail">${esc(t("$AG_UI_JoinedWhen", "Joined {0}", day(m.joined).toLowerCase()))}</div></div>
         ${bondCell(m.tier)}${statusCell(m)}<button class="btn" data-action="party:remove:${esc(m.key)}">${esc(t("$AG_UI_Remove", "Remove"))}</button></div>`).join("")
       : `<div class="empty" style="padding:40px 60px">${esc(t("$AG_UI_PartyAlone", "No one has joined yet. Followers who are Guild adventurers can be added under Recruit."))}</div>`) +
@@ -666,7 +669,7 @@ const AXES = [
   { k: "$AG_UI_AxSupport", en: "Support", s: [8, 9, 10] },
   { k: "$AG_UI_AxCrafting", en: "Crafting", s: [11, 12, 13] },
   { k: "$AG_UI_AxGuile", en: "Guile", s: [14, 15, 16, 17] } ];
-const MEMBER_COLORS = ["#c29a5b", "#c0563f", "#8fb0c9", "#a3c06f", "#b58ac9"];
+const MEMBER_COLORS = ["#c29a5b", "#c0563f", "#8fb0c9", "#a3c06f", "#b58ac9", "#e0c341", "#5fb8a8", "#d98a4a", "#d48fb0", "#9aa0a8"];
 let onlyHere = false;
 /* A member's score on an axis is their BEST skill on it: nobody specialises in heavy and light armour at once, and a
    pure destruction mage is a strong caster however little conjuration they know. */
@@ -691,18 +694,11 @@ function radarSvg(rings) {
 function renderAnalysis(P) {
   const act = P.active || {}, all = P.analysis || [];
   const shown = all.map((m, i) => ({ ...m, color: MEMBER_COLORS[i % MEMBER_COLORS.length], sc: scores(m) })).filter((m) => !onlyHere || m.player || m.following);
-  /* Members radar: five outlines (the player and four companions, the old party size) are readable, ten are not. A
-     bigger party is shown five at a time (the Party radar
-     and the record below still count everyone shown). */
-  const RINGS = 5, groups = Math.max(1, Math.ceil(shown.length / RINGS));
-  page.analysis = Math.min(page.analysis || 0, groups - 1);
-  const ring = shown.slice(page.analysis * RINGS, page.analysis * RINGS + RINGS);
-  const ringPager = groups > 1 ? `<span class="rpager"><button class="btn" data-page="analysis:-1" ${page.analysis ? "" : "disabled"}>‹</button>
-      <span class="pg caps">${esc(t("$AG_UI_RingsOf", "{0}–{1} of {2}", page.analysis * RINGS + 1, page.analysis * RINGS + ring.length, shown.length))}</span>
-      <button class="btn" data-page="analysis:1" ${page.analysis < groups - 1 ? "" : "disabled"}>›</button></span>` : "";
   const best = AXES.map((_, i) => Math.max(0, ...shown.map((m) => m.sc[i])));
   const avg = AXES.map((_, i) => (shown.length ? shown.reduce((x, m) => x + m.sc[i], 0) / shown.length : 0));
-  const left = radarSvg(ring.map((m) => ({ v: m.sc, c: m.color, fill: m.color + "22" })));
+  /* everyone on one chart: with more than five outlines the fills would turn to mud, so they thin out */
+  const fillA = shown.length > 5 ? "12" : "22";
+  const left = radarSvg(shown.map((m) => ({ v: m.sc, c: m.color, fill: m.color + fillA })));
   const right = radarSvg([{ v: best, c: "#c29a5b", fill: "rgba(194,154,91,0.20)" }, { v: avg, c: "#eadfc4", dash: true }]);
   const st = act.stats || {};
   const n = (v) => Math.round(v || 0);
@@ -716,9 +712,9 @@ function renderAnalysis(P) {
     [t("$AG_UI_StatFormerK", "Former members"), esc(n(st.former))],
     [t("$AG_UI_StatFallenK", "Fallen"), esc(n(st.fallen))] ];
   const absent = all.length - shown.length;
-  return `<div class="radars">
-      <div class="radar"><h4>${esc(t("$AG_UI_RadarMembers", "Members"))}${ringPager}</h4>${left}
-        <div class="rlegend">${ring.map((m) => `<span><i style="background:${m.color}"></i>${esc(m.name)}</span>`).join("")}</div></div>
+  return `<div class="radars${shown.length > 5 ? " many" : ""}">
+      <div class="radar"><h4>${esc(t("$AG_UI_RadarMembers", "Members"))}</h4>${left}
+        <div class="rlegend">${shown.map((m) => `<span><i style="background:${m.color}"></i>${esc(m.name)}</span>`).join("")}</div></div>
       <div class="radar"><h4>${esc(t("$AG_UI_RadarParty", "Party"))}</h4>${right}
         <div class="rlegend"><span><i style="background:#c29a5b"></i>${esc(t("$AG_UI_Strongest", "Strongest"))}</span><span><i class="dash"></i>${esc(t("$AG_UI_Average", "Average"))}</span>
           ${absent ? `<span class="role">${esc(t("$AG_UI_NAway", "{0} away", absent))}</span>` : ""}</div></div></div>
