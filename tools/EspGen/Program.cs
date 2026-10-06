@@ -222,6 +222,13 @@ ConditionFloat QuestDone(string edid, bool done)
     return new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = done ? 1 : 0, Data = d };
 }
 
+// An NPC (by base) is dead / not dead: GetDeadCount, the way vanilla asks about a unique actor.
+ConditionFloat Dead(string edid, bool dead)
+{
+    var d = new GetDeadCountConditionData();
+    d.Npc.Link.SetTo(Npc(edid));
+    return new ConditionFloat { CompareOperator = dead ? CompareOperator.GreaterThanOrEqualTo : CompareOperator.EqualTo, ComparisonValue = dead ? 1 : 0, Data = d };
+}
 ConditionFloat InFaction(FormKey faction)
 {
     var d = new GetInFactionConditionData();
@@ -340,8 +347,10 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     }
     List<Condition> AnyLiaison()
     {
-        var ls = dlg["liaisons"]!.AsArray().Select(x => Npc(x!["npc"]!.GetValue<string>())).ToList();
-        return ls.Select((fk, i) => (Condition)IsNpc(fk, i < ls.Count - 1)).ToList();
+        var ls = dlg["liaisons"]!.AsArray().Where(x => x!["successor"] is null).Select(x => Npc(x!["npc"]!.GetValue<string>())).ToList();
+        var any = ls.Select(fk => (Condition)IsNpc(fk, true)).ToList();
+        any.Add(InFaction(liaisonFaction.FormKey));  // ... OR a successor: the DLL adds them to the faction when they take the inn over
+        return any;
     }
     string Line(string section) => dlg[section]![role]!.GetValue<string>();
 
@@ -358,7 +367,9 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         {
             if (l![$"{role}Ask"] is not JsonNode own) continue;
             var npc = l["npc"]!.GetValue<string>();
-            asks.Add(Info(topic, $"{role}:ask:{npc}", new[] { own.GetValue<string>() }, false, new Condition[] { IsNpc(Npc(npc), false) }));
+            var askWho = new List<Condition> { IsNpc(Npc(npc), false) };
+            if (l["successor"] is not null) askWho.Add(InFaction(liaisonFaction.FormKey));
+            asks.Add(Info(topic, $"{role}:ask:{npc}", new[] { own.GetValue<string>() }, false, askWho));
         }
         asks.Add(Info(topic, $"{role}:ask", new[] { Line("ask") }, false, AnyLiaison()));
         foreach (var ask in asks)
@@ -377,6 +388,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         List<Condition> Who()
         {
             var w = new List<Condition> { IsNpc(Npc(npc), false) };
+            if (l["successor"] is not null) w.Add(InFaction(liaisonFaction.FormKey));  // only once they keep the counter
             if (fee is not null) w.Add(Gold(fee, true));
             return w;
         }
@@ -425,8 +437,12 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         void Group(string kind, JsonNode g)
         {
             var npcs = g["npcs"]!.AsArray().Select(x => Npc(x!.GetValue<string>())).ToList();
-            var conds = npcs.Select((fk, i) => (Condition)IsNpc(fk, i < npcs.Count - 1)).ToArray();  // A OR B OR C, then AND state
-            Info(topic, $"{role}:{kind}:{g["npcs"]![0]!.GetValue<string>()}", new[] { g["line"]!.GetValue<string>() }, false, conds);
+            var conds = npcs.Select((fk, i) => (Condition)IsNpc(fk, i < npcs.Count - 1)).ToList();  // A OR B OR C, then AND state
+            if (g["whileAlive"] is JsonNode wa) conds.Add(Dead(wa.GetValue<string>(), false));
+            if (g["whenDead"] is JsonNode wd) conds.Add(Dead(wd.GetValue<string>(), true));
+            // a second line for the same people (after their innkeeper's death) needs its own key
+            var gk = $"{role}:{kind}:{g["npcs"]![0]!.GetValue<string>()}" + (g["whenDead"] is JsonNode dd ? ":after" + dd.GetValue<string>() : "");
+            Info(topic, gk, new[] { g["line"]!.GetValue<string>() }, false, conds);
         }
         foreach (var g in dlg["staff"]!.AsArray()) Group("staff", g!);
         foreach (var g in dlg["referrals"]!.AsArray()) Group("ref", g!);
@@ -437,9 +453,15 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     if (later is not null) mod.DialogTopics.Add(later);
 }
 var liaisonCities = new Dictionary<string, string>();
+var successors = new List<object>();
 foreach (var l in dlg["liaisons"]!.AsArray())
 {
     var k = Key(Npc(l!["npc"]!.GetValue<string>()));
+    if (l["successor"] is JsonNode su)
+    {
+        successors.Add(new { npc = k, of = Key(Npc(su["of"]!.GetValue<string>())), quest = su["quest"]!.GetValue<string>(), alias = su["alias"]!.GetValue<int>(), city = l["city"]!.GetValue<string>() });
+        continue;
+    }
     liaisonKeys.Add(k);
     liaisonCities[k] = l["city"]!.GetValue<string>();
 }
@@ -548,6 +570,9 @@ foreach (var ln in world["lines"]!.AsArray())
     if (ln["promoted"] is JsonNode pr) { conds.Add(GlobalCmp(gRecentPromo, CompareOperator.EqualTo, "EDCBAS".IndexOf(pr.GetValue<string>()))); kind = "promoted"; }
     if (ln["questDone"] is JsonNode qd) conds.Add(QuestDone(qd.GetValue<string>(), true));
     if (ln["questNotDone"] is JsonNode qn) conds.Add(QuestDone(qn.GetValue<string>(), false));
+    if (ln["whileAlive"] is JsonNode wal) conds.Add(Dead(wal.GetValue<string>(), false));
+    if (ln["whenDead"] is JsonNode wdd) conds.Add(Dead(wdd.GetValue<string>(), true));
+    if (ln["liaison"] is not null) conds.Add(InFaction(liaisonFaction.FormKey));
     // who holds Whiterun: the condition vanilla puts on Sinmir's own lines (CWOwner 2 = the Stormcloaks)
     if (ln["owner"] is JsonNode ow)
     {
@@ -610,7 +635,7 @@ mod.DialogTopics.Add(hello);
 Console.WriteLine($"world dialogue: {worldCount} lines");
 
 File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptions { WriteIndented = true }));
-File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities }, new JsonSerializerOptions { WriteIndented = true }));
+File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"dialogue: {ids.Count} INFO ids pinned, {liaisonKeys.Count} liaisons");
 
 // ---------- onboarding: the registration missive ----------

@@ -3,7 +3,7 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "entries": [
       {
         "key": "ag_basics",
@@ -35,7 +35,7 @@
       {
         "key": "ag_counters",
         "display_name": "Where the Guild keeps its counters",
-        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlelight Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. There is no counter on Solstheim.",
+        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlelight Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. There is no counter on Solstheim. A counter belongs to its inn, not to one person: when an innkeeper dies, whoever takes the inn over may keep the Guild's counter once the Adventurers Guild certifies them, as Ysolda would at the Bannered Mare. Until then that town has no counter.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,

@@ -52,6 +52,10 @@ namespace AG::Adventurers
 
 	// The innkeepers who keep a guild counter: one per hold capital (dialogue.json "liaisons").
 	bool IsLiaison(RE::Actor* a_actor);
+	// Successors (dialogue.json "successor": Ysolda after Hulda) who hold their inn's Innkeeper alias right now: the
+	// game moved them there when the innkeeper died. Game thread. Guild adds them to AG_GuildLiaisonFaction.
+	std::vector<RE::Actor*> SucceededLiaisons();
+	bool                    IsLiaisonBase(RE::FormID a_base);  // one of the nine, or a successor's base (for death watching)
 	std::string LiaisonCity(RE::TESObjectREFR* a_ref);  // "Whiterun" for Hulda, "" for anyone else
 
 	// co-save (part of Guild's record)

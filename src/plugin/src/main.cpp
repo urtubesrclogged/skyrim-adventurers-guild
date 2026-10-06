@@ -66,6 +66,7 @@ namespace
 		case SKSE::MessagingInterface::kPostLoadGame:
 		case SKSE::MessagingInterface::kNewGame:
 			AG::Guild::OnGameLoaded();
+			AG::Guild::SyncSuccessors();
 			AG::GuildCard::Sync(false);  // a member from before 1.2.0, or one who lost theirs, gets a card
 			AG::ControlsGuard::OnGameLoaded();
 			AG::MissiveWatch::WithdrawAboveRank();

@@ -9,6 +9,12 @@
   Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
 - `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
 
+**People**
+- Sinmir, the Bannered Mare regular, is a C-rank adventurer with voiced lines of his own, by your rank. If the
+  Stormcloaks take Whiterun and make him captain of the guard, the Guild sets him aside and his lines change.
+- If Hulda dies and Ysolda takes over the Bannered Mare, Ysolda becomes Whiterun's Guild rep, fully voiced:
+  registration, promotion, the counter, reports and replacement cards.
+
 ## 1.2.0
 
 **Guild Card**

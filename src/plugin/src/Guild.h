@@ -95,6 +95,9 @@ namespace AG::Guild
 	void  CountTrophies(int a_count);
 	void  Record(std::string a_text);
 	bool  PayGold(int a_amount);
+	// Successor liaisons (Ysolda once she has the Bannered Mare) join AG_GuildLiaisonFaction: their dialogue and the
+	// SkyrimNet actions wait for it. Called on load and a few seconds after a liaison dies. Game thread.
+	void  SyncSuccessors();
 	int   CardFee();                            // gold for a replacement guild card
 	// The player's page of the Guild ledger, compact JSON for SkyrimNet (liaisons read it; see ag_player()).
 	std::string LedgerJson();

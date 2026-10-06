@@ -4,6 +4,9 @@
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
 #include "Kills.h"
+#include "Adventurers.h"
+#include <chrono>
+#include <thread>
 
 #include "Guild.h"
 #include "Party.h"
@@ -131,6 +134,16 @@ namespace AG::Kills
 			{
 				if (!a_e || !a_e->actorDying) return RE::BSEventNotifyControl::kContinue;
 				Party::OnDeath(a_e->actorDying->As<RE::Actor>());
+				// an innkeeper who keeps a Guild counter: the game hands the inn to their backup from a script (a few
+				// seconds), and whoever it is takes the counter over then
+				if (auto* dead = a_e->actorDying->As<RE::Actor>(); dead && dead->GetActorBase() && Adventurers::IsLiaisonBase(dead->GetActorBase()->GetFormID())) {
+					std::thread([] {
+						for (int i = 0; i < 4; ++i) {  // at 3, 8, 15 and 30 s: the swap waits on the Papyrus VM
+							std::this_thread::sleep_for(std::chrono::seconds(i == 0 ? 3 : i == 1 ? 5 : i == 2 ? 7 : 15));
+							SKSE::GetTaskInterface()->AddTask([] { Guild::SyncSuccessors(); });
+						}
+					}).detach();
+				}
 				Credit(a_e->actorDying->As<RE::Actor>(), a_e->actorKiller ? a_e->actorKiller->As<RE::Actor>() : nullptr);
 				return RE::BSEventNotifyControl::kContinue;
 			}

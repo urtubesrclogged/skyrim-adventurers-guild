@@ -981,6 +981,16 @@ namespace AG::Guild
 		LogLocked(std::move(a_text));
 	}
 
+	void SyncSuccessors()
+	{
+		if (!g_liaisonFaction) return;
+		for (auto* actor : Adventurers::SucceededLiaisons())
+			if (!actor->IsInFaction(g_liaisonFaction)) {
+				actor->AddToFaction(g_liaisonFaction, 0);
+				SKSE::log::info("Guild: {} has taken over an inn and keeps its Adventurers Guild counter now", actor->GetDisplayFullName());
+			}
+	}
+
 	int CardFee() { return g_cfg.cardFee; }
 
 	bool PayGold(int a_amount)

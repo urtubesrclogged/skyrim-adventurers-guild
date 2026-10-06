@@ -36,6 +36,26 @@ namespace AG::Adventurers
 		};
 		std::unordered_map<RE::FormID, Named> g_named;  // by actor base
 
+		// A liaison's successor: keeps the counter once the game has put them in the dead innkeeper's place.
+		struct Successor
+		{
+			RE::FormID    npc{ 0 }, of{ 0 };  // actor bases
+			RE::TESQuest* quest{ nullptr };   // the hold's Dialogue quest ...
+			std::uint32_t alias{ 0 };         // ... and its Innkeeper alias
+			std::string   city;
+		};
+		std::vector<Successor> g_successors;
+
+		// g_lock held or not: reads only game state. The actor in the Innkeeper alias, if it is this successor, alive.
+		RE::Actor* Holding(const Successor& a_s)
+		{
+			if (!a_s.quest) return nullptr;
+			auto  ref = a_s.quest->GetAliasedRef(a_s.alias).get();
+			auto* actor = ref ? ref->As<RE::Actor>() : nullptr;
+			auto* base = actor ? actor->GetActorBase() : nullptr;
+			return base && base->GetFormID() == a_s.npc && !actor->IsDead() ? actor : nullptr;
+		}
+
 		struct ChanceGroup
 		{
 			std::string                    id;
@@ -206,6 +226,17 @@ namespace AG::Adventurers
 						if (dj.contains("cities")) g_liaisonCity[npc->GetFormID()] = dj.at("cities").value(key, "");
 					}
 				}
+				g_successors.clear();
+				for (auto& su : dj.value("successors", nlohmann::json::array())) {
+					auto* npc = FormOfKey(su.value("npc", ""));
+					auto* of = FormOfKey(su.value("of", ""));
+					auto* q = FormOfKey(su.value("quest", ""));
+					if (!npc || !of || !q || !q->As<RE::TESQuest>()) {
+						SKSE::log::warn("Adventurers: a liaison successor does not resolve ({}) - they will not take the counter over", su.dump());
+						continue;
+					}
+					g_successors.push_back({ npc->GetFormID(), of->GetFormID(), q->As<RE::TESQuest>(), su.value("alias", 0u), su.value("city", "") });
+				}
 			}
 			if (j.contains("joinOnRecruit")) g_joinOnRecruit = Factions(j.at("joinOnRecruit"), "joinOnRecruit");
 			g_named.clear();
@@ -324,8 +355,27 @@ namespace AG::Adventurers
 	bool IsLiaison(RE::Actor* a_actor)
 	{
 		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		if (!base) return false;
 		std::lock_guard l(g_lock);
-		return base && g_liaisons.contains(base->GetFormID());
+		if (g_liaisons.contains(base->GetFormID())) return true;
+		for (auto& su : g_successors)
+			if (su.npc == base->GetFormID()) return Holding(su) == a_actor;
+		return false;
+	}
+
+	std::vector<RE::Actor*> SucceededLiaisons()
+	{
+		std::vector<RE::Actor*> out;
+		std::lock_guard          l(g_lock);
+		for (auto& su : g_successors)
+			if (auto* a = Holding(su)) out.push_back(a);
+		return out;
+	}
+
+	bool IsLiaisonBase(RE::FormID a_base)
+	{
+		std::lock_guard l(g_lock);
+		return g_liaisons.contains(a_base) || std::ranges::any_of(g_successors, [&](const Successor& su) { return su.npc == a_base; });
 	}
 
 	std::string LiaisonCity(RE::TESObjectREFR* a_ref)
@@ -334,7 +384,10 @@ namespace AG::Adventurers
 		auto* base = actor ? actor->GetActorBase() : nullptr;
 		std::lock_guard l(g_lock);
 		auto it = base ? g_liaisonCity.find(base->GetFormID()) : g_liaisonCity.end();
-		return it == g_liaisonCity.end() ? std::string() : it->second;
+		if (it != g_liaisonCity.end()) return it->second;
+		for (auto& su : g_successors)
+			if (base && su.npc == base->GetFormID() && Holding(su) == actor) return su.city;
+		return {};
 	}
 
 	std::string Note(RE::Actor* a_actor)

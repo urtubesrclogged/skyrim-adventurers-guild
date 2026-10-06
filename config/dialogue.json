@@ -1,6 +1,6 @@
 {
  "_comment": "All Adventurers Guild innkeeper dialogue. tools/EspGen turns this into dialogue records (INFO FormIDs are pinned in dialogue.ids.json, which voice files are named after - never renumber). The voice pipeline reads the same file. Keep lines short: they will be voiced.",
- "_liaisons": "The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask).",
+ "_liaisons": "The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask). 'successor' {of, quest, alias}: this NPC keeps the counter only once the game has moved them into the dead innkeeper's place (vanilla: the hold's Dialogue quest has an Innkeeper alias and a backup, swapped on death; quest = its 'Plugin|0xID', alias = the Innkeeper alias's number). The DLL adds them to AG_GuildLiaisonFaction then, and every line of theirs waits for that.",
  "liaisons": [
   {
    "npc": "Hulda",
@@ -23,6 +23,33 @@
     "S": "An S-rank at the Bannered Mare. Whiterun will talk about this for a year. What can I do for you?"
    },
    "replace": "Lost it already? Happens to the best of them. Here, a fresh one. Try to keep this one out of the mead."
+  },
+  {
+   "npc": "Ysolda",
+   "city": "Whiterun",
+   "inn": "the Bannered Mare",
+   "successor": {
+    "of": "Hulda",
+    "quest": "Skyrim.esm|0x0270A4",
+    "alias": 4
+   },
+   "registerAsk": "Joining the Adventurers Guild? Smart. There's a small fee, and it's the best coin you'll spend this year.",
+   "register": "Welcome to the Adventurers Guild! Here's your guild card. You bring in the work, I'll see we both profit by it.",
+   "business": "Guild business? My favorite kind. What are you bringing me?",
+   "businessByRank": {
+    "C": "A regular! Regulars are how a merchant gets rich. What do you need?",
+    "B": "A B-rank adventurer at my counter. You're good for trade, you know. People come in just to say they saw you.",
+    "A": "An A-rank, at the Bannered Mare! The good mead's on the house. Call it an investment.",
+    "S": "An S-rank adventurer, in my inn. I couldn't buy a sign this good. Anything you need, ask."
+   },
+   "promoteAsk": "Let me look at your record. Oh, that's a healthy one. You've earned your next rank. There's the Guild's fee, and then it's yours.",
+   "promote": "Congratulations! I've updated your guild card. A higher rank means better-paying work. For both of us.",
+   "about": [
+    "The Khajiit caravans taught me this: know what's on the road before anyone else does. Every job in the hold comes through the Bannered Mare first.",
+    "Bandits are bad for trade, and so are trolls. Every missive an adventurer finishes puts coin back in Whiterun's market.",
+    "Hulda kept this counter for years and never charged what it was worth. I mean to do right by her, and turn a profit doing it."
+   ],
+   "replace": "Lost your guild card? Replacements cost, I'm afraid. A merchant can't give away stock. Here you are."
   },
   {
    "npc": "CorpulusVinius",
@@ -213,14 +240,24 @@
    "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
   }
  ],
- "_staff": "Other people who work at a guild inn point you to their rep.",
+ "_staff": "Other people who work at a guild inn point you to their rep. whileAlive / whenDead = an NPC editor ID the line needs alive / dead (the innkeeper it names; their successor).",
  "staff": [
   {
    "npcs": [
     "Saadia",
     "Mikael"
    ],
-   "line": "Guild business goes through Hulda. She's the Guild's rep here."
+   "line": "Guild business goes through Hulda. She's the Guild's rep here.",
+   "whileAlive": "Hulda"
+  },
+  {
+   "npcs": [
+    "Saadia",
+    "Mikael"
+   ],
+   "whenDead": "Hulda",
+   "whileAlive": "Ysolda",
+   "line": "Guild business goes through Ysolda now. She took over the counter when she took over the Mare."
   },
   {
    "npcs": [
