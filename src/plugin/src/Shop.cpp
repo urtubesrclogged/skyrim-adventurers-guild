@@ -173,6 +173,103 @@ namespace AG::Shop
 		}
 	}
 
+	namespace
+	{
+		int VariantOfLocked(RE::TESBoundObject* a_obj);
+
+		// ---- parts of creatures other mods add (1.2.1) ----
+		// The trophy list names vanilla monster parts. A creature another mod adds drops parts the list has never heard
+		// of, so they are worked out from the records: an ingredient, or a misc item tagged as an animal hide or part,
+		// that another mod defines and that a creature which starts fights (Aggressive or worse) carries or drops.
+		// Harmless wildlife (Unaggressive: deer, goats, a mod's cattle or mounts) adds nothing. Meat is food, not a
+		// trophy, as with vanilla. Merit comes from the item's gold value, capped: the Guild cannot tell a tooth taken
+		// from a wild beast from one taken from a tame one, and a mod's price tag should not out-pay a dragon bone.
+		struct ModCreatures
+		{
+			bool enabled{ true };
+			int  goldPerMerit{ 10 };
+			int  maxMerit{ 5 };
+		};
+
+		bool Vanilla(const RE::TESForm* a_form)
+		{
+			static constexpr std::string_view kVanilla[]{ "Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm" };
+			auto*      dh = RE::TESDataHandler::GetSingleton();
+			const auto id = a_form->GetFormID();
+			const RE::TESFile* file = nullptr;
+			if ((id >> 24) == 0xFE) file = dh->LookupLoadedLightModByIndex(static_cast<std::uint16_t>((id >> 12) & 0xFFF));
+			else if ((id >> 24) != 0xFF) file = dh->LookupLoadedModByIndex(static_cast<std::uint8_t>(id >> 24));
+			if (!file) return true;  // unknown origin (created in game): leave it alone
+			return std::ranges::any_of(kVanilla, [&](std::string_view v) { return _stricmp(file->GetFilename().data(), v.data()) == 0; });
+		}
+
+		// what an actor base uses from its template, followed through (a template may be a leveled list of actors)
+		using UseFlag = RE::ACTOR_BASE_DATA::TEMPLATE_USE_FLAG;
+		void Bases(RE::TESForm* a_form, UseFlag a_flag, int a_depth, std::vector<RE::TESNPC*>& a_out)
+		{
+			if (!a_form || a_depth > 6) return;
+			if (auto* npc = a_form->As<RE::TESNPC>()) {
+				if (npc->baseTemplateForm && npc->actorData.templateUseFlags.all(a_flag)) Bases(npc->baseTemplateForm, a_flag, a_depth + 1, a_out);
+				else a_out.push_back(npc);
+			} else if (auto* list = a_form->As<RE::TESLevCharacter>()) {
+				for (auto& e : list->entries) Bases(e.form, a_flag, a_depth + 1, a_out);
+			}
+		}
+
+		void Parts(RE::TESForm* a_form, int a_depth, std::vector<RE::TESBoundObject*>& a_out)
+		{
+			if (!a_form || a_depth > 6) return;
+			if (auto* list = a_form->As<RE::TESLevItem>()) {
+				for (auto& e : list->entries) Parts(e.form, a_depth + 1, a_out);
+			} else if (a_form->Is(RE::FormType::Ingredient) || a_form->Is(RE::FormType::Misc)) {
+				a_out.push_back(a_form->As<RE::TESBoundObject>());
+			}
+		}
+
+		// g_lock held. Adds the trophies; returns how many.
+		int AddModCreatureTrophies(const ModCreatures& a_cfg)
+		{
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			if (!a_cfg.enabled || !dh) return 0;
+			int added = 0, creatures = 0;
+			std::unordered_set<RE::FormID> seen;
+			for (auto* npc : dh->GetFormArray<RE::TESNPC>()) {
+				if (!npc || Vanilla(npc)) continue;
+				auto* race = npc->GetRace();
+				if (!race || race->HasKeywordString("ActorTypeNPC")) continue;  // people are not hunted for parts
+				std::vector<RE::TESNPC*> ai, inv;
+				Bases(npc, UseFlag::kAIData, 0, ai);
+				if (!std::ranges::any_of(ai, [](RE::TESNPC* b) { return b->GetAggressionLevel() >= RE::ACTOR_AGGRESSION::kAggressive; })) continue;
+				++creatures;
+				Bases(npc, UseFlag::kInventory, 0, inv);
+				std::vector<RE::TESBoundObject*> parts;
+				for (auto* b : inv) {
+					b->ForEachContainerObject([&](RE::ContainerObject& e) {
+						Parts(e.obj, 0, parts);
+						return RE::BSContainer::ForEachResult::kContinue;
+					});
+					Parts(b->deathItem, 0, parts);
+				}
+				for (auto* p : parts) {
+					if (!p || !seen.insert(p->GetFormID()).second) continue;
+					if (Vanilla(p) || p->GetGoldValue() <= 0 || Name(p).empty()) continue;
+					if (p->Is(RE::FormType::Misc)) {
+						auto* kw = p->As<RE::BGSKeywordForm>();
+						if (!kw || !(kw->HasKeywordString("VendorItemAnimalHide") || kw->HasKeywordString("VendorItemAnimalPart"))) continue;
+					}
+					if (std::ranges::find(g_trophies, p, &Trophy::form) != g_trophies.end() || VariantOfLocked(p) >= 0) continue;  // already one
+					const int merit = std::clamp(static_cast<int>(std::lround(static_cast<double>(p->GetGoldValue()) / std::max(1, a_cfg.goldPerMerit))), 1, std::max(1, a_cfg.maxMerit));
+					const auto group = Name(npc);
+					g_trophies.push_back({ std::format("mod:{:08X}", p->GetFormID()), p, merit, group, {}, p->GetGoldValue() });
+					SKSE::log::debug("Shop: {} ({:08X}, {} gold) is a trophy worth {} Merit: carried by {}", Name(p), p->GetFormID(), p->GetGoldValue(), merit, group);
+					++added;
+				}
+			}
+			SKSE::log::info("Shop: {} trophies from {} hostile creatures added by other mods (the detailed log lists them)", added, creatures);
+			return added;
+		}
+	}
+
 	void Load()
 	{
 		std::lock_guard l(g_lock);
@@ -219,6 +316,7 @@ namespace AG::Shop
 				for (auto& name : names)
 					if (!name.empty()) g_trophies.push_back({ "name:" + names.front(), nullptr, e.value("merit", 1), e.value("group", ""), Words(name), e.value("value", 0) });
 			}
+			ModCreatures modCreatures;
 			std::ifstream gf("Data/SKSE/Plugins/AdventurersGuild/guild.json");
 			if (gf) {
 				auto g = nlohmann::json::parse(gf, nullptr, true, true);
@@ -232,7 +330,14 @@ namespace AG::Shop
 					fill("rank", g_appRank);
 					fill("trophyBonus", g_appTrophy);
 				}
+				if (g.contains("modCreatureTrophies")) {
+					auto& m = g.at("modCreatureTrophies");
+					modCreatures.enabled = m.value("enabled", modCreatures.enabled);
+					modCreatures.goldPerMerit = m.value("goldPerMerit", modCreatures.goldPerMerit);
+					modCreatures.maxMerit = m.value("maxMerit", modCreatures.maxMerit);
+				}
 			}
+			AddModCreatureTrophies(modCreatures);  // after the listed ones: an item already a trophy, or a variant of one, stays that
 		} catch (const std::exception& e) {
 			SKSE::log::error("Shop: config error: {}", e.what());
 		}

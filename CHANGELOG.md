@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1
+
+**Trophies**
+- The Guild now buys parts from hostile creatures added by other mods. An ingredient, hide or other animal part counts
+  when a creature that starts fights carries or drops it; harmless wildlife adds nothing, and meat is never a trophy.
+  Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
+- `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
+
 ## 1.2.0
 
 **Guild Card**
