@@ -6,8 +6,8 @@
 - You now carry a physical Guild Card. Read it from your inventory anywhere in Skyrim to see your Guild Card page:
   rank, progress toward the next rank and career record, without a trip to a hold capital.
 - The innkeeper hands it over when you register, and it is updated to your new rank at each promotion. Members from
-  earlier versions receive theirs when they load their save. A card that is sold or lost is replaced the next time
-  you load.
+  earlier versions receive theirs when they load their save.
+- The first card is free. If you sell or lose it, any Guild counter replaces it for 25 gold (Guild Card page).
 
 ## 1.1.0
 

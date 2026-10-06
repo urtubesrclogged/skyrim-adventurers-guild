@@ -86,6 +86,7 @@
   .medallion { width: 250px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 18px; }
   .plaque { width: 236px; height: auto; margin-top: -4px; }
   .medallion .cap { font-size: 22px; color: var(--ink); margin-top: -6px; }
+  .medallion .cardbtn { font-size: 16px; min-height: 46px; padding: 0 14px; margin-top: 6px; max-width: 100%; white-space: normal; line-height: 1.15; }
   .medallion .mat { font-size: 16px; color: var(--muted); font-style: italic; margin-top: -10px; }
   .paper { flex: 1; background: url(tex/parchment.png), #d8c9a2; color: var(--paper-ink); padding: 22px 30px;
            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(110, 80, 40, 0.45); position: relative; }
@@ -440,7 +441,8 @@ function renderCard() {
   const app = [t("$AG_UI_None", "None"), "I", "II", "III"][data.appraisal || 0];
   return `<div class="card">
     <div class="medallion">${data.registered ? `<img class="plaque" src="tex/rank_${esc(data.letter)}.png" alt=""/>` : ""}
-      <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", data.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(data.letter)))}</div></div>
+      <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", data.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(data.letter)))}</div>
+      ${data.registered && !data.cardOnly && data.card && !data.card.has ? `<button class="btn cardbtn" data-action="card:replace">${esc(t("$AG_UI_ReplaceCard", "Replace Card ({0} gold)", data.card.fee))}</button>` : ""}</div>
     <div class="paper">
       <h2>${esc(data.name || t("$AG_UI_Adventurer", "Adventurer"))}</h2>
       <div class="line">${esc(data.registered ? t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", data.letter) : t("$AG_UI_NotRegistered", "Not registered with the Adventurers Guild"))}${data.registeredDay >= 0 ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", gameDate(data.registeredDay))) : ""}</div>

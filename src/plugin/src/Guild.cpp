@@ -35,6 +35,7 @@ namespace AG::Guild
 		{
 			int                          fee{ 50 };
 			int                          promotionFee{ 50 };
+			int                          cardFee{ 25 };  // a replacement guild card (the first is free)
 			std::array<int, kRankCount>  reputation{ 0, 100, 300, 700, 1500, 3000 };
 			std::array<int, kRankCount>  minLevel{ 1, 12, 24, 36, 48, 60 };
 			int                          cap{ 2 };  // C
@@ -313,6 +314,7 @@ namespace AG::Guild
 				j["appraisal"] = g_appraisal.load();
 				j["training"] = g_training;
 				j["dormant"] = g_dormant.load();
+				j["cardIssued"] = GuildCard::Issued();
 				j["counterMask"] = ControlsGuard::Masked();  // the engine saves the control flags (ControlsGuard.h)
 				auto& reports = j["reports"] = nlohmann::json::array();
 				for (auto& r : g_reports) reports.push_back({ { "kind", r.kind }, { "title", r.title }, { "detail", r.detail }, { "gold", r.gold }, { "merit", r.merit }, { "rep", r.rep } });
@@ -334,6 +336,7 @@ namespace AG::Guild
 			g_merit = g_reputation = 0;
 			g_repCarry = 0.0f;
 			g_regMissiveGiven = false;
+			GuildCard::SetIssued(false);
 			g_lastReady = false;
 			g_registeredDay = -1.0f;
 			g_promotedDay = -1.0f;
@@ -380,6 +383,7 @@ namespace AG::Guild
 						g_trophiesSold = j.value("trophiesSold", 0);
 						g_appraisal = std::clamp(j.value("appraisal", 0), 0, 3);
 						g_dormant = j.value("dormant", false);
+						GuildCard::SetIssued(j.value("cardIssued", false));
 						ControlsGuard::Saved(j.value("counterMask", false));
 						if (j.contains("training")) {
 							auto v = j.at("training").get<std::vector<int>>();
@@ -439,6 +443,7 @@ namespace AG::Guild
 				auto j = nlohmann::json::parse(f, nullptr, true, true);
 				c.fee = std::max(0, j.value("registrationFee", c.fee));
 				c.promotionFee = std::max(0, j.value("promotionFee", c.promotionFee));
+				c.cardFee = std::max(0, j.value("cardReplacementFee", c.cardFee));
 				if (j.contains("promotion")) {
 					auto& p = j.at("promotion");
 					auto fill = [&](const char* k, std::array<int, kRankCount>& out) {
@@ -962,6 +967,8 @@ namespace AG::Guild
 		std::lock_guard l(g_lock);
 		LogLocked(std::move(a_text));
 	}
+
+	int CardFee() { return g_cfg.cardFee; }
 
 	bool PayGold(int a_amount)
 	{

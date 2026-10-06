@@ -94,6 +94,7 @@ namespace AG::Guild
 	void  CountTrophies(int a_count);
 	void  Record(std::string a_text);
 	bool  PayGold(int a_amount);
+	int   CardFee();                            // gold for a replacement guild card
 	// The player's page of the Guild ledger, compact JSON for SkyrimNet (liaisons read it; see ag_player()).
 	std::string LedgerJson();
 

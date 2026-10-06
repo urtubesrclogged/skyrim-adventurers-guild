@@ -4,6 +4,8 @@
 	"registrationFee": 50,
 	"_promotionFee": "Gold the Guild charges to process a promotion (shown in the dialogue option).",
 	"promotionFee": 50,
+	"_cardReplacementFee": "The first guild card is free (handed over at registration; a member from before 1.2.0 gets theirs on loading). Gold for a replacement at any counter after that.",
+	"cardReplacementFee": 25,
 
 	"_promotion": "Promotion to rank N needs guild Reputation >= reputation[N] AND level >= minLevel[N]. Reputation is standing: earned from missives, dungeon reports and kills, never spent. minLevel matches the threat bands in AdventurersGuild.ini, so a rank-X adventurer is at least a rank-X threat. Apply at any innkeeper once eligible.",
 	"promotion": {

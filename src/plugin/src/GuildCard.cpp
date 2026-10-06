@@ -20,6 +20,7 @@ namespace AG::GuildCard
 		constexpr const char* kPlugin = "AdventurersGuild.esp";
 		RE::TESObjectBOOK*    g_card{ nullptr };
 		std::atomic<bool>     g_opening{ false };
+		std::atomic<bool>     g_issued{ false };  // the free first card has been handed over (co-save)
 
 		// The menus a card can be read from. They pause the game or sit over the world; the card opens after them.
 		constexpr std::string_view kUnder[]{ RE::BookMenu::MENU_NAME, RE::InventoryMenu::MENU_NAME, RE::ContainerMenu::MENU_NAME,
@@ -99,9 +100,32 @@ namespace AG::GuildCard
 		if (!g_card || !pc || !Guild::Registered() || Guild::Dormant()) return;
 		const int rank = Guild::Rank();
 		if (rank >= 0) g_card->fullName = Loc::F("$AG_Item_GuildCardRank", "Adventurers Guild Card (Rank {})", Letter(rank));
+		if (g_issued.exchange(true)) return;  // the free one has been given: a missing card is replaced at a counter, for a fee
 		if (pc->GetItemCount(g_card) > 0) return;
 		pc->AddObjectToContainer(g_card, nullptr, 1, nullptr);
-		SKSE::log::info("GuildCard: card issued (rank {})", rank >= 0 ? Letter(rank) : '-');
+		SKSE::log::info("GuildCard: first card issued (rank {})", rank >= 0 ? Letter(rank) : '-');
 		if (a_announce) RE::SendHUDMessage::ShowHUDMessage(Loc::T("$AG_Hud_CardIssued", "Guild card added. Read it to see your standing with the Guild.").c_str());
 	}
+
+	bool Has()
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		return g_card && pc && pc->GetItemCount(g_card) > 0;
+	}
+
+	std::string Replace()
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		if (!g_card || !pc || !Guild::Registered() || Guild::Dormant()) return {};
+		if (Has()) return Loc::T("$AG_Card_HaveOne", "You already carry your guild card.");
+		const int fee = Guild::CardFee();
+		if (!Guild::PayGold(fee)) return Loc::F("$AG_Card_NoGold", "A replacement guild card costs {} gold.", fee);
+		pc->AddObjectToContainer(g_card, nullptr, 1, nullptr);
+		g_issued = true;
+		SKSE::log::info("GuildCard: replacement issued for {} gold", fee);
+		return Loc::T("$AG_Card_Replaced", "The Guild has issued you a new guild card.");
+	}
+
+	bool Issued() { return g_issued.load(); }
+	void SetIssued(bool a_issued) { g_issued = a_issued; }
 }

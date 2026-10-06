@@ -16,8 +16,16 @@ namespace AG::GuildCard
 {
 	void Install();  // at kDataLoaded: find the record, watch the Book Menu
 
-	// A registered player owns exactly the card of their rank: given if missing (registration, a save from before
-	// 1.2.0, a card that was sold or lost), named for the current rank. Game thread. a_announce: say so on the HUD
-	// when one is handed over (not during a load screen).
+	// The card is named for the player's current rank, and the FIRST one is free: handed over at registration, or to a
+	// member from before 1.2.0 when their save loads. After that a missing card (sold, dropped, left in a chest) is
+	// not given again here: Replace() sells a new one at a counter. Game thread. a_announce: say so on the HUD when
+	// one is handed over (not during a load screen).
 	void Sync(bool a_announce);
+
+	bool        Has();      // the player carries a card
+	std::string Replace();  // at a counter: a new card for Guild::CardFee() gold; the line for the counter's status bar
+
+	// co-save (Guild.cpp): the free first card has been handed over
+	bool Issued();
+	void SetIssued(bool a_issued);
 }
