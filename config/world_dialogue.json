@@ -11,7 +11,7 @@
 		"Hjaalmarch": "CrimeFactionHjaalmarch", "Pale": "CrimeFactionPale", "Winterhold": "CrimeFactionWinterhold",
 		"Solstheim": "DLC2RavenRockGuardFaction"
 	},
-	"chance": { "wanderer": 100, "npc": 40, "guards": 20, "retired": 35, "promoted": 50 },
+	"chance": { "wanderer": 60, "npc": 40, "guards": 20, "retired": 35, "promoted": 50 },
 
 	"lines": [
 		{ "id": "ysolda",        "who": "Ysolda", "whileAlive": "Hulda",            "rank": "<B", "text": "Hulda says the Bannered Mare comes with the Adventurers Guild counter now. If I'm ever to buy it, I'll need the Guild's blessing as well as hers." },

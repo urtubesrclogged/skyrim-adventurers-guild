@@ -40,6 +40,14 @@ static class Probe
             }
             return;
         }
+        if (what == "info") {       // INFOs by FormID (regex on the 8-digit hex): topic, subtype, quest + priority, flags, text
+            var quests = mods.SelectMany(m => m.Quests).GroupBy(q => q.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            foreach (var m in mods)
+                foreach (var t in m.DialogTopics)
+                    foreach (var i in t.Responses.Where(i => re.IsMatch($"{i.FormKey.ID:X8}")))
+                        Console.WriteLine($"{i.FormKey.ID:X8}\t{m.ModKey.FileName}\ttopic={t.EditorID}\tsubtype={t.Subtype}/{t.SubtypeName}\tquest={(quests.TryGetValue(t.Quest.FormKey, out var q) ? q.EditorID + " prio " + q.Priority : "?")}\tflags={i.Flags?.Flags}\tconds={i.Conditions.Count}\t\"{string.Join(" | ", i.Responses.Select(r => r.Text?.String))}\"");
+            return;
+        }
         if (what == "says") {       // every INFO whose conditions name this NPC (GetIsID), with its topic: what they say in vanilla
             var npcKey = mods.SelectMany(m => m.Npcs).FirstOrDefault(n => re.IsMatch(n.EditorID ?? ""))?.FormKey;
             if (npcKey is null) { Console.WriteLine("no NPC matches"); return; }

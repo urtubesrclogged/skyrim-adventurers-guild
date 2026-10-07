@@ -697,7 +697,7 @@ foreach (var ln in world["lines"]!.AsArray())
     var info = new DialogResponses(FK(InfoId("world:" + id)), Rel)
     {
         EditorID = "AG_Info_world_" + id,
-        Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = kind == "npc" ? 24f : kind == "wanderer" ? 2f : 6f },  // a wanderer is met once on the road: two lines per case, so a short rest
+        Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = kind == "npc" ? 24f : kind == "wanderer" ? 0f : 6f },  // wanderers: no rest. Two or three lines per case, shared by every adventurer on the road: with a rest the first one met used them up (measured: 3 Guild lines in 48 greetings). The chance mixes them with the game's own instead
     };
     info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
     foreach (var c in conds) info.Conditions.Add(c);
