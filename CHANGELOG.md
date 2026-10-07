@@ -2,10 +2,11 @@
 
 ## 1.3.0
 
-**Threat Ranks**
-- Threat ranks now reflect how dangerous a creature is, not only its level
-- Works for creatures added or changed by other mods
-- Minimum ranks for giants, Dwarven Centurions, Draugr Deathlords and Dragon Priests
+**Threat Ranks Reworked**
+- Threat ranks should now reflect how dangerous a creature is, not based only on its level
+- Works for creatures added or changed by other mods (may not be perfect for some added creatures without deeper
+  integration/awareness, but much improved over previous logic)
+- No more E-rank giants!
 
 **Appraisal**
 - Appraisal I reads adventurers, people, wildlife and dungeons
