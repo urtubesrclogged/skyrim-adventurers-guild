@@ -58,7 +58,7 @@ namespace AG::Shop
 		std::vector<Trophy>  g_trophies;
 		std::unordered_map<RE::FormID, int> g_variantOf;  // item -> index in g_trophies, or -1 (names never change)
 		int                  g_trainAmount{ 10 }, g_trainPerRank{ 2 }, g_trainBase{ 40 }, g_trainStep{ 20 };
-		std::array<int, 3>   g_appMerit{ 10, 75, 250 }, g_appRank{ 0, 1, 3 }, g_appTrophy{ 0, 25, 50 };
+		std::array<int, 3>   g_appMerit{ 10, 75, 250 }, g_appRank{ 0, 1, 3 }, g_appTrophy{ 0, 10, 25 }, g_appSell{ 0, 5, 10 };
 
 		constexpr const char* kStatName[3]{ "Vitality", "Endurance", "Arcana" };
 		constexpr const char* kStatAv[3]{ "Health", "Stamina", "Magicka" };
@@ -372,6 +372,7 @@ namespace AG::Shop
 					fill("merit", g_appMerit);
 					fill("rank", g_appRank);
 					fill("trophyBonus", g_appTrophy);
+					fill("sellBonus", g_appSell);  // the perks carry it (ESP); read here for the wording at the counter
 				}
 				if (g.contains("modCreatureTrophies")) {
 					auto& m = g.at("modCreatureTrophies");
@@ -419,9 +420,11 @@ namespace AG::Shop
 		// Guild skills
 		if (a_appraisal < 3) {
 			const int t = a_appraisal;  // next tier index
-			const auto what = t == 0 ? Loc::T("$AG_Svc_Appraisal1", "Read an adventurer's guild rank at a glance, and the threat rank of people and wildlife. Without it, no ranks are shown.")
-			                 : t == 1 ? Loc::T("$AG_Svc_Appraisal2", "Read the threat rank of trolls, draugr, vampires, dragons and other creatures of legend. Merchants pay 5% more, and trophies earn 25% more Merit.")
-			                          : Loc::T("$AG_Svc_Appraisal3", "Read threats of rank A and S, which are beyond measure until now, and see through hidden ranks. Merchants pay 10% more, and trophies earn 50% more Merit.");
+			// new keys in 1.3.0 (the old $AG_Svc_Appraisal1-3 described 1.2.0 and carried the old figures): a translation
+			// that has not caught up shows this English text, not a wrong promise
+			const auto what = t == 0 ? Loc::T("$AG_Svc_AppraisalI", "Read an adventurer's guild rank at a glance, the threat rank of people and wildlife, and the threat rank of a dungeon as you enter it. Without it, no ranks are shown.")
+			                 : t == 1 ? Loc::F("$AG_Svc_AppraisalII", "Read the threat rank of trolls, draugr, vampires, dragons and other creatures of legend. Merchants pay {}% more, and trophies earn {}% more Merit.", g_appSell[1], g_appTrophy[1])
+			                          : Loc::F("$AG_Svc_AppraisalIII", "Read threats of rank A and S, which are beyond measure until now, and see through hidden ranks. Merchants pay {}% more, and trophies earn {}% more Merit.", g_appSell[2], g_appTrophy[2]);
 			add("Guild Skills", "appraisal", Loc::F("$AG_Svc_AppraisalName", "Appraisal {}", kRoman[t]), what, g_appMerit[t], g_appRank[t]);
 		}
 		for (int st = 0; st < 3; ++st) {

@@ -27,6 +27,8 @@ you.
     creatures of legend show `[?]` on their health bar.
   - Appraisal II: creatures of legend too.
   - Appraisal III: threats of rank A and S, which are beyond measure until then and show `[?]` whatever they are.
+- The Merit bonus on trophies is smaller: 10% at Appraisal II (was 25%) and 25% at Appraisal III (was 50%). The
+  descriptions at the counter and in your active effects say what each level reads.
 - Only the label is hidden. Kills pay by the real rank, and the ranks of fellow adventurers are read as before.
 - `AdventurersGuild.ini`, `[Appraisal]`: `FantasyTier = 0` and `HighRankTier = 0` put it back as it was.
 

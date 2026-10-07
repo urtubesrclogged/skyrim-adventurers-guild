@@ -821,6 +821,7 @@ mod.Books.Add(card);
 // ModSellPrices multiplier: merchants pay more, the same entry point vanilla Haggling uses.
 var guildCfg = ReadConfig("guild");
 var sellBonus = guildCfg["appraisal"]!["sellBonus"]!.AsArray().Select(x => x!.GetValue<int>()).ToArray();
+var trophyBonus = guildCfg["appraisal"]!["trophyBonus"]!.AsArray().Select(x => x!.GetValue<int>()).ToArray();
 MagicEffect Marker(uint id, string edid, string name, string desc)
 {
     var m = new MagicEffect(FK(id), Rel)
@@ -849,9 +850,9 @@ for (int t = 0; t < 3; t++)
 {
     var adesc = t switch
     {
-        0 => "You read an adventurer's guild rank and a foe's threat rank at a glance.",
-        1 => $"You read ranks at a glance and know what spoils are worth: merchants pay {sellBonus[1]}% more, and trophies earn more Merit.",
-        _ => $"Nothing escapes your eye, not even a hidden rank. Merchants pay {sellBonus[2]}% more, and trophies earn much more Merit.",
+        0 => "You read an adventurer's guild rank at a glance, the threat rank of people and wildlife, and the threat rank of a dungeon as you enter it.",
+        1 => $"You also read the threat rank of creatures of legend. Merchants pay {sellBonus[1]}% more, and trophies earn {trophyBonus[1]}% more Merit.",
+        _ => $"Nothing escapes your eye: not the deadliest threats, ranks A and S, nor a hidden rank. Merchants pay {sellBonus[2]}% more, and trophies earn {trophyBonus[2]}% more Merit.",
     };
     var afx = Marker((uint)(0x823 + t), $"AG_MGEF_Appraisal{t + 1}", $"Appraisal {roman[t]}", adesc);
     var ab = Ability((uint)(0x826 + t), $"AG_Ab_Appraisal{t + 1}", $"Appraisal {roman[t]}", adesc, afx, 0f);
