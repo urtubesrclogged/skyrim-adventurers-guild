@@ -105,6 +105,7 @@ namespace AG::Guild
 		// takes note. g_bountyActive: the player has a bounty somewhere, which puts promotion on hold.
 		std::map<std::string, int> g_bountySeen;
 		bool                       g_bountyKnown{ false };
+		double                     g_bountyCarry{ 0.0 };  // the fraction of a Reputation point small bounties have not yet cost
 		std::atomic<bool>          g_bountyActive{ false };
 		RE::TESTopic*  g_replaceTopic{ nullptr };  // the player's "I've lost my guild card" line: the DLL writes the fee into it
 		// Liaison dialogue lines by role (dialogue.resolved.json). Staff/referral lines are not listed,
@@ -347,6 +348,7 @@ namespace AG::Guild
 				j["cardIssued"] = GuildCard::Issued();
 				j["bounties"] = g_bountySeen;
 				j["bountyKnown"] = g_bountyKnown;
+				j["bountyCarry"] = g_bountyCarry;
 				j["counterMask"] = ControlsGuard::Masked();  // the engine saves the control flags (ControlsGuard.h)
 				auto& reports = j["reports"] = nlohmann::json::array();
 				for (auto& r : g_reports) reports.push_back({ { "kind", r.kind }, { "title", r.title }, { "detail", r.detail }, { "gold", r.gold }, { "merit", r.merit }, { "rep", r.rep } });
@@ -371,6 +373,7 @@ namespace AG::Guild
 			GuildCard::SetIssued(false);
 			g_bountySeen.clear();
 			g_bountyKnown = false;
+			g_bountyCarry = 0.0;
 			g_bountyActive = false;
 			g_lastReady = false;
 			g_registeredDay = -1.0f;
@@ -421,6 +424,7 @@ namespace AG::Guild
 						GuildCard::SetIssued(j.value("cardIssued", false));
 						g_bountySeen = j.value("bounties", std::map<std::string, int>{});
 						g_bountyKnown = j.value("bountyKnown", false);
+						g_bountyCarry = j.value("bountyCarry", 0.0);
 						ControlsGuard::Saved(j.value("counterMask", false));
 						if (j.contains("training")) {
 							auto v = j.at("training").get<std::vector<int>>();
@@ -702,8 +706,16 @@ namespace AG::Guild
 			was = g_bountyActive.exchange(any);
 		}
 		for (auto& [hold, gold] : rises) {
-			const int loss = std::max(1, static_cast<int>(std::lround(gold * g_cfg.repPerBountyGold)));
-			LoseReputation(loss, hold.empty() ? Loc::T("$AG_Why_Bounty", "a bounty on your head") : Loc::F("$AG_Why_BountyIn", "a bounty in {}", hold));
+			// exactly the share of the bounty, however it was run up: a small rise that is not yet worth a point is
+			// carried to the next one, so a hundred petty thefts cost what one theft of the same total does
+			int loss;
+			{
+				std::lock_guard l(g_lock);
+				g_bountyCarry += gold * static_cast<double>(g_cfg.repPerBountyGold);
+				loss = static_cast<int>(std::floor(g_bountyCarry + 1e-6));
+				g_bountyCarry -= loss;
+			}
+			if (loss > 0) LoseReputation(loss, hold.empty() ? Loc::T("$AG_Why_Bounty", "a bounty on your head") : Loc::F("$AG_Why_BountyIn", "a bounty in {}", hold));
 		}
 		if (was != any) {
 			bool blocked;
