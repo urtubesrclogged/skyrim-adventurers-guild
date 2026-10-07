@@ -6,6 +6,7 @@
 //   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics)
 //   0x900-0x9FF  Missives note variants per rank (MissivesPatch.cs)
 //   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json
+//   0x81F the party-member faction
 //   0x810-0x81F  registration quest + missive; 0x81A the physical Guild Card (1.2.0), 0x81B-0x81E its replacement topic, fee and "missing" flag
 //   0x8C0-0x8CF  world awareness: greetings quest/topics, retired-adventurer faction, recent-promotion global,
 //                liaison faction (0x8C6) and reports-waiting global (0x8C7) for the SkyrimNet actions
@@ -210,6 +211,9 @@ mod.Quests.Add(dlgQuest);
 
 // The nine Guild reps join this hidden faction as they load (AdventurersGuild.dll), so SkyrimNet actions can pick them
 // out with is_in_faction; reports waiting to be handed in, kept by the DLL for the same reason.
+// active members of the player's adventuring party (the DLL adds and removes them): for dialogue conditions
+var partyFaction = new Faction(FK(0x81F), Rel) { EditorID = "AG_PartyMemberFaction", Name = "Adventuring Party Member", Flags = Faction.FactionFlag.HiddenFromPC };
+mod.Factions.Add(partyFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);
 var gReports = Global(0x8C7, "AG_ReportsWaitingGlobal", 0);
@@ -609,6 +613,9 @@ foreach (var ln in world["lines"]!.AsArray())
     if (ln["whileAlive"] is JsonNode wal) conds.Add(Dead(wal.GetValue<string>(), false));
     if (ln["whenDead"] is JsonNode wdd) conds.Add(Dead(wdd.GetValue<string>(), true));
     if (ln["liaison"] is not null) conds.Add(InFaction(liaisonFaction.FormKey));
+    if (ln["inParty"] is JsonNode ip) { var pc = InFaction(partyFaction.FormKey); pc.ComparisonValue = ip.GetValue<bool>() ? 1 : 0; conds.Add(pc); }
+    if (ln["teammate"] is JsonNode tm)
+        conds.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = tm.GetValue<bool>() ? 1 : 0, Data = new GetPlayerTeammateConditionData() });
     if (ln["inFaction"] is JsonNode inf) conds.Add(InFaction(FactionFk(inf.GetValue<string>())));
     if (ln["notInFaction"] is JsonNode nif) { var nc = InFaction(FactionFk(nif.GetValue<string>())); nc.ComparisonValue = 0; conds.Add(nc); }
     // who holds Whiterun: the condition vanilla puts on Sinmir's own lines (CWOwner 2 = the Stormcloaks)
@@ -627,7 +634,8 @@ foreach (var ln in world["lines"]!.AsArray())
     {
         // one player topic per NPC: branch and topic FormIDs are fixed here (append only)
         var whoId = ln["who"]!.GetValue<string>();
-        var (branchId, topicId) = whoId switch { "Ysolda" => (0x8C2u, 0x8C3u), "Sinmir" => (0x8C8u, 0x8C9u), _ => (0u, 0u) };
+        var (branchId, topicId) = whoId switch { "Ysolda" => (0x8C2u, 0x8C3u), "Sinmir" => (0x8C8u, 0x8C9u), "Uthgerd" => (0x8CAu, 0x8CBu),
+            "Mjoll" => (0x8CCu, 0x8CDu), "Annekke" => (0x8CEu, 0x8CFu), _ => (0u, 0u) };
         if (branchId == 0) { Console.Error.WriteLine($"ERROR world_dialogue.json: no topic FormIDs assigned for '{whoId}' (tools/EspGen/Program.cs)"); errors++; continue; }
         ysoldaBranch = new DialogBranch(FK(branchId), Rel)
         {

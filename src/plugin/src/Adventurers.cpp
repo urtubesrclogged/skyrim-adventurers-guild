@@ -25,6 +25,7 @@ namespace AG::Adventurers
 			RE::BGSLocation* where{ nullptr };
 			RE::BGSKeyword*  keyword{ nullptr };
 			float            value{ 0.0f };
+			int              rank{ -1 };  // fixed Guild rank, or -1: from their level
 			std::string      note, retiredNote;
 			bool Retired() const
 			{
@@ -35,6 +36,7 @@ namespace AG::Adventurers
 			}
 		};
 		std::unordered_map<RE::FormID, Named> g_named;  // by actor base
+		std::unordered_set<RE::FormID>        g_joinOnRecruitNpcs;  // actor bases treated like g_joinOnRecruit's factions
 
 		// A liaison's successor (dialogue.json "successor"): keeps the counter once the liaison they follow is dead,
 		// whoever runs the inn. With the Unofficial Patch Mikael takes the Bannered Mare over; Ysolda takes the counter.
@@ -123,7 +125,8 @@ namespace AG::Adventurers
 		// caller holds g_lock. a_rule receives a short reason for Describe().
 		Kind Decide(RE::Actor* a_actor, std::string* a_rule)
 		{
-			const bool exception = InAny(a_actor, g_joinOnRecruit);
+			auto*      dbase = a_actor->GetActorBase();
+			const bool exception = InAny(a_actor, g_joinOnRecruit) || (dbase && g_joinOnRecruitNpcs.contains(dbase->GetFormID()));
 			if (!exception && InAny(a_actor, g_members)) {
 				if (a_rule) *a_rule = "member faction";
 				return Kind::kMember;
@@ -254,11 +257,16 @@ namespace AG::Adventurers
 				}
 			}
 			if (j.contains("joinOnRecruit")) g_joinOnRecruit = Factions(j.at("joinOnRecruit"), "joinOnRecruit");
+			g_joinOnRecruitNpcs.clear();
+			if (j.contains("joinOnRecruit"))
+				for (auto& k : j.at("joinOnRecruit").value("npcs", nlohmann::json::array()))
+					if (auto* f = FormOfKey(k.get<std::string>())) g_joinOnRecruitNpcs.insert(f->GetFormID());
 			g_named.clear();
 			for (auto& n : j.value("named", nlohmann::json::array())) {
 				Named nm;
 				nm.note = n.value("note", "");
 				nm.retiredNote = n.value("retiredNote", "");
+				if (const auto r = n.value("rank", ""); !r.empty()) nm.rank = FromLetter(r[0]);
 				if (n.contains("retiredWhen")) {
 					auto& w = n.at("retiredWhen");
 					auto* loc = FormOfKey(w.value("location", ""));
@@ -302,12 +310,14 @@ namespace AG::Adventurers
 		if (!a_actor || a_actor->IsPlayerRef()) return {};
 		Kind kind;
 		bool joined = false;
+		int  pinned = -1;
 		{
 			std::lock_guard l(g_lock);
 			const auto key = StableKey(a_actor);
 			auto*      base = a_actor->GetActorBase();
 			if (auto nm = base ? g_named.find(base->GetFormID()) : g_named.end(); nm != g_named.end()) {
 				kind = nm->second.Retired() ? Kind::kRetired : Kind::kMember;  // asked each time: the world can change it
+				pinned = nm->second.rank;
 			} else if (g_recruited.contains(key)) {
 				kind = Kind::kMember;
 			} else if (a_actor->IsPlayerTeammate()) {
@@ -334,7 +344,7 @@ namespace AG::Adventurers
 			});
 		}
 		if (kind == Kind::kNone) return {};
-		return { kind, FromLevel(a_actor->GetLevel()) };
+		return { kind, pinned >= 0 ? pinned : FromLevel(a_actor->GetLevel()) };
 	}
 
 	std::string JoinStatus(RE::Actor* a_actor)

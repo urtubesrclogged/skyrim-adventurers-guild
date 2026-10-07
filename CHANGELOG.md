@@ -12,6 +12,9 @@
 **People**
 - Sinmir, the Bannered Mare regular, is a C-rank adventurer with voiced lines of his own, by your rank. If the
   Stormcloaks take Whiterun and make him captain of the guard, the Guild sets him aside and his lines change.
+- Uthgerd the Unbroken (D), Mjoll the Lioness (B) and Annekke Crag-Jumper (D) are named adventurers with voiced lines
+  by your rank, and a fixed rank that does not drift with their level. Erik of Rorikstead dreams of joining; as Erik
+  the Slayer he registers when you first take him along.
 - If Hulda dies, Ysolda takes over Whiterun's Guild counter at the Bannered Mare, whoever ends up running the inn,
   fully voiced:
   registration, promotion, the counter, reports and replacement cards.

@@ -114,6 +114,7 @@ namespace AG::Party
 		constexpr RE::FormID TraitGlobalId(std::size_t i) { return static_cast<RE::FormID>(i < 8 ? 0x8D3 + i : 0xC00 + (i - 8)); }
 		RE::SpellItem*                          g_blessing{ nullptr };
 		RE::TESGlobal*                          g_gTier{ nullptr };
+		RE::TESFaction* g_partyFaction{ nullptr };  // AG_PartyMemberFaction: active members, for dialogue conditions
 		RE::TESGlobal*                          g_gPresent{ nullptr };
 		std::unordered_map<std::string, RE::TESGlobal*> g_gTrait;  // trait id -> its global
 		std::vector<std::string>                g_traitOn;     // switched on by the player (at most maxActive), in order
@@ -626,6 +627,10 @@ namespace AG::Party
 			for (auto& [id, g] : g_gTrait) SetGlobal(g, active.contains(id) ? 1.0f : 0.0f);
 			Give(pc, hasParty);
 			for (auto* a : members) Give(a, !a->IsDead());
+			// ... and the faction dialogue asks about ("I'm in a real adventuring party")
+			if (g_partyFaction)
+				for (auto* a : members)
+					if (!a->IsInFaction(g_partyFaction)) a->AddToFaction(g_partyFaction, 0);
 			// take it back from anyone no longer an active member
 			std::vector<std::string> stale;
 			{
@@ -634,7 +639,11 @@ namespace AG::Party
 					if (!hasParty || std::ranges::find(formerKeys, k) != formerKeys.end()) stale.push_back(k);
 				for (auto& k : stale) g_blessed.erase(k);
 			}
-			for (auto& k : stale) Give(Resolve(k), false);
+			for (auto& k : stale) {
+				auto* gone = Resolve(k);
+				Give(gone, false);
+				if (gone && g_partyFaction && gone->IsInFaction(g_partyFaction)) gone->AddToFaction(g_partyFaction, -1);  // rank -1 = out
+			}
 			for (auto& [name, on] : changed)
 				Hud(on ? Loc::F("$AG_Hud_TraitActive", "Affinity active: {}", name) : Loc::F("$AG_Hud_TraitInactive", "Affinity inactive: {}", name));
 			for (auto& name : discovered) {
@@ -804,6 +813,7 @@ namespace AG::Party
 		auto  own = [&](RE::FormID a_id) { return dh ? dh->LookupForm(a_id, "AdventurersGuild.esp") : nullptr; };
 		g_blessing = own(0x8D0) ? own(0x8D0)->As<RE::SpellItem>() : nullptr;
 		g_gTier = own(0x8D1) ? own(0x8D1)->As<RE::TESGlobal>() : nullptr;
+		g_partyFaction = own(0x81F) ? own(0x81F)->As<RE::TESFaction>() : nullptr;
 		g_gPresent = own(0x8D2) ? own(0x8D2)->As<RE::TESGlobal>() : nullptr;
 		g_gTrait.clear();
 		for (std::size_t i = 0; i < t.traits.size(); ++i)
