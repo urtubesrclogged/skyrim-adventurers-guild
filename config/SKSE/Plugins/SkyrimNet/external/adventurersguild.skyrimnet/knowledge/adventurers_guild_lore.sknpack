@@ -288,7 +288,7 @@
       {
         "key": "ag_appraisal",
         "display_name": "Appraisal",
-        "content": "Adventurers of the Guild learn Appraisal: the knack of sizing up what stands in front of them and putting a rank to it. The Guild teaches it at its counters, for Merit, in three levels. The first reads fellow adventurers, ordinary folk, the beasts of the wild and how dangerous a barrow or cave is. The second reads the things of legend: trolls, draugr, vampires, dragons, Dwemer machines. The third is rare, and it alone can measure the deadliest threats, those of rank A and S; to anyone less practised such a foe is simply beyond measure, which is warning enough.",
+        "content": "Adventurers Guild members learn Appraisal: the skill of sizing up what stands in front of them and analyzing the threat it poses, measured as a rank. The Guild teaches it at its counters, for Merit, in three levels. The first reads fellow adventurers, ordinary folk, the beasts of the wild and how dangerous a barrow or cave is. The second reads the things of legend: trolls, draugr, vampires, dragons, Dwemer machines. The third is rare, and it alone can measure the deadliest threats, those of rank A and S; to anyone less practised such a foe is simply beyond measure, which is warning enough.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -303,7 +303,7 @@
       {
         "key": "ag_wanderers",
         "display_name": "Adventurers on the roads",
-        "content": "Not every adventurer is found at an inn. Members of the Adventurers Guild walk the roads between jobs, a missive in the pack and a guild card at the belt, and most are glad of a word with another adventurer: which board has work, which pass has trolls, who made rank. Folk can usually tell one by the mismatched armor and the easy way with a weapon. They are not sellswords for any purse: a Guild adventurer takes the Guild's work.",
+        "content": "Not every adventurer is found at an inn. Members of the Adventurers Guild walk the roads between jobs, a missive in the pack and a guild card at the belt, and most are glad of a word with another adventurer: which board has work, which pass has trolls, who made rank. Folk can usually tell one by the mismatched armor and the easy way with a weapon. They're separate from the sellswords and mercenaries, but share the same roads, and some are known to take up both professions.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -332,7 +332,7 @@
       {
         "key": "ag_counter_lost",
         "display_name": "When a counter closes",
-        "content": "A hold's Guild counter is its innkeeper's licence. When an innkeeper dies, whoever takes over the inn sometimes keeps the counter on, and sometimes a town is simply left without one, and its adventurers must carry their reports and trophies to another hold capital until the Guild licenses someone new.",
+        "content": "The innkeeper who keeps a hold's counter is a representative of the Adventurers Guild, approved by the Guild to conduct its business on its behalf. When one dies, whoever takes over the inn is sometimes approved to keep the counter on, and sometimes a town is left without a representative, and its adventurers must carry their reports and trophies to another hold capital.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.3,
