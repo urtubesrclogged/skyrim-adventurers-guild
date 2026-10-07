@@ -708,6 +708,34 @@ mod.DialogTopics.Add(hello);
 Console.WriteLine($"world dialogue: {worldCount} lines");
 
 File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptions { WriteIndented = true }));
+// ---------- threat safety net: the level each creature race has at its weakest in the unmodded game ----------
+// A threat rank is a level band, and overhauls change levels (a giant set to level 5 would read rank E). The DLL
+// never ranks a creature below what its race's weakest vanilla encounter variant gets: this lists that level per
+// race. Only the game's own encounter actors (editor ID "Enc...", their own stats, a fixed level) are read, and
+// only races that are not people. Level 12 and up only: below that the floor would be rank E, which is no floor.
+{
+    var races = masters.SelectMany(m => m.Races).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last());
+    var npcKw = idx["keywords"].TryGetValue("ActorTypeNPC", out var nk) ? nk : FormKey.Null;
+    var weakest = new SortedDictionary<string, (int level, string edid, string from)>();
+    foreach (var n in masters.SelectMany(m => m.Npcs).GroupBy(n => n.FormKey).Select(g => g.Last()))
+    {
+        var edid = n.EditorID ?? "";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(edid, @"^(DLC\d)?Enc") || edid.Contains("Test")) continue;
+        if (n.Configuration.Level is not INpcLevelGetter fixedLevel) continue;                       // scales with the player
+        if (!n.Template.IsNull && n.Configuration.TemplateFlags.HasFlag(NpcConfiguration.TemplateFlag.Stats)) continue;  // not its own level
+        if (!races.TryGetValue(n.Race.FormKey, out var race)) continue;
+        if (race.Keywords?.Any(k => k.FormKey == npcKw) == true) continue;                            // people
+        var key = Key(race.FormKey);
+        if (!weakest.TryGetValue(key, out var have) || fixedLevel.Level < have.level) weakest[key] = (fixedLevel.Level, race.EditorID ?? "", edid);
+    }
+    var floors = weakest.Where(kv => kv.Value.level >= 12).Select(kv => new { race = kv.Key, name = kv.Value.edid, level = kv.Value.level, from = kv.Value.from }).ToList();
+    File.WriteAllText(Path.Combine(outDir, "threat.resolved.json"), JsonSerializer.Serialize(new
+    {
+        _comment = "Threat safety net: a creature of this race is never ranked as if it were below this level (its weakest encounter variant in the unmodded game, named in 'from'). Level and toughness can still rank it higher. Edit a level to move a floor, or delete a line to remove it. [Threat] RaceFloors = 0 in AdventurersGuild.ini turns the whole net off.",
+        floors,
+    }, new JsonSerializerOptions { WriteIndented = true }));
+    Console.WriteLine($"threat floors: {floors.Count} creature races (of {weakest.Count} with encounter actors)");
+}
 File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"dialogue: {ids.Count} INFO ids pinned, {liaisonKeys.Count} liaisons");
 

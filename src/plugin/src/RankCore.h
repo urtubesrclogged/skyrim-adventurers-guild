@@ -35,6 +35,10 @@ namespace AG
 		float                    tough1{ 4.0f };  // at least this many times expected health: +1 rank
 		float                    tough2{ 8.0f };  // +2 ranks
 		std::vector<KeywordRule> keywords{ { "ActorTypeDragon", 2, -1 } };
+		// Safety net (threat.resolved.json): race -> the level its weakest vanilla encounter variant has. A creature
+		// is ranked as at least that level, so an overhaul that lowers its level cannot make a giant rank E.
+		bool                                    raceFloors{ true };
+		std::unordered_map<RE::FormID, int>     raceLevel;
 	};
 
 	// How a threat rank was reached, for the debug readout.
@@ -46,6 +50,7 @@ namespace AG
 	};
 
 	void LoadConfig();  // Data/SKSE/Plugins/AdventurersGuild.ini
+	void LoadRaceFloors();  // at kDataLoaded (needs forms): threat.resolved.json
 	const Bands& GetBands();
 
 	int         FromLevel(int a_level);

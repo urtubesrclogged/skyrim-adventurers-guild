@@ -4,6 +4,8 @@
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
 #include "RankCore.h"
+#include <nlohmann/json.hpp>
+#include <fstream>
 
 #include <SimpleIni.h>
 #include <sstream>
@@ -61,6 +63,7 @@ namespace AG
 		g_threat.healthPerLevel = static_cast<float>(ini.GetDoubleValue("Threat", "HealthPerLevel", g_threat.healthPerLevel));
 		g_threat.tough1 = static_cast<float>(ini.GetDoubleValue("Threat", "ToughRatio1", g_threat.tough1));
 		g_threat.tough2 = static_cast<float>(ini.GetDoubleValue("Threat", "ToughRatio2", g_threat.tough2));
+		g_threat.raceFloors = ini.GetBoolValue("Threat", "RaceFloors", true);
 		if (CSimpleIniA::TNamesDepend keys; ini.GetAllKeys("ThreatKeywords", keys)) {
 			g_threat.keywords.clear();  // the section replaces the built-in list
 			for (auto& k : keys) {
@@ -84,12 +87,48 @@ namespace AG
 		return r;
 	}
 
+	void LoadRaceFloors()
+	{
+		g_threat.raceLevel.clear();
+		if (!g_threat.raceFloors) {
+			SKSE::log::info("Threat: race floors off ([Threat] RaceFloors = 0)");
+			return;
+		}
+		try {
+			std::ifstream f("Data/SKSE/Plugins/AdventurersGuild/threat.resolved.json");
+			if (!f) {
+				SKSE::log::warn("Threat: threat.resolved.json missing - no race floors (a creature's rank follows its level alone)");
+				return;
+			}
+			auto  j = nlohmann::json::parse(f, nullptr, true, true);
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			for (auto& e : j.value("floors", nlohmann::json::array())) {
+				const auto key = e.value("race", std::string());
+				const auto bar = key.find('|');
+				if (bar == std::string::npos || !dh) continue;
+				if (auto* race = dh->LookupForm(static_cast<RE::FormID>(std::stoul(key.substr(bar + 1), nullptr, 16)), key.substr(0, bar)))
+					g_threat.raceLevel[race->GetFormID()] = e.value("level", 0);
+			}
+			SKSE::log::info("Threat: {} race floors (a creature never ranks below its race's weakest vanilla variant)", g_threat.raceLevel.size());
+		} catch (const std::exception& e) {
+			SKSE::log::error("Threat: threat.resolved.json error: {} - no race floors", e.what());
+		}
+	}
+
 	ThreatInfo ExplainThreat(RE::Actor* a_actor)
 	{
 		ThreatInfo t;
 		if (!a_actor) return t;
 		t.level = a_actor->GetLevel();
-		t.byLevel = FromLevel(t.level);
+		int ranked = t.level;
+		// safety net: never below what this race's weakest vanilla variant is
+		if (g_threat.raceFloors)
+			if (auto* r = a_actor->GetRace())
+				if (auto it = g_threat.raceLevel.find(r->GetFormID()); it != g_threat.raceLevel.end() && it->second > ranked) {
+					ranked = it->second;
+					t.why = std::format("race floor (as level {})", ranked);
+				}
+		t.byLevel = FromLevel(ranked);
 
 		// toughness
 		int tough = 0;
@@ -101,7 +140,7 @@ namespace AG
 			else if (g_threat.tough1 > 0.0f && t.ratio >= g_threat.tough1) tough = 1;
 		}
 		t.bump = tough;
-		if (tough) t.why = std::format("tough x{:.1f}", t.ratio);
+		if (tough) t.why += (t.why.empty() ? "" : ", ") + std::format("tough x{:.1f}", t.ratio);
 
 		// keywords: the largest bump and the highest floor win (they don't stack with toughness)
 		auto*       base = a_actor->GetActorBase();

@@ -9,6 +9,11 @@
   Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
 - `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
 
+**Threat ranks**
+- A safety net under the level bands: a creature never ranks below what its race's weakest variant gets in the
+  unmodded game. A giant is at least rank C even when another mod lowers its level. Level and toughness can still
+  rank it higher. The list is in `threat.resolved.json`; `[Threat] RaceFloors = 0` turns it off.
+
 **Conduct**
 - Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes Reputation in
   proportion (a tenth of the bounty by default). What nobody witnessed costs nothing.
