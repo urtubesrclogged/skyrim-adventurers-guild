@@ -10,7 +10,7 @@
 
 **Appraisal**
 - Each level of Appraisal now reads more of what is out there; what you cannot read yet shows as [?]
-- Smaller Merit bonus on trophies
+- Small nerf to Merit bonus on trophies
 
 **Conduct**
 - The Guild now notices how you behave: crime and abandoned missives cost you standing
