@@ -15,6 +15,7 @@
 #include <fstream>
 #include <mutex>
 #include <nlohmann/json.hpp>
+#include <atomic>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -194,6 +195,10 @@ namespace AG::MissiveWatch
 				auto* b = a_event->second.get();
 				const bool hit = (a && a->IsPlayerRef() && IsBoard(b)) || (b && b->IsPlayerRef() && IsBoard(a));
 				if (hit) {
+					// counted in the log: how often a board reports the player tells a support log whether a
+					// board's trigger is firing over and over (the first 20, then every 50th)
+					static std::atomic<int> entries{ 0 };
+					if (const int n = ++entries; n <= 20 || n % 50 == 0) SKSE::log::info("MissiveWatch: the player entered a board's trigger ({} this session)", n);
 					SKSE::GetTaskInterface()->AddTask([] {
 						WithdrawAboveRank();
 						Guild::OnBoardApproached();
