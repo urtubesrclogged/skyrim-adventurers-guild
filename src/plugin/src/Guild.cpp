@@ -674,9 +674,19 @@ namespace AG::Guild
 			std::lock_guard l(g_lock);
 			if (!g_registered) return;
 			std::map<std::string, int> now;
-			for (auto& [faction, gold] : pc->GetPlayerRuntimeData().crimeGoldMap) {
-				const int bounty = static_cast<int>(gold.violentCur + gold.nonViolentCur);
-				if (!faction || bounty <= 0) continue;
+			// asked of the game itself, faction by faction (what a guard's dialogue and Papyrus read): the player's own
+			// bounty table read directly came back empty on SE 1.5.97
+			static const std::vector<RE::TESFaction*> crimeFactions = [] {
+				std::vector<RE::TESFaction*> out;
+				if (auto* dh = RE::TESDataHandler::GetSingleton())
+					for (auto* f : dh->GetFormArray<RE::TESFaction>())
+						if (f && f->TracksCrimes()) out.push_back(f);
+				SKSE::log::info("Guild: {} factions track crime (bounties are read from these)", out.size());
+				return out;
+			}();
+			for (auto* faction : crimeFactions) {
+				const int bounty = faction->GetCrimeGold();
+				if (bounty <= 0) continue;
 				any = true;
 				const auto key = Adventurers::StableKey(faction);
 				now[key] = bounty;
