@@ -670,8 +670,25 @@ namespace AG::Guild
 
 	// The player's bounties, read every few seconds (the tick Party runs). A rise in a hold costs Reputation; any
 	// bounty at all puts promotion on hold until it is paid or served. Only what a hold knows about counts.
+	// Wandering adventurers near the player, kept in their faction at their Guild rank. The load event (RetiredSink)
+	// does this too, but it does not reach every actor: one spawned by an encounter script was seen without it.
+	void SyncWanderers()
+	{
+		auto* pl = RE::ProcessLists::GetSingleton();
+		if (!g_wandererFaction || !pl || Dormant()) return;
+		for (auto& h : pl->highActorHandles) {
+			auto* actor = h.get().get();
+			if (!actor || actor->IsPlayerRef() || actor->IsDead() || !Adventurers::IsWanderer(actor)) continue;
+			const auto info = Adventurers::Of(actor);
+			if (info.kind != Adventurers::Kind::kMember) continue;
+			const auto rank = static_cast<std::int8_t>(std::clamp(info.rank, 0, 5));
+			if (!actor->IsInFaction(g_wandererFaction) || actor->GetFactionRank(g_wandererFaction, false) != rank) actor->AddToFaction(g_wandererFaction, rank);
+		}
+	}
+
 	void ConductTick()
 	{
+		SyncWanderers();
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!pc || !pc->Is3DLoaded() || Dormant()) return;
 		std::vector<std::pair<std::string, int>> rises;  // hold name, gold
