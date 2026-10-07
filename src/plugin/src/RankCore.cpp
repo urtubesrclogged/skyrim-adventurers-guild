@@ -72,6 +72,16 @@ namespace AG
 			}
 		}
 		g_threat.raceRules = ini.GetBoolValue("Threat", "RaceRules", true);
+		g_threat.fantasyTier = static_cast<int>(ini.GetLongValue("Appraisal", "FantasyTier", g_threat.fantasyTier));
+		if (const std::string list = ini.GetValue("Appraisal", "FantasyKeywords", ""); !list.empty()) {
+			g_threat.fantasyKeywords.clear();
+			std::istringstream in(list);
+			for (std::string tok; std::getline(in, tok, ',');) {
+				tok.erase(0, tok.find_first_not_of(" \t"));
+				tok.erase(tok.find_last_not_of(" \t") + 1);
+				if (!tok.empty()) g_threat.fantasyKeywords.push_back(tok);
+			}
+		}
 		if (CSimpleIniA::TNamesDepend keys; ini.GetAllKeys("ThreatKeywords", keys)) {
 			g_threat.keywords.clear();  // the section replaces the built-in list
 			for (auto& k : keys) {
@@ -215,6 +225,20 @@ namespace AG
 				}
 			}
 		return t;
+	}
+
+	int FantasyTier() { return g_threat.fantasyTier; }
+
+	bool IsFantasy(RE::Actor* a_actor)
+	{
+		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		auto* race = a_actor ? a_actor->GetRace() : nullptr;
+		if (!race) return false;
+		const auto has = [&](const std::string& a_kw) { return race->HasKeywordString(a_kw) || (base && base->HasApplicableKeywordString(a_kw)); };
+		for (auto& k : g_threat.fantasyKeywords)
+			if (has(k)) return true;
+		// what is left is fantasy unless the game calls it a person or an animal (a spriggan, a hagraven, a werewolf)
+		return !has("ActorTypeNPC") && !has("ActorTypeAnimal");
 	}
 
 	int ThreatRank(RE::Actor* a_actor)

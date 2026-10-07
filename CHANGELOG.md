@@ -23,6 +23,11 @@
 - `AdventurersGuild.ini`, `[Threat]`: `DangerScore`, the score each rank starts at, and `RaceRules`. These replace
   `HealthBase`, `HealthPerLevel` and `ToughRatio1/2`, which are no longer read.
 
+**Appraisal**
+- Appraisal I now reads the threat rank of people and wildlife only. Trolls, draugr, vampires, dragons, automatons
+  and other creatures of legend show `[?]` on their health bar until you learn Appraisal II. Kills still pay by
+  the real rank. `AdventurersGuild.ini`, `[Appraisal]`: `FantasyTier = 0` puts it back as it was.
+
 **Conduct**
 - Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes Reputation in
   proportion (a tenth of the bounty by default). What nobody witnessed costs nothing.

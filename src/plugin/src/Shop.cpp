@@ -419,8 +419,8 @@ namespace AG::Shop
 		// Guild skills
 		if (a_appraisal < 3) {
 			const int t = a_appraisal;  // next tier index
-			const auto what = t == 0 ? Loc::T("$AG_Svc_Appraisal1", "Read an adventurer's guild rank and a foe's threat rank at a glance. Without it, no ranks are shown.")
-			                 : t == 1 ? Loc::T("$AG_Svc_Appraisal2", "Merchants pay 5% more, and trophies earn 25% more Merit.")
+			const auto what = t == 0 ? Loc::T("$AG_Svc_Appraisal1", "Read an adventurer's guild rank at a glance, and the threat rank of people and wildlife. Without it, no ranks are shown.")
+			                 : t == 1 ? Loc::T("$AG_Svc_Appraisal2", "Read the threat rank of trolls, draugr, vampires, dragons and other creatures of legend. Merchants pay 5% more, and trophies earn 25% more Merit.")
 			                          : Loc::T("$AG_Svc_Appraisal3", "Merchants pay 10% more, trophies earn 50% more Merit, and hidden ranks are revealed.");
 			add("Guild Skills", "appraisal", Loc::F("$AG_Svc_AppraisalName", "Appraisal {}", kRoman[t]), what, g_appMerit[t], g_appRank[t]);
 		}

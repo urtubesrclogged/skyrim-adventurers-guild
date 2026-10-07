@@ -41,6 +41,11 @@ namespace AG
 		std::array<float, kRankCount - 1>  scoreMin{ 45.0f, 100.0f, 200.0f, 300.0f, 500.0f };  // lowest score of D,C,B,A,S
 		std::vector<KeywordRule>           keywords{ { "ActorTypeDragon", 2, -1 } };
 		// Judgement calls by race (threat.json -> threat.resolved.json): never below / never above a rank
+		// Appraisal: a creature of legend (any of these race or actor keywords, or neither a person nor an animal) shows
+		// "[?]" until the player's Appraisal reaches this tier. 0 = no such gate.
+		int                      fantasyTier{ 2 };
+		std::vector<std::string> fantasyKeywords{ "ActorTypeTroll", "ActorTypeUndead", "ActorTypeDaedra", "ActorTypeDragon",
+			"ActorTypeDwarven", "ActorTypeGhost", "ActorTypeGiant", "Vampire" };
 		bool                                    raceRules{ true };
 		std::unordered_map<RE::FormID, RaceRule> races;
 	};
@@ -60,6 +65,8 @@ namespace AG
 	int         FromLevel(int a_level);
 	int         ThreatRank(RE::Actor* a_actor);  // level band, moved by the danger score and the creature rules; -1 if null
 	ThreatInfo  ExplainThreat(RE::Actor* a_actor);
+	bool        IsFantasy(RE::Actor* a_actor);   // not a person or an animal: a troll, a draugr, a vampire, a dragon
+	int         FantasyTier();                   // Appraisal tier that reads their threat rank (0 = no gate)
 	char        Letter(int a_rank);              // '?' outside 0..5
 	std::string LetterStr(int a_rank);
 	int         FromLetter(char a_letter);       // -1 if not E..S
