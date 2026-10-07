@@ -15,6 +15,8 @@
 - If Hulda dies, Ysolda takes over Whiterun's Guild counter at the Bannered Mare, whoever ends up running the inn,
   fully voiced:
   registration, promotion, the counter, reports and replacement cards.
+- In Solitude, Windhelm and Riften the one who takes the inn over keeps the counter too, fully voiced: Sorex
+  Vinius, Nils and Talen-Jei.
 - In Markarth, Dawnstar, Winterhold, Morthal and Falkreath a dead innkeeper's town loses its counter, and someone
   still at the inn says so (Frabbi, Karita, Haran, Lurbuk, Narri).
 

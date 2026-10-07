@@ -77,6 +77,36 @@
    "replace": "Lost your card? Careless, but easily mended. There you are, good as new."
   },
   {
+   "npc": "SorexVinius",
+   "city": "Solitude",
+   "inn": "the Winking Skeever",
+   "successor": {
+    "of": "CorpulusVinius",
+    "quest": "Skyrim.esm|0x02E1AD",
+    "alias": 2,
+    "ref": "Skyrim.esm|0x0198A3",
+    "cell": "Skyrim.esm|0x016A0E"
+   },
+   "registerAsk": "Joining the Adventurers Guild? Your funeral. There's a small fee first. There's always a fee.",
+   "register": "Welcome to the Adventurers Guild. Here's your guild card. Try not to die before your first job. It's bad for business.",
+   "business": "Guild business? Fine. Let's get it over with.",
+   "businessByRank": {
+    "C": "You again. Still alive, I see. What do you need?",
+    "B": "A B-rank adventurer. My father would have fawned over you. I'll just ask what you want.",
+    "A": "An A-rank, at the Winking Skeever. Drink's on me. Don't tell anyone, I've a reputation.",
+    "S": "An S-rank. Huh. I didn't think I could still be impressed. What do you need?"
+   },
+   "promoteAsk": "Let's see the ledger. Well, look at that. You've earned your next rank. The Guild wants its fee first, naturally.",
+   "promote": "Congratulations. I've updated your guild card. Go on, look pleased with yourself.",
+   "about": [
+    "I ran errands for the old man my whole life. Now the Winking Skeever's mine, and so is the Adventurers Guild's counter. Be careful what you wish for.",
+    "Solitude's missives are mostly wolves on the road and smugglers on the coast. Nobles pay well to have their problems go away quietly.",
+    "Half the adventurers who sign this ledger never come back to it. The other half drink here. I make coin either way."
+   ],
+   "replace": "Lost your guild card already? Of course you did. Here. That's coming out of your pocket, not mine.",
+   "away": "Not here. The Adventurers Guild's counter is at the Winking Skeever. So am I, most days."
+  },
+  {
    "npc": "Elda",
    "city": "Windhelm",
    "inn": "Candlelight Hall",
@@ -99,6 +129,36 @@
    "replace": "Lost it? Of course you did. Here's another. Mind it this time."
   },
   {
+   "npc": "Nils",
+   "city": "Windhelm",
+   "inn": "Candlehearth Hall",
+   "successor": {
+    "of": "Elda",
+    "quest": "Skyrim.esm|0x03502E",
+    "alias": 8,
+    "ref": "Skyrim.esm|0x01B11A",
+    "cell": "Skyrim.esm|0x016789"
+   },
+   "registerAsk": "Looking to join the Adventurers Guild? Good for you, good for you. There's a small fee, I'm sorry to say.",
+   "register": "Welcome to the Adventurers Guild! Here's your guild card. Mind yourself out there, and come back for a hot meal.",
+   "business": "Guild business? Sit down by the fire, and we'll see to it.",
+   "businessByRank": {
+    "C": "There you are. I kept the stew warm. Now, what can I do for you?",
+    "B": "A B-rank adventurer in Candlehearth Hall. Elda would never have believed it. What do you need?",
+    "A": "An A-rank! Sit, sit. The best cut's yours tonight, no charge.",
+    "S": "An S-rank adventurer, by my fire. I'll be telling this one till I'm in the ground. Anything you need."
+   },
+   "promoteAsk": "Let me find my spectacles. There. Why, you've earned your next rank! There's the Guild's fee, and then it's done.",
+   "promote": "Congratulations! I've updated your guild card. I'm proud of you, I truly am.",
+   "about": [
+    "I was only ever the cook. Elda kept the Adventurers Guild's counter, and now it's fallen to me. I do my best by it.",
+    "Windhelm's cold, and the work's colder. Ice wraiths, trolls on the roads. Eat before you go out.",
+    "Adventurers keep this city fed. When the roads are clear, the carts get through. People forget that."
+   ],
+   "replace": "Lost your guild card? Never mind, never mind. Here's a new one. Keep it somewhere dry.",
+   "away": "Oh, not out here. Come by Candlehearth Hall and I'll see to your Guild business there."
+  },
+  {
    "npc": "Keerava",
    "city": "Riften",
    "inn": "the Bee and Barb",
@@ -119,6 +179,36 @@
     "S": "An S-rank in the Bee and Barb. Even the Black-Briars will mind their manners. Business?"
    },
    "replace": "Lost, or lifted? In Riften it's usually lifted. Here's a new one. Keep it somewhere your purse isn't."
+  },
+  {
+   "npc": "TalenJei",
+   "city": "Riften",
+   "inn": "the Bee and Barb",
+   "successor": {
+    "of": "Keerava",
+    "quest": "Skyrim.esm|0x0368D8",
+    "alias": 8,
+    "ref": "Skyrim.esm|0x019DC9",
+    "cell": "Skyrim.esm|0x016BDF"
+   },
+   "registerAsk": "You wish to join the Adventurers Guild? That is good. There is a small fee, as is the custom.",
+   "register": "Welcome to the Adventurers Guild. Here is your guild card. Keerava kept this counter with care. I will do the same.",
+   "business": "Guild business? Of course. I am at your service.",
+   "businessByRank": {
+    "C": "You return. It is good to see a familiar face at this counter. What do you need?",
+    "B": "A B-rank adventurer. You honor the Bee and Barb. How may I serve you?",
+    "A": "An A-rank, in Riften. I will mix you something special. It is on the house.",
+    "S": "An S-rank adventurer. The Hist itself must have guided you here. Ask anything of me."
+   },
+   "promoteAsk": "Allow me to consult the ledger. Yes. You have earned your next rank. There is the Guild's fee, and then it is yours.",
+   "promote": "Congratulations. I have updated your guild card. Keerava would have been pleased.",
+   "about": [
+    "This was Keerava's counter. I keep it in her memory, as I keep the Bee and Barb.",
+    "In Riften, not every job is posted on a board. The Adventurers Guild's work is honest. That is rarer here than it should be.",
+    "The Rift is full of bears, bandits and worse. An adventurer with a clear head lives longer. I will say no more about the mead."
+   ],
+   "replace": "You have lost your guild card? In Riften, check your pockets twice. Here is another.",
+   "away": "Not here. I keep the Adventurers Guild's counter at the Bee and Barb. Find me there."
   },
   {
    "npc": "Kleppr",
@@ -278,13 +368,15 @@
    "npcs": [
     "SorexVinius"
    ],
-   "line": "My father runs the Guild's counter. Talk to him."
+   "line": "My father runs the Guild's counter. Talk to him.",
+   "whileAlive": "CorpulusVinius"
   },
   {
    "npcs": [
     "TalenJei"
    ],
-   "line": "Keerava handles anything to do with the Guild."
+   "line": "Keerava handles anything to do with the Guild.",
+   "whileAlive": "Keerava"
   },
   {
    "npcs": [

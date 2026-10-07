@@ -131,6 +131,18 @@ static class Probe
                     Console.WriteLine($"{m.ModKey.FileName}|0x{c.FormKey.ID:X6}  {c.EditorID}  {c.Name?.String}");
             return;
         }
+        if (what == "placed") {     // the placed references of the NPCs matched (a unique actor has one)
+            var bases = mods.SelectMany(m => m.Npcs).Where(n => re.IsMatch(n.EditorID ?? "")).GroupBy(n => n.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID);
+            foreach (var m in mods)
+                foreach (var r in m.EnumerateMajorRecords<IPlacedNpcGetter>().Where(r => bases.ContainsKey(r.Base.FormKey)))
+                    Console.WriteLine($"{bases[r.Base.FormKey]}\t{m.ModKey.FileName}|0x{r.FormKey.ID:X6}\t{r.EditorID}");
+            return;
+        }
+        if (what == "questids") {   // quests by editor ID
+            foreach (var q in mods.SelectMany(m => m.Quests).GroupBy(x => x.FormKey).Select(g => g.First()).Where(x => re.IsMatch(x.EditorID ?? "")))
+                Console.WriteLine($"{q.FormKey.ModKey.FileName}|0x{q.FormKey.ID:X6}\t{q.EditorID}");
+            return;
+        }
         if (what == "effects") {    // magic effects (editor ID or name matching): archetype and actor value
             foreach (var m in mods)
                 foreach (var e in m.MagicEffects.Where(e => re.IsMatch(e.EditorID ?? "") || re.IsMatch(e.Name?.String ?? "")))

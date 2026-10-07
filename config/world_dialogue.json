@@ -160,6 +160,9 @@
 		{"id": "sinmir_cap_low", "who": "Sinmir", "owner": "sons", "chance": 33, "rank": "<B", "text": "Keep your missives outside the walls, adventurer. Inside them, you answer to me."},
 		{"id": "sinmir_cap_hi", "who": "Sinmir", "owner": "sons", "chance": 33, "rank": "B+", "text": "If the watch had three blades like yours I'd sleep at night. Don't tell the men I said that."},
 		{"id": "ysolda_owner", "who": "Ysolda", "liaison": true, "inFaction": "JobInnkeeperFaction", "status": "any", "text": "The Bannered Mare is mine now, and the Adventurers Guild's counter with it. Best purchase I ever made."},
-		{"id": "ysolda_counter", "who": "Ysolda", "liaison": true, "notInFaction": "JobInnkeeperFaction", "status": "any", "text": "Mikael can keep the Bannered Mare. The Adventurers Guild's counter is mine, and it's the half that turns a profit."}
+		{"id": "ysolda_counter", "who": "Ysolda", "liaison": true, "notInFaction": "JobInnkeeperFaction", "status": "any", "text": "Mikael can keep the Bannered Mare. The Adventurers Guild's counter is mine, and it's the half that turns a profit."},
+		{"id": "sorex_owner", "who": "SorexVinius", "liaison": true, "status": "any", "text": "The old man's gone, so the Winking Skeever's mine. The Adventurers Guild's counter came with it. Lucky me."},
+		{"id": "nils_owner", "who": "Nils", "liaison": true, "status": "any", "text": "Candlehearth Hall's mine to keep now, and the Adventurers Guild's counter with it. Never thought I'd see the day."},
+		{"id": "talenjei_owner", "who": "TalenJei", "liaison": true, "status": "any", "text": "The Bee and Barb is mine to tend now, and the Adventurers Guild's counter with it. I would trade both to have her back."}
 	]
 }
