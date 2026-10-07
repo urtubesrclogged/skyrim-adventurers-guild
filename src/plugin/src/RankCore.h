@@ -44,6 +44,9 @@ namespace AG
 		// Appraisal: a creature of legend (any of these race or actor keywords, or neither a person nor an animal) shows
 		// "[?]" until the player's Appraisal reaches this tier. 0 = no such gate.
 		int                      fantasyTier{ 2 };
+		// ... and a threat of this rank or above is beyond measure ("[?]") until this tier. 0 = no such gate.
+		int                      highTier{ 3 };
+		int                      highRank{ 4 };  // A
 		std::vector<std::string> fantasyKeywords{ "ActorTypeTroll", "ActorTypeUndead", "ActorTypeDaedra", "ActorTypeDragon",
 			"ActorTypeDwarven", "ActorTypeGhost", "ActorTypeGiant", "Vampire" };
 		bool                                    raceRules{ true };
@@ -67,6 +70,7 @@ namespace AG
 	ThreatInfo  ExplainThreat(RE::Actor* a_actor);
 	bool        IsFantasy(RE::Actor* a_actor);   // not a person or an animal: a troll, a draugr, a vampire, a dragon
 	int         FantasyTier();                   // Appraisal tier that reads their threat rank (0 = no gate)
+	bool        ThreatReadable(RE::Actor* a_actor, int a_threat, int a_appraisal);  // false: the label shows "[?]"
 	char        Letter(int a_rank);              // '?' outside 0..5
 	std::string LetterStr(int a_rank);
 	int         FromLetter(char a_letter);       // -1 if not E..S

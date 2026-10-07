@@ -73,6 +73,8 @@ namespace AG
 		}
 		g_threat.raceRules = ini.GetBoolValue("Threat", "RaceRules", true);
 		g_threat.fantasyTier = static_cast<int>(ini.GetLongValue("Appraisal", "FantasyTier", g_threat.fantasyTier));
+		g_threat.highTier = static_cast<int>(ini.GetLongValue("Appraisal", "HighRankTier", g_threat.highTier));
+		if (const int r = FromLetter(*ini.GetValue("Appraisal", "HighRank", "A")); r >= 0) g_threat.highRank = r;
 		if (const std::string list = ini.GetValue("Appraisal", "FantasyKeywords", ""); !list.empty()) {
 			g_threat.fantasyKeywords.clear();
 			std::istringstream in(list);
@@ -239,6 +241,13 @@ namespace AG
 			if (has(k)) return true;
 		// what is left is fantasy unless the game calls it a person or an animal (a spriggan, a hagraven, a werewolf)
 		return !has("ActorTypeNPC") && !has("ActorTypeAnimal");
+	}
+
+	bool ThreatReadable(RE::Actor* a_actor, int a_threat, int a_appraisal)
+	{
+		if (g_threat.highTier > 0 && a_appraisal < g_threat.highTier && a_threat >= g_threat.highRank) return false;
+		if (g_threat.fantasyTier > 0 && a_appraisal < g_threat.fantasyTier && IsFantasy(a_actor)) return false;
+		return true;
 	}
 
 	int ThreatRank(RE::Actor* a_actor)

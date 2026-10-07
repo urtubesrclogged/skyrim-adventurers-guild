@@ -421,7 +421,7 @@ namespace AG::Shop
 			const int t = a_appraisal;  // next tier index
 			const auto what = t == 0 ? Loc::T("$AG_Svc_Appraisal1", "Read an adventurer's guild rank at a glance, and the threat rank of people and wildlife. Without it, no ranks are shown.")
 			                 : t == 1 ? Loc::T("$AG_Svc_Appraisal2", "Read the threat rank of trolls, draugr, vampires, dragons and other creatures of legend. Merchants pay 5% more, and trophies earn 25% more Merit.")
-			                          : Loc::T("$AG_Svc_Appraisal3", "Merchants pay 10% more, trophies earn 50% more Merit, and hidden ranks are revealed.");
+			                          : Loc::T("$AG_Svc_Appraisal3", "Read threats of rank A and S, which are beyond measure until now, and see through hidden ranks. Merchants pay 10% more, and trophies earn 50% more Merit.");
 			add("Guild Skills", "appraisal", Loc::F("$AG_Svc_AppraisalName", "Appraisal {}", kRoman[t]), what, g_appMerit[t], g_appRank[t]);
 		}
 		for (int st = 0; st < 3; ++st) {

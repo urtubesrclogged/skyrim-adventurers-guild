@@ -93,9 +93,9 @@ namespace AG::Names
 			}
 			if (!g_showThreat.load(std::memory_order_relaxed)) return name;
 			if (guild) return Intern(std::format("{} ({}{})", name, Letter(info.rank), retired));
-			// Appraisal I reads people and wildlife; creatures of legend stay "[?]" until Appraisal II
-			if (const int tier = FantasyTier(); tier > 0 && appraisal < tier && IsFantasy(actor)) return Intern(std::format("{} [?]", name));
 			const int threat = ThreatRank(actor);
+			// Appraisal I reads people and wildlife, II creatures of legend, III a threat of rank A or S: until then "[?]"
+			if (threat >= 0 && !ThreatReadable(actor, threat, appraisal)) return Intern(std::format("{} [?]", name));
 			return threat < 0 ? name : Intern(std::format("{} [{}]", name, Letter(threat)));
 		}
 

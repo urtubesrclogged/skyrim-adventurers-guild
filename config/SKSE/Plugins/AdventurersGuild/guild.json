@@ -51,7 +51,7 @@
 		"assistSeconds": 30
 	},
 
-	"_appraisal": "Appraisal is a passive Guild skill bought at the counter. Without it no rank labels are shown. Appraisal I reads people and wildlife; creatures of legend show [?] until Appraisal II ([Appraisal] in AdventurersGuild.ini). Index 0..2 = Appraisal I..III. sellBonus (percent, merchants pay you more) is baked into the ESP perks by tools/EspGen; trophyBonus (percent extra Merit on trophies) is applied by the DLL. Appraisal III also reveals hidden ranks.",
+	"_appraisal": "Appraisal is a passive Guild skill bought at the counter. Without it no rank labels are shown. Appraisal I reads people and wildlife; creatures of legend show [?] until Appraisal II, and any threat of rank A or S until Appraisal III ([Appraisal] in AdventurersGuild.ini). Index 0..2 = Appraisal I..III. sellBonus (percent, merchants pay you more) is baked into the ESP perks by tools/EspGen; trophyBonus (percent extra Merit on trophies) is applied by the DLL. Appraisal III also reveals hidden ranks.",
 	"appraisal": {
 		"merit":       [10, 75, 250],
 		"rank":        [0, 1, 3],

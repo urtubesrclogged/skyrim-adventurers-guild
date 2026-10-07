@@ -25,8 +25,10 @@
 
 **Appraisal**
 - Appraisal I now reads the threat rank of people and wildlife only. Trolls, draugr, vampires, dragons, automatons
-  and other creatures of legend show `[?]` on their health bar until you learn Appraisal II. Kills still pay by
-  the real rank. `AdventurersGuild.ini`, `[Appraisal]`: `FantasyTier = 0` puts it back as it was.
+  and other creatures of legend show `[?]` on their health bar until you learn Appraisal II.
+- A threat of rank A or S is beyond measure, whatever it is: `[?]` until Appraisal III.
+- Kills still pay by the real rank. `AdventurersGuild.ini`, `[Appraisal]`: `FantasyTier = 0` and `HighRankTier = 0`
+  put it back as it was.
 
 **Conduct**
 - Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes Reputation in
