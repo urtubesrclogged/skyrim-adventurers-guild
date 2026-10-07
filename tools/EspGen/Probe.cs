@@ -47,7 +47,7 @@ static class Probe
                 foreach (var t in m.DialogTopics)
                     foreach (var i in t.Responses.Where(i => i.Conditions.Any(c => c.Data is IGetIsIDConditionDataGetter g && g.Object.Link.FormKey == npcKey)))
                         foreach (var r in i.Responses)
-                            Console.WriteLine($"{m.ModKey.FileName}\t{t.EditorID}\t{t.Subtype}\t\"{r.Text?.String}\"");
+                            Console.WriteLine($"{m.ModKey.FileName}\t{i.FormKey.ID:X8}_{r.ResponseNumber}\t{t.EditorID}\t{t.Subtype}\t\"{r.Text?.String}\"");
             return;
         }
         if (what == "sayswhen") {   // like "says", with each INFO's other conditions and the NPC's level: WHEN they say it

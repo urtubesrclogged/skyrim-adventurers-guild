@@ -654,6 +654,7 @@ namespace AG::Guild
 			std::lock_guard l(g_lock);
 			if (!g_registered) return;
 			lost = std::min(a_amount, g_reputation);
+			if (lost <= 0) return;  // nothing left to lose: no ledger line, no notice
 			g_reputation -= lost;
 			LogLocked(Loc::F("$AG_Log_RepLost", "Lost {} Reputation: {}.", lost, a_why));
 		}
