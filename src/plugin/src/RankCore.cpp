@@ -59,11 +59,19 @@ namespace AG
 		}
 		SKSE::log::info("Bands: D>={} C>={} B>={} A>={} S>={}", g_bands.min[0], g_bands.min[1], g_bands.min[2], g_bands.min[3], g_bands.min[4]);
 
-		g_threat.healthBase = static_cast<float>(ini.GetDoubleValue("Threat", "HealthBase", g_threat.healthBase));
-		g_threat.healthPerLevel = static_cast<float>(ini.GetDoubleValue("Threat", "HealthPerLevel", g_threat.healthPerLevel));
-		g_threat.tough1 = static_cast<float>(ini.GetDoubleValue("Threat", "ToughRatio1", g_threat.tough1));
-		g_threat.tough2 = static_cast<float>(ini.GetDoubleValue("Threat", "ToughRatio2", g_threat.tough2));
-		g_threat.raceFloors = ini.GetBoolValue("Threat", "RaceFloors", true);
+		g_threat.score = ini.GetBoolValue("Threat", "DangerScore", true);
+		constexpr const char* scoreKeys[]{ "ScoreD", "ScoreC", "ScoreB", "ScoreA", "ScoreS" };
+		for (int i = 0; i < 5; ++i) {
+			g_threat.scoreMin[i] = static_cast<float>(ini.GetDoubleValue("Threat", scoreKeys[i], g_threat.scoreMin[i]));
+		}
+		for (int i = 1; i < 5; ++i) {
+			if (g_threat.scoreMin[i] <= g_threat.scoreMin[i - 1]) {
+				SKSE::log::warn("AdventurersGuild.ini [Threat] Score* not ascending - reverting to defaults");
+				g_threat.scoreMin = ThreatTuning{}.scoreMin;
+				break;
+			}
+		}
+		g_threat.raceRules = ini.GetBoolValue("Threat", "RaceRules", true);
 		if (CSimpleIniA::TNamesDepend keys; ini.GetAllKeys("ThreatKeywords", keys)) {
 			g_threat.keywords.clear();  // the section replaces the built-in list
 			for (auto& k : keys) {
@@ -72,8 +80,8 @@ namespace AG
 				else SKSE::log::warn("[ThreatKeywords] {}: expected \"+N\" and/or \"floor X\"", k.pItem);
 			}
 		}
-		SKSE::log::info("Threat: health {}+{}/lvl, tough x{} / x{}, {} keyword rule(s)", g_threat.healthBase, g_threat.healthPerLevel,
-			g_threat.tough1, g_threat.tough2, g_threat.keywords.size());
+		SKSE::log::info("Threat: danger score {} (D>={} C>={} B>={} A>={} S>={}), {} keyword rule(s)", g_threat.score ? "on" : "off",
+			g_threat.scoreMin[0], g_threat.scoreMin[1], g_threat.scoreMin[2], g_threat.scoreMin[3], g_threat.scoreMin[4], g_threat.keywords.size());
 	}
 
 	const Bands& GetBands() { return g_bands; }
@@ -87,38 +95,75 @@ namespace AG
 		return r;
 	}
 
-	void LoadRaceFloors()
+	void LoadRaceRules()
 	{
-		g_threat.raceLevel.clear();
-		g_threat.raceAtLeast.clear();
-		g_threat.raceAtMost.clear();
-		if (!g_threat.raceFloors) {
-			SKSE::log::info("Threat: race floors off ([Threat] RaceFloors = 0)");
+		g_threat.races.clear();
+		if (!g_threat.raceRules) {
+			SKSE::log::info("Threat: race rules off ([Threat] RaceRules = 0)");
 			return;
 		}
 		try {
 			std::ifstream f("Data/SKSE/Plugins/AdventurersGuild/threat.resolved.json");
 			if (!f) {
-				SKSE::log::warn("Threat: threat.resolved.json missing - no race floors (a creature's rank follows its level alone)");
+				SKSE::log::warn("Threat: threat.resolved.json missing - no race rules");
 				return;
 			}
 			auto  j = nlohmann::json::parse(f, nullptr, true, true);
 			auto* dh = RE::TESDataHandler::GetSingleton();
-			for (auto& e : j.value("floors", nlohmann::json::array())) {
+			for (auto& e : j.value("races", nlohmann::json::array())) {
 				const auto key = e.value("race", std::string());
 				const auto bar = key.find('|');
 				if (bar == std::string::npos || !dh) continue;
 				if (auto* race = dh->LookupForm(static_cast<RE::FormID>(std::stoul(key.substr(bar + 1), nullptr, 16)), key.substr(0, bar)))
 				{
-					if (const int lv = e.value("level", 0); lv > 0) g_threat.raceLevel[race->GetFormID()] = lv;
-					if (const auto a = e.value("atLeast", std::string()); !a.empty()) g_threat.raceAtLeast[race->GetFormID()] = FromLetter(a[0]);
-					if (const auto a = e.value("atMost", std::string()); !a.empty()) g_threat.raceAtMost[race->GetFormID()] = FromLetter(a[0]);
+					RaceRule r;
+					if (const auto a = e.value("atLeast", std::string()); !a.empty()) r.atLeast = FromLetter(a[0]);
+					if (const auto a = e.value("atMost", std::string()); !a.empty()) r.atMost = FromLetter(a[0]);
+					r.fromLevel = e.value("fromLevel", 0);
+					g_threat.races[race->GetFormID()] = r;
 				}
 			}
-			SKSE::log::info("Threat: {} race floors (a creature never ranks below its race's weakest vanilla variant), {} at-least and {} at-most rules",
-				g_threat.raceLevel.size(), g_threat.raceAtLeast.size(), g_threat.raceAtMost.size());
+			SKSE::log::info("Threat: {} race rule(s)", g_threat.races.size());
 		} catch (const std::exception& e) {
-			SKSE::log::error("Threat: threat.resolved.json error: {} - no race floors", e.what());
+			SKSE::log::error("Threat: threat.resolved.json error: {} - no race rules", e.what());
+		}
+	}
+
+	namespace
+	{
+		// the hardest-hitting weapon the actor's record gives it outright (a giant's club); levelled gear is not read
+		float CarriedWeaponDamage(RE::TESNPC* a_base)
+		{
+			float best = 0.0f;
+			if (a_base)
+				a_base->ForEachContainerObject([&](RE::ContainerObject& a_entry) {
+					if (auto* w = a_entry.obj ? a_entry.obj->As<RE::TESObjectWEAP>() : nullptr)
+						best = std::max(best, static_cast<float>(w->GetAttackDamage()));
+					return RE::BSContainer::ForEachResult::kContinue;
+				});
+			return best;
+		}
+
+		// the strongest Health-damaging effect among the spells and abilities on the actor's record (a flame atronach's
+		// firebolt, a netch's shock). Shouts are not read; anything above 250 is taken for a scripted effect and skipped.
+		float SpellDamage(RE::TESNPC* a_base)
+		{
+			float best = 0.0f;
+			auto* list = a_base ? a_base->actorEffects : nullptr;
+			if (!list || !list->spells) return best;
+			for (std::uint32_t i = 0; i < list->numSpells; ++i) {
+				auto* spell = list->spells[i];
+				if (!spell) continue;
+				for (auto* e : spell->effects) {
+					auto* m = e ? e->baseEffect : nullptr;
+					if (!m || m->data.primaryAV != RE::ActorValue::kHealth) continue;
+					using Flag = RE::EffectSetting::EffectSettingData::Flag;
+					if (!m->data.flags.all(Flag::kHostile, Flag::kDetrimental)) continue;
+					const float mag = e->effectItem.magnitude;
+					if (mag > best && mag <= 250.0f) best = mag;
+				}
+			}
+			return best;
 		}
 	}
 
@@ -127,42 +172,26 @@ namespace AG
 		ThreatInfo t;
 		if (!a_actor) return t;
 		t.level = a_actor->GetLevel();
-		int ranked = t.level;
-		// safety net: never below what this race's weakest vanilla variant is
-		if (g_threat.raceFloors)
-			if (auto* r = a_actor->GetRace())
-				if (auto it = g_threat.raceLevel.find(r->GetFormID()); it != g_threat.raceLevel.end() && it->second > ranked) {
-					ranked = it->second;
-					t.why = std::format("race floor (as level {})", ranked);
-				}
-		t.byLevel = FromLevel(ranked);
-		if (g_threat.raceFloors)
-			if (auto* r = a_actor->GetRace()) {
-				if (auto it = g_threat.raceAtLeast.find(r->GetFormID()); it != g_threat.raceAtLeast.end() && it->second > t.byLevel) {
-					t.byLevel = it->second;
-					t.why = std::format("at least {} for its kind", Letter(t.byLevel));
-				}
-				if (auto it = g_threat.raceAtMost.find(r->GetFormID()); it != g_threat.raceAtMost.end() && it->second < t.byLevel) {
-					t.byLevel = it->second;
-					t.why = std::format("at most {} for its kind", Letter(t.byLevel));
-				}
-			}
+		t.byLevel = FromLevel(t.level);
+		auto* base = a_actor->GetActorBase();
+		auto* race = a_actor->GetRace();
+		if (auto* av = a_actor->AsActorValueOwner()) t.health = av->GetPermanentActorValue(RE::ActorValue::kHealth);
 
-		// toughness
-		int tough = 0;
-		if (auto* av = a_actor->AsActorValueOwner()) {
-			t.health = av->GetPermanentActorValue(RE::ActorValue::kHealth);
-			const float expected = g_threat.healthBase + g_threat.healthPerLevel * static_cast<float>(t.level);
-			if (expected > 0.0f) t.ratio = t.health / expected;
-			if (g_threat.tough2 > 0.0f && t.ratio >= g_threat.tough2) tough = 2;
-			else if (g_threat.tough1 > 0.0f && t.ratio >= g_threat.tough1) tough = 1;
+		// danger score: creatures that fight with their own body. People and the creatures that rely on carried
+		// weapons (draugr, falmer: unarmed damage 1 on the race) have no meaningful figure and keep their level rank.
+		if (g_threat.score && race && race->data.unarmedDamage > 1.0f && !race->HasKeywordString("ActorTypeNPC")) {
+			// three normal attacks to one power attack (x1.5); a weapon the record carries adds to the body's own damage
+			const float melee = (race->data.unarmedDamage + CarriedWeaponDamage(base)) * 1.125f;
+			t.attack = std::max(melee, SpellDamage(base));
+			t.score = std::sqrt(std::max(1.0f, t.health) * t.attack);
+			t.byScore = 0;
+			for (int i = 0; i < 5; ++i)
+				if (t.score >= g_threat.scoreMin[i]) t.byScore = i + 1;
+			t.bump = std::clamp(t.byScore - t.byLevel, -1, 1);
+			if (t.bump) t.why = std::format("score {:.0f} = {}", t.score, Letter(t.byScore));
 		}
-		t.bump = tough;
-		if (tough) t.why += (t.why.empty() ? "" : ", ") + std::format("tough x{:.1f}", t.ratio);
 
-		// keywords: the largest bump and the highest floor win (they don't stack with toughness)
-		auto*       base = a_actor->GetActorBase();
-		auto*       race = a_actor->GetRace();
+		// keywords: the largest adjustment and the highest floor win (a keyword bump does not stack with the score)
 		for (auto& r : g_threat.keywords) {
 			const bool has = (base && base->HasApplicableKeywordString(r.keyword)) || (race && race->HasKeywordString(r.keyword));
 			if (!has) continue;
@@ -171,6 +200,20 @@ namespace AG
 			t.why += (t.why.empty() ? "" : ", ") + r.keyword;
 		}
 		t.rank = std::clamp(std::max(t.byLevel + t.bump, t.floor), 0, kRankCount - 1);
+
+		// judgement calls by race, last: they hold whatever the level and the score say
+		if (g_threat.raceRules && race)
+			if (auto it = g_threat.races.find(race->GetFormID()); it != g_threat.races.end()) {
+				const auto& r = it->second;
+				if (r.atLeast > t.rank && t.level >= r.fromLevel) {
+					t.rank = r.atLeast;
+					t.why += (t.why.empty() ? "" : ", ") + std::format("at least {} for its kind", Letter(t.rank));
+				}
+				if (r.atMost >= 0 && r.atMost < t.rank) {
+					t.rank = r.atMost;
+					t.why += (t.why.empty() ? "" : ", ") + std::format("at most {} for its kind", Letter(t.rank));
+				}
+			}
 		return t;
 	}
 

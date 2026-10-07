@@ -195,8 +195,8 @@ namespace AG::Kills
 			auto*      a = ptr.get();
 			if (!a || a->GetPosition().GetDistance(pc->GetPosition()) > 8192.0f) continue;
 			const auto t = ExplainThreat(a);
-			const auto line = std::format("{:08X} {} lvl {} hp {:.0f} (x{:.1f}) {} -> {}{}{}", a->GetFormID(), a->GetDisplayFullName(), t.level,
-				t.health, t.ratio, LetterStr(t.byLevel), LetterStr(t.rank), t.why.empty() ? "" : " [" + t.why + "]", IsBoss(a) ? " BOSS" : "");
+			const auto line = std::format("{:08X} {} lvl {} hp {:.0f} atk {:.0f} score {:.0f} {} -> {}{}{}", a->GetFormID(), a->GetDisplayFullName(), t.level,
+				t.health, t.attack, t.score, LetterStr(t.byLevel), LetterStr(t.rank), t.why.empty() ? "" : " [" + t.why + "]", IsBoss(a) ? " BOSS" : "");
 			SKSE::log::info("Threat: {}", line);
 			out += line + "\n";
 		}

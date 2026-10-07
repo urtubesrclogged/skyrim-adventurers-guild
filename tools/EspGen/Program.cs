@@ -708,47 +708,29 @@ mod.DialogTopics.Add(hello);
 Console.WriteLine($"world dialogue: {worldCount} lines");
 
 File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptions { WriteIndented = true }));
-// ---------- threat safety net: the level each creature race has at its weakest in the unmodded game ----------
-// A threat rank is a level band, and overhauls change levels (a giant set to level 5 would read rank E). The DLL
-// never ranks a creature below what its race's weakest vanilla encounter variant gets: this lists that level per
-// race. Only the game's own encounter actors (editor ID "Enc...", their own stats, a fixed level) are read, and
-// only races that are not people. Level 12 and up only: below that the floor would be rank E, which is no floor.
+// ---------- threat: judgement calls by race ----------
+// threat.json names races by editor ID; the DLL wants FormKeys. Nothing else is worked out here: the level rank and
+// the danger score come from the creature in the game.
 {
-    var races = masters.SelectMany(m => m.Races).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last());
-    var npcKw = idx["keywords"].TryGetValue("ActorTypeNPC", out var nk) ? nk : FormKey.Null;
-    var weakest = new SortedDictionary<string, (int level, string edid, string from)>();
-    foreach (var n in masters.SelectMany(m => m.Npcs).GroupBy(n => n.FormKey).Select(g => g.Last()))
-    {
-        var edid = n.EditorID ?? "";
-        if (!System.Text.RegularExpressions.Regex.IsMatch(edid, @"^(DLC\d)?Enc") || edid.Contains("Test")) continue;
-        if (n.Configuration.Level is not INpcLevelGetter fixedLevel) continue;                       // scales with the player
-        if (!n.Template.IsNull && n.Configuration.TemplateFlags.HasFlag(NpcConfiguration.TemplateFlag.Stats)) continue;  // not its own level
-        if (!races.TryGetValue(n.Race.FormKey, out var race)) continue;
-        if (race.Keywords?.Any(k => k.FormKey == npcKw) == true) continue;                            // people
-        var key = Key(race.FormKey);
-        if (!weakest.TryGetValue(key, out var have) || fixedLevel.Level < have.level) weakest[key] = (fixedLevel.Level, race.EditorID ?? "", edid);
-    }
-    // threat.json: the author's corrections where level and danger part ways (a giant against a mammoth)
     var judged = ReadConfig("threat")["races"]?.AsObject() ?? new JsonObject();
-    var byRace = new Dictionary<string, (string? atLeast, string? atMost)>();
+    var rules = new List<object>();
     foreach (var (edid, node) in judged)
     {
         if (!idx["races"].TryGetValue(edid, out var rfk)) { Console.Error.WriteLine($"ERROR threat.json: unknown race '{edid}'"); errors++; continue; }
-        byRace[Key(rfk)] = (node!["atLeast"]?.GetValue<string>(), node["atMost"]?.GetValue<string>());
-        if (!weakest.ContainsKey(Key(rfk))) weakest[Key(rfk)] = (0, edid, "threat.json");
+        rules.Add(new
+        {
+            race = Key(rfk), name = edid,
+            atLeast = node!["atLeast"]?.GetValue<string>(),
+            fromLevel = node["fromLevel"]?.GetValue<int>(),
+            atMost = node["atMost"]?.GetValue<string>(),
+        });
     }
-    var floors = weakest.Where(kv => kv.Value.level >= 12 || byRace.ContainsKey(kv.Key)).Select(kv => new
-    {
-        race = kv.Key, name = kv.Value.edid, level = kv.Value.level, from = kv.Value.from,
-        atLeast = byRace.TryGetValue(kv.Key, out var j1) ? j1.atLeast : null,
-        atMost = byRace.TryGetValue(kv.Key, out var j2) ? j2.atMost : null,
-    }).ToList();
     File.WriteAllText(Path.Combine(outDir, "threat.resolved.json"), JsonSerializer.Serialize(new
     {
-        _comment = "Threat safety net: a creature of this race is never ranked as if it were below this level (its weakest encounter variant in the unmodded game, named in 'from'). Level and toughness can still rank it higher. atLeast / atMost (rank letters, from threat.json) are judgement calls where level and danger part ways: never below / never above that rank by level. Edit or delete a line as you like. [Threat] RaceFloors = 0 in AdventurersGuild.ini turns all of it off.",
-        floors,
+        _comment = "Threat judgement calls by race, where neither level nor the danger score ranks a creature right. atLeast: never below this rank (fromLevel: only once the creature is at least that level). atMost: never above this rank. Rank letters E D C B A S. Edit or delete a line as you like. [Threat] RaceRules = 0 in AdventurersGuild.ini turns all of it off.",
+        races = rules,
     }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
-    Console.WriteLine($"threat floors: {floors.Count} creature races (of {weakest.Count} with encounter actors)");
+    Console.WriteLine($"threat rules: {rules.Count} races");
 }
 File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"dialogue: {ids.Count} INFO ids pinned, {liaisonKeys.Count} liaisons");

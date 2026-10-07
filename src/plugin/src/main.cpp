@@ -54,7 +54,7 @@ namespace
 			AG::Guild::Register();
 			AG::LevelDisplay::Register();
 			AG::PrismaToast::Install();
-			AG::LoadRaceFloors();
+			AG::LoadRaceRules();
 			AG::Counter::Install();
 			AG::GuildCard::Install();
 			AG::MissiveWatch::Register();

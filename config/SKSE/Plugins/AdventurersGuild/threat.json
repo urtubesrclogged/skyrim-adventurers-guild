@@ -1,21 +1,34 @@
 {
-	"_comment": "Where a creature's level in the game does not match how dangerous it is. Keyed by race editor ID (tools/EspGen resolves them into threat.resolved.json, where the level floors it works out itself also live). atLeast: never ranked below this, whatever its level. atMost: never ranked above this by its level (a huge health pool can still add the toughness bump). Rank letters E D C B A S.",
+	"_comment": "Judgement calls: where neither a creature's level nor its danger score (see [Threat] in AdventurersGuild.ini) ranks it right. Keyed by race editor ID; tools/EspGen resolves them into threat.resolved.json, which is the file the game reads and the one to edit in an install. atLeast: never ranked below this. fromLevel: atLeast only applies from this level up (one race, several tiers). atMost: never ranked above this. Rank letters E D C B A S.",
 	"races": {
 		"GiantRace": {
-			"atLeast": "B",
-			"_why": "level 32 in the game (rank C), but deadlier than the mammoths they herd"
+			"atLeast": "C",
+			"_why": "never a pushover, whatever level another mod gives it"
 		},
-		"MammothRace": {
-			"atMost": "C",
-			"_why": "level 38 (rank B): big, not that dangerous"
+		"DwarvenCenturionRace": {
+			"atLeast": "C",
+			"_why": "as the giant"
+		},
+		"DraugrRace": {
+			"atLeast": "B",
+			"fromLevel": 30,
+			"_why": "level 30 and up are the Deathlords: ebony weapons and shouts that their level (rank C) does not show. Draugr fight with carried weapons, so the danger score cannot lift them"
+		},
+		"DragonPriestRace": {
+			"atLeast": "S",
+			"_why": "level 50 (rank A), a caster, so no danger score: the top of the draugr crypts"
 		},
 		"DLC2NetchRace": {
 			"atMost": "D",
-			"_why": "level 36-40 (rank B): a high level, not a dangerous beast"
+			"_why": "a lot of health and a real shock, but docile"
 		},
 		"DLC2NetchCalfRace": {
 			"atMost": "E",
-			"_why": "level 25 (rank C): a calf"
+			"_why": "a calf"
+		},
+		"HorseRace": {
+			"atMost": "E",
+			"_why": "its health alone would score D"
 		}
 	}
 }

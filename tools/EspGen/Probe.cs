@@ -143,6 +143,46 @@ static class Probe
                 Console.WriteLine($"{q.FormKey.ModKey.FileName}|0x{q.FormKey.ID:X6}\t{q.EditorID}");
             return;
         }
+        if (what == "creatures") {  // every vanilla encounter creature with its own stats: one TSV row each (threat calibration)
+            var races = mods.SelectMany(m => m.Races).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            var classes = mods.SelectMany(m => m.Classes).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            var weapons = mods.SelectMany(m => m.Weapons).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            var armors = mods.SelectMany(m => m.Armors).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            var spells = mods.SelectMany(m => m.Spells).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            var kws = mods.SelectMany(m => m.Keywords).GroupBy(k => k.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID ?? "?");
+            Console.WriteLine("formid\tedid\tname\trace\tlevel\thealthStart\thealthOffset\tclassHealthWeight\tunarmedDamage\tweaponDamage\tweapon\tattackMultMax\tskinArmor\tsize\tspells\taggression\tconfidence\tkeywords");
+            foreach (var n in mods.SelectMany(m => m.Npcs).GroupBy(n => n.FormKey).Select(g => g.Last()))
+            {
+                var edid = n.EditorID ?? "";
+                if (!Regex.IsMatch(edid, @"^(DLC\d)?Enc") || edid.Contains("Test") || !re.IsMatch(edid)) continue;
+                if (n.Configuration.Level is not INpcLevelGetter lv) continue;
+                if (!n.Template.IsNull && n.Configuration.TemplateFlags.HasFlag(NpcConfiguration.TemplateFlag.Stats)) continue;
+                if (!races.TryGetValue(n.Race.FormKey, out var race)) continue;
+                var rk = (race.Keywords ?? (IReadOnlyList<IFormLinkGetter<IKeywordGetter>>)Array.Empty<IFormLinkGetter<IKeywordGetter>>()).Select(k => kws.TryGetValue(k.FormKey, out var e) ? e : "?").ToList();
+                if (rk.Contains("ActorTypeNPC")) continue;
+                var start = race.Starting.TryGetValue(BasicStat.Health, out var h) ? h : 0f;
+                var cw = classes.TryGetValue(n.Class.FormKey, out var cls) ? string.Join("/", new[] { BasicStat.Health, BasicStat.Magicka, BasicStat.Stamina }.Select(b => cls.StatWeights.TryGetValue(b, out var w) ? (int)w : 0)) : "";
+                // the best weapon carried directly (creatures that fight with one: giants' clubs, draugr, falmer, rieklings)
+                float wd = 0; string wn = "";
+                foreach (var it in n.Items ?? (IReadOnlyList<IContainerEntryGetter>)Array.Empty<IContainerEntryGetter>())
+                    if (weapons.TryGetValue(it.Item.Item.FormKey, out var wp) && (wp.BasicStats?.Damage ?? 0) > wd) { wd = wp.BasicStats!.Damage; wn = wp.EditorID ?? ""; }
+                var am = race.Attacks.Count > 0 ? race.Attacks.Max(a => a.AttackData?.DamageMult ?? 1f) : 1f;
+                var skin = !n.WornArmor.IsNull && armors.TryGetValue(n.WornArmor.FormKey, out var sa) ? sa.ArmorRating : (!race.Skin.IsNull && armors.TryGetValue(race.Skin.FormKey, out var rs) ? rs.ArmorRating : 0f);
+                var sp = (n.ActorEffect?.Count ?? 0);
+                Console.WriteLine(string.Join("\t", $"{n.FormKey.ID:X8}", edid, n.Name?.String ?? "", race.EditorID, lv.Level, start, n.Configuration.HealthOffset, cw, race.UnarmedDamage, wd, wn, am, skin, race.Size,
+                    sp, n.AIData.Aggression, n.AIData.Confidence, string.Join(",", rk.Where(k => k.StartsWith("ActorType")))));
+            }
+            return;
+        }
+        if (what == "racedump") {   // one race's attack data and one actor's spells, every property (to see what the records offer)
+            foreach (var race in mods.SelectMany(m => m.Races).GroupBy(r => r.FormKey).Select(g => g.Last()).Where(r => re.IsMatch(r.EditorID ?? "")))
+            {
+                Console.WriteLine($"== {race.EditorID} unarmed={race.UnarmedDamage} reach={race.UnarmedReach} mass={race.BaseMass} size={race.Size}");
+                foreach (var a in race.Attacks)
+                    Console.WriteLine("   attack " + a.AttackEvent + ": " + string.Join(", ", a.AttackData?.GetType().GetProperties().Where(p => p.PropertyType.IsPrimitive || p.PropertyType.IsEnum || p.PropertyType == typeof(float)).Select(p => { try { return p.Name + "=" + p.GetValue(a.AttackData); } catch { return ""; } }) ?? Array.Empty<string>()));
+            }
+            return;
+        }
         if (what == "effects") {    // magic effects (editor ID or name matching): archetype and actor value
             foreach (var m in mods)
                 foreach (var e in m.MagicEffects.Where(e => re.IsMatch(e.EditorID ?? "") || re.IsMatch(e.Name?.String ?? "")))

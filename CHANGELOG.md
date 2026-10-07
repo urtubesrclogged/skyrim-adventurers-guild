@@ -10,11 +10,18 @@
 - `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
 
 **Threat ranks**
-- A safety net under the level bands: a creature never ranks below what its race's weakest variant gets in the
-  unmodded game. A giant is at least rank C even when another mod lowers its level. Level and toughness can still
-  rank it higher. The list is in `threat.resolved.json`; `[Threat] RaceFloors = 0` turns it off.
-- Giants are rank B at least (they were C); mammoths are C at most (they were B), netches D at most and netch
-  calves E: a high level is not the same as dangerous.
+- A creature's threat rank no longer rests on its level alone. Creatures that fight with their own body now get a
+  danger score from their Health and the damage they deal, and the score moves the level rank one rank at most, up
+  or down. Sabre cats, bears, trolls, hagravens and Dwarven Centurions go up a rank; a mammoth is B again; a
+  high-level creature that hits weakly comes down one. It is worked out from the creature in front of you, so it
+  covers creatures from other mods.
+- People, and creatures that rely on carried weapons (draugr, falmer, rieklings), are not scored and keep their
+  level rank. Dragons keep their two-rank bump.
+- Judgement calls by race, where neither level nor score says it right: giants and Dwarven Centurions are never
+  below C, Draugr Deathlords (draugr of level 30 and up) never below B, Dragon Priests are S, netches are D at most.
+  The list is in `threat.resolved.json`.
+- `AdventurersGuild.ini`, `[Threat]`: `DangerScore`, the score each rank starts at, and `RaceRules`. These replace
+  `HealthBase`, `HealthPerLevel` and `ToughRatio1/2`, which are no longer read.
 
 **Conduct**
 - Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes Reputation in

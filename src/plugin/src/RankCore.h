@@ -26,37 +26,39 @@ namespace AG
 		int         bump{ 0 };
 		int         floor{ -1 };
 	};
+	struct RaceRule
+	{
+		int atLeast{ -1 };   // never below this rank ...
+		int fromLevel{ 0 };  // ... once the creature is at least this level (0 = always)
+		int atMost{ -1 };    // never above this rank
+	};
 	struct ThreatTuning
 	{
-		// Toughness: permanent max Health against what a typical foe of that level has (base + perLevel * level).
-		// Works for any creature a mod adds, keyword or not. 0 ratio = off.
-		float                    healthBase{ 50.0f };
-		float                    healthPerLevel{ 10.0f };
-		float                    tough1{ 4.0f };  // at least this many times expected health: +1 rank
-		float                    tough2{ 8.0f };  // +2 ranks
-		std::vector<KeywordRule> keywords{ { "ActorTypeDragon", 2, -1 } };
-		// Safety net (threat.resolved.json): race -> the level its weakest vanilla encounter variant has. A creature
-		// is ranked as at least that level, so an overhaul that lowers its level cannot make a giant rank E.
-		bool                                    raceFloors{ true };
-		std::unordered_map<RE::FormID, int>     raceLevel;
-		// ... and the judgement calls (threat.json): by race, never below / never above this rank by level
-		std::unordered_map<RE::FormID, int>     raceAtLeast, raceAtMost;
+		// Danger score: sqrt(max Health x attack), for creatures that fight with their own body (not people, not the
+		// ones that rely on carried weapons). It moves the level rank by one at most, towards the rank the score
+		// gives. Works for any creature a mod adds.
+		bool                               score{ true };
+		std::array<float, kRankCount - 1>  scoreMin{ 45.0f, 100.0f, 200.0f, 300.0f, 500.0f };  // lowest score of D,C,B,A,S
+		std::vector<KeywordRule>           keywords{ { "ActorTypeDragon", 2, -1 } };
+		// Judgement calls by race (threat.json -> threat.resolved.json): never below / never above a rank
+		bool                                    raceRules{ true };
+		std::unordered_map<RE::FormID, RaceRule> races;
 	};
 
 	// How a threat rank was reached, for the debug readout.
 	struct ThreatInfo
 	{
-		int         level{ 0 }, byLevel{ -1 }, bump{ 0 }, floor{ -1 }, rank{ -1 };
-		float       health{ 0.0f }, ratio{ 0.0f };
+		int         level{ 0 }, byLevel{ -1 }, byScore{ -1 }, bump{ 0 }, floor{ -1 }, rank{ -1 };
+		float       health{ 0.0f }, attack{ 0.0f }, score{ 0.0f };  // score 0 = not scored (a person, or a weapon user)
 		std::string why;
 	};
 
 	void LoadConfig();  // Data/SKSE/Plugins/AdventurersGuild.ini
-	void LoadRaceFloors();  // at kDataLoaded (needs forms): threat.resolved.json
+	void LoadRaceRules();  // at kDataLoaded (needs forms): threat.resolved.json
 	const Bands& GetBands();
 
 	int         FromLevel(int a_level);
-	int         ThreatRank(RE::Actor* a_actor);  // level band + creature adjustment; -1 if null
+	int         ThreatRank(RE::Actor* a_actor);  // level band, moved by the danger score and the creature rules; -1 if null
 	ThreatInfo  ExplainThreat(RE::Actor* a_actor);
 	char        Letter(int a_rank);              // '?' outside 0..5
 	std::string LetterStr(int a_rank);
