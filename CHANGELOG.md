@@ -2,89 +2,34 @@
 
 ## 1.3.0
 
-The world outside the inn. Threat ranks now follow how dangerous a creature is, not only its level; what you can
-read of them grows with Appraisal; the Guild notices how you behave; and there are more adventurers in Skyrim than
-you.
-
-**Threat ranks**
-- A creature's threat rank no longer rests on its level alone. Creatures that fight with their own body get a
-  danger score from their Health and the damage they deal, and the score moves the level rank one rank at most, up
-  or down. Sabre cats, bears, trolls, hagravens, giants and Dwarven Centurions go up a rank; a high-level creature
-  that hits weakly comes down one.
-- It is worked out from the creature in front of you, so creatures from other mods, and creatures an overhaul has
-  made tougher, are ranked by what they are in your game.
-- People, and creatures that rely on carried weapons (draugr, falmer, rieklings), are not scored and keep their
-  level rank. Dragons keep their two-rank bump.
-- Judgement calls by race, where neither level nor score says it right: giants and Dwarven Centurions are never
-  below C, Draugr Deathlords (draugr of level 30 and up) never below B, Dragon Priests are S, netches are D at most
-  and horses E. The list is in `threat.resolved.json` and can be edited.
-- `AdventurersGuild.ini`, `[Threat]`: `DangerScore`, the score each rank starts at, and `RaceRules`. These replace
-  `HealthBase`, `HealthPerLevel` and `ToughRatio1/2`, which are no longer read.
+**Threat Ranks**
+- Threat ranks now reflect how dangerous a creature is, not only its level
+- Works for creatures added or changed by other mods
+- Minimum ranks for giants, Dwarven Centurions, Draugr Deathlords and Dragon Priests
 
 **Appraisal**
-- Each level of Appraisal now reads more:
-  - Appraisal I: the threat rank of people and wildlife. Trolls, draugr, vampires, dragons, automatons and other
-    creatures of legend show `[?]` on their health bar.
-  - Appraisal II: creatures of legend too.
-  - Appraisal III: threats of rank A and S, which are beyond measure until then and show `[?]` whatever they are.
-- The Merit bonus on trophies is smaller: 10% at Appraisal II (was 25%) and 25% at Appraisal III (was 50%). The
-  descriptions at the counter and in your active effects say what each level reads.
-- Only the label is hidden. Kills pay by the real rank, and the ranks of fellow adventurers are read as before.
-- `AdventurersGuild.ini`, `[Appraisal]`: `FantasyTier = 0` and `HighRankTier = 0` put it back as it was.
+- Appraisal I reads adventurers, people, wildlife and dungeons
+- Appraisal II reads creatures of legend (trolls, draugr, vampires, dragons, etc.)
+- Appraisal III reads rank A and S threats
+- Smaller Merit bonus on trophies
 
 **Conduct**
-- Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes a tenth of it in
-  Reputation: 4 for an assault, 100 for a murder. A hundred petty thefts cost what one theft of the same value
-  does. What nobody witnessed costs nothing.
-- While you have a bounty anywhere, promotion is on hold. Paying it or serving the time lifts that.
-- Giving up or failing a missive you took costs half the Reputation it would have paid.
-- No rank is ever taken away. `guild.json`, `conduct`, holds both rates.
+- Bounties cost Reputation and put promotion on hold
+- Abandoning a missive costs Reputation
 
-**People**
-- Sinmir, the Bannered Mare regular, is a C-rank adventurer with voiced lines of his own, by your rank. If the
-  Stormcloaks take Whiterun and make him captain of the guard, the Guild sets him aside and his lines change.
-- Uthgerd the Unbroken (D), Mjoll the Lioness (B) and Annekke Crag-Jumper (D) are named adventurers with voiced lines
-  by your rank, and a fixed rank that does not drift with their level. Erik of Rorikstead dreams of joining; as Erik
-  the Slayer he registers when you first take him along.
-- The wandering adventurers you meet on the roads are Guild members with a rank, and greet you by how your rank
-  compares with theirs. Other mods' generic "Adventurer" characters count too; mercenaries and sellswords are left
-  as they are.
-
-**When an innkeeper dies**
-- If Hulda dies, Ysolda takes over Whiterun's Guild counter at the Bannered Mare, whoever ends up running the inn,
-  fully voiced: registration, promotion, the counter, reports and replacement cards.
-- In Solitude, Windhelm and Riften the one who takes the inn over keeps the counter too, fully voiced: Sorex
-  Vinius, Nils and Talen-Jei.
-- In Markarth, Dawnstar, Winterhold, Morthal and Falkreath a dead innkeeper's town loses its counter, and someone
-  still at the inn says so (Frabbi, Karita, Haran, Lurbuk, Narri).
+**World Building and NPCs**
+- Additional active adventurers (Sinmir, Mjoll, etc.)
+- Wandering adventurers on the roads are Guild members
+- Replacement Guild reps when an innkeeper dies (Ysolda, etc.)
 
 **Trophies**
-- The Guild now buys parts from hostile creatures added by other mods. An ingredient, hide or other animal part counts
-  when a creature that starts fights carries or drops it; harmless wildlife adds nothing, and meat and fish are never
-  trophies. A "creature" with an alchemist's pockets full of ingredients is carrying loot, and none of that counts.
-  Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
-- `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
+- The Guild buys parts from hostile creatures added by other mods
 
-**Missives**
-- The Guild's notice to an unregistered player is now handed out when you open a Missives board, not when you walk
-  past one. (Whiterun's board stands by the gate, so a new character leaving Breezehome was handed one unasked.)
-
-**MCM**
-- Debug page, "Recalculate rank from level": sets your guild rank to the one your level alone gives, with the
-  Reputation that rank starts at. For a character whose record no longer fits: one who joined late, a level
-  overhaul, or testing. It asks first, and leaves Merit, Appraisal and training alone.
-
-**SkyrimNet**
-- The named adventurers, Erik, whoever keeps a counter after an innkeeper's death and those who have to say a
-  town's counter has closed all have a bio line of their own, so they speak of the Guild as their lines do.
-- Wandering adventurers know they are Guild members and talk shop like it.
-- New common knowledge: adventurers on the roads, the Guild's view of a bounty, and what happens to a counter when
-  its innkeeper dies.
-
-**Fixes**
-- The "Missives are for registered adventurers" reminder could repeat without end near a board. It is shown once,
-  then not again for five minutes.
-- Uthgerd's lines are re-recorded from her own voice.
+**Other**
+- The Guild's notice is handed out when you use a Missives board, not when you walk past one
+- MCM Debug page: recalculate rank from level
+- SkyrimNet: updated lore and NPC bios
+- Fixed the "register first" reminder repeating near a Missives board
 
 ## 1.2.0
 
