@@ -90,6 +90,8 @@ namespace AG
 	void LoadRaceFloors()
 	{
 		g_threat.raceLevel.clear();
+		g_threat.raceAtLeast.clear();
+		g_threat.raceAtMost.clear();
 		if (!g_threat.raceFloors) {
 			SKSE::log::info("Threat: race floors off ([Threat] RaceFloors = 0)");
 			return;
@@ -107,9 +109,14 @@ namespace AG
 				const auto bar = key.find('|');
 				if (bar == std::string::npos || !dh) continue;
 				if (auto* race = dh->LookupForm(static_cast<RE::FormID>(std::stoul(key.substr(bar + 1), nullptr, 16)), key.substr(0, bar)))
-					g_threat.raceLevel[race->GetFormID()] = e.value("level", 0);
+				{
+					if (const int lv = e.value("level", 0); lv > 0) g_threat.raceLevel[race->GetFormID()] = lv;
+					if (const auto a = e.value("atLeast", std::string()); !a.empty()) g_threat.raceAtLeast[race->GetFormID()] = FromLetter(a[0]);
+					if (const auto a = e.value("atMost", std::string()); !a.empty()) g_threat.raceAtMost[race->GetFormID()] = FromLetter(a[0]);
+				}
 			}
-			SKSE::log::info("Threat: {} race floors (a creature never ranks below its race's weakest vanilla variant)", g_threat.raceLevel.size());
+			SKSE::log::info("Threat: {} race floors (a creature never ranks below its race's weakest vanilla variant), {} at-least and {} at-most rules",
+				g_threat.raceLevel.size(), g_threat.raceAtLeast.size(), g_threat.raceAtMost.size());
 		} catch (const std::exception& e) {
 			SKSE::log::error("Threat: threat.resolved.json error: {} - no race floors", e.what());
 		}
@@ -129,6 +136,17 @@ namespace AG
 					t.why = std::format("race floor (as level {})", ranked);
 				}
 		t.byLevel = FromLevel(ranked);
+		if (g_threat.raceFloors)
+			if (auto* r = a_actor->GetRace()) {
+				if (auto it = g_threat.raceAtLeast.find(r->GetFormID()); it != g_threat.raceAtLeast.end() && it->second > t.byLevel) {
+					t.byLevel = it->second;
+					t.why = std::format("at least {} for its kind", Letter(t.byLevel));
+				}
+				if (auto it = g_threat.raceAtMost.find(r->GetFormID()); it != g_threat.raceAtMost.end() && it->second < t.byLevel) {
+					t.byLevel = it->second;
+					t.why = std::format("at most {} for its kind", Letter(t.byLevel));
+				}
+			}
 
 		// toughness
 		int tough = 0;

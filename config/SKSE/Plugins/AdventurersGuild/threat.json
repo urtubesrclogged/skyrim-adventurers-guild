@@ -1,0 +1,21 @@
+{
+	"_comment": "Where a creature's level in the game does not match how dangerous it is. Keyed by race editor ID (tools/EspGen resolves them into threat.resolved.json, where the level floors it works out itself also live). atLeast: never ranked below this, whatever its level. atMost: never ranked above this by its level (a huge health pool can still add the toughness bump). Rank letters E D C B A S.",
+	"races": {
+		"GiantRace": {
+			"atLeast": "B",
+			"_why": "level 32 in the game (rank C), but deadlier than the mammoths they herd"
+		},
+		"MammothRace": {
+			"atMost": "C",
+			"_why": "level 38 (rank B): big, not that dangerous"
+		},
+		"DLC2NetchRace": {
+			"atMost": "D",
+			"_why": "level 36-40 (rank B): a high level, not a dangerous beast"
+		},
+		"DLC2NetchCalfRace": {
+			"atMost": "E",
+			"_why": "level 25 (rank C): a calf"
+		}
+	}
+}

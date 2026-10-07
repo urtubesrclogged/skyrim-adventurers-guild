@@ -13,6 +13,8 @@
 - A safety net under the level bands: a creature never ranks below what its race's weakest variant gets in the
   unmodded game. A giant is at least rank C even when another mod lowers its level. Level and toughness can still
   rank it higher. The list is in `threat.resolved.json`; `[Threat] RaceFloors = 0` turns it off.
+- Giants are rank B at least (they were C); mammoths are C at most (they were B), netches D at most and netch
+  calves E: a high level is not the same as dangerous.
 
 **Conduct**
 - Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes Reputation in

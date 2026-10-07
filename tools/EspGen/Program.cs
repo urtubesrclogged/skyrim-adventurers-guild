@@ -728,12 +728,26 @@ File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptio
         var key = Key(race.FormKey);
         if (!weakest.TryGetValue(key, out var have) || fixedLevel.Level < have.level) weakest[key] = (fixedLevel.Level, race.EditorID ?? "", edid);
     }
-    var floors = weakest.Where(kv => kv.Value.level >= 12).Select(kv => new { race = kv.Key, name = kv.Value.edid, level = kv.Value.level, from = kv.Value.from }).ToList();
+    // threat.json: the author's corrections where level and danger part ways (a giant against a mammoth)
+    var judged = ReadConfig("threat")["races"]?.AsObject() ?? new JsonObject();
+    var byRace = new Dictionary<string, (string? atLeast, string? atMost)>();
+    foreach (var (edid, node) in judged)
+    {
+        if (!idx["races"].TryGetValue(edid, out var rfk)) { Console.Error.WriteLine($"ERROR threat.json: unknown race '{edid}'"); errors++; continue; }
+        byRace[Key(rfk)] = (node!["atLeast"]?.GetValue<string>(), node["atMost"]?.GetValue<string>());
+        if (!weakest.ContainsKey(Key(rfk))) weakest[Key(rfk)] = (0, edid, "threat.json");
+    }
+    var floors = weakest.Where(kv => kv.Value.level >= 12 || byRace.ContainsKey(kv.Key)).Select(kv => new
+    {
+        race = kv.Key, name = kv.Value.edid, level = kv.Value.level, from = kv.Value.from,
+        atLeast = byRace.TryGetValue(kv.Key, out var j1) ? j1.atLeast : null,
+        atMost = byRace.TryGetValue(kv.Key, out var j2) ? j2.atMost : null,
+    }).ToList();
     File.WriteAllText(Path.Combine(outDir, "threat.resolved.json"), JsonSerializer.Serialize(new
     {
-        _comment = "Threat safety net: a creature of this race is never ranked as if it were below this level (its weakest encounter variant in the unmodded game, named in 'from'). Level and toughness can still rank it higher. Edit a level to move a floor, or delete a line to remove it. [Threat] RaceFloors = 0 in AdventurersGuild.ini turns the whole net off.",
+        _comment = "Threat safety net: a creature of this race is never ranked as if it were below this level (its weakest encounter variant in the unmodded game, named in 'from'). Level and toughness can still rank it higher. atLeast / atMost (rank letters, from threat.json) are judgement calls where level and danger part ways: never below / never above that rank by level. Edit or delete a line as you like. [Threat] RaceFloors = 0 in AdventurersGuild.ini turns all of it off.",
         floors,
-    }, new JsonSerializerOptions { WriteIndented = true }));
+    }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
     Console.WriteLine($"threat floors: {floors.Count} creature races (of {weakest.Count} with encounter actors)");
 }
 File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors }, new JsonSerializerOptions { WriteIndented = true }));

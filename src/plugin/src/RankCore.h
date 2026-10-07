@@ -39,6 +39,8 @@ namespace AG
 		// is ranked as at least that level, so an overhaul that lowers its level cannot make a giant rank E.
 		bool                                    raceFloors{ true };
 		std::unordered_map<RE::FormID, int>     raceLevel;
+		// ... and the judgement calls (threat.json): by race, never below / never above this rank by level
+		std::unordered_map<RE::FormID, int>     raceAtLeast, raceAtMost;
 	};
 
 	// How a threat rank was reached, for the debug readout.
