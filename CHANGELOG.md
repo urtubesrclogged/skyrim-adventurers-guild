@@ -18,9 +18,10 @@
 - Abandoning a missive costs Reputation
 
 **World Building and NPCs**
-- Additional active adventurers (Sinmir, Mjoll, etc.)
-- Wandering adventurers on the roads are Guild members
-- Replacement Guild reps when an innkeeper dies (Ysolda, etc.)
+- Additional active adventurers (Sinmir, Mjoll, Annekke, etc.)
+- Erik/Erik the Slayer guild integration
+- Random adventurer encounters on the roads
+- Inn Keeper Contingency Protocol (Nils might be the best guild rep now)
 
 **Trophies**
 - The Guild buys parts from hostile creatures added by other mods
