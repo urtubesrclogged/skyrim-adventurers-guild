@@ -1,6 +1,8 @@
 {
-	"_comment": "World awareness of the Adventurers Guild: greetings (Hello) from named NPCs and guards across the holds and Solstheim, built by tools/EspGen into AG_WorldDialogueQuest; INFO FormIDs are pinned in dialogue.ids.json under 'world:<id>' (voice files are named after them). Every line names the Adventurers Guild or an adventurer, never a bare 'Guild' (the Thieves Guild is right there in Riften). Fields: who = NPC editor ID, or guards = hold name / 'any' / 'retired'; status = unregistered | registered (default) | any; rank = 'E' exact, 'B+' at or above, 'E-C' inclusive range, '<B' below; promoted = the rank just reached (shown for a few days, see guild.json); chance = % of greetings that use the line when it applies; questDone / questNotDone = a quest editor ID the line waits for (or stops at) completion of. owner = 'sons' | 'notSons': whether the Stormcloaks hold Whiterun (the condition vanilla puts on Sinmir's own lines; he is captain of the guard under them). chance on a line overrides the table below for it. whileAlive / whenDead = an NPC editor ID that must be alive / dead; inFaction / notInFaction = a faction editor ID the speaker must (not) be in; liaison = true: only once this NPC keeps a Guild counter (a successor: Ysolda after Hulda). teammate = true/false: the speaker is (not) following the player; inParty = true/false: the speaker is (not) an active member of the player's adventuring party (AG_PartyMemberFaction, kept by the DLL). topic = a player line instead of a greeting: one per NPC (its records are numbered in tools/EspGen).",
+	"_comment": "World awareness of the Adventurers Guild: greetings (Hello) from named NPCs and guards across the holds and Solstheim, built by tools/EspGen into AG_WorldDialogueQuest; INFO FormIDs are pinned in dialogue.ids.json under 'world:<id>' (voice files are named after them). Every line names the Adventurers Guild or an adventurer, never a bare 'Guild' (the Thieves Guild is right there in Riften). Fields: who = NPC editor ID, or guards = hold name / 'any' / 'retired'; status = unregistered | registered (default) | any; rank = 'E' exact, 'B+' at or above, 'E-C' inclusive range, '<B' below; promoted = the rank just reached (shown for a few days, see guild.json); chance = % of greetings that use the line when it applies; questDone / questNotDone = a quest editor ID the line waits for (or stops at) completion of. owner = 'sons' | 'notSons': whether the Stormcloaks hold Whiterun (the condition vanilla puts on Sinmir's own lines; he is captain of the guard under them). chance on a line overrides the table below for it. whileAlive / whenDead = an NPC editor ID that must be alive / dead; inFaction / notInFaction = a faction editor ID the speaker must (not) be in; liaison = true: only once this NPC keeps a Guild counter (a successor: Ysolda after Hulda). teammate = true/false: the speaker is (not) following the player; inParty = true/false: the speaker is (not) an active member of the player's adventuring party (AG_PartyMemberFaction, kept by the DLL). wanderers = true: any wandering adventurer (instead of who / guards), in every voice of wandererVoices; theirRank = 'above' | 'same' | 'below': the speaker's Guild rank against the player's. topic = a player line instead of a greeting: one per NPC (its records are numbered in tools/EspGen).",
 
+	"_wandererVoices": "Wandering adventurers (adventurers.json 'wanderers'): the vanilla voice types their shared greetings are voiced in. One with any other voice (a mod's own) keeps the rank and says nothing of ours.",
+	"wandererVoices": ["MaleNord", "MaleEvenToned", "MaleEvenTonedAccented", "MaleCommoner", "MaleCommonerAccented", "MaleCondescending", "MaleBrute", "MaleYoungEager", "MaleSlyCynical", "MaleSoldier", "MaleCommander", "MaleNordCommander", "MaleBandit", "MaleDarkElf", "MaleElfHaughty", "MaleArgonian", "MaleKhajiit", "MaleOrc", "FemaleNord", "FemaleEvenToned", "FemaleCommoner", "FemaleCondescending", "FemaleCommander", "FemaleSultry", "FemaleYoungEager", "FemaleShrill", "FemaleDarkElf", "FemaleElfHaughty", "FemaleArgonian", "FemaleKhajiit", "FemaleOrc"],
 	"guardVoices": ["MaleGuard", "MaleNord", "MaleNordCommander", "MaleCommander", "MaleSoldier", "FemaleNord"],
 	"solstheimGuardVoices": ["DLC2MaleDarkElfCynical", "MaleDarkElf"],
 	"holdGuards": {
@@ -9,7 +11,7 @@
 		"Hjaalmarch": "CrimeFactionHjaalmarch", "Pale": "CrimeFactionPale", "Winterhold": "CrimeFactionWinterhold",
 		"Solstheim": "DLC2RavenRockGuardFaction"
 	},
-	"chance": { "npc": 40, "guards": 20, "retired": 35, "promoted": 50 },
+	"chance": { "wanderer": 50, "npc": 40, "guards": 20, "retired": 35, "promoted": 50 },
 
 	"lines": [
 		{ "id": "ysolda",        "who": "Ysolda", "whileAlive": "Hulda",            "rank": "<B", "text": "Hulda says the Bannered Mare comes with the Adventurers Guild counter now. If I'm ever to buy it, I'll need the Guild's blessing as well as hers." },
@@ -197,6 +199,15 @@
 		{"id": "erik_a", "who": "Erik", "chance": 33, "rank": "A", "text": "An A-rank? In Rorikstead? I've only ever heard of A-ranks in songs."},
 		{"id": "erik_s", "who": "Erik", "chance": 33, "rank": "S", "text": "S-rank. You're... I thought those were made up. Can I see your guild card? Just for a moment?"},
 		{"id": "eriks_hire", "who": "HirelingErikTheSlayer", "chance": 33, "status": "any", "teammate": false, "inParty": false, "text": "I've got the armor and I've got the name. All I need now is a guild card. Take me along and I'll earn one."},
-		{"id": "eriks_party", "who": "HirelingErikTheSlayer", "chance": 33, "status": "any", "inParty": true, "text": "I'm in a real adventuring party. Me! I keep reading my guild card to make sure it still says so."}
+		{"id": "eriks_party", "who": "HirelingErikTheSlayer", "chance": 33, "status": "any", "inParty": true, "text": "I'm in a real adventuring party. Me! I keep reading my guild card to make sure it still says so."},
+
+		{"id": "wand_new", "wanderers": true, "status": "unregistered", "text": "On the road without a guild card? The Adventurers Guild takes names at any hold capital's inn."},
+		{"id": "wand_above1", "wanderers": true, "theirRank": "above", "text": "Keep at it. The first few ranks are the hardest."},
+		{"id": "wand_above2", "wanderers": true, "theirRank": "above", "text": "I remember my first missive. Barely. Stay on the road until your guild card's seen some weather."},
+		{"id": "wand_same1", "wanderers": true, "theirRank": "same", "text": "Same rank, by the look of you. May your missives pay better than mine."},
+		{"id": "wand_same2", "wanderers": true, "theirRank": "same", "text": "Another adventurer on the road. If you're after the same job, I saw it first."},
+		{"id": "wand_below1", "wanderers": true, "theirRank": "below", "text": "That's a rank I've only seen in a ledger. Safe roads, adventurer."},
+		{"id": "wand_below2", "wanderers": true, "theirRank": "below", "text": "You're the one they talk about at the counter. An honor."},
+		{"id": "wand_busy", "wanderers": true, "status": "any", "text": "Can't stop. The Adventurers Guild doesn't pay me to stand around."}
 	]
 }

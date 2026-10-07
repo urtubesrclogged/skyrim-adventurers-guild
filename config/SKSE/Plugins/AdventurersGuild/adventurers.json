@@ -30,6 +30,14 @@
 		}
 	],
 
+	"_wanderers": "Adventurers met on the road. They are Guild members with a rank from their level. npcPrefix: the game's own wandering adventurers, every NPC whose editor ID starts so (tools/EspGen lists them). names: any other mod's generic (not unique) person whose name has one of these words is one too (Immersive Encounters, Extended Encounters, Wyrmstooth ...), unless it also has one of notNames or they are in one of the 'not' factions. Mercenaries, sellswords and hired thugs are deliberately not here: Skyrim has those too.",
+	"wanderers": {
+		"npcPrefix": ["WEAdventurer"],
+		"names": ["Adventurer"],
+		"notNames": ["Ghost", "Fallen", "Dead", "Spirit"],
+		"not": { "factions": ["BanditFaction"] }
+	},
+
 	"_joinOnRecruit": "Followers whose story makes guild membership unlikely until they travel with you. They register when first recruited.",
 	"joinOnRecruit": {
 		"_npcs": "Named NPCs treated the same way (Erik the Slayer is for hire, but only becomes an adventurer when the player takes him along).",

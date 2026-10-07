@@ -93,6 +93,7 @@ namespace AG::Guild
 		RE::TESGlobal*       g_gRegistered{ nullptr };
 		RE::TESGlobal*       g_gRecentPromo{ nullptr };      // AG_RecentPromotionGlobal: rank just reached, else -1
 		RE::TESFaction*      g_retiredFaction{ nullptr };    // AG_RetiredAdventurerFaction, for world dialogue
+		RE::TESFaction*      g_wandererFaction{ nullptr };   // AG_WanderingAdventurerFaction: rank in it = their Guild rank
 		RE::TESFaction*      g_liaisonFaction{ nullptr };    // AG_GuildLiaisonFaction, for SkyrimNet actions
 		RE::TESGlobal*       g_gReports{ nullptr };          // AG_ReportsWaitingGlobal, for SkyrimNet actions
 		RE::TESGlobal*       g_gReady{ nullptr };
@@ -269,6 +270,11 @@ namespace AG::Guild
 				if (!actor || actor->IsPlayerRef()) return RE::BSEventNotifyControl::kContinue;
 				if (g_retiredFaction && !actor->IsInFaction(g_retiredFaction) && Adventurers::Of(actor).kind == Adventurers::Kind::kRetired)
 					actor->AddToFaction(g_retiredFaction, 0);
+				// wandering adventurers, at their Guild rank: their greetings ask whether they outrank the player
+				if (g_wandererFaction && !actor->IsInFaction(g_wandererFaction) && Adventurers::IsWanderer(actor)) {
+					const auto info = Adventurers::Of(actor);
+					if (info.kind == Adventurers::Kind::kMember) actor->AddToFaction(g_wandererFaction, static_cast<std::int8_t>(std::clamp(info.rank, 0, 5)));
+				}
 				// the nine Guild reps, for SkyrimNet actions' is_in_faction(currentActor, "AG_GuildLiaisonFaction")
 				if (g_liaisonFaction && !actor->IsInFaction(g_liaisonFaction) && Adventurers::IsLiaison(actor))
 					actor->AddToFaction(g_liaisonFaction, 0);
@@ -549,6 +555,7 @@ namespace AG::Guild
 		g_gRecentPromo = Own<RE::TESGlobal>(0x8C5);
 		g_retiredFaction = Own<RE::TESFaction>(0x8C4);
 		g_liaisonFaction = Own<RE::TESFaction>(0x8C6);
+		g_wandererFaction = Own<RE::TESFaction>(0xC80);
 		g_gReports = Own<RE::TESGlobal>(0x8C7);
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESObjectLoadedEvent>(RetiredSink::Get());
 		try {

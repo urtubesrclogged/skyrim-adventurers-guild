@@ -24,6 +24,9 @@
 - Uthgerd the Unbroken (D), Mjoll the Lioness (B) and Annekke Crag-Jumper (D) are named adventurers with voiced lines
   by your rank, and a fixed rank that does not drift with their level. Erik of Rorikstead dreams of joining; as Erik
   the Slayer he registers when you first take him along.
+- The wandering adventurers you meet on the roads are Guild members with a rank, and greet you by how your rank
+  compares with theirs. Other mods' generic "Adventurer" characters count too; mercenaries and sellswords are left
+  as they are.
 - If Hulda dies, Ysolda takes over Whiterun's Guild counter at the Bannered Mare, whoever ends up running the inn,
   fully voiced:
   registration, promotion, the counter, reports and replacement cards.

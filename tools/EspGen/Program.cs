@@ -12,6 +12,7 @@
 //                liaison faction (0x8C6) and reports-waiting global (0x8C7) for the SkyrimNet actions
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
+//   0xC80        the wandering-adventurer faction
 //   0xC00-0xC7F  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -103,6 +104,14 @@ JsonNode ReadConfig(string name) =>
 foreach (var name in new[] { "adventurers", "trophies", "shop", "traits" })
 {
     var parsed = ReadConfig(name);
+    // "wanderers": every vanilla NPC whose editor ID starts with one of npcPrefix, listed for the DLL
+    if (name == "adventurers" && parsed["wanderers"] is JsonObject wn && wn["npcPrefix"] is JsonArray pf)
+    {
+        var prefixes = pf.Select(x => x!.GetValue<string>()).ToList();
+        var found = idx["npcs"].Keys.Where(k => prefixes.Any(p => k.StartsWith(p, StringComparison.OrdinalIgnoreCase))).OrderBy(k => k).ToList();
+        wn["npcs"] = new JsonArray(found.Select(k => (JsonNode)JsonValue.Create(k)!).ToArray());
+        Console.WriteLine($"wanderers: {found.Count} vanilla wandering adventurers");
+    }
     var resolved = ResolveNode(parsed, name + ".json");
     if (name == "shop" && resolved!["library"] is JsonObject lib)
     {
@@ -214,6 +223,9 @@ mod.Quests.Add(dlgQuest);
 // active members of the player's adventuring party (the DLL adds and removes them): for dialogue conditions
 var partyFaction = new Faction(FK(0x81F), Rel) { EditorID = "AG_PartyMemberFaction", Name = "Adventuring Party Member", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(partyFaction);
+// wandering adventurers (the DLL adds them as they load, at their Guild rank): for their greetings
+var wandererFaction = new Faction(FK(0xC80), Rel) { EditorID = "AG_WanderingAdventurerFaction", Name = "Wandering Adventurer", Flags = Faction.FactionFlag.HiddenFromPC };
+mod.Factions.Add(wandererFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);
 var gReports = Global(0x8C7, "AG_ReportsWaitingGlobal", 0);
@@ -594,6 +606,21 @@ foreach (var ln in world["lines"]!.AsArray())
     var voices = new List<Condition>();
     string kind;
     if (ln["who"] is JsonNode who) { conds.Add(IsNpc(Npc(who.GetValue<string>()), false)); kind = "npc"; }
+    else if (ln["wanderers"] is not null)
+    {
+        conds.Add(InFaction(wandererFaction.FormKey)); kind = "wanderer"; voices = VoiceGroup("wandererVoices");
+        // the speaker's Guild rank (their rank in the faction) against the player's
+        if (ln["theirRank"] is JsonNode tr)
+        {
+            var fr = new GetFactionRankConditionData();
+            fr.Faction.Link.SetTo(wandererFaction.FormKey);
+            conds.Add(new ConditionGlobal
+            {
+                CompareOperator = tr.GetValue<string>() switch { "above" => CompareOperator.GreaterThan, "below" => CompareOperator.LessThan, _ => CompareOperator.EqualTo },
+                ComparisonValue = new FormLink<IGlobalGetter>(gRank.FormKey), Data = fr,
+            });
+        }
+    }
     else
     {
         var g = ln["guards"]!.GetValue<string>();

@@ -52,6 +52,7 @@ namespace AG::Adventurers
 
 	// The innkeepers who keep a guild counter: one per hold capital (dialogue.json "liaisons").
 	bool IsLiaison(RE::Actor* a_actor);
+	bool IsWanderer(RE::Actor* a_actor);  // an adventurer met on the road (adventurers.json "wanderers"), alive
 	// Successors (dialogue.json "successor": Ysolda after Hulda) whose liaison is dead, wherever they are standing.
 	// Game thread. Guild adds them to AG_GuildLiaisonFaction. IsLiaison() is true for them only at their inn.
 	std::vector<RE::Actor*> SucceededLiaisons();

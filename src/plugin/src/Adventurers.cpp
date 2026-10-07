@@ -66,6 +66,22 @@ namespace AG::Adventurers
 		// ... and where they can do the Guild's business
 		bool AtInn(const Successor& a_s, RE::Actor* a_actor) { return !a_s.cell || (a_actor && a_actor->GetParentCell() == a_s.cell); }
 
+		// Adventurers met on the road (adventurers.json "wanderers"): the game's own, by actor base, and any other
+		// mod's generic person called an adventurer.
+		struct Wanderers
+		{
+			std::unordered_set<RE::FormID> bases;
+			std::vector<std::string>       names, notNames;  // lower case
+			std::vector<RE::TESFaction*>   notFactions;
+		};
+		Wanderers g_wanderers;
+
+		std::string Lower(std::string a_s)
+		{
+			std::ranges::transform(a_s, a_s.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+			return a_s;
+		}
+
 		struct ChanceGroup
 		{
 			std::string                    id;
@@ -123,12 +139,32 @@ namespace AG::Adventurers
 		}
 
 		// caller holds g_lock. a_rule receives a short reason for Describe().
+		// g_lock held
+		bool WandererLocked(RE::Actor* a_actor)
+		{
+			auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+			if (!base) return false;
+			if (g_wanderers.bases.contains(base->GetFormID())) return true;
+			// a levelled actor's base is made at run time: the record it was made from says who it is
+			if (auto* root = base->GetRootFaceNPC(); root && g_wanderers.bases.contains(root->GetFormID())) return true;
+			if (g_wanderers.names.empty() || base->IsUnique()) return false;
+			const char* n = a_actor->GetDisplayFullName();
+			const auto  name = Lower(n ? n : "");
+			if (std::ranges::none_of(g_wanderers.names, [&](const std::string& w) { return name.find(w) != std::string::npos; })) return false;
+			if (std::ranges::any_of(g_wanderers.notNames, [&](const std::string& w) { return name.find(w) != std::string::npos; })) return false;
+			return !InAny(a_actor, g_wanderers.notFactions);
+		}
+
 		Kind Decide(RE::Actor* a_actor, std::string* a_rule)
 		{
 			auto*      dbase = a_actor->GetActorBase();
 			const bool exception = InAny(a_actor, g_joinOnRecruit) || (dbase && g_joinOnRecruitNpcs.contains(dbase->GetFormID()));
 			if (!exception && InAny(a_actor, g_members)) {
 				if (a_rule) *a_rule = "member faction";
+				return Kind::kMember;
+			}
+			if (!exception && WandererLocked(a_actor)) {
+				if (a_rule) *a_rule = "wandering adventurer";
 				return Kind::kMember;
 			}
 			const auto roll = Roll(a_actor->GetFormID());
@@ -261,6 +297,16 @@ namespace AG::Adventurers
 			if (j.contains("joinOnRecruit"))
 				for (auto& k : j.at("joinOnRecruit").value("npcs", nlohmann::json::array()))
 					if (auto* f = FormOfKey(k.get<std::string>())) g_joinOnRecruitNpcs.insert(f->GetFormID());
+			g_wanderers = {};
+			if (j.contains("wanderers")) {
+				auto& w = j.at("wanderers");
+				for (auto& k : w.value("npcs", nlohmann::json::array()))
+					if (auto* f = FormOfKey(k.get<std::string>())) g_wanderers.bases.insert(f->GetFormID());
+				for (auto& n : w.value("names", nlohmann::json::array())) g_wanderers.names.push_back(Lower(n.get<std::string>()));
+				for (auto& n : w.value("notNames", nlohmann::json::array())) g_wanderers.notNames.push_back(Lower(n.get<std::string>()));
+				if (w.contains("not")) g_wanderers.notFactions = Factions(w.at("not"), "wanderers.not");
+				SKSE::log::info("Adventurers: {} wandering adventurer bases, {} name words", g_wanderers.bases.size(), g_wanderers.names.size());
+			}
 			g_named.clear();
 			for (auto& n : j.value("named", nlohmann::json::array())) {
 				Named nm;
@@ -375,6 +421,13 @@ namespace AG::Adventurers
 		});
 		Guild::Notify("AG_AdventurerJoined", name, static_cast<float>(rank));
 		return "joined";
+	}
+
+	bool IsWanderer(RE::Actor* a_actor)
+	{
+		if (!a_actor || a_actor->IsPlayerRef() || a_actor->IsDead()) return false;
+		std::lock_guard l(g_lock);
+		return WandererLocked(a_actor);
 	}
 
 	bool IsLiaison(RE::Actor* a_actor)
