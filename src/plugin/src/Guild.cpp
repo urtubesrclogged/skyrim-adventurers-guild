@@ -8,7 +8,6 @@
 #include "Guild.h"
 
 #include "Adventurers.h"
-#include "Diag.h"
 #include "Dungeons.h"
 #include "Party.h"
 #include "Counter.h"
@@ -252,30 +251,6 @@ namespace AG::Guild
 			SendModEvent("AG_RankChanged", LetterStr(rank), static_cast<float>(rank));
 			SKSE::log::info("Guild: promoted to rank {}", Letter(rank));
 		}
-
-		// Detailed log only: every line a wandering adventurer speaks, ours or the game's, so how often a Guild greeting
-		// wins against the vanilla ones can be counted instead of guessed.
-		struct GreetingSink final : RE::BSTEventSink<RE::TESTopicInfoEvent>
-		{
-			static GreetingSink* Get()
-			{
-				static GreetingSink s;
-				return &s;
-			}
-
-			RE::BSEventNotifyControl ProcessEvent(const RE::TESTopicInfoEvent* a_e, RE::BSTEventSource<RE::TESTopicInfoEvent>*) override
-			{
-				if (!a_e || a_e->type != RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin || !g_wandererFaction || !Diag::DetailedLog()) return RE::BSEventNotifyControl::kContinue;
-				auto* actor = a_e->speakerRef ? a_e->speakerRef->As<RE::Actor>() : nullptr;
-				if (!actor || !actor->IsInFaction(g_wandererFaction)) return RE::BSEventNotifyControl::kContinue;
-				const auto* info = RE::TESForm::LookupByID(a_e->topicInfoFormID);
-				const auto* file = info ? info->GetFile(0) : nullptr;
-				const bool  ours = file && std::string_view(file->GetFilename()) == "AdventurersGuild.esp";
-				SKSE::log::info("Greeting: {} ({:08X}) spoke {:08X} - {}", actor->GetDisplayFullName(), actor->GetFormID(), a_e->topicInfoFormID,
-					ours ? "a Guild line" : "a line of the game's");
-				return RE::BSEventNotifyControl::kContinue;
-			}
-		};
 
 		// ---- event sinks ----
 
@@ -588,7 +563,6 @@ namespace AG::Guild
 		g_wandererFaction = Own<RE::TESFaction>(0xC80);
 		g_gReports = Own<RE::TESGlobal>(0x8C7);
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESObjectLoadedEvent>(RetiredSink::Get());
-		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTopicInfoEvent>(GreetingSink::Get());
 		try {
 			std::ifstream df("Data/SKSE/Plugins/AdventurersGuild/dialogue.resolved.json");
 			auto dj = nlohmann::json::parse(df, nullptr, true, true);
