@@ -40,6 +40,8 @@ Bool Function IsPreparedForUninstall() Global Native
 String Function PrepareUninstall() Global Native           ; take back every ability/perk/item of ours; returns the report
 String Function CancelUninstall() Global Native
 String Function UninstallText(Int aiWhich) Global Native   ; 0 confirm, 1 already prepared, 2 nothing to cancel
+String Function RankResetText() Global Native              ; MCM Debug: what recalculating the rank from your level would do (or why not)
+String Function RecalculateRank() Global Native            ; rank by level alone, Reputation at that rank's start; returns the result
 
 ; ---- MCM ----
 Bool Function GetShowGuildRank() Global Native

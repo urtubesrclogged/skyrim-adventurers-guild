@@ -180,7 +180,7 @@ namespace AG::Shop
 	{
 		int VariantOfLocked(RE::TESBoundObject* a_obj);
 
-		// ---- parts of creatures other mods add (1.2.1) ----
+		// ---- parts of creatures other mods add (1.3.0) ----
 		// The trophy list names vanilla monster parts. A creature another mod adds drops parts the list has never heard
 		// of, so they are worked out from the records: an ingredient, or a misc item tagged as an animal hide or part,
 		// that another mod defines and that a creature which starts fights (Aggressive or worse) carries or drops.

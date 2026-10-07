@@ -8,6 +8,7 @@
 #include "Guild.h"
 
 #include "Adventurers.h"
+#include "Diag.h"
 #include "Dungeons.h"
 #include "Party.h"
 #include "Counter.h"
@@ -252,7 +253,7 @@ namespace AG::Guild
 			SKSE::log::info("Guild: promoted to rank {}", Letter(rank));
 		}
 
-		// Support log: every line a wandering adventurer speaks, ours or the game's, so how often a Guild greeting
+		// Detailed log only: every line a wandering adventurer speaks, ours or the game's, so how often a Guild greeting
 		// wins against the vanilla ones can be counted instead of guessed.
 		struct GreetingSink final : RE::BSTEventSink<RE::TESTopicInfoEvent>
 		{
@@ -264,7 +265,7 @@ namespace AG::Guild
 
 			RE::BSEventNotifyControl ProcessEvent(const RE::TESTopicInfoEvent* a_e, RE::BSTEventSource<RE::TESTopicInfoEvent>*) override
 			{
-				if (!a_e || a_e->type != RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin || !g_wandererFaction) return RE::BSEventNotifyControl::kContinue;
+				if (!a_e || a_e->type != RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin || !g_wandererFaction || !Diag::DetailedLog()) return RE::BSEventNotifyControl::kContinue;
 				auto* actor = a_e->speakerRef ? a_e->speakerRef->As<RE::Actor>() : nullptr;
 				if (!actor || !actor->IsInFaction(g_wandererFaction)) return RE::BSEventNotifyControl::kContinue;
 				const auto* info = RE::TESForm::LookupByID(a_e->topicInfoFormID);
@@ -1275,6 +1276,53 @@ namespace AG::Guild
 
 	void DebugRegister() { DoRegister(); }
 	void DebugPromote() { DoPromote(); }
+
+	// MCM > Debug: the rank the player's level alone gives (the highest whose level floor it meets, no registration
+	// cap), with exactly the Reputation that rank starts at. For a character whose record no longer fits: a save
+	// that joined late, a level overhaul, a tester.
+	namespace
+	{
+		int RankForLevel(int a_level)
+		{
+			int r = 0;
+			for (int i = 1; i < kRankCount; ++i)
+				if (a_level >= g_cfg.minLevel[i]) r = i;
+			return r;
+		}
+	}
+
+	std::string RankResetText()
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		std::lock_guard l(g_lock);
+		if (!g_registered || !pc) return Loc::T("$AG_RankReset_NotRegistered", "You are not registered with the Adventurers Guild. Register at any hold capital's inn first.");
+		const int level = pc->GetLevel(), rank = RankForLevel(level);
+		return Loc::F("$AG_RankReset_Confirm", "You are level {}. This sets your guild rank to {} and your Reputation to {}, replacing rank {} and {} Reputation. Merit, Appraisal and training are not touched. Continue?",
+			level, Letter(rank), g_cfg.reputation[rank], Letter(g_rank), g_reputation);
+	}
+
+	std::string RecalculateRank()
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		int   level, rank, rep;
+		{
+			std::lock_guard l(g_lock);
+			if (!g_registered || !pc) return Loc::T("$AG_RankReset_NotRegistered", "You are not registered with the Adventurers Guild. Register at any hold capital's inn first.");
+			level = pc->GetLevel();
+			rank = RankForLevel(level);
+			rep = g_cfg.reputation[rank];
+			g_rank = rank;
+			g_reputation = rep;
+			g_repCarry = 0.0f;
+			LogLocked(Loc::F("$AG_Log_RankReset", "Guild record set from level {}: Rank {}, {} Reputation.", level, Letter(rank), rep));
+		}
+		SyncGlobals();
+		GuildCard::Sync(false);  // the card carries the rank
+		Counter::Refresh();
+		SendModEvent("AG_RankChanged", LetterStr(rank), static_cast<float>(rank));
+		SKSE::log::info("Guild: rank recalculated from level {} - rank {}, reputation {}", level, Letter(rank), rep);
+		return Loc::F("$AG_RankReset_Done", "Level {}: you are now Rank {} with {} Reputation.", level, Letter(rank), rep);
+	}
 
 	void DebugSetRank(int a_rank)
 	{

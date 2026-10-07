@@ -136,9 +136,12 @@ static class MissivesPatch
             noteTo = retarget.TryGetValue(kv.Key, out var rt2) ? $"0x{rt2.to.ID:X6}" : null,
         }).ToList();
         var boardTriggers = missives.Activators.Where(a => a.EditorID == "_M_ActivatorBoard").Select(a => $"0x{a.FormKey.ID:X6}").ToList();
-        if (boardTriggers.Count == 0) Console.WriteLine("WARNING: no _M_ActivatorBoard found - the registration missive will never be handed out");
+        if (boardTriggers.Count == 0) Console.WriteLine("WARNING: no _M_ActivatorBoard found - missives above the player's rank will not be withdrawn on approach");
+        // the board itself (a container): the player USING it is what hands out the Guild's notice
+        var boardContainers = missives.Containers.Where(c => c.EditorID == "_M_MissiveBoard").Select(c => $"0x{c.FormKey.ID:X6}").ToList();
+        if (boardContainers.Count == 0) Console.WriteLine("WARNING: no _M_MissiveBoard found - the registration missive will never be handed out");
         var manifestPath = Path.Combine(outDir, "missives.json");
-        File.WriteAllText(manifestPath, JsonSerializer.Serialize(new { rankGlobal = $"0x{rankGlobal.ID:X6}", quests = manifest, books = bookLabels, boardTriggers },
+        File.WriteAllText(manifestPath, JsonSerializer.Serialize(new { rankGlobal = $"0x{rankGlobal.ID:X6}", quests = manifest, books = bookLabels, boardTriggers, boardContainers },
             new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
         Console.WriteLine($"wrote {manifestPath} ({manifest.Count} quests, {boardTriggers.Count} board trigger bases)");
         return nextBookId;

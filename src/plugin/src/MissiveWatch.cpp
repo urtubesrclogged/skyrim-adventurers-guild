@@ -38,6 +38,7 @@ namespace AG::MissiveWatch
 		std::unordered_map<RE::FormID, char>      g_watch;  // resolved runtime FormID -> tier letter
 		bool                                       g_active{ false };
 		std::unordered_set<RE::FormID>             g_boardBases;  // _M_ActivatorBoard trigger bases
+		std::unordered_set<RE::FormID>             g_boardContainers;  // _M_MissiveBoard: the board the player opens
 		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
 		std::unordered_set<RE::FormID> g_taken;  // missives the player has taken and not finished (for "gave it up")
 
@@ -146,7 +147,8 @@ namespace AG::MissiveWatch
 
 		class Sink :
 			public RE::BSTEventSink<RE::TESQuestStageEvent>,
-			public RE::BSTEventSink<RE::TESTriggerEnterEvent>
+			public RE::BSTEventSink<RE::TESTriggerEnterEvent>,
+			public RE::BSTEventSink<RE::TESActivateEvent>
 		{
 		public:
 			static Sink* Get()
@@ -199,11 +201,25 @@ namespace AG::MissiveWatch
 					// board's trigger is firing over and over (the first 20, then every 50th)
 					static std::atomic<int> entries{ 0 };
 					if (const int n = ++entries; n <= 20 || n % 50 == 0) SKSE::log::info("MissiveWatch: the player entered a board's trigger ({} this session)", n);
+					// walking up to a board only takes down what is above the player's rank. The Guild's notice to an
+					// unregistered player waits until the board is used (1.3.0: it used to be handed out here, to
+					// anyone who walked past - Whiterun's board stands by the gate).
+					SKSE::GetTaskInterface()->AddTask([] { WithdrawAboveRank(); });
+				}
+				return RE::BSEventNotifyControl::kContinue;
+			}
+
+			// The player opens a board
+			RE::BSEventNotifyControl ProcessEvent(const RE::TESActivateEvent* a_event, RE::BSTEventSource<RE::TESActivateEvent>*) override
+			{
+				if (!a_event || g_boardContainers.empty() || !a_event->objectActivated || !a_event->actionRef || !a_event->actionRef->IsPlayerRef())
+					return RE::BSEventNotifyControl::kContinue;
+				auto* base = a_event->objectActivated->GetBaseObject();
+				if (base && g_boardContainers.contains(base->GetFormID()))
 					SKSE::GetTaskInterface()->AddTask([] {
 						WithdrawAboveRank();
 						Guild::OnBoardApproached();
 					});
-				}
 				return RE::BSEventNotifyControl::kContinue;
 			}
 		};
@@ -328,6 +344,10 @@ namespace AG::MissiveWatch
 				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
 				if (auto* act = dh->LookupForm(localId, "Missives.esp")) g_boardBases.insert(act->GetFormID());
 			}
+			for (auto& b : j.value("boardContainers", nlohmann::json::array())) {
+				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
+				if (auto* c = dh->LookupForm(localId, "Missives.esp")) g_boardContainers.insert(c->GetFormID());
+			}
 			for (auto& entry : j.value("quests", nlohmann::json::array())) {
 				const auto localId = static_cast<std::uint32_t>(std::stoul(entry.at("formId").get<std::string>(), nullptr, 16));
 				const auto tierStr = entry.at("tier").get<std::string>();
@@ -350,6 +370,7 @@ namespace AG::MissiveWatch
 
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESQuestStageEvent>(Sink::Get());
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTriggerEnterEvent>(Sink::Get());
+		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESActivateEvent>(Sink::Get());
 		g_active = true;
 		SKSE::log::info("MissiveWatch: registered");
 	}

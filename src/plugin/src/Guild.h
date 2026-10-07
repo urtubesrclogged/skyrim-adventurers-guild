@@ -72,6 +72,8 @@ namespace AG::Guild
 	// "Prepare to Uninstall" (MCM): take back every ability, perk and item of ours and stay dormant; Cancel undoes it
 	bool        Dormant();
 	std::string PrepareUninstall();
+	std::string RankResetText();    // MCM > Debug: what recalculating the rank from the player's level would do
+	std::string RecalculateRank();  // ... and doing it: rank by level alone, Reputation at that rank's start
 	std::string CancelUninstall();
 
 	std::string Dump();
@@ -98,7 +100,7 @@ namespace AG::Guild
 	// Successor liaisons (Ysolda once she has the Bannered Mare) join AG_GuildLiaisonFaction: their dialogue and the
 	// SkyrimNet actions wait for it. Called on load and a few seconds after a liaison dies. Game thread.
 	void  SyncSuccessors();
-	// Conduct (1.2.1): a bounty rising in a hold costs Reputation and any bounty holds promotion back; a taken
+	// Conduct (1.3.0): a bounty rising in a hold costs Reputation and any bounty holds promotion back; a taken
 	// missive given up costs a share of what it would have paid. No rank is ever taken away.
 	void  ConductTick();                                              // every few seconds, game thread
 	void  OnMissiveAbandoned(int a_rank, std::string_view a_title);

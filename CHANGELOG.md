@@ -1,43 +1,42 @@
 # Changelog
 
-## 1.2.1
+## 1.3.0
 
-**Trophies**
-- The Guild now buys parts from hostile creatures added by other mods. An ingredient, hide or other animal part counts
-  when a creature that starts fights carries or drops it; harmless wildlife adds nothing, and meat and fish are never
-  trophies. A "creature" with an alchemist's pockets full of ingredients is carrying loot, and none of that counts.
-  Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
-- `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
+The world outside the inn. Threat ranks now follow how dangerous a creature is, not only its level; what you can
+read of them grows with Appraisal; the Guild notices how you behave; and there are more adventurers in Skyrim than
+you.
 
 **Threat ranks**
-- A creature's threat rank no longer rests on its level alone. Creatures that fight with their own body now get a
+- A creature's threat rank no longer rests on its level alone. Creatures that fight with their own body get a
   danger score from their Health and the damage they deal, and the score moves the level rank one rank at most, up
-  or down. Sabre cats, bears, trolls, hagravens and Dwarven Centurions go up a rank; a mammoth is B again; a
-  high-level creature that hits weakly comes down one. It is worked out from the creature in front of you, so it
-  covers creatures from other mods.
+  or down. Sabre cats, bears, trolls, hagravens, giants and Dwarven Centurions go up a rank; a high-level creature
+  that hits weakly comes down one.
+- It is worked out from the creature in front of you, so creatures from other mods, and creatures an overhaul has
+  made tougher, are ranked by what they are in your game.
 - People, and creatures that rely on carried weapons (draugr, falmer, rieklings), are not scored and keep their
   level rank. Dragons keep their two-rank bump.
 - Judgement calls by race, where neither level nor score says it right: giants and Dwarven Centurions are never
-  below C, Draugr Deathlords (draugr of level 30 and up) never below B, Dragon Priests are S, netches are D at most.
-  The list is in `threat.resolved.json`.
+  below C, Draugr Deathlords (draugr of level 30 and up) never below B, Dragon Priests are S, netches are D at most
+  and horses E. The list is in `threat.resolved.json` and can be edited.
 - `AdventurersGuild.ini`, `[Threat]`: `DangerScore`, the score each rank starts at, and `RaceRules`. These replace
   `HealthBase`, `HealthPerLevel` and `ToughRatio1/2`, which are no longer read.
 
 **Appraisal**
-- Appraisal I now reads the threat rank of people and wildlife only. Trolls, draugr, vampires, dragons, automatons
-  and other creatures of legend show `[?]` on their health bar until you learn Appraisal II.
-- A threat of rank A or S is beyond measure, whatever it is: `[?]` until Appraisal III.
-- Kills still pay by the real rank. `AdventurersGuild.ini`, `[Appraisal]`: `FantasyTier = 0` and `HighRankTier = 0`
-  put it back as it was.
+- Each level of Appraisal now reads more:
+  - Appraisal I: the threat rank of people and wildlife. Trolls, draugr, vampires, dragons, automatons and other
+    creatures of legend show `[?]` on their health bar.
+  - Appraisal II: creatures of legend too.
+  - Appraisal III: threats of rank A and S, which are beyond measure until then and show `[?]` whatever they are.
+- Only the label is hidden. Kills pay by the real rank, and the ranks of fellow adventurers are read as before.
+- `AdventurersGuild.ini`, `[Appraisal]`: `FantasyTier = 0` and `HighRankTier = 0` put it back as it was.
 
 **Conduct**
-- Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes Reputation in
-  proportion (a tenth of the bounty by default). What nobody witnessed costs nothing.
+- Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes a tenth of it in
+  Reputation: 4 for an assault, 100 for a murder. A hundred petty thefts cost what one theft of the same value
+  does. What nobody witnessed costs nothing.
 - While you have a bounty anywhere, promotion is on hold. Paying it or serving the time lifts that.
 - Giving up or failing a missive you took costs half the Reputation it would have paid.
-- No rank is ever taken away.
-
-**Missives**
+- No rank is ever taken away. `guild.json`, `conduct`, holds both rates.
 
 **People**
 - Sinmir, the Bannered Mare regular, is a C-rank adventurer with voiced lines of his own, by your rank. If the
@@ -48,13 +47,35 @@
 - The wandering adventurers you meet on the roads are Guild members with a rank, and greet you by how your rank
   compares with theirs. Other mods' generic "Adventurer" characters count too; mercenaries and sellswords are left
   as they are.
+
+**When an innkeeper dies**
 - If Hulda dies, Ysolda takes over Whiterun's Guild counter at the Bannered Mare, whoever ends up running the inn,
-  fully voiced:
-  registration, promotion, the counter, reports and replacement cards.
+  fully voiced: registration, promotion, the counter, reports and replacement cards.
 - In Solitude, Windhelm and Riften the one who takes the inn over keeps the counter too, fully voiced: Sorex
   Vinius, Nils and Talen-Jei.
 - In Markarth, Dawnstar, Winterhold, Morthal and Falkreath a dead innkeeper's town loses its counter, and someone
   still at the inn says so (Frabbi, Karita, Haran, Lurbuk, Narri).
+
+**Trophies**
+- The Guild now buys parts from hostile creatures added by other mods. An ingredient, hide or other animal part counts
+  when a creature that starts fights carries or drops it; harmless wildlife adds nothing, and meat and fish are never
+  trophies. A "creature" with an alchemist's pockets full of ingredients is carrying loot, and none of that counts.
+  Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
+- `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
+
+**Missives**
+- The Guild's notice to an unregistered player is now handed out when you open a Missives board, not when you walk
+  past one. (Whiterun's board stands by the gate, so a new character leaving Breezehome was handed one unasked.)
+
+**MCM**
+- Debug page, "Recalculate rank from level": sets your guild rank to the one your level alone gives, with the
+  Reputation that rank starts at. For a character whose record no longer fits: one who joined late, a level
+  overhaul, or testing. It asks first, and leaves Merit, Appraisal and training alone.
+
+**Fixes**
+- The "Missives are for registered adventurers" reminder could repeat without end near a board. It is shown once,
+  then not again for five minutes.
+- Uthgerd's lines are re-recorded from her own voice.
 
 ## 1.2.0
 

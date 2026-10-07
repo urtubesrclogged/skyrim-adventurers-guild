@@ -101,6 +101,9 @@ Event OnPageReset(String a_page)
 		AddHeaderOption("$AG_MCM_Debug_Log_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("DetailedLog", "$AG_MCM_Debug_bDetailedLog_Text", bDetailedLog, OPTION_FLAG_NONE)
 		AddEmptyOption()
+		AddHeaderOption("$AG_MCM_Debug_Rank_Header", OPTION_FLAG_NONE)
+		AddTextOptionST("RankReset", "$AG_MCM_Debug_RankReset_Text", "", OPTION_FLAG_NONE)
+		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_Debug_Uninstall_Header", OPTION_FLAG_NONE)
 		AddTextOptionST("Prepare", "$AG_MCM_Debug_Prepare_Text", "", OPTION_FLAG_NONE)
 		AddTextOptionST("Cancel", "$AG_MCM_Debug_Cancel_Text", "", OPTION_FLAG_NONE)
@@ -242,6 +245,24 @@ State Prepare
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText("$AG_MCM_Debug_Prepare_Help")
+	EndEvent
+EndState
+
+; ---- Debug: the guild rank your level alone gives, with the Reputation that rank starts at (the DLL words both
+; messages, in the game's language) ----
+State RankReset
+	Event OnSelectST()
+		If !AG_Native.IsRegistered()
+			ShowMessage(AG_Native.RankResetText(), False, "$Accept", "$Cancel")
+			Return
+		EndIf
+		If !ShowMessage(AG_Native.RankResetText(), True, "$Accept", "$Cancel")
+			Return
+		EndIf
+		ShowMessage(AG_Native.RecalculateRank(), False, "$Accept", "$Cancel")
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_Debug_RankReset_Help")
 	EndEvent
 EndState
 

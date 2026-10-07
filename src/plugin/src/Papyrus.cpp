@@ -71,6 +71,8 @@ namespace AG
 		// ---- MCM: uninstall ----
 		bool        IsPreparedForUninstall(Tag*) { return Guild::Dormant(); }
 		std::string PrepareUninstall(Tag*) { return Guild::PrepareUninstall(); }
+		std::string RankResetText(Tag*) { return Guild::RankResetText(); }
+		std::string RecalculateRank(Tag*) { return Guild::RecalculateRank(); }
 		std::string CancelUninstall(Tag*) { return Guild::CancelUninstall(); }
 		std::string UninstallText(Tag*, std::int32_t a_which)
 		{
@@ -190,6 +192,8 @@ namespace AG
 		REG(ReloadConfig);
 		REG(IsPreparedForUninstall);
 		REG(PrepareUninstall);
+		REG(RankResetText);
+		REG(RecalculateRank);
 		REG(CancelUninstall);
 		REG(UninstallText);
 		REG(IsGuildLiaison);
