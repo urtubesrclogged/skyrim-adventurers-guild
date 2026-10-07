@@ -32,6 +32,7 @@
             {% set led = ag_player(player.UUID) %}
             {% if led.registered %}
         - The Guild's record of {{ player.name }}: {{ led.rank }}-rank adventurer, {{ led.reputation }} Reputation, {{ led.merit }} Merit to spend{% if led.promotionReady %}; eligible for promotion to {{ led.next.rank }}-rank and only needs to ask here and pay the {{ led.promotionFee }} gold promotion fee{% else %}{% if led.next %}; {{ led.next.rank }}-rank needs {{ led.next.reputationShort }} more Reputation{% if led.next.levelShort > 0 %} and more seasoning in the field{% endif %}{% else %}; the highest rank the Guild grants{% endif %}{% endif %}
+        - {{ player.name }}'s Appraisal: {% if led.appraisal == "none" %}not learned (they cannot read ranks at all; the first level is sold here for Merit){% else %}level {{ led.appraisal }} of III{% endif %}
         - Does all of {{ player.name }}'s Guild business (jobs, missives, reports, trophies, services, the guild card) at the counter: when {{ player.name }} brings Adventurers Guild business, opens the counter for them with the AG_OpenGuildCounter action
             {% set lp = ag_party(player.UUID) %}
             {% if lp.party %}

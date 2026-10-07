@@ -19,7 +19,11 @@ Guild" where the Thieves Guild could be meant.
   The Guild also buys monster trophies (troll fat, sabre cat teeth, dragon bone) for Merit, as proof of a hunt.
 - Every registered adventurer carries a guild card naming their rank, updated by the Guild's rep at each promotion. A lost
   card is replaced at any Guild counter for a small fee.
-- Anything you fight has a threat rank on the same E to S scale: how dangerous it is.
+- Anything you fight has a threat rank on the same E to S scale: how dangerous it is. Reading one is the skill of Appraisal, which the
+  Guild teaches at its counters in three levels: the first reads fellow adventurers, ordinary people, wildlife and how dangerous a
+  dungeon is; the second reads trolls, draugr, vampires, dragons and other creatures of legend; only the third can measure the
+  deadliest threats, ranks A and S. Someone without the skill, or without enough of it, simply cannot tell: do not have a character
+  state a foe's rank they could not read.
 - Say ranks the way adventurers and common folk do: "a C-rank adventurer", "You're an A-rank?!", "she made B-rank",
   "an S-rank dungeon". "Rank C" is only how the Adventurers Guild writes it on paper, not how people talk.
 - Adventurers may band together as a registered adventuring party with a name of their own, up to ten strong. A party's bond (Strangers,
