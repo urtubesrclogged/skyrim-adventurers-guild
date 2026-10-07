@@ -21,6 +21,7 @@ namespace AG::MissiveWatch
 {
 	void Register();  // event sink + manifest load, call at kDataLoaded
 	bool Active();    // Missives.esp is loaded and its quests resolved
+	void OnGameLoaded();  // after a load: note which missives the player is carrying
 
 	// Dev/test hook (DevBench): synthesize the stage-100 event for one quest FormID
 	// (hex string, e.g. "0x0201A2B3"), bypassing a real Missives board turn-in.

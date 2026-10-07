@@ -98,6 +98,10 @@ namespace AG::Guild
 	// Successor liaisons (Ysolda once she has the Bannered Mare) join AG_GuildLiaisonFaction: their dialogue and the
 	// SkyrimNet actions wait for it. Called on load and a few seconds after a liaison dies. Game thread.
 	void  SyncSuccessors();
+	// Conduct (1.2.1): a bounty rising in a hold costs Reputation and any bounty holds promotion back; a taken
+	// missive given up costs a share of what it would have paid. No rank is ever taken away.
+	void  ConductTick();                                              // every few seconds, game thread
+	void  OnMissiveAbandoned(int a_rank, std::string_view a_title);
 	int   CardFee();                            // gold for a replacement guild card
 	// The player's page of the Guild ledger, compact JSON for SkyrimNet (liaisons read it; see ag_player()).
 	std::string LedgerJson();

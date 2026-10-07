@@ -9,6 +9,15 @@
   Merit follows the item's gold value, up to 5 each. Vanilla trophies are unchanged.
 - `guild.json`, `modCreatureTrophies`: the gold-per-Merit rate, the cap, and a switch to turn this off.
 
+**Conduct**
+- Reputation can now be lost. When your bounty in a hold rises, the Guild hears of it and takes Reputation in
+  proportion (a tenth of the bounty by default). What nobody witnessed costs nothing.
+- While you have a bounty anywhere, promotion is on hold. Paying it or serving the time lifts that.
+- Giving up or failing a missive you took costs half the Reputation it would have paid.
+- No rank is ever taken away.
+
+**Missives**
+
 **People**
 - Sinmir, the Bannered Mare regular, is a C-rank adventurer with voiced lines of his own, by your rank. If the
   Stormcloaks take Whiterun and make him captain of the guard, the Guild sets him aside and his lines change.

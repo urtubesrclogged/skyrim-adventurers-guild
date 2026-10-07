@@ -21,6 +21,9 @@
 		"_renown": "How far the party's name travels (SkyrimNet: who has heard of it). Points: 3 per dungeon cleared and per missive, 5 per great beast or boss, 0.2 per kill, 1 per day in the field together. At renown[0] NPCs everywhere know the party's name ('talked about in the holds'); at renown[1] it is famous across Skyrim. Guild reps and the party's own members always know it.",
 		"renown": [15, 60] },
 
+	"_conduct": "What costs Reputation. Only what the holds know: when your bounty in a hold RISES the Guild hears of it and takes repPerBountyGold of Reputation for each gold of it (0.1: a 40 gold assault costs 4, a 1000 gold murder 100), at least 1. A crime nobody witnessed costs nothing. While you have a bounty anywhere, promotion is on hold; paying it or serving the time lifts that. A rank is never taken away, but Reputation can fall below what the next promotion needs. abandonShare: giving up or failing a missive or notice you TOOK costs this share of the Reputation it would have paid.",
+	"conduct": { "repPerBountyGold": 0.1, "abandonShare": 0.5 },
+
 	"_registrationCap": "Registration places an experienced newcomer by level (minLevel table above), never above this rank.",
 	"registrationCap": "C",
 

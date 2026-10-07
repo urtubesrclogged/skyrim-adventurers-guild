@@ -37,7 +37,8 @@ namespace AG::MissiveWatch
 		std::unordered_map<RE::FormID, char>      g_watch;  // resolved runtime FormID -> tier letter
 		bool                                       g_active{ false };
 		std::unordered_set<RE::FormID>             g_boardBases;  // _M_ActivatorBoard trigger bases
-		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
+		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
+		std::unordered_set<RE::FormID> g_taken;  // missives the player has taken and not finished (for "gave it up")
 
 		// Missives names its boards by hold; the guild's liaisons are named by capital.
 		std::string HoldOf(const std::string& a_city)
@@ -166,6 +167,20 @@ namespace AG::MissiveWatch
 				}
 				// accepted (20), withdrawn (110), done: the counter's board list must follow
 				if (Counter::IsOpen()) Counter::Refresh();
+				// Taken, then given up (110: the note discarded) or failed (105): the Guild takes note. A missive
+				// withdrawn from the board (0 -> 110) was never taken.
+				bool abandoned = false;
+				{
+					std::lock_guard l(g_lock);
+					if (a_event->stage == 100) g_taken.erase(a_event->formID);
+					else if (a_event->stage == 105 || a_event->stage == 110) abandoned = g_taken.erase(a_event->formID) > 0;
+					else if (a_event->stage > 0) g_taken.insert(a_event->formID);
+				}
+				if (abandoned) {
+					std::string title = Loc::T("$AG_Title_GuildMissive", "Guild Missive");
+					if (auto* q = RE::TESForm::LookupByID<RE::TESQuest>(a_event->formID)) title = QuestBoard::StripRank(q->GetFullName());
+					Guild::OnMissiveAbandoned(FromLetter(tier), title);
+				}
 				if (a_event->stage != 100) return RE::BSEventNotifyControl::kContinue;
 				Announce(tier, a_event->formID);
 				return RE::BSEventNotifyControl::kContinue;
@@ -335,6 +350,18 @@ namespace AG::MissiveWatch
 	}
 
 	bool Active() { return g_active; }
+
+	// After a load: which missives the player is carrying (running, past the board, not finished)
+	void OnGameLoaded()
+	{
+		if (!g_active) return;
+		std::lock_guard l(g_lock);
+		g_taken.clear();
+		for (auto& [id, tier] : g_watch) {
+			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
+			if (q && Running(q) && q->GetCurrentStageID() > 0 && q->GetCurrentStageID() < 100) g_taken.insert(id);
+		}
+	}
 
 	void WithdrawAboveRank()
 	{

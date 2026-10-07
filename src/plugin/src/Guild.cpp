@@ -36,6 +36,8 @@ namespace AG::Guild
 			int                          fee{ 50 };
 			int                          promotionFee{ 50 };
 			int                          cardFee{ 25 };  // a replacement guild card (the first is free)
+			float                        repPerBountyGold{ 0.1f };  // Reputation lost per gold of new bounty
+			float                        abandonShare{ 0.5f };      // of a taken missive's Reputation, lost when it is given up
 			std::array<int, kRankCount>  reputation{ 0, 100, 300, 700, 1500, 3000 };
 			std::array<int, kRankCount>  minLevel{ 1, 12, 24, 36, 48, 60 };
 			int                          cap{ 2 };  // C
@@ -97,6 +99,12 @@ namespace AG::Guild
 		RE::TESGlobal*       g_gRegFee{ nullptr };
 		RE::TESGlobal*       g_gPromoFee{ nullptr };
 		RE::TESGlobal* g_gCardFee{ nullptr };
+		// Conduct: the bounty last seen in each crime faction (by StableKey; co-save), so a rise can be told from a
+		// bounty the player already had. g_bountyKnown is false on a save from before this existed: the first look only
+		// takes note. g_bountyActive: the player has a bounty somewhere, which puts promotion on hold.
+		std::map<std::string, int> g_bountySeen;
+		bool                       g_bountyKnown{ false };
+		std::atomic<bool>          g_bountyActive{ false };
 		RE::TESTopic*  g_replaceTopic{ nullptr };  // the player's "I've lost my guild card" line: the DLL writes the fee into it
 		// Liaison dialogue lines by role (dialogue.resolved.json). Staff/referral lines are not listed,
 		// so choosing a topic at a non-guild inn only gets the innkeeper's pointer to the right city.
@@ -155,6 +163,15 @@ namespace AG::Guild
 		bool ReadyLocked()
 		{
 			if (!g_registered || g_rank < 0 || g_rank >= kRankCount - 1) return false;
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			const int next = g_rank + 1;
+			return pc && !g_bountyActive.load() && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= g_cfg.minLevel[next];
+		}
+
+		// Everything a promotion needs is met, but a bounty has it on hold
+		bool BlockedLocked()
+		{
+			if (!g_registered || g_rank < 0 || g_rank >= kRankCount - 1 || !g_bountyActive.load()) return false;
 			auto* pc = RE::PlayerCharacter::GetSingleton();
 			const int next = g_rank + 1;
 			return pc && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= g_cfg.minLevel[next];
@@ -322,6 +339,8 @@ namespace AG::Guild
 				j["training"] = g_training;
 				j["dormant"] = g_dormant.load();
 				j["cardIssued"] = GuildCard::Issued();
+				j["bounties"] = g_bountySeen;
+				j["bountyKnown"] = g_bountyKnown;
 				j["counterMask"] = ControlsGuard::Masked();  // the engine saves the control flags (ControlsGuard.h)
 				auto& reports = j["reports"] = nlohmann::json::array();
 				for (auto& r : g_reports) reports.push_back({ { "kind", r.kind }, { "title", r.title }, { "detail", r.detail }, { "gold", r.gold }, { "merit", r.merit }, { "rep", r.rep } });
@@ -344,6 +363,9 @@ namespace AG::Guild
 			g_repCarry = 0.0f;
 			g_regMissiveGiven = false;
 			GuildCard::SetIssued(false);
+			g_bountySeen.clear();
+			g_bountyKnown = false;
+			g_bountyActive = false;
 			g_lastReady = false;
 			g_registeredDay = -1.0f;
 			g_promotedDay = -1.0f;
@@ -391,6 +413,8 @@ namespace AG::Guild
 						g_appraisal = std::clamp(j.value("appraisal", 0), 0, 3);
 						g_dormant = j.value("dormant", false);
 						GuildCard::SetIssued(j.value("cardIssued", false));
+						g_bountySeen = j.value("bounties", std::map<std::string, int>{});
+						g_bountyKnown = j.value("bountyKnown", false);
 						ControlsGuard::Saved(j.value("counterMask", false));
 						if (j.contains("training")) {
 							auto v = j.at("training").get<std::vector<int>>();
@@ -451,6 +475,10 @@ namespace AG::Guild
 				c.fee = std::max(0, j.value("registrationFee", c.fee));
 				c.promotionFee = std::max(0, j.value("promotionFee", c.promotionFee));
 				c.cardFee = std::max(0, j.value("cardReplacementFee", c.cardFee));
+				if (j.contains("conduct")) {
+					c.repPerBountyGold = std::max(0.0f, j.at("conduct").value("repPerBountyGold", c.repPerBountyGold));
+					c.abandonShare = std::clamp(j.at("conduct").value("abandonShare", c.abandonShare), 0.0f, 1.0f);
+				}
 				if (j.contains("promotion")) {
 					auto& p = j.at("promotion");
 					auto fill = [&](const char* k, std::array<int, kRankCount>& out) {
@@ -606,6 +634,80 @@ namespace AG::Guild
 		}
 	}
 
+	// Reputation taken away (conduct). A rank is never lost; Reputation does not go below zero.
+	void LoseReputation(int a_amount, const std::string& a_why)
+	{
+		if (a_amount <= 0) return;
+		int lost;
+		{
+			std::lock_guard l(g_lock);
+			if (!g_registered) return;
+			lost = std::min(a_amount, g_reputation);
+			g_reputation -= lost;
+			LogLocked(Loc::F("$AG_Log_RepLost", "Lost {} Reputation: {}.", lost, a_why));
+		}
+		SKSE::log::info("Guild: -{} reputation ({})", lost, a_why);
+		if (lost > 0) {
+			PrismaToast::Show(Loc::T("$AG_Toast_RepLost", "REPUTATION LOST"), Loc::F("$AG_Toast_RepLostSub", "-{} Reputation · {}", lost, a_why));
+			Hud(Loc::F("$AG_Hud_RepLost", "-{} Guild Reputation ({})", lost, a_why));
+		}
+		SyncGlobals();
+		Counter::Refresh();
+	}
+
+	// The player's bounties, read every few seconds (the tick Party runs). A rise in a hold costs Reputation; any
+	// bounty at all puts promotion on hold until it is paid or served. Only what a hold knows about counts.
+	void ConductTick()
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		if (!pc || !pc->Is3DLoaded() || Dormant()) return;
+		std::vector<std::pair<std::string, int>> rises;  // hold name, gold
+		bool                                     any = false, was;
+		{
+			std::lock_guard l(g_lock);
+			if (!g_registered) return;
+			std::map<std::string, int> now;
+			for (auto& [faction, gold] : pc->GetPlayerRuntimeData().crimeGoldMap) {
+				const int bounty = static_cast<int>(gold.violentCur + gold.nonViolentCur);
+				if (!faction || bounty <= 0) continue;
+				any = true;
+				const auto key = Adventurers::StableKey(faction);
+				now[key] = bounty;
+				const auto seen = g_bountySeen.find(key);
+				const int  before = seen == g_bountySeen.end() ? 0 : seen->second;
+				if (g_bountyKnown && bounty > before) {
+					const char* n = faction->GetName();
+					rises.emplace_back(n && *n ? n : "", bounty - before);
+				}
+			}
+			g_bountySeen = std::move(now);
+			g_bountyKnown = true;
+			was = g_bountyActive.exchange(any);
+		}
+		for (auto& [hold, gold] : rises) {
+			const int loss = std::max(1, static_cast<int>(std::lround(gold * g_cfg.repPerBountyGold)));
+			LoseReputation(loss, hold.empty() ? Loc::T("$AG_Why_Bounty", "a bounty on your head") : Loc::F("$AG_Why_BountyIn", "a bounty in {}", hold));
+		}
+		if (was != any) {
+			bool blocked;
+			{
+				std::lock_guard l(g_lock);
+				blocked = BlockedLocked();
+			}
+			if (any && blocked) Hud(Loc::T("$AG_Hud_PromoHold", "The Guild has put your promotion on hold until your bounty is cleared."));
+			SKSE::log::info("Guild: bounty {} - promotion {}", any ? "active" : "cleared", any ? "on hold" : "no longer on hold");
+			SyncGlobals();  // the promotion topic and the "ready" notice follow
+			Counter::Refresh();
+		}
+	}
+
+	// A missive or notice the player took and then gave up or failed
+	void OnMissiveAbandoned(int a_rank, std::string_view a_title)
+	{
+		const int loss = std::max(1, static_cast<int>(std::lround(MissiveRep(a_rank) * g_cfg.abandonShare)));
+		LoseReputation(loss, Loc::F("$AG_Why_Abandoned", "abandoned: {}", a_title));
+	}
+
 	void AddMerit(int a_amount, std::string_view a_why)
 	{
 		if (a_amount <= 0) return;
@@ -743,6 +845,7 @@ namespace AG::Guild
 		j["merit"] = g_merit;
 		j["reputation"] = g_reputation;
 		j["ready"] = ReadyLocked();
+		j["promotionBlocked"] = BlockedLocked();  // would be ready, but for a bounty
 		j["today"] = Today();
 		// today's calendar date, so the page can turn a stored "days passed" into a date ("3rd of Hearthfire, 4E 201")
 		if (auto* cal = RE::Calendar::GetSingleton())

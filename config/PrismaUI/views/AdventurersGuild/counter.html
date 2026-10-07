@@ -133,6 +133,7 @@
   .req.ok .fill { background: repeating-linear-gradient(135deg, #3f5a2c 0 4px, #4d6b36 4px 8px); }
   .req .num { width: 110px; text-align: right; }
   .note-ok { margin-top: 10px; color: var(--wax); font-style: italic; font-size: 17px; }
+  .note-hold { color: var(--wax); font-style: italic; margin-top: 6px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
   .chips span { border: 1px solid rgba(80, 60, 30, 0.45); padding: 3px 10px; font-size: 15px; }
   .seal-wax { position: absolute; right: 16px; top: 10px; width: 96px; height: 96px; transform: rotate(-9deg); }  /* the Guild's wax seal (tools/make_seal.py) */
@@ -460,7 +461,8 @@ function cardTodo() {
     [t("$AG_UI_TodoTrophies", "Trophies to sell"), trophies]];
   return `<div class="todo"><div class="thead caps">${esc(t("$AG_UI_TodoHead", "Field Notes"))}</div>
     ${rows.map(([k, v]) => `<div class="trow ${v ? "" : "none"}"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("")}
-    ${data.ready && data.next ? `<div class="tpromo">${esc(t("$AG_UI_TodoPromotion", "Eligible for promotion!"))}</div>` : ""}</div>`;
+    ${data.ready && data.next ? `<div class="tpromo">${esc(t("$AG_UI_TodoPromotion", "Eligible for promotion!"))}</div>` : ""}
+    ${data.promotionBlocked ? `<div class="tpromo">${esc(t("$AG_UI_TodoPromoHold", "Promotion on hold: bounty"))}</div>` : ""}</div>`;
 }
 function renderCard() {
   const n = data.next, m = data.missives || [], tr = data.training || [];
@@ -474,7 +476,8 @@ function renderCard() {
       <div class="req ${lvlOk ? "ok" : ""}"><span class="lbl">${esc(t("$AG_UI_MinLevel", "Min Level"))}</span>
         <div class="bar"><div class="fill" style="width:${pct(data.level, 1, n.level)}%"></div></div>
         <span class="num">${data.level} / ${n.level}</span></div>
-      ${data.ready ? `<div class="note-ok">${esc(t("$AG_UI_Eligible", "Eligible for promotion — speak to the innkeeper."))}</div>` : ""}`;
+      ${data.ready ? `<div class="note-ok">${esc(t("$AG_UI_Eligible", "Eligible for promotion — speak to the innkeeper."))}</div>` : ""}
+      ${data.promotionBlocked ? `<div class="note-hold">${esc(t("$AG_UI_PromoHold", "Promotion on hold — clear your bounty first."))}</div>` : ""}`;
   }
   const app = [t("$AG_UI_None", "None"), "I", "II", "III"][data.appraisal || 0];
   return `<div class="card">

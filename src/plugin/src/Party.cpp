@@ -686,7 +686,10 @@ namespace AG::Party
 		std::thread([] {
 			for (;;) {
 				std::this_thread::sleep_for(std::chrono::seconds(5));
-				SKSE::GetTaskInterface()->AddTask([] { Tick(); });
+				SKSE::GetTaskInterface()->AddTask([] {
+					Tick();
+					Guild::ConductTick();  // the player's bounties, on the same beat
+				});
 			}
 		}).detach();
 	}
