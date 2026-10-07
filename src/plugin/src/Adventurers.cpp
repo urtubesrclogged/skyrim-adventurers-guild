@@ -51,6 +51,32 @@ namespace AG::Adventurers
 		};
 		std::vector<Successor> g_successors;
 
+		// adventurers.json "notes": a SkyrimNet bio line for an NPC who is not (only) a named member, optionally only
+		// once another NPC is dead (the one who keeps a counter after an innkeeper, or says it has closed)
+		struct BioNote
+		{
+			RE::TESNPC* whenDead{ nullptr };
+			std::string text;
+		};
+		std::unordered_multimap<RE::FormID, BioNote> g_notes;
+		std::string                                  g_wandererNote;
+
+		// The game's own GetDeadCount, as dialogue conditions ask it: true once that NPC has died
+		bool HasDied(RE::TESNPC* a_npc)
+		{
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			if (!a_npc || !pc) return false;
+			RE::TESConditionItem c;
+			c.next = nullptr;
+			c.data.functionData.function = RE::FUNCTION_DATA::FunctionID::kGetDeadCount;
+			c.data.functionData.params[0] = a_npc;
+			c.data.comparisonValue.f = 1.0f;
+			c.data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kGreaterThanOrEqualTo;
+			c.data.object = RE::CONDITIONITEMOBJECT::kSelf;
+			RE::ConditionCheckParams params(pc, pc);
+			return c.IsTrue(params);
+		}
+
 		// Reads only game state. The successor, if the liaison they follow is dead and they are alive.
 		RE::Actor* Active(const Successor& a_s)
 		{
@@ -307,6 +333,20 @@ namespace AG::Adventurers
 				if (w.contains("not")) g_wanderers.notFactions = Factions(w.at("not"), "wanderers.not");
 				SKSE::log::info("Adventurers: {} wandering adventurer bases, {} name words", g_wanderers.bases.size(), g_wanderers.names.size());
 			}
+			g_wandererNote = j.contains("wanderers") ? j.at("wanderers").value("note", "") : "";
+			g_notes.clear();
+			for (auto& n : j.value("notes", nlohmann::json::array())) {
+				BioNote bn;
+				bn.text = n.value("note", "");
+				if (n.contains("whenDead")) {
+					for (auto& k : n.at("whenDead").value("npcs", nlohmann::json::array()))
+						if (auto* f = FormOfKey(k.get<std::string>())) bn.whenDead = f->As<RE::TESNPC>();
+					if (!bn.whenDead) continue;  // names someone this game does not have: the line never applies
+				}
+				for (auto& k : n.value("npcs", nlohmann::json::array()))
+					if (auto* f = FormOfKey(k.get<std::string>())) g_notes.emplace(f->GetFormID(), bn);
+			}
+			SKSE::log::info("Adventurers: {} bio notes", g_notes.size());
 			g_named.clear();
 			for (auto& n : j.value("named", nlohmann::json::array())) {
 				Named nm;
@@ -472,9 +512,17 @@ namespace AG::Adventurers
 	{
 		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
 		std::lock_guard l(g_lock);
-		auto it = base ? g_named.find(base->GetFormID()) : g_named.end();
-		if (it == g_named.end()) return {};
-		return it->second.Retired() ? it->second.retiredNote : it->second.note;
+		if (!base) return {};
+		std::string out;
+		const auto  add = [&](const std::string& a_text) {
+			if (!a_text.empty()) out += (out.empty() ? "" : " ") + a_text;
+		};
+		if (auto it = g_named.find(base->GetFormID()); it != g_named.end()) add(it->second.Retired() ? it->second.retiredNote : it->second.note);
+		const auto range = g_notes.equal_range(base->GetFormID());
+		for (auto n = range.first; n != range.second; ++n)
+			if (!n->second.whenDead || HasDied(n->second.whenDead)) add(n->second.text);
+		if (out.empty() && !g_wandererNote.empty() && WandererLocked(a_actor)) add(g_wandererNote);
+		return out;
 	}
 
 	const char* KindName(Kind a_kind)

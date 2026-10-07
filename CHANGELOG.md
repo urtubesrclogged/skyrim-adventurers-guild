@@ -72,6 +72,13 @@ you.
   Reputation that rank starts at. For a character whose record no longer fits: one who joined late, a level
   overhaul, or testing. It asks first, and leaves Merit, Appraisal and training alone.
 
+**SkyrimNet**
+- The named adventurers, Erik, whoever keeps a counter after an innkeeper's death and those who have to say a
+  town's counter has closed all have a bio line of their own, so they speak of the Guild as their lines do.
+- Wandering adventurers know they are Guild members and talk shop like it.
+- New common knowledge: adventurers on the roads, the Guild's view of a bounty, and what happens to a counter when
+  its innkeeper dies.
+
 **Fixes**
 - The "Missives are for registered adventurers" reminder could repeat without end near a board. It is shown once,
   then not again for five minutes.

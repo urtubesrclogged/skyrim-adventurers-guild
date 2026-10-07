@@ -3,7 +3,7 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.9.0",
+    "version": "1.8.0",
     "entries": [
       {
         "key": "ag_basics",
@@ -35,7 +35,7 @@
       {
         "key": "ag_counters",
         "display_name": "Where the Guild keeps its counters",
-        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlelight Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. There is no counter on Solstheim. A counter belongs to its inn, not to one person: when an innkeeper dies, whoever takes the inn over may keep the Guild's counter once the Adventurers Guild certifies them, as Ysolda would at the Bannered Mare. Until then that town has no counter.",
+        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlelight Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. There is no counter on Solstheim.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,
@@ -49,7 +49,7 @@
       {
         "key": "ag_ranks",
         "display_name": "What a Guild rank means",
-        "content": "An Adventurers Guild rank is a badge of honour earned by deeds, never bought: missives finished, dungeons cleared, great beasts slain. From lowest to highest the ranks are E, D, C, B, A and S. E and D are adventurers making their start; C are seasoned hands; B and A are veterans whose names travel from hold to hold; S, for Sealed, marks a living legend whose deeds the Guild's Registrar-General sealed personally. There have never been many, and hardly one is left in Skyrim. Each rank has its metal, stamped on the adventurer's guild card: Iron for E, Steel for D, Dwarven for C, Orichalcum for B, Ebony for A and Dragonbone for S.",
+        "content": "An Adventurers Guild rank is a badge of honour earned by deeds, never bought: missives finished, dungeons cleared, great beasts slain. E and D are adventurers making their start; C are seasoned hands; B and A are veterans whose names travel from hold to hold; S, for Sealed, marks a living legend whose deeds the Guild's Registrar-General sealed personally. There have never been many, and hardly one is left in Skyrim.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,
@@ -60,37 +60,9 @@
         ]
       },
       {
-        "key": "ag_rank_ladder",
-        "display_name": "What each Guild rank is trusted with",
-        "content": "What each rank of the Adventurers Guild does, from lowest to highest. E-rank: basic field work, escorts, wild scouting, weak monsters. D-rank: frontline fighters, bandit suppression, ruin scouting, organized hunts. C-rank: reliable assets, frontier contracts, crypt clearing, names gaining local weight. B-rank: regional figures, expedition leaders, major monster hunts, acknowledged by nobles and trusted with sensitive work. A-rank: national elites, courted by Jarls, able to influence politics through the contracts they take. S-rank: continental legends, only a handful in all of Tamriel, able to alter wars, end curses or shift nations.",
-        "condition_expr": "",
-        "always_inject": false,
-        "importance": 0.7,
-        "type": "KNOWLEDGE",
-        "tags": [
-          "guild",
-          "ranks",
-          "adventurers"
-        ]
-      },
-      {
-        "key": "ag_guild_card",
-        "display_name": "The guild card",
-        "content": "Every registered adventurer of the Adventurers Guild carries a guild card, handed over by the innkeeper who signed them up. It names the bearer and their rank, and the Guild's rep updates it at each promotion. Adventurers show their card the way a soldier shows a badge, and an adventurer who loses theirs can ask at any Guild counter for a replacement, for a small fee and usually a remark from the innkeeper.",
-        "condition_expr": "",
-        "always_inject": false,
-        "importance": 0.5,
-        "type": "KNOWLEDGE",
-        "tags": [
-          "guild",
-          "card",
-          "adventurers"
-        ]
-      },
-      {
         "key": "ag_missives",
-        "display_name": "Guild Missives and notices",
-        "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. The bounties and investigations pinned to a town's notice board are Guild work too. An adventurer may take jobs up to their own rank and no higher, and each one done is reported at a Guild counter for gold and standing.",
+        "display_name": "Guild Missives",
+        "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. An adventurer may take missives up to their own rank, and each one done is reported at a Guild counter for gold and standing.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -273,7 +245,7 @@
       {
         "key": "ag_parties",
         "display_name": "Adventuring parties",
-        "content": "Adventurers of the Adventurers Guild often band together as a party, registered at an Adventurers Guild counter under a name of their own choosing. A party can be as large as ten: its leader and up to nine companions. The Adventurers Guild writes each party into its ledger: who marched with it, who left, and who fell. A party shares its road, its dangers and its glory, and a good party name is worn with pride, shouted in a tavern toast and painted on a shield.",
+        "content": "Adventurers of the Adventurers Guild often band together as a party, registered at an Adventurers Guild counter under a name of their own choosing. The Adventurers Guild writes each party into its ledger: who marched with it, who left, and who fell. A party shares its road, its dangers and its glory, and a good party name is worn with pride, shouted in a tavern toast and painted on a shield.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,
@@ -311,6 +283,49 @@
           "party",
           "fame",
           "taverns"
+        ]
+      },
+      {
+        "key": "ag_wanderers",
+        "display_name": "Adventurers on the roads",
+        "content": "Not every adventurer is found at an inn. Members of the Adventurers Guild walk the roads between jobs, a missive in the pack and a guild card at the belt, and most are glad of a word with another adventurer: which board has work, which pass has trolls, who made rank. Folk can usually tell one by the mismatched armor and the easy way with a weapon. They are not sellswords for any purse: a Guild adventurer takes the Guild's work.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "adventurers",
+          "roads",
+          "travel"
+        ]
+      },
+      {
+        "key": "ag_conduct",
+        "display_name": "An adventurer's good name",
+        "content": "The Adventurers Guild cares how its members behave. A bounty in any hold reaches the Guild's ledger, costs the adventurer Reputation, and no innkeeper will hear a case for promotion while it stands; paying the fine or serving the time settles it. An adventurer who takes a missive and walks away from it loses standing too. The Guild never strips a rank once earned, but a bad name is slow to mend.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "reputation",
+          "crime",
+          "bounty"
+        ]
+      },
+      {
+        "key": "ag_counter_lost",
+        "display_name": "When a counter closes",
+        "content": "A hold's Guild counter is its innkeeper's licence. When an innkeeper dies, whoever takes over the inn sometimes keeps the counter on, and sometimes a town is simply left without one, and its adventurers must carry their reports and trophies to another hold capital until the Guild licenses someone new.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.3,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "counter",
+          "innkeeper"
         ]
       },
       {

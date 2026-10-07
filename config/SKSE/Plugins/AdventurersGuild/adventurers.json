@@ -30,8 +30,26 @@
 		}
 	],
 
-	"_wanderers": "Adventurers met on the road. They are Guild members with a rank from their level. npcPrefix: the game's own wandering adventurers, every NPC whose editor ID starts so (tools/EspGen lists them). names: any other mod's generic (not unique) person whose name has one of these words is one too (Immersive Encounters, Extended Encounters, Wyrmstooth ...), unless it also has one of notNames or they are in one of the 'not' factions. Mercenaries, sellswords and hired thugs are deliberately not here: Skyrim has those too.",
+	"_notes": "Lines for an NPC's SkyrimNet bio that do not depend on their being a named member (above): someone who dreams of joining, the one who keeps a counter after an innkeeper's death, the one who has to say a town's counter has closed. whenDead = the line applies only once that NPC is dead. Editor IDs, resolved by tools/EspGen.",
+	"notes": [
+		{ "npcs": ["Erik"], "note": "Not an adventurer yet, though he talks of little else: a Rorikstead farmhand who dreams of registering with the Adventurers Guild, has practised signing his name for its ledger, and is in awe of anyone who carries a guild card. His father needs him on the farm and he has no armor." },
+		{ "npcs": ["HirelingErikTheSlayer"], "note": "Erik the Slayer, as he now calls himself: a farm boy turned adventurer, newly armored and eager to prove it. Guild ranks, guild cards and adventuring parties thrill him, and he registers with the Adventurers Guild the first chance the road gives him." },
+		{ "npcs": ["Ysolda"], "whenDead": { "npcs": ["Hulda"] }, "note": "Since Hulda's death she keeps Whiterun's Adventurers Guild counter at the Bannered Mare. She talked her way into the licence because it is good business: adventurers are her best customers, and their trophies and reports are trade. She does the Guild's business only at the inn." },
+		{ "npcs": ["Mikael"], "whenDead": { "npcs": ["Hulda"] }, "note": "Since Hulda's death the Adventurers Guild's counter at the Bannered Mare is Ysolda's, not his, which he takes with a shrug. He sends Guild business her way." },
+		{ "npcs": ["Saadia"], "whenDead": { "npcs": ["Hulda"] }, "note": "Since Hulda's death the Adventurers Guild's counter at the Bannered Mare is kept by Ysolda; she points adventurers to her." },
+		{ "npcs": ["SorexVinius"], "whenDead": { "npcs": ["CorpulusVinius"] }, "note": "Since his father Corpulus died he keeps Solitude's Adventurers Guild counter at the Winking Skeever along with the inn, and takes the Guild's ledger more seriously than his father's jokes ever let him." },
+		{ "npcs": ["Nils"], "whenDead": { "npcs": ["Elda"] }, "note": "Since Elda's death he keeps Windhelm's Adventurers Guild counter at Candlehearth Hall: the cook who ended up with the ledger, and quietly proud of it." },
+		{ "npcs": ["TalenJei"], "whenDead": { "npcs": ["Keerava"] }, "note": "Since Keerava's death he keeps Riften's Adventurers Guild counter at the Bee and Barb, as carefully as she did, and in her memory." },
+		{ "npcs": ["Frabbi"], "whenDead": { "npcs": ["Kleppr"] }, "note": "The Adventurers Guild's counter at the Silver-Blood Inn was Kleppr's, and it closed when he died: she has an inn to run and no time for a ledger. Markarth has no Guild counter now; she sends adventurers to another hold capital." },
+		{ "npcs": ["Karita"], "whenDead": { "npcs": ["Thoring"] }, "note": "Her father Thoring kept Dawnstar's Adventurers Guild counter at the Windpeak Inn, and it closed when he died. Dawnstar has no Guild counter now; she sends adventurers to another hold capital." },
+		{ "npcs": ["Haran"], "whenDead": { "npcs": ["Dagur"] }, "note": "Her husband Dagur kept Winterhold's Adventurers Guild counter at the Frozen Hearth, and it closed when he died. Winterhold has no Guild counter now; she sends adventurers to another hold capital." },
+		{ "npcs": ["Lurbuk"], "whenDead": { "npcs": ["Jonna"] }, "note": "Jonna kept Morthal's Adventurers Guild counter at the Moorside Inn, and it closed when she died. Morthal has no Guild counter now; he sends adventurers to another hold capital." },
+		{ "npcs": ["Narri"], "whenDead": { "npcs": ["ValgaVinicia"] }, "note": "Valga kept Falkreath's Adventurers Guild counter at Dead Man's Drink, and it closed when she died. Falkreath has no Guild counter now; she sends adventurers to another hold capital." }
+	],
+
+	"_wanderers": "Adventurers met on the road. They are Guild members with a rank from their level. npcPrefix: the game's own wandering adventurers, every NPC whose editor ID starts so (tools/EspGen lists them). names: any other mod's generic (not unique) person whose name has one of these words is one too (Immersive Encounters, Extended Encounters, Wyrmstooth ...), unless it also has one of notNames or they are in one of the 'not' factions. note: the line every wandering adventurer gets in their SkyrimNet bio. Mercenaries, sellswords and hired thugs are deliberately not here: Skyrim has those too.",
 	"wanderers": {
+		"note": "On the road between jobs, as a working adventurer of the Guild: takes Guild Missives from the hold boards, hands in reports and sells trophies at the inn counters, and carries a guild card. Talks shop readily with other adventurers (ranks, jobs, roads, what is paying) and measures them by rank: easy with an equal, respectful toward a higher rank, a little superior toward a lower one.",
 		"npcPrefix": ["WEAdventurer"],
 		"names": ["Adventurer"],
 		"notNames": ["Ghost", "Fallen", "Dead", "Spirit"],
