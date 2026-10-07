@@ -16,6 +16,7 @@
 #include "RankCore.h"
 #include "Shop.h"
 
+#include <chrono>
 #include <deque>
 #include <unordered_set>
 #include <fstream>
@@ -956,7 +957,14 @@ namespace AG::Guild
 			Hud(Loc::T("$AG_Hud_RegNotice", "A Guild notice is pinned to the board. You take a copy."));
 			SKSE::log::info("Guild: registration missive handed out");
 		} else {
-			Hud(Loc::T("$AG_Hud_RegOnly", "Missives are for registered adventurers. Any innkeeper can sign you up."));
+			// A reminder, not a nag: a board's trigger can report the player again and again (standing at its edge, or
+			// a start that drops the player inside one), so it is said once and then not for five minutes.
+			static std::chrono::steady_clock::time_point last{};
+			const auto                                   now = std::chrono::steady_clock::now();
+			if (last.time_since_epoch().count() == 0 || now - last >= std::chrono::minutes(5)) {
+				last = now;
+				Hud(Loc::T("$AG_Hud_RegOnly", "Missives are for registered adventurers. Any innkeeper can sign you up."));
+			}
 		}
 	}
 
