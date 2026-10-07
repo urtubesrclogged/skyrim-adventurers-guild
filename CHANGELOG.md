@@ -9,14 +9,11 @@
 - No more E-rank giants!
 
 **Appraisal**
-- Appraisal I reads adventurers, people, wildlife and dungeons
-- Appraisal II reads creatures of legend (trolls, draugr, vampires, dragons, etc.)
-- Appraisal III reads rank A and S threats
+- Each level of Appraisal now reads more of what is out there; what you cannot read yet shows as [?]
 - Smaller Merit bonus on trophies
 
 **Conduct**
-- Bounties cost Reputation and put promotion on hold
-- Abandoning a missive costs Reputation
+- The Guild now notices how you behave: crime and abandoned missives cost you standing
 
 **World Building and NPCs**
 - Additional active adventurers (Sinmir, Mjoll, Annekke, etc.)
@@ -25,7 +22,7 @@
 - Inn Keeper Contingency Protocol (Nils might be the best guild rep now)
 
 **Trophies**
-- The Guild buys parts from hostile creatures added by other mods
+- The Guild buys trophies from hostile creatures added by other mods
 
 **Other**
 - The Guild's notice is handed out when you use a Missives board, not when you walk past one
