@@ -27,10 +27,10 @@
 - The Guild buys trophies from hostile creatures added by other mods
 
 **Other**
-- The Guild's notice is handed out when you use a Missives board, not when you walk past one
+- The Guild's notice is handed out when you use a Missives board, not when you walk past one and fixed the
+  "register first" reminder repeating near a Missives board
 - MCM Debug page: recalculate rank from level
-- SkyrimNet: updated lore and NPC bios
-- Fixed the "register first" reminder repeating near a Missives board
+- SkyrimNet: updated lore and NPC bios to match all other changes here
 
 ## 1.2.0
 
