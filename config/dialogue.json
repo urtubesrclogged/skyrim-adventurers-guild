@@ -508,7 +508,7 @@
    "line": "The Guild keeps its counter at Candlelight Hall. Nords prefer their business kept among Nords."
   }
  ],
- "_generic": "Any other innkeeper, including ones added by other mods.",
+ "_generic": "Any other innkeeper, including ones added by other mods (anyone in JobInnkeeperFaction), unless they are travelling with the player as a follower.",
  "generic": "The Adventurers Guild keeps its counters in the hold capitals, near the missive boards. You won't find one out here.",
  "_prompts": "What the player says.",
  "prompts": {

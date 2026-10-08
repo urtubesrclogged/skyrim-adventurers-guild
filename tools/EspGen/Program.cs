@@ -497,7 +497,14 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         }
         foreach (var g in dlg["staff"]!.AsArray()) Group("staff", g!);
         foreach (var g in dlg["referrals"]!.AsArray()) Group("ref", g!);
-        Info(topic, $"{role}:generic", new[] { dlg["generic"]!.GetValue<string>() }, false, new Condition[] { InFaction(Skyrim.Faction.JobInnkeeperFaction.FormKey) });
+        // Any other innkeeper, other mods' included - but not one who is travelling with the player: follower mods put
+        // tavern staff in JobInnkeeperFaction (Immersive Wenches), and a follower is no innkeeper while she follows.
+        var notFollowing = InFaction(Skyrim.Faction.CurrentFollowerFaction.FormKey);   // in it = rank 0 and up; dismissed is rank -1
+        notFollowing.ComparisonValue = 0;
+        Info(topic, $"{role}:generic", new[] { dlg["generic"]!.GetValue<string>() }, false, new Condition[] {
+            InFaction(Skyrim.Faction.JobInnkeeperFaction.FormKey),
+            new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = new GetPlayerTeammateConditionData() },
+            notFollowing });
     }
     mod.DialogTopics.Add(topic);
     if (pay is not null) mod.DialogTopics.Add(pay);

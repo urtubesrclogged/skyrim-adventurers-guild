@@ -16,6 +16,8 @@
 - Stendarr's Beacon and the Hall of the Vigilant are Points of Interest now, not dungeons
 
 **Other**
+- Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
+  with you
 - The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
 
 ## 1.3.0
