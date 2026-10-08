@@ -80,6 +80,11 @@ New keys, all optional (English is shown for any you leave out):
   `$AG_MCM_System_RankS_Text`.
 * The one-time notice on a game started before 1.4.0: `$AG_Toast_BandsKept`, `$AG_Toast_BandsKeptSub` (the first `{}` is
   the level this game keeps, the second the level new games use).
+* Guild Augments (Services): the section `$AG_Sec_GuildAugments` and its note `$AG_UI_NoteAugments`; each Augment's name
+  and what it does, `$AG_Aug_<id>` and `$AG_AugDesc_<id>` (packhorse, haggler, quickstudy, hardy, vigor);
+  `$AG_Svc_AugDesc` (what it does, then the hours it lasts), `$AG_Note_AugActive` (hours left), `$AG_Buy_Augment`,
+  `$AG_Log_Augment`, `$AG_Hud_AugmentOver`.
+* A spell tome one rank above your own: `$AG_Svc_TomeAbove` (the tome's rank, then the multiple of Merit).
 
 Changed text, same key: `$AG_MCM_Debug_RankReset_Help` no longer lists the level of each rank (they are a setting now).
 

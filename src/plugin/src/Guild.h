@@ -68,6 +68,9 @@ namespace AG::Guild
 	void  AddTrainingStep(int a_stat);
 	bool  TrySpendMerit(int a_cost, std::string_view a_record);  // false if not enough; logs a_record
 	void  AddGold(int a_amount);
+	// Guild Augments (shop.json): one at a time, until a game time. The ability is the ESP's (0xCC0 + index).
+	bool  HasAugmentSpell(int a_index);
+	void  SetAugment(int a_index, float a_days);
 	void  ApplyAbilities();                     // perks/abilities to match Appraisal + training (idempotent)
 	// "Prepare to Uninstall" (MCM): take back every ability, perk and item of ours and stay dormant; Cancel undoes it
 	bool        Dormant();

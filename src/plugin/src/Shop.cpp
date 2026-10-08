@@ -63,7 +63,13 @@ namespace AG::Shop
 		std::vector<Item>    g_tomes, g_supplies;
 		std::vector<Trophy>  g_trophies;
 		std::unordered_map<RE::FormID, int> g_variantOf;  // item -> index in g_trophies, or -1 (names never change)
-		int                  g_trainAmount{ 10 }, g_trainPerRank{ 2 }, g_trainBase{ 40 }, g_trainStep{ 20 };
+		int                  g_trainAmount{ 10 }, g_trainPerRank{ 2 }, g_trainBase{ 40 };
+		std::array<int, kRankCount> g_trainStep{ 20, 20, 30, 30, 40, 40 };  // added per purchase, by the rank it belongs to
+		int                  g_tomeAbove{ 1 }, g_tomeAboveMult{ 2 };        // tomes this many ranks above yours, at this many times the Merit
+		struct Augment { std::string id, name, desc; };
+		std::vector<Augment> g_augments;
+		int                  g_augMerit{ 10 }, g_augRank{ 0 };
+		float                g_augDays{ 1.0f };
 		std::array<int, 3>   g_appMerit{ 10, 75, 250 }, g_appRank{ 0, 1, 3 }, g_appTrophy{ 0, 10, 25 };
 
 		constexpr const char* kStatName[3]{ "Vitality", "Endurance", "Arcana" };
@@ -155,7 +161,19 @@ namespace AG::Shop
 		}
 
 		int TrainCap(int a_rank) { return g_trainPerRank * (std::max(a_rank, 0) + 1); }
-		int TrainCost(int a_done) { return g_trainBase + g_trainStep * a_done; }
+		// the purchase after a_done: the first costs the base, each later one more than the last by its rank's step
+		int TrainCost(int a_done)
+		{
+			int cost = g_trainBase;
+			for (int n = 1; n <= a_done; ++n) cost += g_trainStep[std::min(n / g_trainPerRank, kRankCount - 1)];
+			return cost;
+		}
+		// what a tome costs this player, or -1 when it is too far above their rank to be offered
+		int TomeCost(const Item& a_tome, int a_rank)
+		{
+			if (a_tome.rank <= a_rank) return a_tome.merit;
+			return a_tome.rank - a_rank <= g_tomeAbove ? a_tome.merit * g_tomeAboveMult : -1;
+		}
 
 		std::string SkillLabel(const std::string& a_skill)
 		{
@@ -450,7 +468,23 @@ namespace AG::Shop
 				g_trainAmount = t.value("amount", g_trainAmount);
 				g_trainPerRank = std::max(1, t.value("perRank", g_trainPerRank));
 				g_trainBase = t.value("baseMerit", g_trainBase);
-				g_trainStep = t.value("stepMerit", g_trainStep);
+				if (t.contains("stepMerit")) {
+					if (auto& sm = t.at("stepMerit"); sm.is_array()) {
+						for (std::size_t i = 0; i < g_trainStep.size(); ++i) g_trainStep[i] = sm.empty() ? 0 : sm.at(std::min(i, sm.size() - 1)).get<int>();
+					} else g_trainStep.fill(sm.get<int>());
+				}
+			}
+			if (shop.contains("tomesAboveRank")) {
+				g_tomeAbove = std::max(0, shop.at("tomesAboveRank").value("ranks", g_tomeAbove));
+				g_tomeAboveMult = std::max(1, shop.at("tomesAboveRank").value("multiplier", g_tomeAboveMult));
+			}
+			g_augments.clear();
+			if (shop.contains("augments")) {
+				auto& a = shop.at("augments");
+				g_augMerit = a.value("merit", g_augMerit);
+				g_augRank = a.value("rank", g_augRank);
+				g_augDays = std::max(0.01f, a.value("days", g_augDays));
+				for (auto& e : a.value("list", nlohmann::json::array())) g_augments.push_back({ e.value("id", ""), e.value("name", ""), e.value("desc", "") });
 			}
 			auto trophies = ReadJson("Data/SKSE/Plugins/AdventurersGuild/trophies.resolved.json");
 			g_variantOf.clear();
@@ -508,7 +542,7 @@ namespace AG::Shop
 		return a_appraisal >= 1 && a_appraisal <= 3 ? g_appTrophy[a_appraisal - 1] : 0;
 	}
 
-	nlohmann::json ServicesData(int a_rank, int a_merit, int a_appraisal, const std::array<int, 3>& a_training)
+	nlohmann::json ServicesData(int a_rank, int a_merit, int a_appraisal, const std::array<int, 3>& a_training, int a_augment, float a_augmentHours)
 	{
 		std::lock_guard l(g_lock);
 		auto rows = nlohmann::json::array();
@@ -542,6 +576,15 @@ namespace AG::Shop
 				TrainCost(done), 0, block);
 		}
 
+		// Guild Augments: one at a time, each for a game day
+		for (int i = 0; i < static_cast<int>(g_augments.size()); ++i) {
+			auto&      a = g_augments[i];
+			const auto hours = static_cast<int>(std::lround(g_augDays * 24.0f));
+			std::string block = i == a_augment ? Loc::F("$AG_Note_AugActive", "Active: {} hours left", std::max(1, static_cast<int>(std::ceil(a_augmentHours)))) : "";
+			add("Guild Augments", std::format("augment:{}", i), Loc::T("$AG_Aug_" + a.id, a.name),
+				Loc::F("$AG_Svc_AugDesc", "{} Lasts {} hours.", Loc::T("$AG_AugDesc_" + a.id, a.desc), hours), g_augMerit, g_augRank, block);
+		}
+
 		// Guild Library
 		for (auto& lib : g_library) {
 			const int tier = NextTier(lib);
@@ -556,8 +599,13 @@ namespace AG::Shop
 		for (std::size_t i = 0; i < g_tomes.size(); ++i) {
 			auto* book = g_tomes[i].form->As<RE::TESObjectBOOK>();
 			if (KnowsSpellFrom(book)) continue;
-			add("Spell Tomes", std::format("tome:{}", i), Name(g_tomes[i].form), Loc::T("$AG_Svc_TomeDesc", "Teaches the spell when read."),
-				g_tomes[i].merit, g_tomes[i].rank, Carried(g_tomes[i].form) ? Loc::T("$AG_Note_InPack", "Already in your pack") : "");
+			const int cost = TomeCost(g_tomes[i], a_rank);
+			if (cost < 0) continue;  // too far above the player's rank: not offered at all
+			const bool above = g_tomes[i].rank > a_rank;
+			add("Spell Tomes", std::format("tome:{}", i), Name(g_tomes[i].form),
+				above ? Loc::F("$AG_Svc_TomeAbove", "Teaches the spell when read. A Rank {} tome: above your rank, so it costs {} times the Merit.", Letter(g_tomes[i].rank), g_tomeAboveMult)
+				      : Loc::T("$AG_Svc_TomeDesc", "Teaches the spell when read."),
+				cost, above ? a_rank : g_tomes[i].rank, Carried(g_tomes[i].form) ? Loc::T("$AG_Note_InPack", "Already in your pack") : "");
 		}
 
 		// Supplies
@@ -626,6 +674,25 @@ namespace AG::Shop
 			Give(book);
 			return Loc::F("$AG_Buy_Bought", "Bought {}.", Name(book));
 		}
+		if (a_id.starts_with("augment:")) {
+			const auto i = static_cast<std::size_t>(std::stoul(a_id.substr(8)));
+			std::string name;
+			int         cost, need;
+			float       days;
+			{
+				std::lock_guard l(g_lock);
+				if (i >= g_augments.size()) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
+				name = Loc::T("$AG_Aug_" + g_augments[i].id, g_augments[i].name);
+				cost = g_augMerit;
+				need = g_augRank;
+				days = g_augDays;
+			}
+			if (rank < need) return Loc::F("$AG_Buy_ItemRank", "That requires Rank {}.", Letter(need));
+			if (!Guild::HasAugmentSpell(static_cast<int>(i))) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
+			if (!Pay(cost, Loc::F("$AG_Log_Augment", "Guild Augment: {} ({} Merit).", name, cost), err)) return err;
+			Guild::SetAugment(static_cast<int>(i), days);
+			return Loc::F("$AG_Buy_Augment", "Guild Augment: {}, for the next {} hours.", name, static_cast<int>(std::lround(days * 24.0f)));
+		}
 		const bool tome = a_id.starts_with("tome:"), supply = a_id.starts_with("supply:");
 		if (tome || supply) {
 			Item it;
@@ -635,6 +702,11 @@ namespace AG::Shop
 				const auto i = static_cast<std::size_t>(std::stoul(a_id.substr(tome ? 5 : 7)));
 				if (i >= list.size()) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
 				it = list[i];
+				if (tome) {
+					// a tome one rank above the player's is sold at a multiple; the row shows the same price
+					const int cost = TomeCost(it, rank);
+					if (cost >= 0) it.merit = cost, it.rank = std::min(it.rank, rank);
+				}
 			}
 			if (rank < it.rank) return Loc::F("$AG_Buy_ItemRank", "That requires Rank {}.", Letter(it.rank));
 			if (!Pay(it.merit, Loc::F("$AG_Log_Bought", "Bought {} ({} Merit).", Name(it.form), it.merit), err)) return err;

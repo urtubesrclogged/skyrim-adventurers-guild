@@ -18,6 +18,12 @@
 - Nobody loses a rank. A game already under way keeps its old levels (S at 60) until you change the setting
 - Other adventurers stop at A. Only you and your companions can be S
 
+**Services**
+- New Guild Augments: a boon for the road that lasts a day, one at a time (carry more, better prices, faster skill
+  gains, hardier, or a little more Health, Stamina and Magicka)
+- Spell tomes one rank above your own can now be bought, at twice the Merit
+- Guild training costs more Merit from rank C up. What you have already trained is untouched
+
 **Other**
 - Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
   with you

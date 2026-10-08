@@ -116,6 +116,9 @@ namespace AG::Guild
 		RE::TESBoundObject*  g_gold{ nullptr };
 		std::array<RE::BGSPerk*, 3>                g_appraisalPerks{};
 		std::array<std::vector<RE::SpellItem*>, 3> g_trainSpells;  // [stat][step-1]
+		std::vector<RE::SpellItem*>                g_augmentSpells;  // [index in shop.json's list]
+		int                                        g_augment{ -1 };  // the Augment the player has; guarded by g_lock
+		float                                      g_augmentUntil{ 0.0f };  // game days passed at which it ends
 
 		void Hud(const std::string& a_msg)
 		{
@@ -340,6 +343,7 @@ namespace AG::Guild
 				j["trophiesSold"] = g_trophiesSold;
 				j["appraisal"] = g_appraisal.load();
 				j["training"] = g_training;
+				if (g_augment >= 0) j["augment"] = { { "index", g_augment }, { "until", g_augmentUntil } };
 				j["dormant"] = g_dormant.load();
 				j["cardIssued"] = GuildCard::Issued();
 				j["bounties"] = g_bountySeen;
@@ -383,6 +387,8 @@ namespace AG::Guild
 			g_history.clear();
 			g_appraisal = 0;
 			g_training.fill(0);
+			g_augment = -1;
+			g_augmentUntil = 0.0f;
 			g_dormant = false;
 		}
 
@@ -425,6 +431,10 @@ namespace AG::Guild
 						g_bountyKnown = j.value("bountyKnown", false);
 						g_bountyCarry = j.value("bountyCarry", 0.0);
 						ControlsGuard::Saved(j.value("counterMask", false));
+						if (j.contains("augment")) {
+							g_augment = j.at("augment").value("index", -1);
+							g_augmentUntil = j.at("augment").value("until", 0.0f);
+						}
 						if (j.contains("training")) {
 							auto v = j.at("training").get<std::vector<int>>();
 							for (std::size_t i = 0; i < g_training.size() && i < v.size(); ++i) g_training[i] = std::max(0, v[i]);
@@ -597,6 +607,12 @@ namespace AG::Guild
 				g_trainSpells[st].push_back(sp);
 			}
 		}
+		g_augmentSpells.clear();
+		for (int n = 0; n < 8; ++n) {
+			auto* sp = dh->LookupForm<RE::SpellItem>(0xCC0 + n, kPlugin);
+			if (!sp) break;
+			g_augmentSpells.push_back(sp);
+		}
 
 		auto* s = Sinks::Get();
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTopicInfoEvent>(s);
@@ -689,9 +705,15 @@ namespace AG::Guild
 		}
 	}
 
+	namespace
+	{
+		void AugmentTick();  // below, with the abilities
+	}
+
 	void ConductTick()
 	{
 		SyncWanderers();
+		AugmentTick();
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!pc || !pc->Is3DLoaded() || Dormant()) return;
 		std::vector<std::pair<std::string, int>> rises;  // hold name, gold
@@ -927,7 +949,7 @@ namespace AG::Guild
 		for (auto& h : g_history) history.push_back({ { "day", h.day }, { "text", h.text } });
 		j["appraisal"] = g_appraisal.load();
 		j["training"] = g_training;
-		auto services = Shop::ServicesData(g_rank, g_merit, g_appraisal.load(), g_training);
+		auto services = Shop::ServicesData(g_rank, g_merit, g_appraisal.load(), g_training, g_augment, g_augment >= 0 ? (g_augmentUntil - Today()) * 24.0f : 0.0f);
 		j["services"] = std::move(services);
 		return j;
 	}
@@ -1066,6 +1088,44 @@ namespace AG::Guild
 				if (w && !has) pc->AddSpell(spells[n]);
 				else if (!w && has) pc->RemoveSpell(spells[n]);
 			}
+		}
+		int augment = -1;
+		if (!dormant) {
+			std::lock_guard l(g_lock);
+			augment = g_augment;
+		}
+		for (int n = 0; n < static_cast<int>(g_augmentSpells.size()); ++n) {
+			const bool w = n == augment, has = pc->HasSpell(g_augmentSpells[n]);
+			if (w && !has) pc->AddSpell(g_augmentSpells[n]);
+			else if (!w && has) pc->RemoveSpell(g_augmentSpells[n]);
+		}
+	}
+
+	bool HasAugmentSpell(int a_index) { return a_index >= 0 && a_index < static_cast<int>(g_augmentSpells.size()); }
+
+	void SetAugment(int a_index, float a_days)
+	{
+		{
+			std::lock_guard l(g_lock);
+			g_augment = HasAugmentSpell(a_index) ? a_index : -1;
+			g_augmentUntil = Today() + a_days;
+		}
+		ApplyAbilities();
+	}
+
+	namespace
+	{
+		// An Augment lasts until a game time, so a day spent waiting or sleeping uses it up as a day on the road does
+		void AugmentTick()
+		{
+			{
+				std::lock_guard l(g_lock);
+				if (g_augment < 0 || Today() < g_augmentUntil) return;
+				g_augment = -1;
+			}
+			ApplyAbilities();
+			RE::SendHUDMessage::ShowHUDMessage(Loc::T("$AG_Hud_AugmentOver", "Your Guild Augment has worn off.").c_str());
+			if (Counter::IsOpen()) Counter::Refresh();
 		}
 	}
 

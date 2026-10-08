@@ -13,6 +13,7 @@
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
+//   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
 //   0xC00-0xC7F  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -909,6 +910,63 @@ for (int si = 0; si < 3; si++)
     for (int n = 1; n <= steps; n++)
         Ability((uint)(0x840 + si * 0x20 + (n - 1)), $"AG_Ab_Train{key}{n:D2}", $"Guild Training: {sname}",
             $"Maximum {key.ToLower()} increased by {n * amount}.", tfx, n * amount);
+}
+
+// ---------- Guild Augments (0xCA0-0xCD7): a timed boon, one at a time ----------
+// One ability each: effects 0xCA0 + augment*4 (up to 4), the ability 0xCC0 + augment, a perk 0xCD0 + augment when it
+// needs one. The DLL adds the ability on purchase and takes it away when its game time is up. Each effect is vanilla's
+// own way of doing the same thing: Fortify Carry Weight, Fortify Barter (SpeechcraftModifier), Resist Disease / Poison,
+// and Well Rested for skill gains (an effect that applies a perk with Mod Skill Use).
+{
+    var alist = ReadConfig("shop")["augments"]!["list"]!.AsArray();
+    if (alist.Count > 8) { Console.Error.WriteLine("ERROR shop.json: at most 8 augments"); Environment.Exit(1); }
+    for (int ai = 0; ai < alist.Count; ai++)
+    {
+        var a = alist[ai]!;
+        string aid = a["id"]!.GetValue<string>(), aname = "Guild Augment: " + a["name"]!.GetValue<string>(), adesc = a["desc"]!.GetValue<string>();
+        var asp = new Spell(FK((uint)(0xCC0 + ai)), Rel)
+        {
+            EditorID = $"AG_Ab_Augment_{aid}", Name = aname, Description = adesc,
+            Type = SpellType.Ability, CastType = CastType.ConstantEffect, TargetType = TargetType.Self, BaseCost = 0,
+        };
+        uint slot = 0;
+        MagicEffect AFx(string suffix, ActorValue av, float mag, string desc)
+        {
+            if (slot >= 4) { Console.Error.WriteLine($"ERROR shop.json: augment '{aid}' has more than 4 effects"); Environment.Exit(1); }
+            var m = new MagicEffect(FK((uint)(0xCA0 + ai * 4) + slot++), Rel)
+            {
+                EditorID = $"AG_MGEF_Augment_{aid}_{suffix}", Name = aname, Description = desc,
+                Archetype = new MagicEffectArchetype { Type = MagicEffectArchetype.TypeEnum.PeakValueModifier, ActorValue = av },
+                CastType = CastType.ConstantEffect, TargetType = TargetType.Self, BaseCost = 0f,
+                Flags = MagicEffect.Flag.Recover | MagicEffect.Flag.NoDuration | MagicEffect.Flag.PowerAffectsMagnitude,
+            };
+            mod.MagicEffects.Add(m);
+            asp.Effects.Add(new Effect { BaseEffect = new FormLinkNullable<IMagicEffectGetter>(m.FormKey), Data = new EffectData { Magnitude = mag } });
+            return m;
+        }
+        float? Num(string k) => a[k]?.GetValue<float>();
+        if (Num("carry") is float carry) AFx("Carry", ActorValue.CarryWeight, carry, "Carry weight increased by <mag>.");
+        if (Num("barter") is float barter) AFx("Barter", ActorValue.SpeechcraftModifier, barter, "Prices are <mag>% better.");
+        if (Num("resistDisease") is float rd) AFx("Disease", ActorValue.ResistDisease, rd, "Resist <mag>% of disease.");
+        if (Num("resistPoison") is float rp) AFx("Poison", ActorValue.PoisonResist, rp, "Resist <mag>% of poison.");
+        if (Num("health") is float ah) AFx("Health", ActorValue.Health, ah, "Health increased by <mag>.");
+        if (Num("stamina") is float ast) AFx("Stamina", ActorValue.Stamina, ast, "Stamina increased by <mag>.");
+        if (Num("magicka") is float am) AFx("Magicka", ActorValue.Magicka, am, "Magicka increased by <mag>.");
+        if (Num("skillRate") is float sr)
+        {
+            var perk = new Perk(FK((uint)(0xCD0 + ai)), Rel) { EditorID = $"AG_Perk_Augment_{aid}", Name = aname, Playable = false, Hidden = true, NumRanks = 1 };
+            perk.Effects.Add(new PerkEntryPointModifyValue
+            {
+                EntryPoint = APerkEntryPointEffect.EntryType.ModSkillUse, Modification = PerkEntryPointModifyValue.ModificationType.Multiply,
+                Value = 1f + sr / 100f, PerkConditionTabCount = 1,  // as vanilla's RestedWellPerk: one tab (perk owner)
+            });
+            mod.Perks.Add(perk);
+            AFx("Skills", ActorValue.Health, 0f, $"Skills improve {sr:0}% faster.").PerkToApply.SetTo(perk);
+        }
+        if (asp.Effects.Count == 0) { Console.Error.WriteLine($"ERROR shop.json: augment '{aid}' does nothing"); Environment.Exit(1); }
+        mod.Spells.Add(asp);
+    }
+    Console.WriteLine($"augments: {alist.Count}");
 }
 
 // ---------- Party blessing (0x8D0-0x8FF): Bond tiers + Party Traits, docs/PARTIES.md ----------

@@ -8,7 +8,8 @@
 		"meritByTier": [15, 25, 40, 60, 90]
 	},
 
-	"_tomes": "Spell tomes useful to any adventurer, regardless of school.",
+	"_tomes": "Spell tomes useful to any adventurer, regardless of school. A tome is offered at its rank and below. tomesAboveRank: tomes up to 'ranks' above your own are offered too, at 'multiplier' times the Merit; anything higher is not shown. ranks 0 = only your rank and below.",
+	"tomesAboveRank": { "ranks": 1, "multiplier": 2 },
 	"tomes": [
 		{ "form": "SpellTomeCandlelight",    "merit": 10, "rank": 0 },
 		{ "form": "SpellTomeHealing",        "merit": 10, "rank": 0 },
@@ -37,6 +38,18 @@
 		{ "form": "RestoreHealth05",  "merit": 10, "rank": 3 }
 	],
 
-	"_training": "Guild Training: a permanent +amount to max Health / Stamina / Magicka per purchase, at most perRank purchases per stat for each guild rank reached (E = perRank, D = 2*perRank ...). Purchase n (1-based) costs baseMerit + stepMerit*(n-1). Max purchases per stat = perRank*6 (the ESP carries that many steps).",
-	"training": { "amount": 10, "perRank": 2, "baseMerit": 40, "stepMerit": 20 }
+	"_training": "Guild Training: a permanent +amount to max Health / Stamina / Magicka per purchase, at most perRank purchases per stat for each guild rank reached (E = perRank, D = 2*perRank ...). The first purchase costs baseMerit; each one after costs more than the last by the stepMerit of the rank it belongs to (index 0..5 = E..S; a single number means the same step throughout): 40, 60 at E; 80, 100 at D; 130, 160 at C; 190, 220 at B; 260, 300 at A; 340, 380 at S. Max purchases per stat = perRank*6 (the ESP carries that many steps).",
+	"training": { "amount": 10, "perRank": 2, "baseMerit": 40, "stepMerit": [20, 20, 30, 30, 40, 40] },
+
+	"_augments": "Guild Augments: a timed boon bought at the counter, one at a time (a new one replaces the one you have). merit: the price of each. rank: the guild rank they need. days: how long one lasts, in game days. list: at most 8; the ESP carries one ability each, built by tools/EspGen from the numbers here (carry: carry weight; barter: percent better prices; skillRate: percent faster skill gains; resistDisease / resistPoison: percent; health / stamina / magicka: points). name and desc are the English text (translators: $AG_Aug_<id>, $AG_AugDesc_<id>).",
+	"augments": {
+		"merit": 10, "rank": 0, "days": 1,
+		"list": [
+			{ "id": "packhorse",  "name": "Packhorse",   "desc": "Carry 50 more.", "carry": 50 },
+			{ "id": "haggler",    "name": "Haggler",     "desc": "Prices are 10% better.", "barter": 10 },
+			{ "id": "quickstudy", "name": "Quick Study", "desc": "Skills improve 10% faster.", "skillRate": 10 },
+			{ "id": "hardy",      "name": "Hardy",       "desc": "Resist 25% of disease and poison.", "resistDisease": 25, "resistPoison": 25 },
+			{ "id": "vigor",      "name": "Vigor",       "desc": "25 more Health, Stamina and Magicka.", "health": 25, "stamina": 25, "magicka": 25 }
+		]
+	}
 }

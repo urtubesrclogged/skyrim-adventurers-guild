@@ -390,7 +390,8 @@ window.agStrings = (json) => {
   applyStrings();
   render();
 };
-const SECTION_NOTES = { Intel: () => t("$AG_UI_NoteIntel", "Undiscovered locations in this hold. Buy the guild's intel and their scouts will mark it on your map.") };
+const SECTION_NOTES = { "Guild Augments": () => t("$AG_UI_NoteAugments", "A boon for the road. One at a time: a new Augment replaces the one you have."),
+  Intel: () => t("$AG_UI_NoteIntel", "Undiscovered locations in this hold. Buy the guild's intel and their scouts will mark it on your map.") };
 const METAL_EN = { E: "Iron", D: "Steel", C: "Dwarven", B: "Orichalcum", A: "Ebony", S: "Dragonbone" };
 const metal = (l) => METAL_EN[l] ? t("$AG_UI_Metal" + l, METAL_EN[l]) : "";
 let data = { registered: false, letter: "-", merit: 0, reputation: 0, reports: [], services: [], history: [],
