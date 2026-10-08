@@ -24,7 +24,7 @@
   "languages": [
     "en"
   ],
-  "version": "1.10.0",
-  "changelog": "1.10.0 (Adventurers Guild 1.3.0): bios for the named adventurers (Sinmir, Uthgerd, Mjoll, Annekke), for Erik, for whoever keeps a counter after an innkeeper's death (Ysolda, Sorex Vinius, Nils, Talen-Jei) and for those who have to say a town's counter has closed; wandering adventurers on the roads know they are Guild members and behave like it; conduct (a bounty costs Reputation and holds promotion) and the three levels of Appraisal as common knowledge; a liaison knows your Appraisal level. 1.8.0 (Adventurers Guild 1.2.0): what each rank is trusted with, from E to S (knowledge pack); the guild card (a liaison knows when yours is lost, what a replacement costs, and can hand one over: AG_ReplaceGuildCard); notices from the hold notice boards as Guild work; parties of up to ten.",
+  "version": "1.11.0",
+  "changelog": "1.11.0 (Adventurers Guild 1.4.0): a counter on Solstheim, kept by Geldis Sadri at the Retching Netch in Raven Rock. 1.10.0 (Adventurers Guild 1.3.0): bios for the named adventurers (Sinmir, Uthgerd, Mjoll, Annekke), for Erik, for whoever keeps a counter after an innkeeper's death (Ysolda, Sorex Vinius, Nils, Talen-Jei) and for those who have to say a town's counter has closed; wandering adventurers on the roads know they are Guild members and behave like it; conduct (a bounty costs Reputation and holds promotion) and the three levels of Appraisal as common knowledge; a liaison knows your Appraisal level. 1.8.0 (Adventurers Guild 1.2.0): what each rank is trusted with, from E to S (knowledge pack); the guild card (a liaison knows when yours is lost, what a replacement costs, and can hand one over: AG_ReplaceGuildCard); notices from the hold notice boards as Guild work; parties of up to ten.",
   "min_skyrimnet_version": "0.25.0"
 }

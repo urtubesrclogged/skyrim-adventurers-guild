@@ -97,10 +97,16 @@ namespace AG::Dungeons
 			SKSE::log::info("Dungeons: {} dungeon encounter zones indexed for intel", g_zoneOf.size());
 		}
 
+		// The region a counter's intel covers: the hold, or all of Solstheim for the counter in Raven Rock (the island is
+		// not a hold; its dungeons sit under DLC2SolstheimLocation).
 		RE::BGSLocation* HoldOf(RE::BGSLocation* a_loc)
 		{
+			static RE::BGSLocation* solstheim = [] {
+				auto* dh = RE::TESDataHandler::GetSingleton();
+				return dh ? dh->LookupForm<RE::BGSLocation>(0x016E2A, "Dragonborn.esm") : nullptr;
+			}();
 			for (auto* l = a_loc; l; l = l->parentLoc) {
-				if (l->HasKeywordString("LocTypeHold")) return l;
+				if (l->HasKeywordString("LocTypeHold") || (solstheim && l == solstheim)) return l;
 			}
 			return nullptr;
 		}

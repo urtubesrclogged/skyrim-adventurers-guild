@@ -35,7 +35,7 @@
       {
         "key": "ag_counters",
         "display_name": "Where the Guild keeps its counters",
-        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlelight Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. There is no counter on Solstheim.",
+        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlehearth Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. Across the water, the Retching Netch in Raven Rock (Geldis Sadri) keeps the one counter on Solstheim.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,
@@ -190,7 +190,7 @@
       {
         "key": "ag_stormcloak",
         "display_name": "A Stormcloak's view of the Guild",
-        "content": "To a Stormcloak the Adventurers Guild is an Imperial instrument: its charter comes from the Emperor who signed the White-Gold Concordat, and its registers ended up in Thalmor hands, which only proves the Empire sells Nords to the elves. Ulfric tolerates the Guild's counter at Candlelight Hall because trolls care nothing for politics.",
+        "content": "To a Stormcloak the Adventurers Guild is an Imperial instrument: its charter comes from the Emperor who signed the White-Gold Concordat, and its registers ended up in Thalmor hands, which only proves the Empire sells Nords to the elves. Ulfric tolerates the Guild's counter at Candlehearth Hall because trolls care nothing for politics.",
         "condition_expr": "is_in_faction(actorUUID, \"CWSonsFaction\")",
         "always_inject": false,
         "importance": 0.8,
@@ -232,7 +232,7 @@
       {
         "key": "ag_solstheim",
         "display_name": "The Guild on Solstheim",
-        "content": "The Adventurers Guild keeps no counter on Solstheim. House Redoran lets its members work on the island but does not recognise their ranks, and the Skaal judge a warrior by deeds, not by any mainland rank letter.",
+        "content": "For years the Adventurers Guild had no counter on Solstheim: House Redoran let its members work on the island and nothing more. That changed when the ash spawn began coming over the Bulwark. Councilor Morvayn licensed a counter at the Retching Netch in Raven Rock, and Geldis Sadri keeps it at the end of his bar. There is no missive board on the island: work comes by word of mouth, mostly through Geldis. The Redoran Guard still care more for results than for rank letters, and the Skaal judge a warrior by deeds, not by any mainland rank.",
         "condition_expr": "is_in_faction(actorUUID, \"DLC2RavenRockGuardFaction\") or is_in_faction(actorUUID, \"DLC2SkaalVillageCitizenFaction\")",
         "always_inject": false,
         "importance": 0.7,

@@ -71,7 +71,6 @@
 		{ "id": "tolfdir",       "who": "Tolfdir",           "rank": "<B", "text": "Mages and adventurers aren't so different, you know. We both poke about in ruins we ought to leave alone." },
 		{ "id": "tolfdir_hi",    "who": "Tolfdir",           "rank": "B+", "text": "Your adventurer's rank is quite remarkable. Have you considered the College? No? Pity." },
 
-		{ "id": "geldis",        "who": "DLC2RRGeldisSadri", "text": "No Adventurers Guild counter on Solstheim, but I hear adventurers in my taproom often enough. Mostly complaining about the ash." },
 		{ "id": "lleril",        "who": "DLC2RRLlerilMorvayn", "rank": "<S", "text": "Your adventurer's rank means little to House Redoran. Results, however, mean a great deal." },
 		{ "id": "lleril_hi",     "who": "DLC2RRLlerilMorvayn", "rank": "S", "text": "An S-rank adventurer from the mainland. House Redoran will want your name in its records too." },
 		{ "id": "frea",          "who": "DLC2Frea",          "rank": "<S", "text": "The Skaal need no rank letter to know who is strong. Still, your adventurer's rank sits well on you." },

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+**World Building and NPCs**
+- The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock
 ## 1.3.1
 
 **Fixes**

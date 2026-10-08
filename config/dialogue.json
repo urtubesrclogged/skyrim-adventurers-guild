@@ -331,6 +331,28 @@
     "S": "An S-rank, here. Even the Arch-Mage will want to meet you. How can I be of service?"
    },
    "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
+  },
+  {
+   "npc": "DLC2RRGeldisSadri",
+   "city": "Raven Rock",
+   "inn": "the Retching Netch",
+   "register": "I know everyone in Raven Rock, and they know me. Now they'll know you too. It's in the ledger. Take your guild card, adventurer.",
+   "business": "The end of the bar with the ledger on it is the Adventurers Guild. The other end is for drinking. Which end do you want?",
+   "promoteAsk": "Sit. I want to read this page properly. Azura knows I've poured for people who did less and bragged more. The Adventurers Guild takes its fee, and I get to write in the new letter.",
+   "promote": "There. I've changed the letter on your guild card. I've changed it in the story I tell about you, too.",
+   "about": [
+    "Councilor Morvayn wouldn't hear of the Adventurers Guild for years. Then the ash spawn came over the Bulwark, and he sent Adril to my bar with a pen.",
+    "There's no missive board here. People with a problem tell their barkeep, and their barkeep tells an adventurer. It's an older system.",
+    "Names come over from Windhelm on the Northern Maiden. Adventurers the mainland says are on their way. I keep a second page for the ones who never walk through my door. It's longer than I'd like."
+   ],
+   "registerAsk": "You want to sign with the Adventurers Guild in Raven Rock? Most people who land here are trying to leave. I like you already, outlander. There's a fee. There's always a fee.",
+   "businessByRank": {
+    "C": "The Redoran Guard asked me who you were. I told them C-rank adventurer, and they stopped asking. What do you need?",
+    "B": "Captain Veleth reads my ledger now, did you know? He stops at your page. B-rank. What'll it be?",
+    "A": "I've started telling people an A-rank adventurer drinks here. It's good for business. Don't make a liar of me.",
+    "S": "I've got a story about an S-rank adventurer who walked into my cornerclub. True story, friend. I'm still in the middle of it."
+   },
+   "replace": "A lost guild card always comes with a story, and I collect those. No? Then it's the fee, and I'll make one up for you."
   }
  ],
  "_staff": "Other people who work at a guild inn point you to their rep. whileAlive / whenDead = an NPC editor ID the line needs alive / dead (the innkeeper it names; their successor). unlessInFaction {ref, faction} = the line is skipped while that reference is in that faction (Mikael's 'I got the inn' line, if Ysolda is the innkeeper after all).",
@@ -484,12 +506,6 @@
     "AmbarysRendar"
    ],
    "line": "The Guild keeps its counter at Candlelight Hall. Nords prefer their business kept among Nords."
-  },
-  {
-   "npcs": [
-    "DLC2RRGeldisSadri"
-   ],
-   "line": "The Guild? You're a long way from Skyrim, friend. Take the ship back to Windhelm."
   }
  ],
  "_generic": "Any other innkeeper, including ones added by other mods.",
