@@ -59,18 +59,18 @@
    "city": "Solitude",
    "inn": "the Winking Skeever",
    "register": "Welcome to the Adventurers Guild! Here's your guild card. Solitude's never short of work, and now you're first in line.",
-   "business": "Ah, an adventurer with business. My favourite kind of customer. Let's have your card.",
-   "promoteAsk": "Promotion, is it? The ledger agrees, and I'm glad of it. Settle the Guild's fee and I'll draw up the papers.",
-   "promote": "Congratulations. Your guild card is updated, and Solitude will hear of it by supper.",
+   "business": "Adventurers Guild business, friend? Sit, relax. Whatever chased you here stops at my doorway.",
+   "promoteAsk": "A step up? I'd say so. The East Empire clerks drink here, and they've stopped complaining about the roads. That's your doing. The Adventurers Guild asks its fee, and it's yours.",
+   "promote": "Congratulations, friend. Here's your new card. Tonight you sit, relax, and let somebody else's troubles wait at the door.",
    "about": [
-    "The Guild's busiest counter is right here in the capital. Merchants, nobles, even the Blue Palace post work.",
-    "Mind the Thalmor on the docks, though. They don't care for anyone asking questions.",
-    "Adventurers keep going missing these days. Keep your head down around the Embassy, if you take my meaning."
+    "Solitude's the capital, so the work is as often a noble's quiet problem as a wolf on the road. Both pay. The noble pays better.",
+    "The coast north of here is wrecks, horkers and men who'd rather their cargo wasn't found. An adventurer who can keep quiet does well in Haafingar.",
+    "I've poured for adventurers who walked up the Embassy road and never came back for their change. I still have it, if they do."
    ],
    "registerAsk": "An adventurer wanting to sign on? Splendid! Solitude always has work for a capable blade. The Guild asks a small fee to join.",
    "businessByRank": {
     "C": "Ah, our rising star. Solitude's merchants have started asking for you by name.",
-    "B": "A veteran at my counter! The Blue Palace's steward asked after you, you know. Your card?",
+    "B": "The dockhands were laying wagers on what you'd bring back this time. I had my coin on you coming back at all. Easiest money I ever made.",
     "A": "Our A-rank! Half of Solitude wants to hire you and the other half wants to meet you. Your card?",
     "S": "An S-rank in the Winking Skeever. I'll have Sorex frame your signature. What do you need?"
    },
