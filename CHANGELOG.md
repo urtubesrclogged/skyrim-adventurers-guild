@@ -13,8 +13,8 @@
 - Small nerf to Merit bonus on trophies
 
 **Conduct**
-- Bounties cost you Reputation and can put promotion on hold (the Guild only cares what you do outside of the guild
-  if you get caught and risk their relationships with the local jarls)
+- Having a bounty on you now costs you Reputation and can put promotion on hold (the Guild only cares what you do
+  outside of the guild if you get caught and risk their relationships with the local jarls)
 - Abandoning a missive costs you some Reputation now as well
 
 **World Building and NPCs**

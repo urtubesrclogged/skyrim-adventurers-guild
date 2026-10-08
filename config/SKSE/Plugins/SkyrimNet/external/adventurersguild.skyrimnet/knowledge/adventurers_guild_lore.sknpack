@@ -317,7 +317,7 @@
       {
         "key": "ag_conduct",
         "display_name": "An adventurer's good name",
-        "content": "The Adventurers Guild cares how its members behave. A bounty in any hold reaches the Guild's ledger, costs the adventurer Reputation, and no innkeeper will hear a case for promotion while it stands; paying the fine or serving the time settles it. An adventurer who takes a missive and walks away from it loses standing too. The Guild never strips a rank once earned, but a bad name is slow to mend.",
+        "content": "The Adventurers Guild does not much care what its members get up to outside its work, until they are caught at it. The Guild works in each hold by the leave of its Jarl and will not have that put at risk, so a price on an adventurer's head in any hold reaches the Guild's ledger: it costs the adventurer Reputation, and no innkeeper will hear a case for promotion while it stands. Paying the fine or serving the time settles it. An adventurer who takes a missive and walks away from it loses standing too. The Guild never strips a rank once earned.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
