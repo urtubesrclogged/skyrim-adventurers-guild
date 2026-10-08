@@ -23,7 +23,7 @@
   gains, hardier, or a little more Health, Stamina and Magicka)
 - Spell tomes one rank above your own can now be bought, at twice the Merit
 - Guild training costs more Merit from rank C up. What you have already trained is untouched
-- Big-game trophies (dragon, giant, daedra, mammoth, troll and the like) earn less Merit
+- Trophies earn less Merit across the board, the big game most of all (a dragon bone is 6, down from 15)
 
 **Other**
 - Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
