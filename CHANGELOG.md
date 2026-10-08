@@ -13,7 +13,9 @@
 - Small nerf to Merit bonus on trophies
 
 **Conduct**
-- The Guild now notices how you behave: crime and abandoned missives cost you standing
+- Bounties cost you Reputation and can put promotion on hold (the Guild only cares what you do outside of the guild
+  if you get caught and risk their relationships with the local jarls)
+- Abandoning a missive costs you some Reputation now as well
 
 **World Building and NPCs**
 - Additional active adventurers (Sinmir, Mjoll, Annekke, etc.)
