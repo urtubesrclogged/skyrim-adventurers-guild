@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.1
+
+**Fixes**
+- Loading the game took far longer with 1.3.0 on large load orders (minutes on the biggest). The search for trophies
+  from other mods' creatures is now quick and no longer happens while the game loads
+
 ## 1.3.0
 
 **Threat Ranks Reworked**

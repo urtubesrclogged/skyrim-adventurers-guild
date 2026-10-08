@@ -5,10 +5,16 @@
 
 #include "Shop.h"
 
+#include "Counter.h"
 #include "Guild.h"
 #include "Loc.h"
 #include "RankCore.h"
 
+#include <atomic>
+#include <chrono>
+#include <memory>
+#include <thread>
+#include <unordered_map>
 #include <filesystem>
 #include <map>
 #include <set>
@@ -208,108 +214,211 @@ namespace AG::Shop
 			return std::ranges::any_of(kVanilla, [&](std::string_view v) { return _stricmp(file->GetFilename().data(), v.data()) == 0; });
 		}
 
-		// what an actor base uses from its template, followed through (a template may be a leveled list of actors)
+		// ---- the scan, made cheap and taken out of loading (1.3.1) ----
+		// 1.3.0 did all of this while the game loaded, and followed every nested list again each time it met it: 66 s of
+		// loading with 350 plugins, minutes with 3,400. Now each list and each template is followed once and
+		// remembered, and the work is done a few milliseconds at a time on the game's own thread AFTER loading (at the
+		// main menu, normally). On the game thread nothing else can be rewriting a creature's inventory under us, which
+		// a worker thread could not promise (SPID and KID hand things out as the data loads).
 		using UseFlag = RE::ACTOR_BASE_DATA::TEMPLATE_USE_FLAG;
-		void Bases(RE::TESForm* a_form, UseFlag a_flag, int a_depth, std::vector<RE::TESNPC*>& a_out)
+		struct Scan
 		{
-			if (!a_form || a_depth > 6) return;
+			ModCreatures                                                          cfg;
+			std::vector<RE::TESNPC*>                                              npcs;   // other mods' actor bases, to look at
+			std::size_t                                                           next{ 0 };
+			std::unordered_map<std::uint64_t, std::vector<RE::TESNPC*>>           bases;  // (form, use flag) -> where the data really comes from
+			std::unordered_map<RE::FormID, std::vector<RE::TESBoundObject*>>      parts;  // list or item -> the ingredients / misc items in it
+			std::unordered_set<std::uint64_t>                                     walking;  // being followed right now: a list inside itself
+			std::unordered_map<RE::FormID, bool>                                  eligible;  // item -> could it be a part of a creature
+			std::vector<RE::TESBoundObject*>                                      order;
+			std::unordered_map<RE::FormID, std::map<std::string, int>>            carriers;  // part -> the creatures that carry it, by name
+			int                                                                   creatures{ 0 }, looters{ 0 }, slices{ 0 };
+			std::chrono::steady_clock::time_point                                 started;
+			double                                                                workMs{ 0.0 };
+		};
+		std::unique_ptr<Scan> g_scan;                 // g_lock
+		std::atomic<int>      g_scanGen{ 0 };         // a reload of the config starts a new scan and retires the old one
+		std::atomic<bool>     g_scanPending{ false };
+
+		const std::vector<RE::TESNPC*>& Bases(Scan& a_s, RE::TESForm* a_form, UseFlag a_flag)
+		{
+			static const std::vector<RE::TESNPC*> none;
+			if (!a_form) return none;
+			const auto key = (static_cast<std::uint64_t>(a_form->GetFormID()) << 32) | static_cast<std::uint32_t>(a_flag);
+			if (auto it = a_s.bases.find(key); it != a_s.bases.end()) return it->second;
+			if (!a_s.walking.insert(key).second) return none;
+			std::vector<RE::TESNPC*>        out;
+			std::unordered_set<RE::TESNPC*> seen;
+			const auto add = [&](const std::vector<RE::TESNPC*>& a_v) {
+				for (auto* n : a_v)
+					if (seen.insert(n).second) out.push_back(n);
+			};
 			if (auto* npc = a_form->As<RE::TESNPC>()) {
-				if (npc->baseTemplateForm && npc->actorData.templateUseFlags.all(a_flag)) Bases(npc->baseTemplateForm, a_flag, a_depth + 1, a_out);
-				else a_out.push_back(npc);
+				if (npc->baseTemplateForm && npc->actorData.templateUseFlags.all(a_flag)) add(Bases(a_s, npc->baseTemplateForm, a_flag));
+				else out.push_back(npc);
 			} else if (auto* list = a_form->As<RE::TESLevCharacter>()) {
-				for (auto& e : list->entries) Bases(e.form, a_flag, a_depth + 1, a_out);
+				for (auto& e : list->entries) add(Bases(a_s, e.form, a_flag));
 			}
+			a_s.walking.erase(key);
+			return a_s.bases.emplace(key, std::move(out)).first->second;
 		}
 
-		void Parts(RE::TESForm* a_form, int a_depth, std::vector<RE::TESBoundObject*>& a_out)
+		const std::vector<RE::TESBoundObject*>& Parts(Scan& a_s, RE::TESForm* a_form)
 		{
-			if (!a_form || a_depth > 6) return;
+			static const std::vector<RE::TESBoundObject*> none;
+			if (!a_form) return none;
+			const auto id = a_form->GetFormID();
+			if (auto it = a_s.parts.find(id); it != a_s.parts.end()) return it->second;
+			const auto key = (static_cast<std::uint64_t>(id) << 32) | 0xFFFFFFFFull;
+			if (!a_s.walking.insert(key).second) return none;
+			std::vector<RE::TESBoundObject*>        out;
+			std::unordered_set<RE::TESBoundObject*> seen;
 			if (auto* list = a_form->As<RE::TESLevItem>()) {
-				for (auto& e : list->entries) Parts(e.form, a_depth + 1, a_out);
+				for (auto& e : list->entries)
+					for (auto* o : Parts(a_s, e.form))
+						if (seen.insert(o).second) out.push_back(o);
 			} else if (a_form->Is(RE::FormType::Ingredient) || a_form->Is(RE::FormType::Misc)) {
-				a_out.push_back(a_form->As<RE::TESBoundObject>());
+				if (auto* o = a_form->As<RE::TESBoundObject>()) out.push_back(o);
+			}
+			a_s.walking.erase(key);
+			return a_s.parts.emplace(id, std::move(out)).first->second;
+		}
+
+		// could this item be a part of a creature: another mod's, worth something, a hide or part if misc, and not food
+		bool Eligible(Scan& a_s, RE::TESBoundObject* a_p)
+		{
+			if (!a_p) return false;
+			if (auto it = a_s.eligible.find(a_p->GetFormID()); it != a_s.eligible.end()) return it->second;
+			const bool ok = [&] {
+				if (Vanilla(a_p) || a_p->GetGoldValue() <= 0 || Name(a_p).empty()) return false;
+				if (a_p->Is(RE::FormType::Misc)) {
+					auto* kw = a_p->As<RE::BGSKeywordForm>();
+					if (!kw || !(kw->HasKeywordString("VendorItemAnimalHide") || kw->HasKeywordString("VendorItemAnimalPart"))) return false;
+				}
+				// meat and fish are food, whatever kind of record the mod made them (Zombie Flesh, Rainbow Fish)
+				const auto words = Words(Name(a_p));
+				if (std::ranges::any_of(a_s.cfg.notTrophies, [&](const std::string& w) { return std::ranges::find(words, w) != words.end(); })) return false;
+				// ... or by its model, which no translation changes ("deadpondfish03.nif" is Bruma's Nibenay Snapper)
+				if (auto* model = a_p->As<RE::TESModel>(); model && model->GetModel() && *model->GetModel()) {
+					std::string file = std::filesystem::path(model->GetModel()).stem().string();
+					std::ranges::transform(file, file.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+					if (std::ranges::any_of(a_s.cfg.notTrophies, [&](const std::string& w) { return file.find(w) != std::string::npos; })) return false;
+				}
+				return true;
+			}();
+			a_s.eligible.emplace(a_p->GetFormID(), ok);
+			return ok;
+		}
+
+		// g_lock held. One actor base of another mod: is it a hostile creature, and what parts of it could be trophies
+		void ScanOne(Scan& a_s, RE::TESNPC* a_npc)
+		{
+			auto* race = a_npc->GetRace();
+			// people are not hunted for parts: the keyword, or a face-generated head (custom human races often lack the keyword)
+			if (!race || race->HasKeywordString("ActorTypeNPC") || race->data.flags.any(RE::RACE_DATA::Flag::kFaceGenHead)) return;
+			if (!std::ranges::any_of(Bases(a_s, a_npc, UseFlag::kAIData), [](RE::TESNPC* b) { return b->GetAggressionLevel() >= RE::ACTOR_AGGRESSION::kAggressive; })) return;
+			std::vector<RE::TESBoundObject*>        parts;
+			std::unordered_set<RE::TESBoundObject*> seen;
+			std::set<std::string>                   names;
+			const auto take = [&](RE::TESForm* a_form) {
+				for (auto* p : Parts(a_s, a_form))
+					if (seen.insert(p).second && Eligible(a_s, p)) {
+						parts.push_back(p);
+						names.insert(Name(p));
+					}
+			};
+			for (auto* b : Bases(a_s, a_npc, UseFlag::kInventory)) {
+				b->ForEachContainerObject([&](RE::ContainerObject& e) {
+					take(e.obj);
+					return RE::BSContainer::ForEachResult::kContinue;
+				});
+				take(b->deathItem);
+			}
+			if (parts.empty()) return;
+			// A beast drops a few parts of itself. One that carries dozens of different ingredients (a Falmer
+			// alchemist, a mod's "creature" merchant) is carrying loot, and none of it is proof of a hunt.
+			if (static_cast<int>(names.size()) > a_s.cfg.maxPartsPerCreature) {
+				++a_s.looters;
+				SKSE::log::debug("Shop: {} ({:08X}) carries {} different parts - loot, not trophies", Name(a_npc), a_npc->GetFormID(), names.size());
+				return;
+			}
+			++a_s.creatures;
+			const auto name = a_npc->GetName() && *a_npc->GetName() ? std::string(a_npc->GetName()) : std::string(race->GetName() ? race->GetName() : "");
+			for (auto* p : parts) {
+				if (std::ranges::find(g_trophies, p, &Trophy::form) != g_trophies.end() || VariantOfLocked(p) >= 0) continue;  // already one
+				auto [it, fresh] = a_s.carriers.try_emplace(p->GetFormID());
+				if (fresh) a_s.order.push_back(p);
+				++it->second[name];
 			}
 		}
 
-		// g_lock held. Adds the trophies; returns how many.
-		int AddModCreatureTrophies(const ModCreatures& a_cfg)
+		// Game thread. A few milliseconds of the scan; the last slice adds the trophies it found.
+		void ScanSlice(int a_gen)
 		{
+			using clock = std::chrono::steady_clock;
+			int  added = -1;
+			{
+				std::lock_guard l(g_lock);
+				if (a_gen != g_scanGen.load() || !g_scan) return;
+				auto&      s = *g_scan;
+				const auto t0 = clock::now();
+				while (s.next < s.npcs.size() && clock::now() - t0 < std::chrono::milliseconds(3)) ScanOne(s, s.npcs[s.next++]);
+				s.workMs += std::chrono::duration<double, std::milli>(clock::now() - t0).count();
+				++s.slices;
+				if (s.next < s.npcs.size()) return;
+				added = 0;
+				for (auto* p : s.order) {
+					std::string group;
+					int         most = 0;
+					for (auto& [name, n] : s.carriers[p->GetFormID()])
+						if (!name.empty() && n > most) {
+							most = n;
+							group = name;
+						}
+					const int merit = std::clamp(static_cast<int>(std::lround(static_cast<double>(p->GetGoldValue()) / std::max(1, s.cfg.goldPerMerit))), 1, std::max(1, s.cfg.maxMerit));
+					g_trophies.push_back({ std::format("mod:{:08X}", p->GetFormID()), p, merit, group, {}, p->GetGoldValue() });
+					SKSE::log::debug("Shop: {} ({:08X}, {} gold) is a trophy worth {} Merit: carried by {}", Name(p), p->GetFormID(), p->GetGoldValue(), merit, group);
+					++added;
+				}
+				SKSE::log::info("Shop: {} trophies from {} hostile creatures added by other mods; {} more carry loot and were left out (the detailed log lists them)",
+					added, s.creatures, s.looters);
+				SKSE::log::info("Shop: that scan looked at {} actors of other mods in {:.0f} ms of work, spread over {} frames after loading ({:.1f} s); {} trophies in all",
+					s.npcs.size(), s.workMs, s.slices, std::chrono::duration<double>(clock::now() - s.started).count(), g_trophies.size());
+				g_scan.reset();
+			}
+			if (added > 0) Counter::Refresh();  // an open counter learns of the new trophies
+		}
+
+		// g_lock held. Queues the scan: nothing is looked at here, so loading does not wait for it.
+		void StartModCreatureScan(const ModCreatures& a_cfg)
+		{
+			const int gen = ++g_scanGen;
+			g_scan.reset();
 			auto* dh = RE::TESDataHandler::GetSingleton();
-			if (!a_cfg.enabled || !dh) return 0;
-			int added = 0, creatures = 0, looters = 0;
-			// part -> the creatures that carry it, by name (the commonest names the group: "Echatere", not the one
-			// named beast that happened to come first)
-			std::vector<RE::TESBoundObject*>                                order;
-			std::unordered_map<RE::FormID, std::map<std::string, int>> carriers;
-			for (auto* npc : dh->GetFormArray<RE::TESNPC>()) {
-				if (!npc || Vanilla(npc)) continue;
-				auto* race = npc->GetRace();
-				// people are not hunted for parts: the keyword, or a face-generated head (custom human races often lack the keyword)
-				if (!race || race->HasKeywordString("ActorTypeNPC") || race->data.flags.any(RE::RACE_DATA::Flag::kFaceGenHead)) continue;
-				std::vector<RE::TESNPC*> ai, inv;
-				Bases(npc, UseFlag::kAIData, 0, ai);
-				if (!std::ranges::any_of(ai, [](RE::TESNPC* b) { return b->GetAggressionLevel() >= RE::ACTOR_AGGRESSION::kAggressive; })) continue;
-				Bases(npc, UseFlag::kInventory, 0, inv);
-				std::vector<RE::TESBoundObject*> all, parts;
-				for (auto* b : inv) {
-					b->ForEachContainerObject([&](RE::ContainerObject& e) {
-						Parts(e.obj, 0, all);
-						return RE::BSContainer::ForEachResult::kContinue;
-					});
-					Parts(b->deathItem, 0, all);
-				}
-				// what of it could be a part of the creature: another mod's, worth something, a hide or part if misc
-				std::set<std::string> names;
-				for (auto* p : all) {
-					if (!p || Vanilla(p) || p->GetGoldValue() <= 0 || Name(p).empty()) continue;
-					if (p->Is(RE::FormType::Misc)) {
-						auto* kw = p->As<RE::BGSKeywordForm>();
-						if (!kw || !(kw->HasKeywordString("VendorItemAnimalHide") || kw->HasKeywordString("VendorItemAnimalPart"))) continue;
+			if (!a_cfg.enabled || !dh) return;
+			auto s = std::make_unique<Scan>();
+			s->cfg = a_cfg;
+			s->started = std::chrono::steady_clock::now();
+			for (auto* npc : dh->GetFormArray<RE::TESNPC>())
+				if (npc && !Vanilla(npc)) s->npcs.push_back(npc);
+			if (s->npcs.empty()) return;
+			g_scan = std::move(s);
+			// the pump: asks the game thread for the next slice, one at a time, until the scan is done
+			std::thread([gen] {
+				for (;;) {
+					std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					if (gen != g_scanGen.load()) return;
+					{
+						std::lock_guard l(g_lock);
+						if (!g_scan) return;
 					}
-					// meat and fish are food, whatever kind of record the mod made them (Zombie Flesh, Rainbow Fish)
-					const auto words = Words(Name(p));
-					if (std::ranges::any_of(a_cfg.notTrophies, [&](const std::string& w) { return std::ranges::find(words, w) != words.end(); })) continue;
-					// ... or by its model, which no translation changes ("deadpondfish03.nif" is Bruma's Nibenay Snapper)
-					if (auto* model = p->As<RE::TESModel>(); model && model->GetModel() && *model->GetModel()) {
-						std::string file = std::filesystem::path(model->GetModel()).stem().string();
-						std::ranges::transform(file, file.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-						if (std::ranges::any_of(a_cfg.notTrophies, [&](const std::string& w) { return file.find(w) != std::string::npos; })) continue;
-					}
-					if (std::ranges::find(parts, p) == parts.end()) parts.push_back(p);
-					names.insert(Name(p));
+					if (!g_scanPending.exchange(true))
+						SKSE::GetTaskInterface()->AddTask([gen] {
+							ScanSlice(gen);
+							g_scanPending = false;
+						});
 				}
-				if (parts.empty()) continue;
-				// A beast drops a few parts of itself. One that carries dozens of different ingredients (a Falmer
-				// alchemist, a mod's "creature" merchant) is carrying loot, and none of it is proof of a hunt.
-				if (static_cast<int>(names.size()) > a_cfg.maxPartsPerCreature) {
-					++looters;
-					SKSE::log::debug("Shop: {} ({:08X}) carries {} different parts - loot, not trophies", Name(npc), npc->GetFormID(), names.size());
-					continue;
-				}
-				++creatures;
-				const auto name = npc->GetName() && *npc->GetName() ? std::string(npc->GetName()) : std::string(race->GetName() ? race->GetName() : "");
-				for (auto* p : parts) {
-					if (std::ranges::find(g_trophies, p, &Trophy::form) != g_trophies.end() || VariantOfLocked(p) >= 0) continue;  // already one
-					auto [it, fresh] = carriers.try_emplace(p->GetFormID());
-					if (fresh) order.push_back(p);
-					++it->second[name];
-				}
-			}
-			for (auto* p : order) {
-				std::string group;
-				int         most = 0;
-				for (auto& [name, n] : carriers[p->GetFormID()])
-					if (!name.empty() && n > most) {
-						most = n;
-						group = name;
-					}
-				const int merit = std::clamp(static_cast<int>(std::lround(static_cast<double>(p->GetGoldValue()) / std::max(1, a_cfg.goldPerMerit))), 1, std::max(1, a_cfg.maxMerit));
-				g_trophies.push_back({ std::format("mod:{:08X}", p->GetFormID()), p, merit, group, {}, p->GetGoldValue() });
-				SKSE::log::debug("Shop: {} ({:08X}, {} gold) is a trophy worth {} Merit: carried by {}", Name(p), p->GetFormID(), p->GetGoldValue(), merit, group);
-				++added;
-			}
-			SKSE::log::info("Shop: {} trophies from {} hostile creatures added by other mods; {} more carry loot and were left out (the detailed log lists them)", added, creatures, looters);
-			return added;
+			}).detach();
 		}
 	}
 
@@ -386,11 +495,11 @@ namespace AG::Shop
 					}
 				}
 			}
-			AddModCreatureTrophies(modCreatures);  // after the listed ones: an item already a trophy, or a variant of one, stays that
+			StartModCreatureScan(modCreatures);  // after loading, in slices: an item already a trophy, or a variant of one, stays that
 		} catch (const std::exception& e) {
 			SKSE::log::error("Shop: config error: {}", e.what());
 		}
-		SKSE::log::info("Shop: {} library rows, {} tomes, {} supplies, {} trophies", g_library.size(), g_tomes.size(), g_supplies.size(), g_trophies.size());
+		SKSE::log::info("Shop: {} library rows, {} tomes, {} supplies, {} listed trophies (other mods' creatures are looked at after loading)", g_library.size(), g_tomes.size(), g_supplies.size(), g_trophies.size());
 	}
 
 	int TrophyBonusPercent(int a_appraisal)
