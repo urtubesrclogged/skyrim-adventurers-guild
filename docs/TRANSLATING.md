@@ -65,6 +65,21 @@ Rank letters (E to S) are the same in every language.
 `data-t` in the counter page, and `config/lang/mcm_english.json` (`build.ps1 -Only lang`). New player-facing text
 must go through those, never as a bare string, or it cannot be translated.
 
+## Since 1.3.0
+
+New keys, all optional (English is shown for any you leave out):
+
+* Conduct: `$AG_Hud_RepLost`, `$AG_Log_RepLost`, `$AG_Toast_RepLost`, `$AG_Toast_RepLostSub` (the first `{}` is the
+  amount, the second the reason), and the reasons themselves: `$AG_Why_Bounty`, `$AG_Why_BountyIn` (`{}` is the hold),
+  `$AG_Why_Abandoned` (`{}` is the missive's title).
+* Promotion on hold: `$AG_Hud_PromoHold`, `$AG_UI_PromoHold`, `$AG_UI_TodoPromoHold`.
+* MCM, Debug page: `$AG_MCM_Debug_Rank_Header`, `$AG_MCM_Debug_RankReset_Text`, `$AG_MCM_Debug_RankReset_Help`, and the
+  messages it shows: `$AG_RankReset_Confirm`, `$AG_RankReset_Done`, `$AG_RankReset_NotRegistered`, `$AG_Log_RankReset`
+  (keep every `{}`, in order).
+
+Changed text, same keys: `$AG_Svc_Appraisal1`, `$AG_Svc_Appraisal2`, `$AG_Svc_Appraisal3` now say what each level of
+Appraisal reads. A translation of the 1.2.0 text still works, but describes the old skill.
+
 ## Since 1.2.0
 
 New keys, all optional (English is shown for any you leave out):
