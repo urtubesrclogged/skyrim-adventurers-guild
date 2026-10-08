@@ -214,8 +214,8 @@ namespace AG::Shop
 		struct ModCreatures
 		{
 			bool enabled{ true };
-			int  goldPerMerit{ 10 };
-			int  maxMerit{ 5 };
+			int  goldPerMerit{ 25 };
+			int  maxMerit{ 4 };
 			std::vector<std::string> notTrophies{ "meat", "flesh", "fish" };  // a word of the item's name: food, not proof of a hunt
 			int  maxPartsPerCreature{ 5 };  // more distinct parts than this is an alchemist's or a looter's pockets, not a body
 		};
