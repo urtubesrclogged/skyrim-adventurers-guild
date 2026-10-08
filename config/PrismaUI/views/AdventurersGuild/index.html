@@ -51,6 +51,9 @@ window.rkFlourish = (json) => {
   let d = json;
   try { if (typeof json === "string") d = JSON.parse(json); } catch (e) { return; }
   const n = document.getElementById("notice");
+  // a flat screen above 1920 x 1080: the notice grows with it (VR keeps its tested size)
+  const up = d.flat ? Math.min(innerWidth / 1920, innerHeight / 1080) : 1;
+  n.style.zoom = up > 1 ? up : "";
   document.getElementById("title").textContent = d.title || "";
   document.getElementById("sub").textContent = d.subtitle || "";
   const seal = document.querySelector("#notice .seal");

@@ -38,7 +38,7 @@
 
   #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
   /* 1280 wide since 1.1.0 (was 1080): room for languages longer than English and for parties of up to nine.
-     A view smaller than the panel scales it down to fit (fitPanel). */
+     A view smaller than the panel scales it down to fit, and a flat screen above 1080p scales it up (fitPanel). */
   #panel { position: relative; width: 1280px; height: 780px; flex: none; display: flex; flex-direction: column;
            background: url(tex/stone.png) repeat, #2a2723;
            border: 2px solid #15130f; outline: 1px solid var(--bronze-dim); outline-offset: -8px;
@@ -845,10 +845,19 @@ function renderRecords() {
     pager("records", pages);
 }
 
-/* A view smaller than the panel (a flat screen below 1280 x 780) shows it scaled down, whole. */
+/* A view smaller than the panel (a flat screen below 1280 x 780) shows it scaled down, whole. A flat screen larger
+   than 1920 x 1080 shows it scaled up by the same factor, so it covers the share of a 4K monitor that it does of a
+   1080p one (1.2.0 and earlier drew it at its pixel size: a third of the width at 4K). VR keeps its tested size. */
+let isFlat = false;
+window.agFlat = (v) => { isFlat = !!v; fitPanel(); };
 function fitPanel() {
-  const p = $("panel"), k = Math.min(1, innerWidth / p.offsetWidth, innerHeight / p.offsetHeight);
-  p.style.transform = k < 1 ? `scale(${k})` : "";
+  const p = $("panel"), fit = Math.min(innerWidth / p.offsetWidth, innerHeight / p.offsetHeight);
+  let k = Math.min(1, fit);
+  if (isFlat) {
+    const up = Math.min(innerWidth / 1920, innerHeight / 1080);
+    if (up > 1) k = Math.min(up, fit);
+  }
+  p.style.transform = k !== 1 ? `scale(${k})` : "";
 }
 addEventListener("resize", fitPanel);
 

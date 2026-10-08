@@ -98,7 +98,7 @@ namespace AG::PrismaToast
 	{
 		if (!Active() || !g_enabled.load(std::memory_order_relaxed)) return;
 
-		std::string json = "{\"title\":\"" + Esc(a_title) + "\",\"subtitle\":\"" + Esc(a_subtitle) + "\",\"seal\":\"" + Esc(a_seal) + "\",\"hold\":" + std::to_string(HoldMs(a_priority) / 1000.0) + "}";
+		std::string json = "{\"title\":\"" + Esc(a_title) + "\",\"subtitle\":\"" + Esc(a_subtitle) + "\",\"seal\":\"" + Esc(a_seal) + "\",\"hold\":" + std::to_string(HoldMs(a_priority) / 1000.0) + ",\"flat\":" + (REL::Module::IsVR() ? "false" : "true") + "}";
 		// A toast raised while the counter is open (e.g. intel bought) must draw above it, not behind it.
 		if (const int co = Counter::ViewOrder(); co >= 0 && g_api->GetOrder(g_view) <= co) {
 			g_api->SetOrder(g_view, co + 1);

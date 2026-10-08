@@ -414,6 +414,8 @@ namespace AG::Counter
 		g_api->Invoke(g_view, ("window.agStrings(" + Loc::UiStrings().dump() + ")").c_str());
 		// the headset keyboard is ours only under real SteamVR (see ShowKeyboard); flat and OpenComposite keep the text field
 		g_api->Invoke(g_view, REL::Module::IsVR() && !OpenComposite() ? "window.agVR && window.agVR(true)" : "window.agVR && window.agVR(false)");
+		// a flat screen above 1080p scales the panel up (a 4K monitor showed it at a third of the width); VR never does
+		g_api->Invoke(g_view, REL::Module::IsVR() ? "window.agFlat && window.agFlat(false)" : "window.agFlat && window.agFlat(true)");
 		Refresh();
 		// after the data (tasks run in order): controller users open with the first button highlighted
 		SKSE::GetTaskInterface()->AddTask([] { Js(std::format("window.agInputMode({})", g_padMode.load())); });
