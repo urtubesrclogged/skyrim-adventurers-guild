@@ -301,6 +301,21 @@
         ]
       },
       {
+        "key": "ag_intel",
+        "display_name": "What the Guild's scouts know",
+        "content": "The Adventurers Guild keeps scouts, and sells what they know at its counters for Merit. Mostly that is where a hold's dungeons lie and how dangerous each one is. But the scouts also mark places that are no dungeon at all and still worth an adventurer's while: an Orc stronghold, a standing stone, a Daedric shrine, a hunters' shack, a lodge of the Vigilants of Stendarr, a landmark, a wreck on the shore. An innkeeper who keeps a counter will put any of them on an adventurer's map.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "intel",
+          "scouts",
+          "map"
+        ]
+      },
+      {
         "key": "ag_wanderers",
         "display_name": "Adventurers on the roads",
         "content": "Not every adventurer is found at an inn. Members of the Adventurers Guild walk the roads between jobs, a missive in the pack and a guild card at the belt, and most are glad of a word with another adventurer: which board has work, which pass has trolls, who made rank. Folk can usually tell one by the mismatched armor and the easy way with a weapon. They're separate from the sellswords and mercenaries, but share the same roads, and some are known to take up both professions.",

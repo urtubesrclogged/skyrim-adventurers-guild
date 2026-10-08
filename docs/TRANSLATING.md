@@ -65,6 +65,19 @@ Rank letters (E to S) are the same in every language.
 `data-t` in the counter page, and `config/lang/mcm_english.json` (`build.ps1 -Only lang`). New player-facing text
 must go through those, never as a bare string, or it cannot be translated.
 
+## Since 1.4.0
+
+New keys, all optional (English is shown for any you leave out):
+
+* Intel's two tabs: `$AG_UI_IntelDungeons`, `$AG_UI_IntelPoi`, and the short note beside them: `$AG_UI_NoteDungeons`,
+  `$AG_UI_NotePoi`.
+* Points of Interest categories: `$AG_Poi_outpost`, `$AG_Poi_orc`, `$AG_Poi_camp`, `$AG_Poi_daedric`, `$AG_Poi_stone`,
+  `$AG_Poi_landmark`, `$AG_Poi_wreck`. A category someone adds to `guild.json` is keyed `$AG_Poi_<its id>`.
+* Buying one: `$AG_Poi_Bought` (place, Merit), `$AG_Log_Poi` (the ledger line: place, Merit).
+* `$AG_City_RavenRock`: the tenth counter's town.
+
+The innkeeper's spoken lines for the new counter at Raven Rock are in the plugin file, like the rest of the dialogue.
+
 ## Since 1.3.0
 
 New keys, all optional (English is shown for any you leave out):
