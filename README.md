@@ -40,7 +40,7 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   - Party Bond grows as you fight and travel together, and unlocks party bonuses.
   - 14 Affinities to discover, depending on who is in your party. Up to three can be selected at a time.
   - Party analysis, statistics, and a history of your deeds and of former and fallen members.
-- **New Dialogue**: nearly 500 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
+- **New Dialogue**: over 900 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
 - **SkyrimNet integration** (optional): NPCs know the Guild, its lore and its rules, know your rank and your party,
   and can play along.
 - **Translatable**: all text is in a standard translation file (see [docs/TRANSLATING.md](docs/TRANSLATING.md)).
