@@ -4,11 +4,6 @@
 
 **World Building and NPCs**
 - The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock
-## 1.3.1
-
-**Fixes**
-- Loading the game took far longer with 1.3.0 on large load orders (minutes on the biggest). The search for trophies
-  from other mods' creatures is now quick and no longer happens while the game loads
 
 **Intel**
 - New Points of Interest tab: the Guild sells the whereabouts of Orc strongholds, standing stones, Daedric shrines,
@@ -19,6 +14,12 @@
 - Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
   with you
 - The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
+
+## 1.3.1
+
+**Fixes**
+- Loading the game took far longer with 1.3.0 on large load orders (minutes on the biggest). The search for trophies
+  from other mods' creatures is now quick and no longer happens while the game loads
 
 ## 1.3.0
 
