@@ -100,6 +100,9 @@ namespace AG::Dungeons
 
 		// ---- intel: every dungeon's encounter zone (from its interior cells) and its map marker
 		std::unordered_map<const RE::BGSLocation*, RE::BGSEncounterZone*> g_zoneOf;
+		// Markers that start switched off in the game's records (the Katariah, the Wreck of the Icerunner, a civil war
+		// camp): a quest puts them on the map, the Guild does not. Noted at kDataLoaded, before a save can change them.
+		std::unordered_set<RE::FormID> g_questMarkers;
 		bool g_zonesBuilt{ false };
 
 		void BuildZones()
@@ -246,6 +249,7 @@ namespace AG::Dungeons
 				auto* m = MarkerOf(l);
 				auto* md = MapData(m);
 				if (!md || md->flags.any(RE::MapMarkerData::Flag::kVisible)) continue;   // already on the map
+				if (m->IsDisabled()) continue;   // switched off (a quest has yet to put it there): the map cannot show it
 				auto z = g_zoneOf.find(l);
 				out.push_back({ l, m, FromLevel(LevelFor(z != g_zoneOf.end() ? z->second : nullptr)) });
 			}
@@ -374,6 +378,24 @@ namespace AG::Dungeons
 		if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->AsBGSActorCellEventSource()->AddEventSink(Sink::Get());
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTrackedStatsEvent>(Sink::Get());
 		SKSE::log::info("Dungeons: watching location changes and Dungeons Cleared");
+		// which map markers start switched off, read now: after a save loads, a marker only says whether it is off today
+		const auto t0 = std::chrono::steady_clock::now();
+		g_questMarkers.clear();
+		int markers = 0;
+		{
+			const auto& [map, lock] = RE::TESForm::GetAllForms();
+			RE::BSReadLockGuard l{ lock };
+			if (map)
+				for (auto& [id, form] : *map) {
+					auto* ref = form ? form->As<RE::TESObjectREFR>() : nullptr;
+					if (!ref || !ref->extraList.HasType(RE::ExtraDataType::kMapMarker)) continue;
+					++markers;
+					if (ref->IsDisabled()) g_questMarkers.insert(id);
+				}
+		}
+		const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+		SKSE::log::info("Dungeons: {} of {} map markers start switched off (a quest puts them on the map, never sold as intel), read in {} ms",
+			static_cast<int>(g_questMarkers.size()), markers, static_cast<int>(ms));
 	}
 
 	int ClearedCount()
@@ -513,6 +535,7 @@ namespace AG::Dungeons
 				auto it = locOf.find(m->GetFormID());
 				if (auto* h = it != locOf.end() ? HoldOf(it->second) : nullptr) anchors.push_back({ root(m->GetWorldspace()), m->GetPosition(), h });
 			}
+			int quest = 0;
 			for (auto* m : markers) {
 				auto* md = MapData(m);
 				if (!md || never.contains(m->GetFormID())) continue;
@@ -529,6 +552,12 @@ namespace AG::Dungeons
 					if (g_poiCats[i].types.contains(type)) cat = i;
 				if (cat < 0) continue;
 				if (!named && loc && DungeonOf(loc)) continue;   // a dungeon (or inside a town): not ours
+				// a place a quest unlocks: it starts switched off, or something else switches it on (an enable parent:
+				// every airship mooring of Legacy of the Dragonborn). Never sold, even once the quest has run.
+				if (!named && (g_questMarkers.contains(m->GetFormID()) || m->extraList.HasType(RE::ExtraDataType::kEnableStateParent))) {
+					++quest;
+					continue;
+				}
 				RE::BGSLocation* hold = loc ? HoldOf(loc) : nullptr;
 				if (!hold) {
 					float best = 0.0f;
@@ -541,7 +570,8 @@ namespace AG::Dungeons
 				}
 				if (hold) g_pois.push_back({ m, cat, hold });
 			}
-			SKSE::log::info("Dungeons: {} points of interest in {} categories (of {} map markers)", g_pois.size(), g_poiCats.size(), markers.size());
+			SKSE::log::info("Dungeons: {} points of interest in {} categories (of {} map markers; {} more are unlocked by quests and left out)",
+				g_pois.size(), g_poiCats.size(), markers.size(), quest);
 		}
 
 		std::string PoiName(RE::TESObjectREFR* a_marker)
@@ -583,6 +613,7 @@ namespace AG::Dungeons
 		for (auto& p : g_pois) {
 			auto* md = MapData(p.marker);
 			if (p.hold != hold || !md || md->flags.any(RE::MapMarkerData::Flag::kVisible)) continue;   // elsewhere, or already on the map
+			if (p.marker->IsDisabled()) continue;   // switched off: the map cannot show it
 			here.push_back(&p);
 		}
 		std::sort(here.begin(), here.end(), [](auto* a, auto* b) { return a->category != b->category ? a->category < b->category : PoiName(a->marker) < PoiName(b->marker); });
@@ -610,6 +641,7 @@ namespace AG::Dungeons
 			if (p.marker->GetFormID() == id) poi = &p;
 		auto* md = poi ? MapData(poi->marker) : nullptr;
 		if (!md) return Loc::T("$AG_Intel_Nothing", "The Guild has nothing on that place.");
+		if (poi->marker->IsDisabled()) return Loc::T("$AG_Intel_Nothing", "The Guild has nothing on that place.");
 		const auto name = PoiName(poi->marker);
 		if (md->flags.any(RE::MapMarkerData::Flag::kVisible)) return Loc::F("$AG_Intel_Known", "{} is already on your map.", name);
 		const int cost = g_poiCats[poi->category].merit;
@@ -633,7 +665,7 @@ namespace AG::Dungeons
 		if (!loc) return Loc::T("$AG_Intel_Nothing", "The Guild has nothing on that place.");
 		auto* marker = MarkerOf(loc);
 		auto* md = MapData(marker);
-		if (!md) return Loc::T("$AG_Intel_Nothing", "The Guild has nothing on that place.");
+		if (!md || marker->IsDisabled()) return Loc::T("$AG_Intel_Nothing", "The Guild has nothing on that place.");
 		if (md->flags.any(RE::MapMarkerData::Flag::kVisible)) return Loc::F("$AG_Intel_Known", "{} is already on your map.", Name(loc));
 		BuildZones();
 		auto z = g_zoneOf.find(loc);

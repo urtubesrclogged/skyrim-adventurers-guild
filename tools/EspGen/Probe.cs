@@ -70,7 +70,9 @@ static class Probe
                     if (mm is null) continue;
                     var name = mm.Name?.String ?? "";
                     if (!re.IsMatch(name) && !re.IsMatch(mm.Type.ToString())) continue;
-                    Console.WriteLine($"{mm.Type}\t{name}\t{mm.Flags}\t{m.ModKey.FileName}\t{r.FormKey.ID:X6}");
+                    var off = (r.MajorRecordFlagsRaw & 0x800) != 0 ? "INITIALLY DISABLED" : "";
+                    var par = r.EnableParent is null ? "" : "enable parent " + r.EnableParent.Reference.FormKey;
+                    Console.WriteLine($"{mm.Type}\t{name}\t{mm.Flags}\t{m.ModKey.FileName}\t{r.FormKey.ID:X6}\t{off}\t{par}");
                 }
             return;
         }
