@@ -69,6 +69,7 @@ must go through those, never as a bare string, or it cannot be translated.
 
 New keys, all optional (English is shown for any you leave out):
 
+* `$AG_UI_NoDungeonsAtRank`: shown on Intel's Dungeons tab when the hold has none at the player's rank.
 * Intel's two tabs: `$AG_UI_IntelDungeons`, `$AG_UI_IntelPoi`, and the short note beside them: `$AG_UI_NoteDungeons`,
   `$AG_UI_NotePoi`.
 * Points of Interest categories: `$AG_Poi_outpost`, `$AG_Poi_orc`, `$AG_Poi_camp`, `$AG_Poi_daedric`, `$AG_Poi_stone`,

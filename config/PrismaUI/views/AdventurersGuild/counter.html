@@ -587,9 +587,11 @@ function renderServices() {
   /* the strip of tabs carries its own short note, in the note line's place (the cards keep their height) */
   const note = intel ? "" : SECTION_NOTES[section] ? SECTION_NOTES[section]() : "";
   const inote = isec === "poi" ? t("$AG_UI_NotePoi", "Undiscovered places in this hold that are not dungeons.") : t("$AG_UI_NoteDungeons", "Undiscovered dungeons in this hold.");
+  /* an empty Dungeons tab is usually the rank rule (intel is sold at or below the player's rank), so say so */
+  const emptyNote = intel && isec === "dungeon" ? t("$AG_UI_NoDungeonsAtRank", "No dungeons found for your rank in this hold.") : t("$AG_UI_NothingOffered", "Nothing on offer.");
   const itabs = intel ? `<div class="itabs"><button data-isec="dungeon" class="${isec === "dungeon" ? "on" : ""}">${esc(t("$AG_UI_IntelDungeons", "Dungeons"))}</button><button data-isec="poi" class="${isec === "poi" ? "on" : ""}">${esc(t("$AG_UI_IntelPoi", "Points of Interest"))}</button><span class="inote">${esc(inote)}</span></div>` : "";
   return `<div class="svc"><div class="sections">${sections.map((s) => `<button data-section="${esc(s)}" class="${s === section ? "on" : ""}">${esc(label[s])}</button>`).join("")}</div>
-    <div class="gridwrap">${itabs}${note ? `<div class="secnote">${esc(note)}</div>` : ""}<div class="grid">${!items.length ? `<div class="empty">${esc(t("$AG_UI_NothingOffered", "Nothing on offer."))}</div>` : ""}${items.map((x) => `<div class="item ${x.available ? "" : "off"}">
+    <div class="gridwrap">${itabs}${note ? `<div class="secnote">${esc(note)}</div>` : ""}<div class="grid">${!items.length ? `<div class="empty">${esc(emptyNote)}</div>` : ""}${items.map((x) => `<div class="item ${x.available ? "" : "off"}">
       <div class="title">${x.tier ? `<span class="chip">${esc(x.tier)}</span>` : ""}${esc(x.name)}</div><div class="detail">${esc(x.desc)}</div>
       <div class="foot">${x.cost ? `<span class="cost">${esc(t("$AG_UI_NMerit", "{0} merit", x.cost))}</span>` : ""}<span class="why">${esc(x.note || "")}</span>
         ${x.available ? `<button class="btn" data-action="service:${esc(x.id)}">${esc(t("$AG_UI_Buy", "Buy"))}</button>` : ""}</div></div>`).join("")}</div></div></div>` +
