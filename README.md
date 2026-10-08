@@ -15,8 +15,10 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
     to add in the middle of a playthrough.
   - Promotion is earned through Reputation and a minimum level (for example, rank D needs 100 Reputation and
     level 12), and is granted by the innkeeper for a small fee.
-- **Appraisal**, a Guild skill bought at the counter in three levels: guild ranks on the names of fellow adventurers,
-  threat ranks on enemy health bars and on dungeons, and better prices from merchants.
+- **Appraisal**, a Guild skill bought at the counter in three levels. The first shows the guild rank of fellow
+  adventurers and the threat rank of people, wildlife and dungeons; the second reads trolls, draugr, dragons and other
+  creatures of legend; the third reads the deadliest threats, ranks A and S, which show as [?] until then. The higher
+  levels also bring better prices from merchants and more Merit for trophies.
 - Two kinds of standing, tracked for you:
   - **Reputation** is your name in the Guild. It is never spent, and promotion depends on it. Earned from kills
     (scaled by the foe's threat rank), dungeon reports and guild quests.
