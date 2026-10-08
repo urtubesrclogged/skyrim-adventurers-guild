@@ -19,6 +19,7 @@ namespace AG::Dungeons
 {
 	void Install();  // at kDataLoaded: player cell-change + tracked-stat sinks
 
+	void           SetNotDungeons(std::vector<std::string> a_keys);  // guild.json "notDungeons" ("Plugin|0xID")
 	nlohmann::json Save();
 	int            ClearedCount();  // dungeons cleared this save (each counted once)
 	void           Load(const nlohmann::json& a_j);

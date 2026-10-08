@@ -48,6 +48,20 @@ static class Probe
                         Console.WriteLine($"{i.FormKey.ID:X8}\t{m.ModKey.FileName}\ttopic={t.EditorID}\tsubtype={t.Subtype}/{t.SubtypeName}\tquest={(quests.TryGetValue(t.Quest.FormKey, out var q) ? q.EditorID + " prio " + q.Priority : "?")}\tflags={i.Flags?.Flags}\tconds={i.Conditions.Count}\t\"{string.Join(" | ", i.Responses.Select(r => r.Text?.String))}\"");
             return;
         }
+        if (what == "locations") {  // locations (editor ID or name matching): keywords and parent chain - what the DLL calls a dungeon
+            var locs = mods.SelectMany(m => m.Locations).GroupBy(l => l.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            var kws = mods.SelectMany(m => m.Keywords).GroupBy(k => k.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID ?? "");
+            foreach (var l in locs.Values.OrderBy(l => l.EditorID))
+            {
+                var name = l.Name?.String ?? "";
+                if (!re.IsMatch(l.EditorID ?? "") && !re.IsMatch(name)) continue;
+                var ks = (l.Keywords ?? []).Select(k => kws.GetValueOrDefault(k.FormKey, k.FormKey.ToString())).OrderBy(x => x).ToList();
+                var chain = new List<string>(); var cur = l;
+                for (int i = 0; i < 6 && cur is not null && !cur.ParentLocation.IsNull && locs.TryGetValue(cur.ParentLocation.FormKey, out var par); i++) { chain.Add(par.EditorID ?? ""); cur = par; }
+                Console.WriteLine($"{l.FormKey.ID:X6}\t{l.EditorID}\t{name}\t{string.Join(",", ks)}\t< {string.Join(" < ", chain)}");
+            }
+            return;
+        }
         if (what == "says") {       // every INFO whose conditions name this NPC (GetIsID), with its topic: what they say in vanilla
             var npcKey = mods.SelectMany(m => m.Npcs).FirstOrDefault(n => re.IsMatch(n.EditorID ?? ""))?.FormKey;
             if (npcKey is null) { Console.WriteLine("no NPC matches"); return; }

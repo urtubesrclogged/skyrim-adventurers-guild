@@ -511,6 +511,7 @@ namespace AG::Guild
 				byRank("missiveMerit", c.missiveMerit);
 				byRank("missiveRep", c.missiveRep);
 				byRank("dungeonMerit", c.dungeonMerit);
+				Dungeons::SetNotDungeons(j.value("notDungeons", std::vector<std::string>{ "Skyrim.esm|0x108A5A", "Skyrim.esm|0x0C342D" }));
 				byRank("dungeonRep", c.dungeonRep);
 				if (j.contains("kills")) {
 					auto& k = j.at("kills");

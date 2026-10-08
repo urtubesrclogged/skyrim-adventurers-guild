@@ -32,6 +32,9 @@
 	"_missiveMerit": "Paid when a completed Missive's report is handed in, by the missive's rank.",
 	"missiveMerit": { "E": 5, "D": 10, "C": 15, "B": 25 },
 	"missiveRep":   { "E": 8, "D": 15, "C": 30, "B": 55 },
+	"_notDungeons": "Places the game marks as clearable that are not dungeons, so the Guild does not announce them, sell intel on them or pay for clearing them. 'Plugin|0xID' of the location. Shipped: Stendarr's Beacon and the Hall of the Vigilant (both held by the Vigilants of Stendarr). Add another mod's peaceful place here if it gets a dungeon notice.",
+	"notDungeons": ["Skyrim.esm|0x108A5A", "Skyrim.esm|0x0C342D"],
+
 	"_dungeonMerit": "Paid for reporting a cleared dungeon, by the dungeon's threat rank (once per dungeon per save, quest or not).",
 	"dungeonMerit": { "E": 5,  "D": 10, "C": 20, "B": 30, "A": 40,  "S": 50 },
 	"dungeonRep":   { "E": 10, "D": 20, "C": 40, "B": 70, "A": 110, "S": 170 },

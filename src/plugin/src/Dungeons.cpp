@@ -26,11 +26,31 @@ namespace AG::Dungeons
 		std::unordered_set<std::string>      g_reported;  // cleared locations already paid / announced
 		RE::BGSLocation*                     g_current{ nullptr };  // not saved: just suppresses repeat notices
 
+		// guild.json "notDungeons": places the game marks clearable that are no dungeon (Stendarr's Beacon and the Hall
+		// of the Vigilant are held by the Vigilants). Keys are kept as written and looked up once the forms exist.
+		std::vector<std::string>       g_notDungeonKeys;
+		std::unordered_set<RE::FormID> g_notDungeons;
+		bool                           g_notDungeonsResolved{ false };
+
+		bool Excluded(const RE::BGSLocation* a_loc)
+		{
+			if (!g_notDungeonsResolved) {
+				if (!RE::TESDataHandler::GetSingleton()) return false;
+				g_notDungeons.clear();
+				for (auto& k : g_notDungeonKeys)
+					if (auto* f = Adventurers::FormOfKey(k)) g_notDungeons.insert(f->GetFormID());
+				g_notDungeonsResolved = true;
+				SKSE::log::info("Dungeons: {} of {} places listed as not dungeons were found", g_notDungeons.size(), g_notDungeonKeys.size());
+			}
+			return g_notDungeons.contains(a_loc->GetFormID());
+		}
+
 		bool Clearable(const RE::BGSLocation* a_loc)
 		{
 			// Civil War camps (LocTypeMilitaryCamp) carry LocTypeDungeon but are faction headquarters, not places to
 			// clear: no dungeon notice on entry, no intel for sale.
 			if (!a_loc || a_loc->HasKeywordString("LocTypeMilitaryCamp")) return false;
+			if (Excluded(a_loc)) return false;
 			return a_loc->HasKeywordString("LocTypeClearable") || a_loc->HasKeywordString("LocTypeDungeon");
 		}
 
@@ -360,6 +380,12 @@ namespace AG::Dungeons
 	{
 		std::lock_guard l(g_lock);
 		return static_cast<int>(g_reported.size());
+	}
+
+	void SetNotDungeons(std::vector<std::string> a_keys)
+	{
+		g_notDungeonKeys = std::move(a_keys);
+		g_notDungeonsResolved = false;
 	}
 
 	nlohmann::json Save()

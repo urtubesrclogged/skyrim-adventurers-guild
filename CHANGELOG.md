@@ -11,6 +11,7 @@
   from other mods' creatures is now quick and no longer happens while the game loads
 
 **Other**
+- Stendarr's Beacon and the Hall of the Vigilant are no longer treated as dungeons
 - The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
 
 ## 1.3.0
