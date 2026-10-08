@@ -18,7 +18,8 @@
 //   members factions            -> member (anyone who can be a follower or hired)
 //   chance groups               -> member / retired / hidden, by a hash of the reference FormID
 //                                  (the same NPC always gets the same answer, no save data)
-// An NPC adventurer's rank comes from their level.
+// An NPC adventurer's rank comes from their level, and stops at A: rank S belongs to the player and to those who
+// travel with them. A companion at the S level holds S, and keeps it after they part (co-save "heldS").
 namespace AG::Adventurers
 {
 	enum class Kind : std::uint8_t
@@ -62,6 +63,8 @@ namespace AG::Adventurers
 	// co-save (part of Guild's record)
 	nlohmann::json Save();
 	void           Load(const nlohmann::json& a_j);
+	nlohmann::json SaveHeldS();
+	void           LoadHeldS(const nlohmann::json& a_j);
 	void           Revert();
 
 	// "Plugin.esp|0x00ABCD" for a form, stable across load-order changes ("FF|0x..." for runtime refs)

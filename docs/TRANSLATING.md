@@ -75,6 +75,13 @@ New keys, all optional (English is shown for any you leave out):
   `$AG_Poi_landmark`, `$AG_Poi_wreck`. A category someone adds to `guild.json` is keyed `$AG_Poi_<its id>`.
 * Buying one: `$AG_Poi_Bought` (place, Merit), `$AG_Log_Poi` (the ledger line: place, Merit).
 * `$AG_City_RavenRock`: the tenth counter's town.
+* MCM, System page, the level of rank S: `$AG_MCM_System_Ranks_Header`, `$AG_MCM_System_iSLevel_Text`,
+  `$AG_MCM_System_iSLevel_Help`, `$AG_MCM_System_RankLevels_Header`, and the five rows `$AG_MCM_System_RankD_Text` to
+  `$AG_MCM_System_RankS_Text`.
+* The one-time notice on a game started before 1.4.0: `$AG_Toast_BandsKept`, `$AG_Toast_BandsKeptSub` (the first `{}` is
+  the level this game keeps, the second the level new games use).
+
+Changed text, same key: `$AG_MCM_Debug_RankReset_Help` no longer lists the level of each rank (they are a setting now).
 
 The innkeeper's spoken lines for the new counter at Raven Rock are in the plugin file, like the rest of the dialogue.
 

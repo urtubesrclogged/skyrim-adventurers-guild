@@ -21,9 +21,13 @@ Bool bDetailedLog = False
 ; the key that opens the Guild Card: none until the player picks one (0 or less = none)
 Int iCardKey = -1
 Bool bRegistrationWasRunning = False
+; the level of rank S (60..120). A new game takes the ini's (80); a save from before version 4 keeps 60, the levels
+; it always had, and says so once
+Int iSLevel = 60
+Bool bSLevelSet = False
 
 Int Function GetVersion()
-	Return 3
+	Return 4
 EndFunction
 
 Event OnConfigInit()
@@ -33,6 +37,8 @@ Event OnConfigInit()
 	bShowToast = AG_Native.GetShowRankUpToast()
 	fToastSeconds = AG_Native.GetToastSeconds()
 	bDetailedLog = AG_Native.GetDetailedLog()
+	iSLevel = AG_Native.GetDefaultSLevel()
+	bSLevelSet = True
 	Apply()
 	RegisterCardAction()
 EndEvent
@@ -45,6 +51,13 @@ Event OnVersionUpdate(Int a_version)
 		bLabelsCarriedOver = True
 		bShowLabels = bShowGuild || bShowThreat || bShowLevel
 		Apply()
+	EndIf
+	; version 4: the level of rank S. A game already under way keeps the levels it had (S at 60). Once only.
+	If !bSLevelSet
+		bSLevelSet = True
+		iSLevel = 60
+		Apply()
+		AG_Native.NoticeRankLevelsKept()
 	EndIf
 EndEvent
 
@@ -83,6 +96,9 @@ Function Apply()
 	AG_Native.SetToastSeconds(fToastSeconds)
 	AG_Native.SetDetailedLog(bDetailedLog)
 	AG_Native.SetCardHotkey(iCardKey)
+	If bSLevelSet
+		AG_Native.SetSLevel(iSLevel)
+	EndIf
 EndFunction
 
 Event OnPageReset(String a_page)
@@ -97,6 +113,17 @@ Event OnPageReset(String a_page)
 		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_System_Card_Header", OPTION_FLAG_NONE)
 		AddKeyMapOptionST("CardKey", "$AG_MCM_System_iCardKey_Text", CardKeyShown(), OPTION_FLAG_WITH_UNMAP)
+		; right-hand column: the level of rank S, and the level each rank then needs (read-only)
+		SetCursorPosition(1)
+		AddHeaderOption("$AG_MCM_System_Ranks_Header", OPTION_FLAG_NONE)
+		AddSliderOptionST("SLevel", "$AG_MCM_System_iSLevel_Text", iSLevel, "{0}", OPTION_FLAG_NONE)
+		AddEmptyOption()
+		AddHeaderOption("$AG_MCM_System_RankLevels_Header", OPTION_FLAG_NONE)
+		AddTextOption("$AG_MCM_System_RankD_Text", AG_Native.GetRankLevel(1), OPTION_FLAG_NONE)
+		AddTextOption("$AG_MCM_System_RankC_Text", AG_Native.GetRankLevel(2), OPTION_FLAG_NONE)
+		AddTextOption("$AG_MCM_System_RankB_Text", AG_Native.GetRankLevel(3), OPTION_FLAG_NONE)
+		AddTextOption("$AG_MCM_System_RankA_Text", AG_Native.GetRankLevel(4), OPTION_FLAG_NONE)
+		AddTextOption("$AG_MCM_System_RankS_Text", AG_Native.GetRankLevel(5), OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[1]
 		AddHeaderOption("$AG_MCM_Debug_Log_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("DetailedLog", "$AG_MCM_Debug_bDetailedLog_Text", bDetailedLog, OPTION_FLAG_NONE)
@@ -150,6 +177,29 @@ State Toast
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText("$AG_MCM_System_bShowNotices_Help")
+	EndEvent
+EndState
+
+; ---- System: the level of rank S. One table for the player's promotions and for every threat, dungeon and adventurer ----
+State SLevel
+	Event OnSliderOpenST()
+		SetSliderDialogStartValue(iSLevel)
+		SetSliderDialogDefaultValue(AG_Native.GetDefaultSLevel())
+		SetSliderDialogRange(60.0, 120.0)
+		SetSliderDialogInterval(10.0)
+	EndEvent
+	Event OnSliderAcceptST(Float a_value)
+		iSLevel = a_value as Int
+		Apply()
+		ForcePageReset()  ; the five levels beneath it
+	EndEvent
+	Event OnDefaultST()
+		iSLevel = AG_Native.GetDefaultSLevel()
+		Apply()
+		ForcePageReset()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_System_iSLevel_Help")
 	EndEvent
 EndState
 

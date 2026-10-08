@@ -40,7 +40,6 @@ namespace AG::Guild
 			float                        repPerBountyGold{ 0.1f };  // Reputation lost per gold of new bounty
 			float                        abandonShare{ 0.5f };      // of a taken missive's Reputation, lost when it is given up
 			std::array<int, kRankCount>  reputation{ 0, 100, 300, 700, 1500, 3000 };
-			std::array<int, kRankCount>  minLevel{ 1, 12, 24, 36, 48, 60 };
 			int                          cap{ 2 };  // C
 			std::array<int, kRankCount>  missiveMerit{ 5, 10, 15, 25, 0, 0 };
 			std::array<int, kRankCount>  missiveRep{ 8, 15, 30, 55, 0, 0 };
@@ -168,7 +167,7 @@ namespace AG::Guild
 			if (!g_registered || g_rank < 0 || g_rank >= kRankCount - 1) return false;
 			auto* pc = RE::PlayerCharacter::GetSingleton();
 			const int next = g_rank + 1;
-			return pc && !g_bountyActive.load() && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= g_cfg.minLevel[next];
+			return pc && !g_bountyActive.load() && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= MinLevel(next);
 		}
 
 		// Everything a promotion needs is met, but a bounty has it on hold
@@ -177,7 +176,7 @@ namespace AG::Guild
 			if (!g_registered || g_rank < 0 || g_rank >= kRankCount - 1 || !g_bountyActive.load()) return false;
 			auto* pc = RE::PlayerCharacter::GetSingleton();
 			const int next = g_rank + 1;
-			return pc && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= g_cfg.minLevel[next];
+			return pc && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= MinLevel(next);
 		}
 
 		// Placement at registration: highest rank whose level floor the player meets, capped.
@@ -185,11 +184,7 @@ namespace AG::Guild
 		{
 			auto* pc = RE::PlayerCharacter::GetSingleton();
 			const int level = pc ? pc->GetLevel() : 1;
-			int r = 0;
-			for (int i = 1; i <= g_cfg.cap && i < kRankCount; ++i) {
-				if (level >= g_cfg.minLevel[i]) r = i;
-			}
-			return r;
+			return std::min(FromLevel(level), std::clamp(g_cfg.cap, 0, kRankCount - 1));
 		}
 
 		void DoRegister()
@@ -357,6 +352,8 @@ namespace AG::Guild
 				for (auto& h : g_history) history.push_back({ { "day", h.day }, { "text", h.text } });
 			}
 			j["recruited"] = Adventurers::Save();
+			j["heldS"] = Adventurers::SaveHeldS();
+			j["sLevel"] = GetSLevel();
 			j["dungeons"] = Dungeons::Save();
 			j["parties"] = Party::Save();
 			const auto s = j.dump();
@@ -395,6 +392,7 @@ namespace AG::Guild
 			Adventurers::Revert();
 			Dungeons::Revert();
 			Party::Revert();
+			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
 			std::uint32_t type, ver, len;
 			while (a->GetNextRecordInfo(type, ver, len)) {
 				if (type != kRec) continue;
@@ -445,6 +443,9 @@ namespace AG::Guild
 						}
 					}
 					if (j.contains("recruited")) Adventurers::Load(j.at("recruited"));
+					if (j.contains("heldS")) Adventurers::LoadHeldS(j.at("heldS"));
+					// a save from before 1.4.0 keeps the levels it always had; the MCM (which holds the setting) agrees
+					SetSLevel(j.value("sLevel", kSLevelBefore140));
 					Dungeons::Load(j.value("dungeons", nlohmann::json::object()));
 					Party::Load(j.value("parties", nlohmann::json::array()));
 				} catch (const std::exception& e) {
@@ -464,6 +465,7 @@ namespace AG::Guild
 			Adventurers::Revert();
 			Dungeons::Revert();
 			Party::Revert();
+			SetSLevel(DefaultSLevel());
 		}
 
 		template <class T>
@@ -498,7 +500,6 @@ namespace AG::Guild
 						for (std::size_t i = 0; i < out.size() && i < v.size(); ++i) out[i] = v[i];
 					};
 					fill("reputation", c.reputation);
-					fill("minLevel", c.minLevel);
 				}
 				const auto cap = j.value("registrationCap", std::string("C"));
 				if (const int r = FromLetter(cap.empty() ? '?' : cap[0]); r >= 0) c.cap = r;
@@ -546,7 +547,7 @@ namespace AG::Guild
 			for (auto v : a) s += (s.empty() ? "" : ",") + std::to_string(v);
 			return s;
 		};
-		SKSE::log::info("Guild: fee {}, cap {}, promotion rep [{}] level [{}]", c.fee, Letter(c.cap), join(c.reputation), join(c.minLevel));
+		SKSE::log::info("Guild: fee {}, cap {}, promotion rep [{}]", c.fee, Letter(c.cap), join(c.reputation));
 		if (RE::PlayerCharacter::GetSingleton()) SyncGlobals();
 	}
 
@@ -917,7 +918,7 @@ namespace AG::Guild
 		}
 		if (g_registered && g_rank < kRankCount - 1) {
 			const int next = g_rank + 1;
-			j["next"] = { { "letter", LetterStr(next) }, { "reputation", g_cfg.reputation[next] }, { "level", g_cfg.minLevel[next] },
+			j["next"] = { { "letter", LetterStr(next) }, { "reputation", g_cfg.reputation[next] }, { "level", MinLevel(next) },
 				{ "prevReputation", g_cfg.reputation[g_rank] } };
 		}
 		auto& reports = j["reports"] = nlohmann::json::array();
@@ -1189,7 +1190,7 @@ namespace AG::Guild
 		if (g_rank < kRankCount - 1) {
 			const int next = g_rank + 1;
 			j["next"] = { { "rank", LetterStr(next) }, { "reputationShort", std::max(0, g_cfg.reputation[next] - g_reputation) },
-				{ "levelShort", std::max(0, g_cfg.minLevel[next] - level) } };
+				{ "levelShort", std::max(0, MinLevel(next) - level) } };
 		}
 		int gold = 0, merit = 0, rep = 0;
 		for (auto& r : g_reports) {
@@ -1263,13 +1264,24 @@ namespace AG::Guild
 	// that joined late, a level overhaul, a tester.
 	namespace
 	{
-		int RankForLevel(int a_level)
-		{
-			int r = 0;
-			for (int i = 1; i < kRankCount; ++i)
-				if (a_level >= g_cfg.minLevel[i]) r = i;
-			return r;
-		}
+		int RankForLevel(int a_level) { return FromLevel(a_level); }
+	}
+
+	void OnBandsChanged()
+	{
+		SKSE::GetTaskInterface()->AddTask([] {
+			if (!RE::PlayerCharacter::GetSingleton()) return;
+			SyncGlobals();     // "ready for promotion" may have changed
+			SyncWanderers();   // their rank in the faction their greetings read
+			if (Counter::IsOpen()) Counter::Refresh();
+		});
+	}
+
+	void NoticeRankLevelsKept()
+	{
+		SKSE::log::info("Guild: a save from before 1.4.0 - rank S stays at level {} here (new games: {})", GetSLevel(), DefaultSLevel());
+		PrismaToast::Show(Loc::T("$AG_Toast_BandsKept", "RANK LEVELS KEPT"),
+			Loc::F("$AG_Toast_BandsKeptSub", "Rank S stays at level {} in this game · new games use {} · change it in the MCM", GetSLevel(), DefaultSLevel()));
 	}
 
 	std::string RankResetText()

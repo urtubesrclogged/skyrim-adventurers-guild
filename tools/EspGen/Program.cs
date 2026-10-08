@@ -732,12 +732,19 @@ File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptio
             atMost = node["atMost"]?.GetValue<string>(),
         });
     }
+    var named = new List<object>();
+    foreach (var (edid, node) in ReadConfig("threat")["actors"]?.AsObject() ?? new JsonObject())
+    {
+        if (!idx["npcs"].TryGetValue(edid, out var afk)) { Console.Error.WriteLine($"ERROR threat.json: unknown actor '{edid}'"); errors++; continue; }
+        named.Add(new { actor = Key(afk), name = edid, atLeast = node!["atLeast"]?.GetValue<string>() });
+    }
     File.WriteAllText(Path.Combine(outDir, "threat.resolved.json"), JsonSerializer.Serialize(new
     {
-        _comment = "Threat judgement calls by race, where neither level nor the danger score ranks a creature right. atLeast: never below this rank (fromLevel: only once the creature is at least that level). atMost: never above this rank. Rank letters E D C B A S. Edit or delete a line as you like. [Threat] RaceRules = 0 in AdventurersGuild.ini turns all of it off.",
+        _comment = "Threat judgement calls, where neither level nor the danger score ranks a creature right. races: atLeast = never below this rank (fromLevel: only once the creature is at least that level); atMost = never above this rank, replacing the ceiling its keywords give it (wildlife stops at B). actors: one actor by name, never below this rank. Rank letters E D C B A S. Rank S is never reached by level alone: an \"atLeast\": \"S\" here is S, and so is a dragon from the A level up; anything else has to prove it (at the S level, with a danger score of ScoreS or more) or stops at A. Edit or delete a line as you like. [Threat] RaceRules = 0 in AdventurersGuild.ini turns all of it off.",
         races = rules,
+        actors = named,
     }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
-    Console.WriteLine($"threat rules: {rules.Count} races");
+    Console.WriteLine($"threat rules: {rules.Count} races, {named.Count} actors");
 }
 File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"dialogue: {ids.Count} INFO ids pinned, {liaisonKeys.Count} liaisons");

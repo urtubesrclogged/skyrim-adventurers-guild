@@ -1,5 +1,5 @@
 {
-	"_comment": "Judgement calls: where neither a creature's level nor its danger score (see [Threat] in AdventurersGuild.ini) ranks it right. Keyed by race editor ID; tools/EspGen resolves them into threat.resolved.json, which is the file the game reads and the one to edit in an install. atLeast: never ranked below this. fromLevel: atLeast only applies from this level up (one race, several tiers). atMost: never ranked above this. Rank letters E D C B A S.",
+	"_comment": "Judgement calls: where neither a creature's level nor its danger score (see [Threat] in AdventurersGuild.ini) ranks it right. \"races\" is keyed by race editor ID and \"actors\" by actor editor ID; tools/EspGen resolves them into threat.resolved.json, which is the file the game reads and the one to edit in an install. atLeast: never ranked below this. fromLevel: atLeast only applies from this level up (one race, several tiers). atMost: never ranked above this, and it replaces the ceiling the creature's keywords give it (wildlife stops at B). Rank letters E D C B A S. Rank S is never reached by level alone: a race or an actor that is \"atLeast\": \"S\" here is S, and so is a dragon from the A level up; anything else has to prove it (at the S level, with a danger score of ScoreS or more) or stops at A.",
 	"races": {
 		"GiantRace": {
 			"atLeast": "C",
@@ -29,6 +29,154 @@
 		"HorseRace": {
 			"atMost": "E",
 			"_why": "its health alone would score D"
+		},
+		"AlduinRace": {
+			"atLeast": "S",
+			"_why": "the World-Eater, at whatever level the player meets him (he is 1.2 times the player's)"
+		},
+		"DLC2AcolyteDragonPriestRace": {
+			"atLeast": "S",
+			"_why": "the dragon priests of Solstheim, as the ones of Skyrim"
+		},
+		"SkeeverRace": {
+			"atMost": "D",
+			"_why": "small wildlife, here and below: never more than a nuisance, whatever level a list gives it"
+		},
+		"SkeeverWhiteRace": {
+			"atMost": "D"
+		},
+		"MudcrabRace": {
+			"atMost": "D"
+		},
+		"DLC2MudcrabSolstheimRace": {
+			"atMost": "D"
+		},
+		"DeerRace": {
+			"atMost": "D"
+		},
+		"ElkRace": {
+			"atMost": "D"
+		},
+		"WhiteStagRace": {
+			"atMost": "D"
+		},
+		"DLC1DeerGlowRace": {
+			"atMost": "D"
+		},
+		"FoxRace": {
+			"atMost": "D"
+		},
+		"HareRace": {
+			"atMost": "D"
+		},
+		"GoatRace": {
+			"atMost": "D"
+		},
+		"GoatDomesticsRace": {
+			"atMost": "D"
+		},
+		"ChickenRace": {
+			"atMost": "D"
+		},
+		"CowRace": {
+			"atMost": "D"
+		},
+		"DogRace": {
+			"atMost": "D"
+		},
+		"DogCompanionRace": {
+			"atMost": "D"
+		},
+		"MG07DogRace": {
+			"atMost": "D"
+		},
+		"DLC1HuskyArmoredRace": {
+			"atMost": "D"
+		},
+		"DLC1HuskyBareRace": {
+			"atMost": "D"
+		},
+		"DLC1HuskyArmoredCompanionRace": {
+			"atMost": "D"
+		},
+		"DLC1HuskyBareCompanionRace": {
+			"atMost": "D"
+		},
+		"SlaughterfishRace": {
+			"atMost": "D"
+		},
+		"DLC2BoarRace": {
+			"atMost": "D"
+		},
+		"DLC2AshHopperRace": {
+			"atMost": "D"
+		},
+		"CartHorseRace": {
+			"atMost": "E",
+			"_why": "as the horse"
+		},
+		"MammothRace": {
+			"atMost": "A",
+			"_why": "big game and trolls, here and below: the game calls them wildlife, which stops at B; these may reach A, never S"
+		},
+		"TrollRace": {
+			"atMost": "A"
+		},
+		"TrollFrostRace": {
+			"atMost": "A"
+		},
+		"DLC1TrollRaceArmored": {
+			"atMost": "A"
+		},
+		"DLC1TrollFrostRaceArmored": {
+			"atMost": "A"
+		}
+	},
+	"actors": {
+		"DLC2Miraak": {
+			"atLeast": "S",
+			"_why": "the First Dragonborn: he is 1.1 times the player's level"
+		},
+		"DLC2MiraakMQ01": {
+			"atLeast": "S"
+		},
+		"DLC2MiraakMQ02": {
+			"atLeast": "S"
+		},
+		"DLC2MiraakMQ04": {
+			"atLeast": "S"
+		},
+		"DLC2MiraakMQ06": {
+			"atLeast": "S"
+		},
+		"DLC2MiraakSoulSteal": {
+			"atLeast": "S"
+		},
+		"Paarthurnax": {
+			"atLeast": "S",
+			"_why": "level 10 in the records"
+		},
+		"Odahviing": {
+			"atLeast": "S",
+			"_why": "takes the level of whichever dragon suits the player"
+		},
+		"MQ303Odahviing": {
+			"atLeast": "S"
+		},
+		"DLC1Durnehviir": {
+			"atLeast": "S",
+			"_why": "the player's own level"
+		},
+		"DLC1DurnehviirSummon": {
+			"atLeast": "S"
+		},
+		"DLC2EbonyWarrior": {
+			"atLeast": "S",
+			"_why": "level 80, and a person: no danger score to prove it with"
+		},
+		"DLC2dunKarstaag": {
+			"atLeast": "S",
+			"_why": "level 90"
 		}
 	}
 }

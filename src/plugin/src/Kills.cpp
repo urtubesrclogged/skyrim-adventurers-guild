@@ -29,7 +29,7 @@ namespace AG::Kills
 
 		// A dungeon's boss. Vanilla also tags a settlement's owner (innkeeper, shopkeeper, jarl) with the same Boss
 		// ref type for radiant quests, so it only counts inside a clearable location.
-		bool IsBoss(RE::Actor* a_victim)
+		bool BossPlaced(RE::Actor* a_victim)
 		{
 			const auto* x = a_victim->extraList.GetByType<RE::ExtraLocationRefType>();
 			if (!x || !x->locRefType || std::ranges::find(g_boss, x->locRefType) == g_boss.end()) return false;
@@ -173,6 +173,8 @@ namespace AG::Kills
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESHitEvent>(Sink::Get());
 		SKSE::log::info("Kills: watching deaths ({} boss ref types)", g_boss.size());
 	}
+
+	bool IsBoss(RE::Actor* a_actor) { return a_actor && BossPlaced(a_actor); }
 
 	std::string DebugKill(RE::FormID a_ref)
 	{

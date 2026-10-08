@@ -14,6 +14,7 @@
 namespace AG::Kills
 {
 	void Register();  // TESDeathEvent sink, call at kDataLoaded
+	bool IsBoss(RE::Actor* a_actor);  // placed as the boss of a dungeon or a clearable place
 
 	// dev/test (DevBench): credit a kill of that actor as if the player made it; returns what it paid and why
 	std::string DebugKill(RE::FormID a_ref);

@@ -7,10 +7,9 @@
 	"_cardReplacementFee": "The first guild card is free (handed over at registration; a member from before 1.2.0 gets theirs on loading). Gold for a replacement after that, asked of any Guild liaison (only offered while you carry no card).",
 	"cardReplacementFee": 25,
 
-	"_promotion": "Promotion to rank N needs guild Reputation >= reputation[N] AND level >= minLevel[N]. Reputation is standing: earned from missives, dungeon reports and kills, never spent. minLevel matches the threat bands in AdventurersGuild.ini, so a rank-X adventurer is at least a rank-X threat. Apply at any innkeeper once eligible.",
+	"_promotion": "Promotion to rank N needs guild Reputation >= reputation[N] AND the level of that rank. Reputation is standing: earned from missives, dungeon reports and kills, never spent. The levels are not set here: they follow the level of rank S (MCM > System > Level for rank S; [Ranks] in AdventurersGuild.ini for a new game), the same table that ranks threats, dungeons and other adventurers, so a rank-X adventurer is at least a rank-X threat. Apply at any innkeeper once eligible.",
 	"promotion": {
-		"reputation": [0, 100, 300, 700, 1500, 3000],
-		"minLevel":   [1, 12, 24, 36, 48, 60]
+		"reputation": [0, 100, 300, 700, 1500, 3000]
 	},
 
 	"_party": "Adventuring parties (docs/PARTIES.md). fee: gold to found a party at a counter. maxMembers: companions besides the player, at most 9 (a party is never more than 10, however many followers a follower mod allows). nameMaxLength: characters in a party name. bondTiers: the Bond (0-100, averaged over active members) at which Strangers, Companions, Comrades, Sworn and Legend start.",
@@ -24,7 +23,7 @@
 	"_conduct": "What costs Reputation. Only what the holds know: when your bounty in a hold RISES the Guild hears of it and takes repPerBountyGold of Reputation for each gold of it (0.1: a 40 gold assault costs 4, a 1000 gold murder 100). A rise too small to cost a whole point is carried over to the next, so many petty thefts cost what one theft of the same total does. A crime nobody witnessed costs nothing. While you have a bounty anywhere, promotion is on hold; paying it or serving the time lifts that. A rank is never taken away, but Reputation can fall below what the next promotion needs. abandonShare: giving up or failing a missive or notice you TOOK costs this share of the Reputation it would have paid.",
 	"conduct": { "repPerBountyGold": 0.1, "abandonShare": 0.5 },
 
-	"_registrationCap": "Registration places an experienced newcomer by level (minLevel table above), never above this rank.",
+	"_registrationCap": "Registration places an experienced newcomer by level (the same levels), never above this rank.",
 	"registrationCap": "C",
 
 	"_currencies": "Two currencies. Merit is spent on guild services (intel, Appraisal, training). Reputation is standing: promotion reads it and nothing spends it. Trophies pay Merit only (see trophies.json), kills Reputation only, missives and dungeon reports both. Rewards below your rank pay the same as at rank.",

@@ -73,6 +73,12 @@ namespace AG
 		std::string PrepareUninstall(Tag*) { return Guild::PrepareUninstall(); }
 		std::string RankResetText(Tag*) { return Guild::RankResetText(); }
 		std::string RecalculateRank(Tag*) { return Guild::RecalculateRank(); }
+		// the level of rank S (MCM): one table for the player's promotions, threats, dungeons and adventurers
+		std::int32_t SLevelGet(Tag*) { return AG::GetSLevel(); }
+		std::int32_t GetDefaultSLevel(Tag*) { return AG::DefaultSLevel(); }
+		void         SLevelSet(Tag*, std::int32_t a_level) { AG::SetSLevel(a_level); Guild::OnBandsChanged(); }
+		std::int32_t GetRankLevel(Tag*, std::int32_t a_rank) { return AG::MinLevel(a_rank); }
+		void         NoticeRankLevelsKept(Tag*) { Guild::NoticeRankLevelsKept(); }
 		std::string CancelUninstall(Tag*) { return Guild::CancelUninstall(); }
 		std::string UninstallText(Tag*, std::int32_t a_which)
 		{
@@ -194,6 +200,11 @@ namespace AG
 		REG(PrepareUninstall);
 		REG(RankResetText);
 		REG(RecalculateRank);
+		a_vm->RegisterFunction("GetSLevel", kClass, SLevelGet);  // not REG: AG::GetSLevel has the same name
+		REG(GetDefaultSLevel);
+		a_vm->RegisterFunction("SetSLevel", kClass, SLevelSet);
+		REG(GetRankLevel);
+		REG(NoticeRankLevelsKept);
 		REG(CancelUninstall);
 		REG(UninstallText);
 		REG(IsGuildLiaison);

@@ -72,6 +72,8 @@ namespace AG::Guild
 	// "Prepare to Uninstall" (MCM): take back every ability, perk and item of ours and stay dormant; Cancel undoes it
 	bool        Dormant();
 	std::string PrepareUninstall();
+	void        OnBandsChanged();        // the level of rank S moved (MCM): what depends on it is brought up to date
+	void        NoticeRankLevelsKept();  // once, on a save from before 1.4.0: its rank levels stay as they were
 	std::string RankResetText();    // MCM > Debug: what recalculating the rank from the player's level would do
 	std::string RecalculateRank();  // ... and doing it: rank by level alone, Reputation at that rank's start
 	std::string CancelUninstall();

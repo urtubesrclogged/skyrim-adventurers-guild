@@ -4,6 +4,7 @@
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
 #include "RankCore.h"
+#include "Kills.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 
@@ -14,50 +15,68 @@ namespace AG
 {
 	namespace
 	{
-		Bands        g_bands;
+		std::array<std::atomic<int>, kRankCount - 1> g_min{ 12, 24, 40, 60, 80 };  // read every frame, set from the MCM
+		std::atomic<int>                             g_sLevel{ 80 }, g_sDefault{ 80 };
 		ThreatTuning g_threat;
 
-		// "+2", "floor C", "+1 floor B" -> rule; false if nothing usable
+		int SnapSLevel(int a_level)
+		{
+			a_level = std::clamp(a_level, kSLevelMin, kSLevelMax);
+			return (a_level + kSLevelStep / 2) / kSLevelStep * kSLevelStep;
+		}
+
+		// "+2", "floor C", "+1 floor B", "max B" -> rule; false if nothing usable
 		bool ParseRule(const std::string& a_key, std::string a_val, KeywordRule& a_out)
 		{
-			a_out = { a_key, 0, -1 };
+			a_out = { a_key, 0, -1, -1 };
 			for (auto& ch : a_val) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
 			std::istringstream in(a_val);
 			std::string        tok;
 			while (in >> tok) {
 				if (tok == "floor") {
 					if (in >> tok && !tok.empty()) a_out.floor = FromLetter(tok[0]);
+				} else if (tok == "max") {
+					if (in >> tok && !tok.empty()) a_out.atMost = FromLetter(tok[0]);
 				} else if (tok[0] == '+' || tok[0] == '-' || std::isdigit(static_cast<unsigned char>(tok[0]))) {
 					try { a_out.bump = std::stoi(tok); } catch (...) {}
 				}
 			}
-			return a_out.bump != 0 || a_out.floor >= 0;
+			return a_out.bump != 0 || a_out.floor >= 0 || a_out.atMost >= 0;
 		}
 	}
 
+	void SetSLevel(int a_level)
+	{
+		const int s = SnapSLevel(a_level);
+		Bands     b;
+		b.min = { 12, 24, 36, 48, 60 };  // 60: the table as it was before 1.4.0
+		if (s != 60) {
+			b.min[2] = static_cast<int>(std::lround(24.0 + (s - 24) * 16.0 / 56.0));
+			b.min[3] = static_cast<int>(std::lround(24.0 + (s - 24) * 36.0 / 56.0));
+			b.min[4] = s;
+		}
+		const bool changed = g_sLevel.exchange(s) != s;
+		for (int i = 0; i < kRankCount - 1; ++i) g_min[i] = b.min[i];
+		if (changed) SKSE::log::info("Bands: S at level {} -> D>={} C>={} B>={} A>={} S>={}", s, b.min[0], b.min[1], b.min[2], b.min[3], b.min[4]);
+	}
+
+	int GetSLevel() { return g_sLevel.load(); }
+	int DefaultSLevel() { return g_sDefault.load(); }
+	int MinLevel(int a_rank) { return a_rank <= 0 ? 1 : g_min[std::min(a_rank, kRankCount - 1) - 1].load(std::memory_order_relaxed); }
+
 	void LoadConfig()
 	{
-		g_bands = {};
 		g_threat = {};
 		CSimpleIniA ini;
 		ini.SetUnicode();
 		if (ini.LoadFile("Data/SKSE/Plugins/AdventurersGuild.ini") < 0) {
 			SKSE::log::info("AdventurersGuild.ini not found - using default bands");
+			SetSLevel(g_sDefault);
 			return;
 		}
-		constexpr const char* keys[]{ "D", "C", "B", "A", "S" };
-		for (int i = 0; i < 5; ++i) {
-			g_bands.min[i] = static_cast<int>(ini.GetLongValue("Bands", keys[i], g_bands.min[i]));
-		}
-		// enforce strictly ascending so a bad ini cannot make ranks non-monotonic
-		for (int i = 1; i < 5; ++i) {
-			if (g_bands.min[i] <= g_bands.min[i - 1]) {
-				SKSE::log::warn("AdventurersGuild.ini bands not ascending - reverting to defaults");
-				g_bands = {};
-				break;
-			}
-		}
-		SKSE::log::info("Bands: D>={} C>={} B>={} A>={} S>={}", g_bands.min[0], g_bands.min[1], g_bands.min[2], g_bands.min[3], g_bands.min[4]);
+		g_sDefault = SnapSLevel(static_cast<int>(ini.GetLongValue("Ranks", "SLevel", 80)));
+		SetSLevel(g_sDefault);
+		SKSE::log::info("Bands: a new game starts with S at level {} (the MCM holds it per save)", g_sDefault.load());
 
 		g_threat.score = ini.GetBoolValue("Threat", "DangerScore", true);
 		constexpr const char* scoreKeys[]{ "ScoreD", "ScoreC", "ScoreB", "ScoreA", "ScoreS" };
@@ -72,6 +91,16 @@ namespace AG
 			}
 		}
 		g_threat.raceRules = ini.GetBoolValue("Threat", "RaceRules", true);
+		g_threat.sGate = ini.GetBoolValue("Threat", "SGate", true);
+		if (const std::string list = ini.GetValue("Threat", "SKeywords", ""); !list.empty()) {
+			g_threat.sKeywords.clear();
+			std::istringstream in(list);
+			for (std::string tok; std::getline(in, tok, ',');) {
+				tok.erase(0, tok.find_first_not_of(" \t"));
+				tok.erase(tok.find_last_not_of(" \t") + 1);
+				if (!tok.empty()) g_threat.sKeywords.push_back(tok);
+			}
+		}
 		g_threat.fantasyTier = static_cast<int>(ini.GetLongValue("Appraisal", "FantasyTier", g_threat.fantasyTier));
 		g_threat.highTier = static_cast<int>(ini.GetLongValue("Appraisal", "HighRankTier", g_threat.highTier));
 		if (const int r = FromLetter(*ini.GetValue("Appraisal", "HighRank", "A")); r >= 0) g_threat.highRank = r;
@@ -89,20 +118,25 @@ namespace AG
 			for (auto& k : keys) {
 				KeywordRule r;
 				if (ParseRule(k.pItem, ini.GetValue("ThreatKeywords", k.pItem, ""), r)) g_threat.keywords.push_back(r);
-				else SKSE::log::warn("[ThreatKeywords] {}: expected \"+N\" and/or \"floor X\"", k.pItem);
+				else SKSE::log::warn("[ThreatKeywords] {}: expected \"+N\", \"floor X\" and/or \"max X\"", k.pItem);
 			}
 		}
 		SKSE::log::info("Threat: danger score {} (D>={} C>={} B>={} A>={} S>={}), {} keyword rule(s)", g_threat.score ? "on" : "off",
 			g_threat.scoreMin[0], g_threat.scoreMin[1], g_threat.scoreMin[2], g_threat.scoreMin[3], g_threat.scoreMin[4], g_threat.keywords.size());
 	}
 
-	const Bands& GetBands() { return g_bands; }
+	Bands GetBands()
+	{
+		Bands b;
+		for (int i = 0; i < kRankCount - 1; ++i) b.min[i] = g_min[i].load(std::memory_order_relaxed);
+		return b;
+	}
 
 	int FromLevel(int a_level)
 	{
 		int r = 0;
 		for (int i = 0; i < 5; ++i) {
-			if (a_level >= g_bands.min[i]) r = i + 1;
+			if (a_level >= g_min[i].load(std::memory_order_relaxed)) r = i + 1;
 		}
 		return r;
 	}
@@ -110,6 +144,7 @@ namespace AG
 	void LoadRaceRules()
 	{
 		g_threat.races.clear();
+		g_threat.actors.clear();
 		if (!g_threat.raceRules) {
 			SKSE::log::info("Threat: race rules off ([Threat] RaceRules = 0)");
 			return;
@@ -135,7 +170,15 @@ namespace AG
 					g_threat.races[race->GetFormID()] = r;
 				}
 			}
-			SKSE::log::info("Threat: {} race rule(s)", g_threat.races.size());
+			for (auto& e : j.value("actors", nlohmann::json::array())) {
+				const auto key = e.value("actor", std::string());
+				const auto bar = key.find('|');
+				const auto a = e.value("atLeast", std::string());
+				if (bar == std::string::npos || !dh || a.empty()) continue;
+				if (auto* npc = dh->LookupForm(static_cast<RE::FormID>(std::stoul(key.substr(bar + 1), nullptr, 16)), key.substr(0, bar)))
+					g_threat.actors[npc->GetFormID()] = FromLetter(a[0]);
+			}
+			SKSE::log::info("Threat: {} race rule(s), {} named actor(s)", g_threat.races.size(), g_threat.actors.size());
 		} catch (const std::exception& e) {
 			SKSE::log::error("Threat: threat.resolved.json error: {} - no race rules", e.what());
 		}
@@ -203,29 +246,64 @@ namespace AG
 			if (t.bump) t.why = std::format("score {:.0f} = {}", t.score, Letter(t.byScore));
 		}
 
-		// keywords: the largest adjustment and the highest floor win (a keyword bump does not stack with the score)
+		const auto has = [&](const std::string& a_kw) { return (base && base->HasApplicableKeywordString(a_kw)) || (race && race->HasKeywordString(a_kw)); };
+		const auto add = [&](std::string a_text) { t.why += (t.why.empty() ? "" : ", ") + a_text; };
+
+		// keywords: the largest adjustment, the highest floor and the lowest ceiling win (a keyword bump does not stack
+		// with the score)
+		int ceiling = -1;
 		for (auto& r : g_threat.keywords) {
-			const bool has = (base && base->HasApplicableKeywordString(r.keyword)) || (race && race->HasKeywordString(r.keyword));
-			if (!has) continue;
+			if (!has(r.keyword)) continue;
 			if (r.bump > t.bump) t.bump = r.bump;
 			if (r.floor > t.floor) t.floor = r.floor;
-			t.why += (t.why.empty() ? "" : ", ") + r.keyword;
+			if (r.atMost >= 0 && (ceiling < 0 || r.atMost < ceiling)) ceiling = r.atMost;
+			if (r.bump || r.floor >= 0) add(r.keyword);
 		}
 		t.rank = std::clamp(std::max(t.byLevel + t.bump, t.floor), 0, kRankCount - 1);
 
-		// judgement calls by race, last: they hold whatever the level and the score say
+		// judgement calls by race: they hold whatever the level and the score say, and a race's own ceiling replaces
+		// the one its keywords gave it (a troll is wildlife to the game, and may still reach A)
+		bool listed = false;
 		if (g_threat.raceRules && race)
 			if (auto it = g_threat.races.find(race->GetFormID()); it != g_threat.races.end()) {
 				const auto& r = it->second;
 				if (r.atLeast > t.rank && t.level >= r.fromLevel) {
 					t.rank = r.atLeast;
-					t.why += (t.why.empty() ? "" : ", ") + std::format("at least {} for its kind", Letter(t.rank));
+					add(std::format("at least {} for its kind", Letter(t.rank)));
 				}
-				if (r.atMost >= 0 && r.atMost < t.rank) {
-					t.rank = r.atMost;
-					t.why += (t.why.empty() ? "" : ", ") + std::format("at most {} for its kind", Letter(t.rank));
+				if (r.atLeast == kRankCount - 1 && t.level >= r.fromLevel) listed = true;
+				if (r.atMost >= 0) ceiling = r.atMost;
+			}
+		if (ceiling >= 0 && ceiling < t.rank) {
+			t.rank = ceiling;
+			add(std::format("at most {} for its kind", Letter(t.rank)));
+		}
+		// ... and by name: the few that are what they are at any level
+		if (g_threat.raceRules && base)
+			if (auto it = g_threat.actors.find(base->GetFormID()); it != g_threat.actors.end()) {
+				if (it->second > t.rank) {
+					t.rank = it->second;
+					add(std::format("{} by name", Letter(t.rank)));
+				}
+				if (it->second == kRankCount - 1) listed = true;
+			}
+
+		// Rank S is never reached by level alone: listed, or proven
+		if (g_threat.sGate && t.rank == kRankCount - 1 && !listed) {
+			for (auto& k : g_threat.sKeywords)
+				if (has(k)) { listed = true; break; }
+			if (!listed) {
+				bool proven = t.byLevel == kRankCount - 1;
+				if (proven) {
+					if (race && race->HasKeywordString("ActorTypeNPC")) proven = base && base->IsUnique() && Kills::IsBoss(a_actor);
+					else proven = t.byScore == kRankCount - 1;
+				}
+				if (!proven) {
+					t.rank = kRankCount - 2;
+					add("S not proven");
 				}
 			}
+		}
 		return t;
 	}
 

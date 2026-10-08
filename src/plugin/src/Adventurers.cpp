@@ -123,6 +123,7 @@ namespace AG::Adventurers
 		std::unordered_set<RE::FormID>          g_liaisons;  // base NPCs who keep a guild counter (dialogue.json)
 		std::unordered_map<RE::FormID, std::string> g_liaisonCity;
 		std::unordered_set<std::string>         g_recruited;  // StableKey of refs that joined on recruitment
+		std::unordered_set<RE::FormID>          g_heldS;      // refs that held rank S at the player's side
 		std::unordered_map<RE::FormID, Kind>    g_cache;      // decided kind for non-recruited refs
 
 		RE::TESFaction* Resolve(const std::string& a_key)
@@ -391,6 +392,23 @@ namespace AG::Adventurers
 		}
 	}
 
+	namespace
+	{
+		// A member's rank from their level. S is for those at the player's side (a follower, and so every party member
+		// while they travel): held from then on, whoever they travel with afterwards. Takes g_lock itself.
+		int MemberRank(RE::Actor* a_actor)
+		{
+			const int rank = FromLevel(a_actor->GetLevel());
+			if (rank < kRankCount - 1) return rank;
+			std::lock_guard l(g_lock);
+			if (a_actor->IsPlayerTeammate()) {
+				if (g_heldS.insert(a_actor->GetFormID()).second) SKSE::log::info("Adventurers: {} holds rank S at the player's side", a_actor->GetDisplayFullName());
+				return rank;
+			}
+			return g_heldS.contains(a_actor->GetFormID()) ? rank : kRankCount - 2;
+		}
+	}
+
 	Info Of(RE::Actor* a_actor)
 	{
 		if (!a_actor || a_actor->IsPlayerRef()) return {};
@@ -430,7 +448,7 @@ namespace AG::Adventurers
 			});
 		}
 		if (kind == Kind::kNone) return {};
-		return { kind, pinned >= 0 ? pinned : FromLevel(a_actor->GetLevel()) };
+		return { kind, pinned >= 0 ? pinned : MemberRank(a_actor) };
 	}
 
 	std::string JoinStatus(RE::Actor* a_actor)
@@ -454,7 +472,7 @@ namespace AG::Adventurers
 			g_cache.erase(a_actor->GetFormID());
 		}
 		const std::string name = a_actor->GetDisplayFullName();
-		const int rank = FromLevel(a_actor->GetLevel());
+		const int rank = MemberRank(a_actor);
 		SKSE::log::info("Adventurers: {} joined the guild of their own accord (rank {})", name, rank);
 		SKSE::GetTaskInterface()->AddTask([name] {
 			RE::SendHUDMessage::ShowHUDMessage(Loc::F("$AG_Hud_Recruited", "{} has registered with the Adventurers Guild.", name).c_str());
@@ -567,10 +585,29 @@ namespace AG::Adventurers
 		}
 	}
 
+	nlohmann::json SaveHeldS()
+	{
+		std::lock_guard l(g_lock);
+		auto            out = nlohmann::json::array();
+		for (const auto id : g_heldS)
+			if (auto* f = RE::TESForm::LookupByID(id)) out.push_back(StableKey(f));
+		return out;
+	}
+
+	void LoadHeldS(const nlohmann::json& a_j)
+	{
+		std::lock_guard l(g_lock);
+		g_heldS.clear();
+		if (a_j.is_array())
+			for (auto& k : a_j)
+				if (auto* f = FormOfKey(k.get<std::string>())) g_heldS.insert(f->GetFormID());
+	}
+
 	void Revert()
 	{
 		std::lock_guard l(g_lock);
 		g_recruited.clear();
+		g_heldS.clear();
 		g_cache.clear();
 	}
 }

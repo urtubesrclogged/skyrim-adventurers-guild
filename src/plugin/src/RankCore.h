@@ -5,8 +5,9 @@
 
 #pragma once
 
-// Rank letters and the level bands. Bands give the THREAT rank of anything you fight and the guild
-// rank of NPC adventurers. The PLAYER's guild rank is not level-derived: it is earned (see Guild.h).
+// Rank letters and the level bands. One table for everything: the THREAT rank of anything you fight, the rank of a
+// dungeon, the guild rank of NPC adventurers, and the level each of the PLAYER's promotions needs (the player's rank
+// itself is earned at the Guild, see Guild.h). The table follows one number, the level of rank S (MCM, per save).
 namespace AG
 {
 	// 0=E .. 5=S
@@ -15,8 +16,9 @@ namespace AG
 	struct Bands
 	{
 		// Lowest level of ranks D,C,B,A,S (E starts at 1)
-		std::array<int, kRankCount - 1> min{ 12, 24, 36, 48, 60 };
+		std::array<int, kRankCount - 1> min{ 12, 24, 40, 60, 80 };
 	};
+	inline constexpr int kSLevelMin = 60, kSLevelMax = 120, kSLevelStep = 10, kSLevelBefore140 = 60;
 
 	// Creature adjustment on top of level ([Threat] / [ThreatKeywords] in the ini). Level already tracks danger for
 	// most foes (Skyrim's leveled lists scale them); these catch the ones it understates, vanilla or modded.
@@ -25,6 +27,7 @@ namespace AG
 		std::string keyword;  // race or actor keyword editor ID, e.g. ActorTypeDragon
 		int         bump{ 0 };
 		int         floor{ -1 };
+		int         atMost{ -1 };  // never above this rank (the lowest ceiling among the matching rules wins)
 	};
 	struct RaceRule
 	{
@@ -39,7 +42,13 @@ namespace AG
 		// gives. Works for any creature a mod adds.
 		bool                               score{ true };
 		std::array<float, kRankCount - 1>  scoreMin{ 45.0f, 100.0f, 200.0f, 300.0f, 500.0f };  // lowest score of D,C,B,A,S
-		std::vector<KeywordRule>           keywords{ { "ActorTypeDragon", 2, -1 } };
+		// a dragon is one rank above its level and never below C; wildlife stops at B (a race rule can say otherwise)
+		std::vector<KeywordRule>           keywords{ { "ActorTypeDragon", 1, 2, -1 }, { "ActorTypeAnimal", 0, -1, 3 } };
+		// Rank S is never reached by level alone. LISTED: a race or actor rule that says "at least S", or one of these
+		// keywords. PROVEN: at the S level and, for a creature, a danger score of ScoreS or more; for a person, a unique
+		// actor placed as a dungeon boss. Anything else stops at A.
+		bool                               sGate{ true };
+		std::vector<std::string>           sKeywords{ "ActorTypeDragon" };
 		// Judgement calls by race (threat.json -> threat.resolved.json): never below / never above a rank
 		// Appraisal: a creature of legend (any of these race or actor keywords, or neither a person nor an animal) shows
 		// "[?]" until the player's Appraisal reaches this tier. 0 = no such gate.
@@ -51,6 +60,7 @@ namespace AG
 			"ActorTypeDwarven", "ActorTypeGhost", "ActorTypeGiant", "Vampire" };
 		bool                                    raceRules{ true };
 		std::unordered_map<RE::FormID, RaceRule> races;
+		std::unordered_map<RE::FormID, int>      actors;  // actor base -> never below this rank (Alduin: S at any level)
 	};
 
 	// How a threat rank was reached, for the debug readout.
@@ -63,7 +73,13 @@ namespace AG
 
 	void LoadConfig();  // Data/SKSE/Plugins/AdventurersGuild.ini
 	void LoadRaceRules();  // at kDataLoaded (needs forms): threat.resolved.json
-	const Bands& GetBands();
+	Bands GetBands();
+	// The level of rank S, 60..120 in tens. D and C stay at 12 and 24; B and A are spaced between C and S as 40 and 60
+	// are for 80. 60 gives the table every version before 1.4.0 had (12/24/36/48/60).
+	void  SetSLevel(int a_level);
+	int   GetSLevel();
+	int   DefaultSLevel();        // a new game's: [Ranks] SLevel in the ini
+	int   MinLevel(int a_rank);   // lowest level of a rank (1 for E)
 
 	int         FromLevel(int a_level);
 	int         ThreatRank(RE::Actor* a_actor);  // level band, moved by the danger score and the creature rules; -1 if null

@@ -10,6 +10,14 @@
   camps, landmarks, shipwrecks and more
 - Stendarr's Beacon and the Hall of the Vigilant are Points of Interest now, not dungeons
 
+**Ranks Reworked**
+- Rank S is rare now. It starts at level 80, not 60, and level alone is no longer enough: only the oldest dragons,
+  dragon priests and a few legends are S. Wildlife stops at B
+- New MCM setting, Level for rank S (60 to 120), for games that level far past 80 or scale their enemies up. The same
+  levels apply to your promotions, threats, dungeons and other adventurers
+- Nobody loses a rank. A game already under way keeps its old levels (S at 60) until you change the setting
+- Other adventurers stop at A. Only you and your companions can be S
+
 **Other**
 - Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
   with you
