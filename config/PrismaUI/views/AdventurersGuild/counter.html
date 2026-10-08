@@ -197,6 +197,12 @@
   .gridwrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   .gridwrap .grid { grid-template-rows: repeat(3, 132px); }
   .secnote { font-size: 16px; color: var(--muted); font-style: italic; margin: 0 0 10px 2px; }
+  /* Intel's two tabs: one strip in the note line's place, with a short note of its own beside them */
+  .itabs { display: flex; align-items: center; gap: 8px; margin: 0 0 6px 0; }
+  .itabs button { flex: none; font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 17px; height: 30px; padding: 0 16px;
+                  color: var(--muted); background: rgba(0, 0, 0, 0.25); border: 1px solid var(--bronze-dim); cursor: pointer; white-space: nowrap; }
+  .itabs button.on { color: var(--ink); border-color: var(--bronze); background: rgba(194, 154, 91, 0.10); }
+  .itabs .inote { flex: 1; min-width: 0; margin-left: 8px; font-size: 16px; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .item .title .chip { display: inline-block; width: 28px; height: 28px; line-height: 26px; text-align: center; margin-right: 8px;
                        border: 1px solid var(--bronze-dim); color: var(--bronze); font-size: 17px; vertical-align: 1px; font-style: normal; }
   .item { border: 1px solid rgba(194, 154, 91, 0.25); background: rgba(0, 0, 0, 0.28); padding: 12px 14px; display: flex; flex-direction: column; }
@@ -389,7 +395,7 @@ const METAL_EN = { E: "Iron", D: "Steel", C: "Dwarven", B: "Orichalcum", A: "Ebo
 const metal = (l) => METAL_EN[l] ? t("$AG_UI_Metal" + l, METAL_EN[l]) : "";
 let data = { registered: false, letter: "-", merit: 0, reputation: 0, reports: [], services: [], history: [],
              missives: [0,0,0,0,0,0], trophies: { items: [], total: 0, bonus: 0 }, appraisal: 0, training: [0,0,0] };
-let tab = "card", section = null, qsec = null, note = null;
+let tab = "card", section = null, qsec = null, note = null, isec = "dungeon";
 const page = { quests: 0, board: 0, notices: 0, trophies: 0, records: 0, services: 0, party: 0, recruit: 0, ledger: 0, founders: 0, traits: 0 };
 
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
@@ -574,10 +580,15 @@ function renderServices() {
   for (const x of all) label[sid(x)] = x.section;
   if (!sections.length) return `<div class="empty">${esc(t("$AG_UI_NothingOffered", "Nothing on offer."))}</div>`;
   if (!sections.includes(section)) section = sections[0];
-  const { items, pages } = paged("services", all.filter((x) => sid(x) === section), CARDS);
-  const note = SECTION_NOTES[section] ? SECTION_NOTES[section]() : "";
+  /* Intel has two tabs: dungeons and points of interest (rows carry group "dungeon" / "poi") */
+  const intel = section === "Intel";
+  const { items, pages } = paged("services", all.filter((x) => sid(x) === section && (!intel || (x.group || "dungeon") === isec)), CARDS);
+  /* the strip of tabs carries its own short note, in the note line's place (the cards keep their height) */
+  const note = intel ? "" : SECTION_NOTES[section] ? SECTION_NOTES[section]() : "";
+  const inote = isec === "poi" ? t("$AG_UI_NotePoi", "Undiscovered places in this hold that are not dungeons.") : t("$AG_UI_NoteDungeons", "Undiscovered dungeons in this hold.");
+  const itabs = intel ? `<div class="itabs"><button data-isec="dungeon" class="${isec === "dungeon" ? "on" : ""}">${esc(t("$AG_UI_IntelDungeons", "Dungeons"))}</button><button data-isec="poi" class="${isec === "poi" ? "on" : ""}">${esc(t("$AG_UI_IntelPoi", "Points of Interest"))}</button><span class="inote">${esc(inote)}</span></div>` : "";
   return `<div class="svc"><div class="sections">${sections.map((s) => `<button data-section="${esc(s)}" class="${s === section ? "on" : ""}">${esc(label[s])}</button>`).join("")}</div>
-    <div class="gridwrap">${note ? `<div class="secnote">${esc(note)}</div>` : ""}<div class="grid">${items.map((x) => `<div class="item ${x.available ? "" : "off"}">
+    <div class="gridwrap">${itabs}${note ? `<div class="secnote">${esc(note)}</div>` : ""}<div class="grid">${!items.length ? `<div class="empty">${esc(t("$AG_UI_NothingOffered", "Nothing on offer."))}</div>` : ""}${items.map((x) => `<div class="item ${x.available ? "" : "off"}">
       <div class="title">${x.tier ? `<span class="chip">${esc(x.tier)}</span>` : ""}${esc(x.name)}</div><div class="detail">${esc(x.desc)}</div>
       <div class="foot">${x.cost ? `<span class="cost">${esc(t("$AG_UI_NMerit", "{0} merit", x.cost))}</span>` : ""}<span class="why">${esc(x.note || "")}</span>
         ${x.available ? `<button class="btn" data-action="service:${esc(x.id)}">${esc(t("$AG_UI_Buy", "Buy"))}</button>` : ""}</div></div>`).join("")}</div></div></div>` +
@@ -938,6 +949,7 @@ $("main").addEventListener("click", (e) => {
   if (!b || b.disabled) return;
   if (b.dataset.page) { const [k, d] = b.dataset.page.split(":"); page[k] += Number(d); render(); return; }
   if (b.dataset.section) { section = b.dataset.section; page.services = 0; render(); return; }
+  if (b.dataset.isec) { isec = b.dataset.isec; page.services = 0; render(); return; }
   if (b.dataset.qsec) { qsec = b.dataset.qsec; note = null; render(); return; }
   if (b.dataset.note) { noteReturn = keyOf(b); note = { id: b.dataset.note }; render(); if (window.agAction) window.agAction("details:" + b.dataset.note); return; }
   if (b.dataset.back) { back(); return; }

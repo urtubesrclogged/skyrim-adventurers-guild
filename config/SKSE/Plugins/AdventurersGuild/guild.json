@@ -32,8 +32,23 @@
 	"_missiveMerit": "Paid when a completed Missive's report is handed in, by the missive's rank.",
 	"missiveMerit": { "E": 5, "D": 10, "C": 15, "B": 25 },
 	"missiveRep":   { "E": 8, "D": 15, "C": 30, "B": 55 },
-	"_notDungeons": "Places the game marks as clearable that are not dungeons, so the Guild does not announce them, sell intel on them or pay for clearing them. 'Plugin|0xID' of the location. Shipped: Stendarr's Beacon and the Hall of the Vigilant (both held by the Vigilants of Stendarr). Add another mod's peaceful place here if it gets a dungeon notice.",
+	"_notDungeons": "Places the game marks as clearable that are not dungeons, so the Guild does not announce them, sell dungeon intel on them or pay for clearing them (they can still be Points of Interest, below). 'Plugin|0xID' of the location. Shipped: Stendarr's Beacon and the Hall of the Vigilant (both held by the Vigilants of Stendarr). Add another mod's peaceful place here if it gets a dungeon notice.",
 	"notDungeons": ["Skyrim.esm|0x108A5A", "Skyrim.esm|0x0C342D"],
+
+	"_pointsOfInterest": "Intel's second tab: places worth knowing that are not dungeons. Found from the game's map markers, so places added by other mods count. A category takes every marker with one of its 'markers' icons (Camp, Shipwreck, Grove, Landmark, Doomstone, ImperialTower, Lighthouse, OrcStronghold, Shack, Shrine, ...) plus the 'places' named outright ('Plugin|0xID' of the map marker reference); the first category that fits wins, and 'merit' is its one price. A marker whose location is a dungeon stays on the Dungeons tab unless it is named in 'places'. Only places not yet on the player's map are offered, for the hold the counter is in. 'never': markers the Guild does not sell whatever their icon (places only the main quest reaches, hidden factions, docks drawn with a shipwreck icon). enabled false removes the tab.",
+	"pointsOfInterest": {
+		"enabled": true,
+		"categories": [
+			{ "id": "outpost",  "name": "Lodge or outpost", "merit": 3,  "markers": [], "places": ["Skyrim.esm|0x108A58", "Skyrim.esm|0x0C342A", "Skyrim.esm|0x0D3934", "Skyrim.esm|0x0DD99A", "Skyrim.esm|0x0C016D"] },
+			{ "id": "orc",      "name": "Orc stronghold",   "merit": 5,  "markers": ["OrcStronghold"] },
+			{ "id": "camp",     "name": "Camp or shack",    "merit": 5,  "markers": ["Shack"], "places": ["Dragonborn.esm|0x0143D0"] },
+			{ "id": "daedric",  "name": "Daedric shrine",   "merit": 10, "markers": ["Shrine"] },
+			{ "id": "stone",    "name": "Standing stone",   "merit": 15, "markers": ["Doomstone"] },
+			{ "id": "landmark", "name": "Landmark",         "merit": 5,  "markers": ["Landmark"] },
+			{ "id": "wreck",    "name": "Shipwreck",        "merit": 8,  "markers": ["Shipwreck"] }
+		],
+		"never": ["Skyrim.esm|0x0162C4", "Skyrim.esm|0x105F3A", "Skyrim.esm|0x01637C", "Dawnguard.esm|0x019AA5", "Dawnguard.esm|0x016864", "Dragonborn.esm|0x0296E0"]
+	},
 
 	"_dungeonMerit": "Paid for reporting a cleared dungeon, by the dungeon's threat rank (once per dungeon per save, quest or not).",
 	"dungeonMerit": { "E": 5,  "D": 10, "C": 20, "B": 30, "A": 40,  "S": 50 },

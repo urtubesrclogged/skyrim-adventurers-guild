@@ -428,11 +428,200 @@ namespace AG::Dungeons
 			std::string note = !a_registered ? Loc::T("$AG_Note_RegisterFirst", "Register first") : (a_merit < cost ? Loc::T("$AG_Note_NoMerit", "Not enough Merit") : "");
 			const auto where = Bearing(lead.marker);
 			rows.push_back({ { "section", Loc::T("$AG_Sec_Intel", "Intel") }, { "sectionId", "Intel" }, { "id", std::format("intel:{:08X}", lead.loc->GetFormID()) },
-				{ "name", Name(lead.loc) }, { "tier", std::string(1, Letter(lead.rank)) },
+				{ "group", "dungeon" }, { "name", Name(lead.loc) }, { "tier", std::string(1, Letter(lead.rank)) },
 				{ "desc", where.empty() ? Kind(lead.loc) : Loc::F("$AG_Intel_Desc", "{} · {}", Kind(lead.loc), where) },
 				{ "cost", cost }, { "available", note.empty() }, { "note", note } });
 		}
 		return rows;
+	}
+
+	// ---------------------------------------------------------------- points of interest
+	namespace
+	{
+		struct PoiCategory
+		{
+			std::string                   id, name;
+			int                           merit{ 5 };
+			std::unordered_set<int>       types;   // map marker icons (RE::MARKER_TYPE)
+			std::vector<std::string>      placeKeys;
+			std::unordered_set<RE::FormID> places;  // marker references named outright
+		};
+		struct Poi
+		{
+			RE::TESObjectREFR* marker{ nullptr };
+			int                category{ -1 };
+			RE::BGSLocation*   hold{ nullptr };
+		};
+		bool                           g_poiEnabled{ true };
+		std::vector<PoiCategory>       g_poiCats;
+		std::vector<std::string>       g_poiNeverKeys;
+		std::vector<Poi>               g_pois;
+		bool                           g_poisBuilt{ false };
+
+		int MarkerType(std::string_view a_name)
+		{
+			static const std::unordered_map<std::string_view, int> m{
+				{ "Camp", 5 }, { "Shipwreck", 9 }, { "Grove", 10 }, { "Landmark", 11 }, { "Farm", 13 }, { "WoodMill", 14 }, { "Mine", 15 },
+				{ "Doomstone", 18 }, { "WheatMill", 19 }, { "Smelter", 20 }, { "Stable", 21 }, { "ImperialTower", 22 }, { "Clearing", 23 },
+				{ "Pass", 24 }, { "Altar", 25 }, { "Rock", 26 }, { "Lighthouse", 27 }, { "OrcStronghold", 28 }, { "GiantCamp", 29 },
+				{ "Shack", 30 }, { "NordicTower", 31 }, { "NordicDwelling", 32 }, { "Docks", 33 }, { "Shrine", 34 }, { "Settlement", 3 },
+			};
+			auto it = m.find(a_name);
+			return it == m.end() ? -1 : it->second;
+		}
+
+		// Every map marker in the game (other mods' too), sorted into the categories once per session. A marker whose
+		// location is a dungeon is the Dungeons tab's business. A marker with no location takes the hold of the
+		// nearest marker that has one.
+		void BuildPois()
+		{
+			if (g_poisBuilt) return;
+			g_poisBuilt = true;
+			g_pois.clear();
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			if (!dh || !g_poiEnabled || g_poiCats.empty()) return;
+			for (auto& c : g_poiCats) {
+				c.places.clear();
+				for (auto& k : c.placeKeys)
+					if (auto* f = Adventurers::FormOfKey(k)) c.places.insert(f->GetFormID());
+			}
+			std::unordered_set<RE::FormID> never;
+			for (auto& k : g_poiNeverKeys)
+				if (auto* f = Adventurers::FormOfKey(k)) never.insert(f->GetFormID());
+			std::unordered_map<RE::FormID, RE::BGSLocation*> locOf;   // marker reference -> its location
+			for (auto* l : dh->GetFormArray<RE::BGSLocation>())
+				if (l)
+					if (auto* m = MarkerOf(l)) locOf.emplace(m->GetFormID(), l);
+
+			std::vector<RE::TESObjectREFR*> markers;
+			{
+				const auto& [map, lock] = RE::TESForm::GetAllForms();
+				RE::BSReadLockGuard l{ lock };
+				if (map)
+					for (auto& [id, form] : *map) {
+						auto* ref = form ? form->As<RE::TESObjectREFR>() : nullptr;
+						if (ref && ref->extraList.HasType(RE::ExtraDataType::kMapMarker)) markers.push_back(ref);
+					}
+			}
+			auto root = [](RE::TESWorldSpace* w) {
+				while (w && w->parentWorld) w = w->parentWorld;
+				return w;
+			};
+			struct Anchor { RE::TESWorldSpace* world; RE::NiPoint3 pos; RE::BGSLocation* hold; };
+			std::vector<Anchor> anchors;
+			for (auto* m : markers) {
+				auto it = locOf.find(m->GetFormID());
+				if (auto* h = it != locOf.end() ? HoldOf(it->second) : nullptr) anchors.push_back({ root(m->GetWorldspace()), m->GetPosition(), h });
+			}
+			for (auto* m : markers) {
+				auto* md = MapData(m);
+				if (!md || never.contains(m->GetFormID())) continue;
+				const char* nm = md->locationName.GetFullName();
+				if (!nm || !*nm) continue;
+				auto  lit = locOf.find(m->GetFormID());
+				auto* loc = lit != locOf.end() ? lit->second : nullptr;
+				int   cat = -1;
+				for (int i = 0; i < static_cast<int>(g_poiCats.size()) && cat < 0; ++i)
+					if (g_poiCats[i].places.contains(m->GetFormID())) cat = i;
+				const bool named = cat >= 0;
+				const int  type = static_cast<int>(md->type.underlying());
+				for (int i = 0; i < static_cast<int>(g_poiCats.size()) && cat < 0; ++i)
+					if (g_poiCats[i].types.contains(type)) cat = i;
+				if (cat < 0) continue;
+				if (!named && loc && DungeonOf(loc)) continue;   // a dungeon (or inside a town): not ours
+				RE::BGSLocation* hold = loc ? HoldOf(loc) : nullptr;
+				if (!hold) {
+					float best = 0.0f;
+					for (auto& a : anchors) {
+						if (a.world != root(m->GetWorldspace())) continue;
+						const auto  d = a.pos - m->GetPosition();
+						const float dd = d.x * d.x + d.y * d.y;
+						if (!hold || dd < best) { hold = a.hold; best = dd; }
+					}
+				}
+				if (hold) g_pois.push_back({ m, cat, hold });
+			}
+			SKSE::log::info("Dungeons: {} points of interest in {} categories (of {} map markers)", g_pois.size(), g_poiCats.size(), markers.size());
+		}
+
+		std::string PoiName(RE::TESObjectREFR* a_marker)
+		{
+			auto*       md = MapData(a_marker);
+			const char* n = md ? md->locationName.GetFullName() : nullptr;
+			return n && *n ? n : "";
+		}
+		std::string CategoryName(const PoiCategory& a_c) { return Loc::T("$AG_Poi_" + a_c.id, a_c.name); }
+	}
+
+	void SetPointsOfInterest(const nlohmann::json& a_cfg)
+	{
+		g_poiEnabled = a_cfg.value("enabled", true);
+		g_poiCats.clear();
+		g_poiNeverKeys = a_cfg.value("never", std::vector<std::string>{});
+		for (auto& c : a_cfg.value("categories", nlohmann::json::array())) {
+			PoiCategory pc;
+			pc.id = c.value("id", "");
+			pc.name = c.value("name", pc.id);
+			pc.merit = std::max(0, c.value("merit", 5));
+			for (auto& t : c.value("markers", nlohmann::json::array()))
+				if (const int v = t.is_number_integer() ? t.get<int>() : MarkerType(t.get<std::string>()); v >= 0) pc.types.insert(v);
+				else SKSE::log::warn("Dungeons: pointsOfInterest '{}': unknown map marker type {}", pc.id, t.dump());
+			pc.placeKeys = c.value("places", std::vector<std::string>{});
+			if (!pc.id.empty()) g_poiCats.push_back(std::move(pc));
+		}
+		g_poisBuilt = false;
+	}
+
+	nlohmann::json PoiServices(int a_merit, bool a_registered)
+	{
+		auto rows = nlohmann::json::array();
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		auto* hold = HoldOf(pc ? pc->GetCurrentLocation() : nullptr);
+		if (!hold) return rows;
+		BuildPois();
+		std::vector<const Poi*> here;
+		for (auto& p : g_pois) {
+			auto* md = MapData(p.marker);
+			if (p.hold != hold || !md || md->flags.any(RE::MapMarkerData::Flag::kVisible)) continue;   // elsewhere, or already on the map
+			here.push_back(&p);
+		}
+		std::sort(here.begin(), here.end(), [](auto* a, auto* b) { return a->category != b->category ? a->category < b->category : PoiName(a->marker) < PoiName(b->marker); });
+		for (auto* p : here) {
+			auto&      cat = g_poiCats[p->category];
+			const auto note = !a_registered ? Loc::T("$AG_Note_RegisterFirst", "Register first") : (a_merit < cat.merit ? Loc::T("$AG_Note_NoMerit", "Not enough Merit") : "");
+			const auto where = Bearing(p->marker);
+			rows.push_back({ { "section", Loc::T("$AG_Sec_Intel", "Intel") }, { "sectionId", "Intel" }, { "group", "poi" },
+				{ "id", std::format("poi:{:08X}", p->marker->GetFormID()) }, { "name", PoiName(p->marker) },
+				{ "desc", where.empty() ? CategoryName(cat) : Loc::F("$AG_Intel_Desc", "{} · {}", CategoryName(cat), where) },
+				{ "cost", cat.merit }, { "available", note.empty() }, { "note", note } });
+		}
+		return rows;
+	}
+
+	std::string BuyPoi(const std::string& a_id)
+	{
+		RE::FormID id = 0;
+		try {
+			id = static_cast<RE::FormID>(std::stoul(a_id.substr(4), nullptr, 16));
+		} catch (...) {}
+		BuildPois();
+		const Poi* poi = nullptr;
+		for (auto& p : g_pois)
+			if (p.marker->GetFormID() == id) poi = &p;
+		auto* md = poi ? MapData(poi->marker) : nullptr;
+		if (!md) return Loc::T("$AG_Intel_Nothing", "The Guild has nothing on that place.");
+		const auto name = PoiName(poi->marker);
+		if (md->flags.any(RE::MapMarkerData::Flag::kVisible)) return Loc::F("$AG_Intel_Known", "{} is already on your map.", name);
+		const int cost = g_poiCats[poi->category].merit;
+		if (!Guild::TrySpendMerit(cost, Loc::F("$AG_Log_Poi", "Bought intel on {} for {} Merit.", name, cost)))
+			return Loc::F("$AG_Intel_Cost", "Intel on {} costs {} Merit.", name, cost);
+		md->SetVisible(true);
+		if (auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
+			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+			vm->DispatchStaticCall("AG_QuestHelper", "RevealMarker", RE::MakeFunctionArguments(static_cast<RE::TESObjectREFR*>(poi->marker)), cb);
+		}
+		SKSE::log::info("Dungeons: point of interest bought - {} ({}, {} merit)", name, g_poiCats[poi->category].id, cost);
+		return Loc::F("$AG_Poi_Bought", "{} is marked on your map. {} Merit spent.", name, cost);
 	}
 
 	std::string BuyIntel(const std::string& a_id)

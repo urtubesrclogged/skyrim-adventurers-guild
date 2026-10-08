@@ -512,6 +512,7 @@ namespace AG::Guild
 				byRank("missiveRep", c.missiveRep);
 				byRank("dungeonMerit", c.dungeonMerit);
 				Dungeons::SetNotDungeons(j.value("notDungeons", std::vector<std::string>{ "Skyrim.esm|0x108A5A", "Skyrim.esm|0x0C342D" }));
+				Dungeons::SetPointsOfInterest(j.value("pointsOfInterest", nlohmann::json::object()));
 				byRank("dungeonRep", c.dungeonRep);
 				if (j.contains("kills")) {
 					auto& k = j.at("kills");
@@ -874,6 +875,11 @@ namespace AG::Guild
 	{
 		if (a_id.starts_with("intel:")) {
 			auto msg = Dungeons::BuyIntel(a_id);
+			Counter::Refresh();
+			return msg;
+		}
+		if (a_id.starts_with("poi:")) {
+			auto msg = Dungeons::BuyPoi(a_id);
 			Counter::Refresh();
 			return msg;
 		}

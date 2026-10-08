@@ -62,6 +62,18 @@ static class Probe
             }
             return;
         }
+        if (what == "markers") {    // every map marker: icon type, name, visible/can-travel flags (what could be sold as intel)
+            foreach (var m in mods)
+                foreach (var r in m.EnumerateMajorRecords<IPlacedObjectGetter>())
+                {
+                    var mm = r.MapMarker;
+                    if (mm is null) continue;
+                    var name = mm.Name?.String ?? "";
+                    if (!re.IsMatch(name) && !re.IsMatch(mm.Type.ToString())) continue;
+                    Console.WriteLine($"{mm.Type}\t{name}\t{mm.Flags}\t{m.ModKey.FileName}\t{r.FormKey.ID:X6}");
+                }
+            return;
+        }
         if (what == "says") {       // every INFO whose conditions name this NPC (GetIsID), with its topic: what they say in vanilla
             var npcKey = mods.SelectMany(m => m.Npcs).FirstOrDefault(n => re.IsMatch(n.EditorID ?? ""))?.FormKey;
             if (npcKey is null) { Console.WriteLine("no NPC matches"); return; }

@@ -480,6 +480,7 @@ namespace AG::Counter
 			data["boards"] = { { "missives", MissiveWatch::Active() }, { "notices", NoticeWatch::Active() } };  // which sub-tabs the Quests tab has
 			data["party"] = Party::CounterData();
 			for (auto& row : Dungeons::IntelServices(Guild::Merit(), Guild::Registered())) data["services"].push_back(row);
+			for (auto& row : Dungeons::PoiServices(Guild::Merit(), Guild::Registered())) data["services"].push_back(row);
 			const auto json = data.dump();
 			g_api->Invoke(g_view, ("window.agSetData(" + json + ")").c_str());
 		});
