@@ -1,20 +1,23 @@
 # Adventurers Guild
 
 A fully fleshed-out adventurers guild for Skyrim, inspired by classic RPGs and isekai manga and anime. The Guild keeps
-a counter in the inn of every hold capital: talk to the innkeeper, who represents the Guild, to get started.
+a counter in the inn of every hold capital, and one in Raven Rock: talk to the innkeeper, who represents the Guild, to
+get started.
 
 Works in Skyrim VR and in regular Skyrim Special Edition.
 
 ## Main features
 
-- A **Guild Counter** at the inn of each of the nine hold capitals: Guild Card, Quests, Trophies, Services, Party and
-  Records, in one window that works with mouse, controller and VR lasers.
+- A **Guild Counter** at the inn of each of the nine hold capitals, and at the Retching Netch in Raven Rock: Guild
+  Card, Quests, Trophies, Services, Party and Records, in one window that works with mouse, controller and VR lasers.
 - Your own **Guild Card**: your rank, registration date, progress toward the next rank, and career stats.
 - **Rank** up from E to S:
   - Registration comes with an assessment that places an experienced character as high as rank C, so the mod is safe
     to add in the middle of a playthrough.
   - Promotion is earned through Reputation and a minimum level (for example, rank D needs 100 Reputation and
     level 12), and is granted by the innkeeper for a small fee.
+  - Rank S is rare: level alone does not make anything S. The level it starts at (80 in a new game) can be set in the
+    MCM, for games that level far higher or scale their enemies up.
 - **Appraisal**, a Guild skill bought at the counter in three levels. The first shows the guild rank of fellow
   adventurers and the threat rank of people, wildlife and dungeons; the second reads trolls, draugr, dragons and other
   creatures of legend; the third reads the deadliest threats, ranks A and S, which show as [?] until then. The higher
@@ -26,12 +29,15 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
     and guild quests.
 - **Guild Quests** from the boards or straight from the counter, each labelled with its rank and only offered once
   you have earned it:
-  - Local Missives, with [Missives](https://www.nexusmods.com/skyrimspecialedition/mods/17576) installed.
+  - Local Missives, with [Missives](https://www.nexusmods.com/skyrimspecialedition/mods/17576) installed. With
+    [Missives - Worldspace Additions](https://www.nexusmods.com/skyrimspecialedition/mods/26788) as well, the board in
+    Raven Rock is a Guild board too.
   - Provincial Notices, with [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218) installed.
 - **Reports**: hand in finished quests and cleared dungeons at any counter for gold, Merit and Reputation.
 - **Trophies**: sell proof of your hunts to the Guild for Merit.
 - **Guild Services**, paid for with Merit:
-  - **Intel** that puts undiscovered dungeons on your map.
+  - **Intel** that puts undiscovered dungeons and points of interest on your map.
+  - Guild **Augments**: a boon for the road that lasts a day, one at a time.
   - Guild **Training**: Vitality, Endurance and Arcana (permanent Health, Stamina and Magicka).
   - A Guild **Library** of skill books.
   - A Guild **Shop** of spell tomes and potions.
@@ -40,7 +46,7 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   - Party Bond grows as you fight and travel together, and unlocks party bonuses.
   - 14 Affinities to discover, depending on who is in your party. Up to three can be selected at a time.
   - Party analysis, statistics, and a history of your deeds and of former and fallen members.
-- **New Dialogue**: over 900 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
+- **New Dialogue**: over 1,100 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
 - **SkyrimNet integration** (optional): NPCs know the Guild, its lore and its rules, know your rank and your party,
   and can play along.
 - **Translatable**: all text is in a standard translation file (see [docs/TRANSLATING.md](docs/TRANSLATING.md)).
@@ -56,6 +62,9 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 
 - [Missives](https://www.nexusmods.com/skyrimspecialedition/mods/17576) 2.03: guild quests in every hold. Works
   alongside other Missives patches; no patch is needed.
+- [Missives - Worldspace Additions](https://www.nexusmods.com/skyrimspecialedition/mods/26788) (with Missives): its
+  Solstheim board in Raven Rock becomes a Guild board, with ranked jobs that pay Merit and Reputation. Its boards in
+  other lands are not Guild boards yet.
 - [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218): more guild quests, shared across the
   province.
 - SkyUI: the mod's settings menu (MCM), including the uninstall button.
@@ -106,7 +115,9 @@ Requirements: Visual Studio 2022 Build Tools (C++), CMake, Ninja, vcpkg, a
 [CommonLibVR](https://github.com/alandtse/CommonLibVR) (ng branch) checkout, .NET 9 SDK, Python 3,
 [Caprica](https://github.com/Orvid/Caprica), the Creation Kit's `TESV_Papyrus_Flags.flg`, and Missives 2.03
 (`Missives.esp`: EspGen reads it to write `missives.json`; the plugin does not override any Missives record, the DLL
-applies the rank gating in memory, so it works alongside other Missives patches).
+applies the rank gating in memory, so it works alongside other Missives patches). Optionally, `Missives - Solstheim.esp`
+from Missives - Worldspace Additions (`MISSIVES_ADDONS` in `local.env`): EspGen reads it to write `missives.addons.json`,
+which is included, so it is only needed to regenerate that file.
 
 1. Copy `local.env.example` to `local.env` and set the paths.
 2. `powershell -File build.ps1` builds the plugin file, the scripts and the DLL (or `-Only esp|papyrus|dll`).
@@ -116,8 +127,11 @@ Not in this repository:
 
 - **The voice files.** They ship only in the mod's download on [Nexus Mods](https://www.nexusmods.com/skyrimspecialedition/mods/193777). A copy built from this source is silent
   until the `Sound` folder from that download is copied over it.
+- **The parchment of the counter's documents** (`config/PrismaUI/views/AdventurersGuild/tex/skin/`). Those images are
+  cut from Skyrim's own textures, which are Bethesda's, so they ship only in the mod's download. A copy built from this
+  source shows the Guild Card and missives without their paper until that folder is copied over from the download.
 - **The generators** for the translation file, the art and the voice lines. Their outputs that the mod needs
-  (`config/Interface/Translations`, the textures under `config/PrismaUI`) are included as they are.
+  (`config/Interface/Translations`, the other textures under `config/PrismaUI`) are included as they are.
 
 ## License
 
