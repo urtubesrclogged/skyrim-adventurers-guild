@@ -345,8 +345,8 @@
   #padhints .key.sq { border-radius: 4px; }
   /* ====================================================================================================================
      THE "SKYRIM" SKIN (body.skyrim; MCM > System > Counter style). The same page as things from the game's world: a
-     counter top of dark planks bound in knotwork iron, a folded sheet with a torn edge and the map of Tamriel faded
-     into it, riveted iron plates. PAINT ONLY: nothing here may change a size, a margin or a border width - the two
+     counter top of dark planks, a folded sheet of card stock with a torn edge,
+     riveted iron plates. PAINT ONLY: nothing here may change a size, a margin or a border width - the two
      skins must lay out identically. Images: tools/make_skin_assets.py, cut from the game's own textures (not in the
      source repository). The name on a document is set in Cyrodiil (Neale Davidson, SIL OFL 1.1: fonts/Cyrodiil-OFL.txt).
      ==================================================================================================================== */
@@ -362,7 +362,9 @@
   }
   body.skyrim #panel { background: url(tex/skin/board.jpg) center / 100% 100% no-repeat, #1a120c; border-color: #050403; outline-color: transparent;
     box-shadow: 0 0 0 1px #2e2a26, 0 18px 70px rgba(0, 0, 0, 0.9); }
-  body.skyrim .stud { visibility: hidden; }
+  /* a nail head at each corner, where the classic skin has its bronze diamonds */
+  body.skyrim .stud { border-radius: 50%; background: radial-gradient(circle at 38% 32%, #8f887c, #45413b 52%, #151413 100%);
+    box-shadow: 0 0 0 1px #070605, 0 2px 3px rgba(0, 0, 0, 0.9), inset 0 -2px 2px rgba(0, 0, 0, 0.55); }
   body.skyrim header, body.skyrim nav, body.skyrim .medallion, body.skyrim .bar-top, body.skyrim .row, body.skyrim footer { text-shadow: 0 2px 2px rgba(0, 0, 0, 0.95); }
   body.skyrim h1 { color: #d8b877; text-shadow: 0 2px 2px #000, 0 0 12px rgba(0, 0, 0, 0.8); }
   body.skyrim nav { border-bottom-color: rgba(0, 0, 0, 0.7); box-shadow: 0 1px 0 rgba(255, 225, 180, 0.08); }
@@ -381,7 +383,7 @@
   body.skyrim .record .stat { border-left-color: rgba(0, 0, 0, 0.55); }
   /* documents: the folded sheet, lying on the planks */
   body.skyrim .paper, body.skyrim .note, body.skyrim .banner {
-    background: url(tex/skin/sheet.png) center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.8)); }
+    background: url(tex/skin/sheet.png) center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.95)) drop-shadow(4px 12px 12px rgba(0, 0, 0, 0.7)); }
   body.skyrim .banner.warnbox { background: linear-gradient(rgba(120, 40, 25, 0.30), rgba(80, 25, 15, 0.40)), url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
   body.skyrim .namefield input { background: #d9caa3; border-color: #2a1c10; box-shadow: inset 0 0 12px rgba(84, 54, 20, 0.55); }
   body.skyrim .paper h2, body.skyrim .banner .pname, body.skyrim .note h3 { font-family: "Cyrodiil", var(--serif); }
