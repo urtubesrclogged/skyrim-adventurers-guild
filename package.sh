@@ -24,7 +24,9 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
     for dp, _, fs in os.walk(src):
         for f in sorted(fs):
             rel = os.path.relpath(os.path.join(dp, f), src).replace("\\", "/")
-            if rel == "meta.ini":
+            # docs/ comes from the repository below: a mod folder that was itself installed from a release zip holds an
+            # older copy, which went into the 1.4.0 archive twice before this line (once stale)
+            if rel == "meta.ini" or rel.startswith("docs/"):
                 continue
             z.write(os.path.join(dp, f), rel)
             n += 1
