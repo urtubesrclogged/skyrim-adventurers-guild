@@ -3,15 +3,10 @@
 ## 1.4.0
 
 **World Building and NPCs**
-- The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock. A card issued
-  there carries Morrowind's seal
-- With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too: its jobs carry a
-  rank, pay Merit and Reputation, and show on Geldis's counter
-- Over 200 new voiced lines, nearly 600 in all. Solstheim talks about the Guild (the Redoran Guard, Raven Rock, the
-  Skaal, Thirsk, Tel Mithryn), and so do every housecarl, the jarls and stewards who had no line, and the Dawnguard
-  and Volkihar court
-- Every Guild rep has more ways to answer "I have guild business"
-- Teldryn Sero and Gunmar are Guild members. Frea, Talvas and the Dawnguard's followers join when they travel with you
+- The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock!
+- With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too (new integration)
+- Hundreds of new and reworked voiced lines for NPCs: Solstheim, the DawnGuard, housecarls, jarls, stewards, and many
+  others all across Skyrim.
 - Named adventurers who travel with you rise in rank as they level, and say so
 
 **Balance Changes**
