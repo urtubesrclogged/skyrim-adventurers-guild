@@ -232,7 +232,7 @@
       {
         "key": "ag_solstheim",
         "display_name": "The Guild on Solstheim",
-        "content": "For years the Adventurers Guild had no counter on Solstheim: House Redoran let its members work on the island and nothing more. That changed when the ash spawn began coming over the Bulwark. Councilor Morvayn licensed a counter at the Retching Netch in Raven Rock, and Geldis Sadri keeps it at the end of his bar. There is no missive board on the island: work comes by word of mouth, mostly through Geldis. The Redoran Guard still care more for results than for rank letters, and the Skaal judge a warrior by deeds, not by any mainland rank.",
+        "content": "For years the Adventurers Guild had no counter on Solstheim: House Redoran let its members work on the island and nothing more. That changed when the ash spawn began coming over the Bulwark. Councilor Morvayn licensed a counter at the Retching Netch in Raven Rock, and Geldis Sadri keeps it at the end of his bar. Work on the island comes mostly by word of mouth, through Geldis. The Redoran Guard still care more for results than for rank letters, and the Skaal judge a warrior by deeds, not by any mainland rank.",
         "condition_expr": "is_in_faction(actorUUID, \"DLC2RavenRockGuardFaction\") or is_in_faction(actorUUID, \"DLC2SkaalVillageCitizenFaction\")",
         "always_inject": false,
         "importance": 0.7,
@@ -298,6 +298,21 @@
           "appraisal",
           "ranks",
           "threat"
+        ]
+      },
+      {
+        "key": "ag_augments",
+        "display_name": "Guild Augments and tomes",
+        "content": "The Adventurers Guild's counters sell Guild Augments for Merit: a preparation taken before a job that lasts one day. There are five: Packhorse for carrying more, Haggler for better prices, Quick Study for learning faster, Hardy against disease and poison, and Vigor for more health, stamina and magicka. An adventurer may hold one at a time. The counters also sell spell tomes. A member may buy tomes of their own rank, and of one rank above at twice the Merit; anything higher is not offered.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "augments",
+          "tomes",
+          "merit"
         ]
       },
       {
