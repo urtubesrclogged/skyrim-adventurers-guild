@@ -361,6 +361,11 @@
     filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.95)) drop-shadow(4px 12px 12px rgba(0, 0, 0, 0.7)); }
   body.skyrim .banner.warnbox { background: linear-gradient(rgba(120, 40, 25, 0.30), rgba(80, 25, 15, 0.40)), url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
   body.skyrim .paper h2, body.skyrim .paper h2 + .line { font-family: "Cyrodiil", var(--serif); }
+  body.skyrim .paper h2 + .line { line-height: 23px; }   /* Cyrodiil's italic sets a line 1px shorter: held to the classic height (measured) */
+  /* The wax is the same image in both skins. On the darker, textured sheet it lost the contrast that made it look deep on the
+     pale one (author, 2026-10-09; the pixels measured the same), so here it is a little darker, sits in the oil it has
+     bled into the paper, and casts a shadow of its own. */
+  body.skyrim .seal-wax { filter: brightness(0.86) contrast(1.16) saturate(0.94) drop-shadow(0 0 7px rgba(92, 58, 20, 0.55)) drop-shadow(2px 4px 3px rgba(24, 10, 2, 0.8)); }
   body.skyrim .paper hr { border-top-color: rgba(52, 32, 12, 0.55); }
   body.skyrim .bar { border-color: rgba(42, 26, 10, 0.8); background: rgba(60, 38, 14, 0.14); }
   body.skyrim .fill { background: linear-gradient(#573a1c, #38240f); }
