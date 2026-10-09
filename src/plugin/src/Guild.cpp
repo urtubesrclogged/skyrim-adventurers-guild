@@ -985,6 +985,10 @@ namespace AG::Guild
 		j["training"] = g_training;
 		auto services = Shop::ServicesData(g_rank, g_merit, g_appraisal.load(), g_training, g_augment, g_augment >= 0 ? (g_augmentUntil - Today()) * 24.0f : 0.0f);
 		j["services"] = std::move(services);
+		// what was bought at the counter and is running out, for the Guild Card: name and whole hours left
+		j["passives"] = nlohmann::json::array();
+		if (g_augment >= 0)
+			j["passives"].push_back({ { "name", Shop::AugmentName(g_augment) }, { "hours", std::max(1, static_cast<int>(std::ceil((g_augmentUntil - Today()) * 24.0f))) } });
 		return j;
 	}
 

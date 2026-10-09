@@ -115,6 +115,8 @@ New keys, all optional (English is shown for any you leave out):
   `$AG_Card_HaveOne`, `$AG_Card_NoGold`, `$AG_Card_Replaced`, `$AG_Card_NotCarried`.
 * A lost card at the counter (1.4.0): `$AG_UI_CardLost` (the heading over the greyed card), `$AG_UI_CardLostNote`,
   `$AG_UI_CardReplaceBuy` (the button; `{0}` is the fee) and `$AG_UI_CardReplaceNoGold`.
+* The Guild Card's chips (1.4.0): `$AG_UI_ChipTimed` shows a running Guild Augment (`{0}` its name, `{1}` whole hours
+  left). `$AG_UI_ChipMissives` is gone: the missive counts moved to the stats row long ago.
 * `$AG_Dlg_ReplaceCard`: the player's line asking an innkeeper for a replacement card (`{}` is the fee). The
   innkeepers' spoken replies are in the plugin file, like the rest of the dialogue.
 * Field Notes on the card: `$AG_UI_TodoHead`, `$AG_UI_TodoQuests`, `$AG_UI_TodoReports`, `$AG_UI_TodoTrophies`,

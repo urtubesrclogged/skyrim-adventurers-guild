@@ -96,22 +96,10 @@
   /* the physical card only: field notes, a scrap of parchment at the foot of the medallion column */
   .medallion .todo { width: 100%; margin-top: auto; padding: 12px 16px 14px; color: var(--paper-ink); position: relative;
                      transform: rotate(-1.2deg); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.8)); }
-  /* the scrap itself: torn edges (the shadow above follows them) */
+  /* the scrap itself: a piece of the same parchment as the card (tex/skin/scrap.png; the shadow above follows its edge) */
   .medallion .todo::before { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 0;
-                     background: radial-gradient(ellipse at center, rgba(96, 84, 60, 0) 50%, rgba(96, 84, 60, 0.34) 100%),
-                                 /* uneven wear: a few soft stains and a lighter rubbed patch, none of them centred */
-                                 radial-gradient(ellipse 46% 34% at 82% 18%, rgba(120, 92, 52, 0.26), rgba(120, 92, 52, 0) 70%),
-                                 radial-gradient(ellipse 30% 44% at 12% 74%, rgba(104, 82, 50, 0.24), rgba(104, 82, 50, 0) 72%),
-                                 radial-gradient(ellipse 18% 14% at 63% 86%, rgba(92, 70, 40, 0.22), rgba(92, 70, 40, 0) 75%),
-                                 radial-gradient(ellipse 38% 26% at 34% 30%, rgba(244, 240, 226, 0.30), rgba(244, 240, 226, 0) 70%),
-                                 linear-gradient(rgba(226, 222, 204, 0.5), rgba(226, 222, 204, 0.5)),
-                                 url(tex/parchment.png) 30% 60% / 420px auto, #d6cfb8;
-                     -webkit-clip-path: polygon(0.0% 1.0%, 7.1% 0.5%, 14.3% 2.1%, 21.4% 0.2%, 28.6% 1.7%, 35.7% 1.2%, 42.9% 0.2%, 50.0% 1.6%, 57.1% 0.1%, 64.3% 1.4%, 71.4% 0.2%, 78.6% 0.3%, 85.7% 1.4%, 90.4% 1.5%, 99.0% 16.0%, 98.7% 22.2%, 98.1% 33.3%, 98.8% 44.4%, 99.2% 55.6%, 98.0% 66.7%, 99.9% 77.8%, 98.3% 88.9%, 100.0% 99.1%, 92.9% 99.5%, 85.7% 99.6%, 78.6% 99.0%, 71.4% 97.4%, 64.3% 99.4%, 57.1% 98.1%, 50.0% 98.0%, 42.9% 98.8%, 35.7% 98.2%, 28.6% 99.8%, 21.4% 99.8%, 14.3% 99.3%, 7.1% 97.8%, 0.9% 100.0%, 0.6% 88.9%, 1.2% 77.8%, 0.9% 66.7%, 0.6% 55.6%, 1.6% 44.4%, 1.4% 33.3%, 0.5% 22.2%, 1.1% 11.1%);
-                     clip-path: polygon(0.0% 1.0%, 7.1% 0.5%, 14.3% 2.1%, 21.4% 0.2%, 28.6% 1.7%, 35.7% 1.2%, 42.9% 0.2%, 50.0% 1.6%, 57.1% 0.1%, 64.3% 1.4%, 71.4% 0.2%, 78.6% 0.3%, 85.7% 1.4%, 90.4% 1.5%, 99.0% 16.0%, 98.7% 22.2%, 98.1% 33.3%, 98.8% 44.4%, 99.2% 55.6%, 98.0% 66.7%, 99.9% 77.8%, 98.3% 88.9%, 100.0% 99.1%, 92.9% 99.5%, 85.7% 99.6%, 78.6% 99.0%, 71.4% 97.4%, 64.3% 99.4%, 57.1% 98.1%, 50.0% 98.0%, 42.9% 98.8%, 35.7% 98.2%, 28.6% 99.8%, 21.4% 99.8%, 14.3% 99.3%, 7.1% 97.8%, 0.9% 100.0%, 0.6% 88.9%, 1.2% 77.8%, 0.9% 66.7%, 0.6% 55.6%, 1.6% 44.4%, 1.4% 33.3%, 0.5% 22.2%, 1.1% 11.1%); }
+                     background: url(tex/skin/scrap.png) center / 100% 100% no-repeat; }
   .medallion .todo > * { position: relative; z-index: 1; }
-  /* a dog-eared corner, top right where nothing is written: the turned-down flap shows the paper's paler back */
-  .medallion .todo::after { content: ""; position: absolute; top: 1.5%; right: 1%; width: 8.6%; height: 14.5%; z-index: 1;
-                     background: linear-gradient(to bottom left, rgba(0, 0, 0, 0) 50%, #a89c7c 50%, #cfc7ad 62%, #e4dfcb 100%); }
   .todo .thead { font-size: 14px; color: var(--paper-muted); letter-spacing: 0.08em; text-align: center; margin-bottom: 4px;
                  padding-bottom: 4px; border-bottom: 1px solid rgba(80, 60, 30, 0.25); }
   .todo .trow { display: flex; align-items: baseline; gap: 8px; font-size: 17px; line-height: 1.45; }
@@ -344,34 +332,38 @@
                    font-size: 14px; font-variant: normal; letter-spacing: 0; background: rgba(0, 0, 0, 0.35); }
   #padhints .key.sq { border-radius: 4px; }
   /* ====================================================================================================================
-     THE "SKYRIM" SKIN (body.skyrim; MCM > System > Counter style). The classic board and fittings, with the DOCUMENTS
-     as things from the game's world: the game's own folded parchment, a torn edge, the thickness of card stock and the
-     shadow it casts. PAINT ONLY: nothing here may change a size, a margin or a border width - the two skins must lay
-     out identically. Image: tools/make_skin_assets.py, cut from the game's own textures (not in the source repository).
-     The head of the Guild Card - name, rank, registration - is set in Cyrodiil (Neale Davidson, SIL OFL 1.1:
-     fonts/Cyrodiil-OFL.txt); everything else keeps the page's own typeface.
-     Tried and dropped (author, 2026-10-09): a board of planks, leather or iron plate; knotwork bands; nail heads; the
-     map of Tamriel faded into the sheet; textures generated from noise.
+     THE DOCUMENTS (1.4.0). The Guild Card, an opened missive, a party's banner and the Field Notes are things from the
+     game's world: the game's own folded parchment, each piece with its own torn outline, the thickness of card stock
+     and the shadow it casts. Images: tools/make_skin_assets.py, cut from the game's own textures (not in the source
+     repository). The head of the Guild Card - name, rank, registration - is set in Cyrodiil (Neale Davidson,
+     SIL OFL 1.1: fonts/Cyrodiil-OFL.txt); everything else keeps the page's typeface.
+     The board and its fittings are as they were. Tried and dropped (author, 2026-10-09): a second skin behind an MCM
+     toggle; a board of planks, leather or iron plate; knotwork bands; nail heads; the map of Tamriel faded into the
+     sheet; textures generated from noise.
      ==================================================================================================================== */
   @font-face { font-family: "Cyrodiil"; src: url(fonts/Cyrodiil.otf) format("opentype"); font-weight: 400; font-style: normal; }
   @font-face { font-family: "Cyrodiil"; src: url(fonts/Cyrodiil-Italic.otf) format("opentype"); font-weight: 400; font-style: italic; }
-  body.skyrim { --paper-ink: #22160b; --paper-muted: #49351d; }
-  body.skyrim .paper, body.skyrim .note, body.skyrim .banner {
-    background: url(tex/skin/sheet.png) center / 100% 100% no-repeat; box-shadow: none;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.95)) drop-shadow(4px 12px 12px rgba(0, 0, 0, 0.7)); }
-  body.skyrim .banner.warnbox { background: linear-gradient(rgba(120, 40, 25, 0.30), rgba(80, 25, 15, 0.40)), url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
-  body.skyrim .paper h2, body.skyrim .paper h2 + .line { font-family: "Cyrodiil", var(--serif); }
-  body.skyrim .paper h2 + .line { line-height: 23px; }   /* Cyrodiil's italic sets a line 1px shorter: held to the classic height (measured) */
-  /* The wax is the same image in both skins. On the darker, textured sheet it lost the contrast that made it look deep on the
-     pale one (author, 2026-10-09; the pixels measured the same), so here it is a little darker, sits in the oil it has
-     bled into the paper, and casts a shadow of its own. */
-  body.skyrim .seal-wax { filter: brightness(0.86) contrast(1.16) saturate(0.94) drop-shadow(0 0 7px rgba(92, 58, 20, 0.55)) drop-shadow(2px 4px 3px rgba(24, 10, 2, 0.8)); }
-  body.skyrim .paper hr { border-top-color: rgba(52, 32, 12, 0.55); }
-  body.skyrim .bar { border-color: rgba(42, 26, 10, 0.8); background: rgba(60, 38, 14, 0.14); }
-  body.skyrim .fill { background: linear-gradient(#573a1c, #38240f); }
-  body.skyrim .req.ok .fill { background: linear-gradient(#4c632d, #30421c); }
-  body.skyrim .chips span { border-color: rgba(52, 32, 12, 0.65); }
-  body.skyrim .cardstats .stat { border-left-color: rgba(52, 32, 12, 0.35); }
+  :root { --paper-ink: #22160b; --paper-muted: #49351d; --lying: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.95)) drop-shadow(4px 12px 12px rgba(0, 0, 0, 0.7)); }
+  .paper, .note, .banner { box-shadow: none; filter: var(--lying); }
+  .paper { background: url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
+  .note { background: url(tex/skin/note.png) center / 100% 100% no-repeat; }
+  .banner { background: url(tex/skin/strip.png) center / 100% 100% no-repeat; }
+  .banner.warnbox { background: linear-gradient(rgba(120, 40, 25, 0.30), rgba(80, 25, 15, 0.40)), url(tex/skin/strip.png) center / 100% 100% no-repeat; }
+  .paper h2, .paper h2 + .line { font-family: "Cyrodiil", var(--serif); }
+  .paper h2 + .line { line-height: 23px; }   /* Cyrodiil's italic sets a line 1px shorter: held to the height the page was laid out with (measured) */
+  .paper hr { border-top-color: rgba(52, 32, 12, 0.55); }
+  .bar { border-color: rgba(42, 26, 10, 0.8); background: rgba(60, 38, 14, 0.14); }
+  .fill { background: linear-gradient(#573a1c, #38240f); }
+  .req.ok .fill { background: linear-gradient(#4c632d, #30421c); }
+  .chips span { border-color: rgba(52, 32, 12, 0.65); }
+  /* something bought at the counter that is running out (a Guild Augment): in green ink, with the hours it has left */
+  .chips span.timed { color: #2f4a1c; border-color: rgba(47, 74, 28, 0.75); background: rgba(70, 104, 40, 0.14); }
+  .cardstats .stat { border-left-color: rgba(52, 32, 12, 0.35); }
+  /* The wax: larger than it was (author), and on the darker sheet a little deeper in tone, sitting in the oil it has
+     bled into the paper, with a shadow of its own - on this paper the plain image looked flat (the pixels measured
+     the same as on the old pale sheet; it was the contrast that had gone). */
+  .seal-wax { width: 132px; height: 132px; right: 12px; top: 4px;
+    filter: brightness(0.86) contrast(1.16) saturate(0.94) drop-shadow(0 0 8px rgba(92, 58, 20, 0.55)) drop-shadow(2px 5px 4px rgba(24, 10, 2, 0.8)); }
 </style>
 </head>
 <body>
@@ -547,7 +539,7 @@ function renderCard() {
       <hr/>
       <div class="chips"><span>${esc(t("$AG_UI_ChipAppraisal", "Appraisal {0}", app))}</span><span>${esc(t("$AG_UI_ChipVitality", "Vitality +{0}", (tr[0] || 0) * 10))}</span>
         <span>${esc(t("$AG_UI_ChipEndurance", "Endurance +{0}", (tr[1] || 0) * 10))}</span><span>${esc(t("$AG_UI_ChipArcana", "Arcana +{0}", (tr[2] || 0) * 10))}</span>
-        <span>${esc(t("$AG_UI_ChipMissives", "Missives"))} E ${m[0] || 0} · D ${m[1] || 0} · C ${m[2] || 0} · B ${m[3] || 0}</span></div>
+        ${(data.passives || []).map((x) => `<span class="timed">${esc(t("$AG_UI_ChipTimed", "{0} · {1}h left", x.name, x.hours))}</span>`).join("")}</div>
       ${cardStats()}
       ${data.registered ? `<img class="seal-wax" src="tex/seal${data.seal === "morrowind" ? "_morrowind" : ""}.png" alt=""/>` : ""}
     </div></div>`;
@@ -972,9 +964,6 @@ window.agSetData = (json) => {
   try { data = (typeof json === "string") ? JSON.parse(json) : json; } catch (e) { return; }
   render();
 };
-/* which materials the page is drawn in (MCM > System > Counter style); the layout is the same in both */
-window.agSkin = (name) => { document.body.classList.toggle("skyrim", name !== "classic"); };
-window.agSkin((/[?&]skin=(\w+)/.exec(location.search) || [0, "skyrim"])[1]);
 window.agStatus = (text) => { $("status").textContent = text || ""; };
 window.agDetails = (json) => {
   let d; try { d = (typeof json === "string") ? JSON.parse(json) : json; } catch (e) { return; }
