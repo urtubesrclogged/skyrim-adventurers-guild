@@ -586,7 +586,7 @@ function renderServices() {
   const { items, pages } = paged("services", all.filter((x) => sid(x) === section && (!intel || (x.group || "dungeon") === isec)), CARDS);
   /* the strip of tabs carries its own short note, in the note line's place (the cards keep their height) */
   const note = intel ? "" : SECTION_NOTES[section] ? SECTION_NOTES[section]() : "";
-  const inote = isec === "poi" ? t("$AG_UI_NotePoi", "Undiscovered places in this hold that are not dungeons.") : t("$AG_UI_NoteDungeons", "Undiscovered dungeons in this hold.");
+  const inote = isec === "poi" ? t("$AG_UI_NotePoi", "Undiscovered places in this hold that are not dungeons.") : t("$AG_UI_NoteDungeons", "Undiscovered dungeons in this hold appropriate for your rank.");
   /* an empty Dungeons tab is usually the rank rule (intel is sold at or below the player's rank), so say so */
   const emptyNote = intel && isec === "dungeon" ? t("$AG_UI_NoDungeonsAtRank", "No dungeons found for your rank in this hold.") : t("$AG_UI_NothingOffered", "Nothing on offer.");
   const itabs = intel ? `<div class="itabs"><button data-isec="dungeon" class="${isec === "dungeon" ? "on" : ""}">${esc(t("$AG_UI_IntelDungeons", "Dungeons"))}</button><button data-isec="poi" class="${isec === "poi" ? "on" : ""}">${esc(t("$AG_UI_IntelPoi", "Points of Interest"))}</button><span class="inote">${esc(inote)}</span></div>` : "";
