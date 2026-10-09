@@ -23,6 +23,7 @@ EXCEPTIONS.md (see LICENSE). It builds on the following work by others.
 | [OpenVR headers](https://github.com/ValveSoftware/openvr) (shipped with CommonLibVR) | SKSE plugin, VR keyboard | BSD-3-Clause |
 | [Mutagen](https://github.com/Mutagen-Modding/Mutagen) (`Mutagen.Bethesda.Skyrim`, `Mutagen.Bethesda.FormKeys.SkyrimSE`) | `tools/EspGen` (builds AdventurersGuild.esp) | GPL-3.0. EspGen's own source is GPL-3.0-or-later like the rest of this repository. The generated .esp is not covered by Mutagen's license. |
 | [Caprica](https://github.com/Orvid/Caprica) | Papyrus compiler (build) | MIT |
+| [Cyrodiil](https://www.pixelsagas.com/) typeface by Neale Davidson (Pixel Sagas) | The name and rank at the head of the Guild Card | SIL Open Font License 1.1 (`fonts/Cyrodiil-OFL.txt` ships beside the font) |
 
 ## Runtime requirements (installed by the player, not redistributed)
 
@@ -32,5 +33,9 @@ and optionally SkyrimNet and Deeds of Skyrim. Each is the work of its own author
 
 `TESV_Papyrus_Flags.flg` is Bethesda's file from the Creation Kit; it is not included - point `PAPYRUS_FLAGS` in
 `local.env` at your own copy.
+
+The parchment of the counter's documents (`tex/skin/` in the release archive) is cut from Skyrim's own textures. Those
+images are Bethesda's, are included only in the mod's release archive for use with the game, and are not part of
+this repository or covered by its licence.
 
 The Elder Scrolls V: Skyrim is (c) Bethesda Softworks / ZeniMax Media. This is an unofficial fan modification.

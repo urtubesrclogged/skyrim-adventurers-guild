@@ -29,7 +29,13 @@ done
 cp "$R"/build/esp/*.resolved.json "$P/"
 rm -f "$P/bounties.json" "$P/bounties.resolved.json" "$P/isekai_points.json"   # retired: bounties (kills pay Reputation directly), Isekai Hero points (shelved patch)
 cp "$R/build/esp/missives.json" "$P/missives.json"              # Missives board quests (tier, hold) for MissiveWatch
-cp "$R"/config/PrismaUI/views/AdventurersGuild/*.html "$M/PrismaUI/views/AdventurersGuild/"
+V="$R/config/PrismaUI/views/AdventurersGuild"
+cp "$V/counter.html" "$V/index.html" "$M/PrismaUI/views/AdventurersGuild/"   # by name: scratch pages (_mock.html) stay behind
+# the documents' paper is cut from the game's textures and is not in the repository: without it the card has no sheet
+[ -f "$V/tex/skin/sheet.png" ] || { echo "tex/skin/ is empty - run: python tools/make_skin_assets.py" >&2; exit 1; }
+mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex/skin" "$M/PrismaUI/views/AdventurersGuild/fonts"
+cp "$V"/tex/skin/*.png "$M/PrismaUI/views/AdventurersGuild/tex/skin/"
+cp "$V"/fonts/* "$M/PrismaUI/views/AdventurersGuild/fonts/"                   # Cyrodiil and its licence (OFL: they travel together)
 mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex" && cp "$R"/config/PrismaUI/views/AdventurersGuild/tex/*.png "$M/PrismaUI/views/AdventurersGuild/tex/"
 cp "$R"/build/papyrus/AG_*.pex                             "$M/Scripts/"
 # SkyrimNet 0.25+ content-library plugin (prompts + lore knowledge pack), shipped as an EXTERNAL layer: SkyrimNet

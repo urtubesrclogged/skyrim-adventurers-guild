@@ -542,6 +542,12 @@ namespace AG::Shop
 		return a_appraisal >= 1 && a_appraisal <= 3 ? g_appTrophy[a_appraisal - 1] : 0;
 	}
 
+	std::string AugmentName(int a_index)
+	{
+		if (a_index < 0 || a_index >= static_cast<int>(g_augments.size())) return {};
+		return Loc::T("$AG_Aug_" + g_augments[a_index].id, g_augments[a_index].name);
+	}
+
 	nlohmann::json ServicesData(int a_rank, int a_merit, int a_appraisal, const std::array<int, 3>& a_training, int a_augment, float a_augmentHours)
 	{
 		std::lock_guard l(g_lock);

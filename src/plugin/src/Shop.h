@@ -17,6 +17,7 @@ namespace AG::Shop
 	// Rows for the counter's Services tab: {section,id,name,desc,cost,available,note}. Called with the
 	// Guild lock held, so it must not call back into Guild.
 	// a_augment: the Augment the player has (index in shop.json's list, -1 none) and the game hours it has left
+	std::string    AugmentName(int a_index);   // the Augment's name as the player reads it ("" out of range)
 	nlohmann::json ServicesData(int a_rank, int a_merit, int a_appraisal, const std::array<int, 3>& a_training, int a_augment, float a_augmentHours);
 	std::string    Buy(const std::string& a_id);  // "appraisal", "train:<0-2>", "lib:<Skill>", "tome:<n>", "supply:<n>"
 
