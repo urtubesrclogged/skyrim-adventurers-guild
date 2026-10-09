@@ -6,11 +6,20 @@
 - The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock
 - With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too: its jobs carry a
   rank, pay Merit and Reputation, and show on Geldis's counter
+- A card issued in Raven Rock carries Morrowind's seal, and the counter there reads Morrowind Region
+- Solstheim talks about the Guild: the Redoran Guard, Raven Rock's townsfolk, the Skaal, Thirsk and Tel Mithryn
+- New voiced lines for every housecarl, the jarls and stewards who had none, and the Dawnguard and Volkihar court
+- Teldryn Sero and Gunmar are Guild members. Frea, Talvas and the Dawnguard's followers join when they travel with you
+- Named adventurers who travel with you rise in rank as they level, and say so
+- Every Guild rep has more ways to answer "I have guild business"
+- Dawnstar's lines change once the nightmares end
 
 **Intel**
 - New Points of Interest tab: the Guild sells the whereabouts of Orc strongholds, standing stones, Daedric shrines,
   camps, landmarks, shipwrecks and more
 - Stendarr's Beacon and the Hall of the Vigilant are Points of Interest now, not dungeons
+- Places a quest has not yet put on the map are no longer sold as intel
+- An empty Dungeons tab now says why: nothing in this hold at your rank
 
 **Ranks Reworked**
 - Rank S is rare now. It starts at level 80, not 60, and level alone is no longer enough: only the oldest dragons,
@@ -27,10 +36,18 @@
 - Guild training costs more Merit from rank C up. What you have already trained is untouched
 - Trophies earn less Merit across the board, the big game most of all (a dragon bone is 6, down from 15)
 
+**Guild Card and Counter**
+- A new look for the Guild's papers: the Guild Card, missives, the party banner and the Field Notes are aged parchment
+  with torn edges, and the wax seal is larger
+- A lost Guild Card can be replaced on the counter's Guild Card tab, as well as by asking the rep
+- A running Guild Augment shows on the card with the hours it has left (the missive counts moved to the stats row)
+
 **Other**
 - Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
   with you
 - The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
+- "Jarl" is pronounced the way Skyrim says it in every voiced line
+- A handful of voiced lines that opened with a distorted first word were re-recorded
 
 ## 1.3.1
 
