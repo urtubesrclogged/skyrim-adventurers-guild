@@ -5,7 +5,7 @@
 // FormIDs are FIXED once released (saves reference them): never renumber, only append.
 //   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics)
 //   0x900-0x9FF  Missives note variants per rank (MissivesPatch.cs)
-//   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json
+//   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json; full since 1.4.0, they go on in 0xD00-0xFFF
 //   0x81F the party-member faction
 //   0x810-0x81F  registration quest + missive; 0x81A the physical Guild Card (1.2.0), 0x81B-0x81E its replacement topic, fee and "missing" flag
 //   0x8C0-0x8CF  world awareness: greetings quest/topics, retired-adventurer faction, recent-promotion global,
@@ -302,7 +302,8 @@ ConditionFloat GlobalIs(GlobalShort g, float v)
 }
 
 // All innkeeper dialogue comes from config/dialogue.json. INFO FormIDs are pinned in config/dialogue.ids.json
-// (voice files are named after them): existing keys keep their ID, new keys get the next free ID >= 0xA00.
+// (voice files are named after them): existing keys keep their ID, new keys get the next free ID >= 0xA00. That block ends at 0xBFF (0xC00-0xCFF is
+// other records), so it continues at 0xD00; 0xFFF is the last ID a light plugin may use.
 var dlgPath = Path.GetFullPath(Path.Combine(configDir, "../../../dialogue.json"));
 var idsPath = Path.GetFullPath(Path.Combine(configDir, "../../../dialogue.ids.json"));
 var dlg = JsonNode.Parse(File.ReadAllText(dlgPath), documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true })!;
@@ -312,7 +313,12 @@ var ids = File.Exists(idsPath)
 uint nextId = Math.Max(0xA00u, ids.Values.Select(v => Convert.ToUInt32(v, 16) + 1).DefaultIfEmpty(0xA00u).Max());
 uint InfoId(string key)
 {
-    if (!ids.TryGetValue(key, out var hex)) { hex = $"0x{nextId++:X3}"; ids[key] = hex; }
+    if (!ids.TryGetValue(key, out var hex))
+    {
+        if (nextId is >= 0xC00 and < 0xD00) nextId = 0xD00;
+        if (nextId > 0xFFF) { Console.Error.WriteLine($"ERROR dialogue: no FormIDs left for '{key}' (0xA00-0xBFF and 0xD00-0xFFF are full)"); Environment.Exit(1); }
+        hex = $"0x{nextId++:X3}"; ids[key] = hex;
+    }
     return Convert.ToUInt32(hex, 16);
 }
 FormKey Npc(string edid)
@@ -447,7 +453,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             if (fee is not null) w.Add(Gold(fee, true));
             return w;
         }
-        void Add(string k, string[] ls, IEnumerable<Condition> extra)
+        DialogResponses Add(string k, string[] ls, IEnumerable<Condition> extra)
         {
             var w = Who();
             w.AddRange(extra);
@@ -466,25 +472,47 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
                         OnEnd = new ScriptFragment { ScriptName = "AG_TIF_GuildBusiness", FragmentName = "Fragment_0" },
                     },
                 };
+            // A rep's business lines are one RANDOM group (as the world greetings are): the engine picks among the
+            // INFOs of the group whose conditions pass. So each line carries its full conditions and none relies on
+            // its place in the stack: the rank's own line, the plain line (only at ranks with no line of their own),
+            // and the extras ("businessExtra", any rank; "businessByRankExtra", that rank only).
+            if (role == "business") info.Flags = new DialogResponseFlags { Flags = (info.Flags?.Flags ?? 0) | DialogResponses.Flag.Random };
+            return info;
         }
+        // the plain business line (and what replaces it) is not said at a rank that has its own line
+        var plain = new List<Condition>();
+        if (role == "business" && l["businessByRank"] is JsonObject ranked)
+            foreach (var r in new[] { "S", "A", "B", "C" })
+                if (ranked[r] is not null) plain.Add(GlobalCmp(gRank, CompareOperator.NotEqualTo, "EDCBAS".IndexOf(r)));
+        var basePlain = new List<Condition>(plain);
         // the player's rank picks the line (highest first; the plain line is E-D)
         if (role == "business" && l["businessByRank"] is JsonObject byRank)
             foreach (var r in new[] { "S", "A", "B", "C" })
+            {
                 if (byRank[r] is JsonNode t)
                     Add($"{key}:{r}", new[] { t.GetValue<string>() }, new Condition[] { GlobalCmp(gRank, CompareOperator.EqualTo, "EDCBAS".IndexOf(r)) });
+                if (l["businessByRankExtra"] is JsonObject more && more[r] is JsonNode t2)
+                    Add($"{key}:{r}:2", new[] { t2.GetValue<string>() }, new Condition[] { GlobalCmp(gRank, CompareOperator.EqualTo, "EDCBAS".IndexOf(r)) });
+            }
+        if (role == "business" && l["businessExtra"] is JsonArray extras)
+            for (var n = 0; n < extras.Count; n++)
+                Add($"{key}:x{n + 1}", new[] { extras[n]!.GetValue<string>() }, Array.Empty<Condition>());
         // a vanilla quest's completion changes what they say (Thoring and Waking Nightmare)
         if (l["afterQuest"] is JsonObject after && after[role] is JsonNode an)
         {
             var als = an is JsonArray aa ? aa.Select(x => x!.GetValue<string>()).ToArray() : new[] { an.GetValue<string>() };
-            Add($"{key}:after", als, new Condition[] { QuestDone(after["quest"]!.GetValue<string>(), true) });
+            Add($"{key}:after", als, role == "business" ? plain.Append(QuestDone(after["quest"]!.GetValue<string>(), true)) : new Condition[] { QuestDone(after["quest"]!.GetValue<string>(), true) });
+            if (role == "business") basePlain.Add(QuestDone(after["quest"]!.GetValue<string>(), false));
         }
         // a global the DLL keeps changes what they say (Geldis Sadri, once Raven Rock has a missive board)
         if (l["whenGlobal"] is JsonObject wg && wg[role] is JsonNode wn)
         {
             var wls = wn is JsonArray wa ? wa.Select(x => x!.GetValue<string>()).ToArray() : new[] { wn.GetValue<string>() };
-            Add($"{key}:when", wls, new Condition[] { GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 1) });
+            Add($"{key}:when", wls, role == "business" ? plain.Append(GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 1)) : new Condition[] { GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 1) });
+            if (role == "business") basePlain.Add(GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 0));
         }
-        Add(key, lines, Array.Empty<Condition>());
+        var last = Add(key, lines, role == "business" ? basePlain : Array.Empty<Condition>());
+        if (role == "business") last.Flags!.Flags |= DialogResponses.Flag.RandomEnd;   // the next rep's lines are their own group
     }
     if (fee is not null)
     {

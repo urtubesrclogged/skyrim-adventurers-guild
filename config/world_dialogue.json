@@ -63,6 +63,9 @@
 		{ "id": "jod_hi",        "who": "Jod",               "rank": "S",  "text": "An S-rank adventurer in Dawnstar. Skald will want to know why. So will the giants." },
 		{ "id": "ds_guard",      "guards": "Pale", "questNotDone": "DA16", "text": "Nightmares every night, and adventurers every morning. At least your lot pays for their rooms." },
 		{ "id": "ds_guard_after", "guards": "Pale", "questDone": "DA16",   "text": "Nights are quiet since the nightmares stopped. Adventurers still keep the inn busy, though." },
+		{"id": "ds_karita", "who": "Karita", "text": "Adventurers tip better than miners. They also ask for the same three songs. I've made my peace with it."},
+		{"id": "ds_fruki", "who": "Fruki", "questNotDone": "DA16", "text": "Same dream, every night, the whole town. If there's an adventurer who can do something about that, I'll stand them a drink."},
+		{"id": "ds_fruki_after", "who": "Fruki", "questDone": "DA16", "text": "Slept right through till morning. First time in months. Dawnstar can go back to its ordinary troubles, and those are adventurer's work too."},
 		{ "id": "erandur",       "who": "Erandur",           "text": "The Adventurers Guild rids Skyrim of its horrors one missive at a time. I think Mara approves." },
 
 		{ "id": "malur",         "who": "MalurSeloth",       "rank": "<B", "text": "The Jarl says Winterhold needs no adventurers. The Jarl says a great many things." },

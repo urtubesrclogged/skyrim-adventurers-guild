@@ -1,9 +1,9 @@
 {
  "_comment": "All Adventurers Guild innkeeper dialogue. tools/EspGen turns this into dialogue records (INFO FormIDs are pinned in dialogue.ids.json, which voice files are named after - never renumber). The voice pipeline reads the same file. Keep lines short: they will be voiced.",
- "_liaisons": "Optional 'whenGlobal': {global, <role>: lines} replaces a role's lines while that global is 1 (the DLL keeps it: AG_MissivesSolstheimGlobal = Raven Rock has the missive board of Missives - Worldspace Additions). The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask). 'successor' {of, quest, alias, ref, cell}: this NPC keeps the counter once the liaison they follow is dead, whoever runs the inn (with the Unofficial Patch Mikael takes the Bannered Mare over, not Ysolda). quest + alias = the hold's Dialogue quest and its Innkeeper alias ('Plugin|0xID', number): the game swaps the backup in when the innkeeper dies, which is how the DLL knows. ref = the successor's own reference; cell = the inn: they do Guild business only there, and 'away' is what they say anywhere else. The DLL adds them to AG_GuildLiaisonFaction, and every line of theirs waits for that.",
+ "_liaisons": "Optional 'whenGlobal': {global, <role>: lines} replaces a role's lines while that global is 1 (the DLL keeps it: AG_MissivesSolstheimGlobal = Raven Rock has the missive board of Missives - Worldspace Additions). The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers the ranks that have none), 'businessExtra' (more business lines for any rank) and 'businessByRankExtra' (one more for a rank); the game picks at random among the business lines that fit, 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask). 'successor' {of, quest, alias, ref, cell}: this NPC keeps the counter once the liaison they follow is dead, whoever runs the inn (with the Unofficial Patch Mikael takes the Bannered Mare over, not Ysolda). quest + alias = the hold's Dialogue quest and its Innkeeper alias ('Plugin|0xID', number): the game swaps the backup in when the innkeeper dies, which is how the DLL knows. ref = the successor's own reference; cell = the inn: they do Guild business only there, and 'away' is what they say anywhere else. The DLL adds them to AG_GuildLiaisonFaction, and every line of theirs waits for that.",
  "liaisons": [
   {
-   "npc": "Hulda",
+   "npc": "Hulda", "businessExtra": ["Sit yourself down, adventurer. The stew can mind itself for a minute.", "You've the look of someone with work on their mind. Out with it, then."], "businessByRankExtra": {"S": "The whole room went quiet when you came in, love. They'll pretend it didn't. What do you need?"},
    "city": "Whiterun",
    "inn": "the Bannered Mare",
    "register": "Welcome to the Adventurers Guild! Here's your guild card. The Companions will sneer, but the Guild pays on time, and the work's never dull.",
@@ -25,7 +25,7 @@
    "replace": "Lost it already? Happens to the best of them. Here, a fresh one. Try to keep this one out of the mead."
   },
   {
-   "npc": "Ysolda",
+   "npc": "Ysolda", "businessExtra": ["Let me set this down. There. An adventurer's time is worth more than mine, so go ahead.", "Tell me you've brought something back. I love it when adventurers bring things back."],
    "city": "Whiterun",
    "inn": "the Bannered Mare",
    "successor": {
@@ -55,7 +55,7 @@
    "away": "Guild business? Not out here. I keep the Adventurers Guild's counter at the Bannered Mare. Come and find me when I'm there."
   },
   {
-   "npc": "CorpulusVinius",
+   "npc": "CorpulusVinius", "businessExtra": ["Ah, back in one piece! That's worth a toast later. Business first, eh?", "For an adventurer, friend, I always have time. The wine will keep."], "businessByRankExtra": {"S": "The Blue Palace sends down to ask if you're in the city, you know. I tell them an adventurer's business is their own. So, what is it?"},
    "city": "Solitude",
    "inn": "the Winking Skeever",
    "register": "Welcome to the Adventurers Guild! Here's your guild card. Solitude's never short of work, and now you're first in line.",
@@ -77,7 +77,7 @@
    "replace": "Lost your card? Careless, but easily mended. There you are, good as new."
   },
   {
-   "npc": "SorexVinius",
+   "npc": "SorexVinius", "businessExtra": ["Oh, good, an adventurer. I was worried I might get to sit down.", "Go on, then. Whatever it is, it's bound to be more interesting than wiping tables."],
    "city": "Solitude",
    "inn": "the Winking Skeever",
    "successor": {
@@ -107,7 +107,7 @@
    "away": "Not here. The Adventurers Guild's counter is at the Winking Skeever. So am I, most days."
   },
   {
-   "npc": "Elda",
+   "npc": "Elda", "businessExtra": ["Stamp the snow off first. Right. What does an adventurer want with me today?", "You're back, and with all your fingers. More than some manage. Go on, then."], "businessByRankExtra": {"S": "They talk about you at the docks and in the palace both. Not much manages that in Windhelm. What do you need, adventurer?"},
    "city": "Windhelm",
    "inn": "Candlelight Hall",
    "register": "Here's your guild card. You're an adventurer now, same as the ones who tramp snow up my stairs. Wipe your boots like they don't.",
@@ -129,7 +129,7 @@
    "replace": "Down a troll's gullet, I hope, and not just the back of a bed. Here's another, and it'll cost you."
   },
   {
-   "npc": "Nils",
+   "npc": "Nils", "businessExtra": ["Oh, it's you! Come, come. I've a pot on, but it'll keep. What can I do?", "Adventurer's work, is it? Let me wipe my hands, and I'm all yours."],
    "city": "Windhelm",
    "inn": "Candlehearth Hall",
    "successor": {
@@ -159,7 +159,7 @@
    "away": "Oh, not out here. Come by Candlehearth Hall and I'll see to your Guild business there."
   },
   {
-   "npc": "Keerava",
+   "npc": "Keerava", "businessExtra": ["Make it quick, adventurer. I've a room full of people who don't tip.", "You, I don't mind seeing. You pay for your drinks. What do you need?"],
    "city": "Riften",
    "inn": "the Bee and Barb",
    "register": "Welcome to the Guild. Here's your card. Keep your hands out of other people's pockets and you'll do fine.",
@@ -181,7 +181,7 @@
    "replace": "Lost, or lifted? In Riften it's usually lifted. Here's a new one. Keep it somewhere your purse isn't."
   },
   {
-   "npc": "TalenJei",
+   "npc": "TalenJei", "businessExtra": ["You have returned safely. That pleases me. What does the adventurer need?", "One moment. There. The drinks can wait, and you have my full attention."],
    "city": "Riften",
    "inn": "the Bee and Barb",
    "successor": {
@@ -211,7 +211,7 @@
    "away": "Not here. I keep the Adventurers Guild's counter at the Bee and Barb. Find me there."
   },
   {
-   "npc": "Kleppr",
+   "npc": "Kleppr", "businessExtra": ["An adventurer! Good, good. Frabbi, watch the bar. No? Fine. I'll do both.", "Step over here by the hearth, friend. The stone carries every word in this city."],
    "city": "Markarth",
    "inn": "the Silver-Blood Inn",
    "register": "Welcome to the Guild. Your card, friend. Mind the Silver-Bloods, they own this inn and the Guild's rent too.",
@@ -233,7 +233,7 @@
    "replace": "Lost your card? In Markarth that's the least of what people lose. There, a new one."
   },
   {
-   "npc": "ValgaVinicia",
+   "npc": "ValgaVinicia", "businessExtra": ["Oh, you're back! And upright. Lovely. What can I do for you, dear?", "Is it business, dear? Good. It's been all funerals and no news in here today."],
    "city": "Falkreath",
    "inn": "the Dead Man's Drink",
    "register": "Welcome to the Guild. Here's your card. Falkreath has more graves than guests, so try not to add to them.",
@@ -255,7 +255,7 @@
    "replace": "Oh, you've lost it? No harm done. Here's a new card, dear."
   },
   {
-   "npc": "Jonna",
+   "npc": "Jonna", "businessExtra": ["You came back out of the marsh. Not everybody does. What do you need, adventurer?", "It's a quiet night, same as every night. I've got all the time you want."],
    "city": "Morthal",
    "inn": "the Moorside Inn",
    "register": "Welcome to the Guild! Here's your card. Morthal's lucky to have you.",
@@ -277,7 +277,7 @@
    "replace": "Lost in the marsh, I'd wager. Half of Morthal's belongings are. Here's a new card."
   },
   {
-   "npc": "Thoring",
+   "npc": "Thoring", "businessExtra": ["Adventurer. Good. Karita's songs can wait, and so can the dishes. What is it?", "You've come in off the ice with something on your mind. Let's hear it."],
    "city": "Dawnstar",
    "inn": "the Windpeak Inn",
    "register": "There, you're in. Here's your guild card. Nobody sleeps in Dawnstar lately anyway, might as well work.",
@@ -311,7 +311,7 @@
    "replace": "Lost your card? It happens. Here's a new one, and the ledger still knows your name."
   },
   {
-   "npc": "Dagur",
+   "npc": "Dagur", "businessExtra": ["A customer and an adventurer, both at once! That's a busy day in Winterhold. What do you need?", "Come and warm up first. Then you can tell me what the Adventurers Guild can do for you."],
    "city": "Winterhold",
    "inn": "the Frozen Hearth",
    "register": "Welcome to the Guild! Your card. The counter's the only thing in Winterhold still standing that isn't the College.",
@@ -333,7 +333,7 @@
    "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
   },
   {
-   "npc": "DLC2RRGeldisSadri",
+   "npc": "DLC2RRGeldisSadri", "businessExtra": ["A job done, and a story to go with it. That's my favorite kind of customer.", "Let me finish pouring this. There. Now, what does the adventurer need from Geldis?"], "businessByRankExtra": {"S": "Do you know what an S-rank adventurer does for a cornerclub's trade? Neither do I. You're the first. Let's find out."},
    "city": "Raven Rock",
    "inn": "the Retching Netch",
    "register": "I know everyone in Raven Rock, and they know me. Now they'll know you too. It's in the ledger. Take your guild card, adventurer.",
