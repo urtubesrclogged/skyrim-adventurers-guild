@@ -63,8 +63,8 @@
 
 	"_joinOnRecruit": "Followers whose story makes guild membership unlikely until they travel with you. They register when first recruited.",
 	"joinOnRecruit": {
-		"_npcs": "Named NPCs treated the same way (Erik the Slayer is for hire, but only becomes an adventurer when the player takes him along).",
-		"npcs": ["HirelingErikTheSlayer"],
+		"_npcs": "Named NPCs treated the same way (Erik the Slayer is for hire, but only becomes an adventurer when the player takes him along; Frea of the Skaal and Talvas of Tel Mithryn would never sign up on their own).",
+		"npcs": ["HirelingErikTheSlayer", "DLC2Frea", "DLC2Talvas"],
 		"factions": [
 			"CompanionsFaction", "PlayerHousecarlFaction",
 			"HousecarlWhiterunCrimeFaction", "HousecarlSolitudeCrimeFaction", "HousecarlWindhelmCrimeFaction",
