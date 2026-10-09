@@ -127,6 +127,13 @@
 		{"id": "sv_tharstan2", "who": "DLC2SVTharstan", "text": "Every ruin on this island wants a scholar to read it and an adventurer to walk in first. I know which of the two I am."},
 		{"id": "sv_nikulas", "who": "DLC2SVNikulas", "text": "Is it true the Adventurers Guild takes anyone with the nerve? Even a Skaal? I am only asking. Do not tell my mother I asked."},
 		{"id": "sv_nikulas_hi", "who": "DLC2SVNikulas", "rank": "C+", "whileAlive": "DLC2SVWulfWildblood", "text": "They say you carry a rank from the Adventurers Guild. In three or four winters I mean to carry one too. Wulf says I must learn patience first."},
+		{"id": "th_bujold", "who": "DLC2Bujold", "text": "Thirsk has no ranks and no cards. You win your place with an axe, or you don't have one. Still, adventurer, I've seen worse ways of sorting the strong from the soft."},
+		{"id": "th_bujold_hi", "who": "DLC2Bujold", "rank": "B+", "text": "They say the Adventurers Guild puts you near the top of its list. Good. I'd rather drink beside someone who earned it than a hall full of horker-brains."},
+		{"id": "th_kuvar1", "who": "DLC2Kuvar", "text": "Warriors in the wild, living like the Nords of old. That was Thirsk. Your Adventurers Guild comes closer to it than most things on the mainland."},
+		{"id": "th_kuvar2", "who": "DLC2Kuvar", "text": "An adventurer who lives long enough to earn a rank has learned how to take a blow. Most learn it the hard way. I can teach it quicker."},
+		{"id": "tm_talvas1", "who": "DLC2Talvas", "text": "Master Neloth says adventurers fetch the things he can't be bothered to fetch. He says the same about apprentices."},
+		{"id": "tm_talvas2", "who": "DLC2Talvas", "teammate": false, "status": "any", "text": "I asked Master Neloth whether I could register with the Adventurers Guild. He laughed for quite a long time. I'm still not sure what the answer was."},
+		{"id": "tm_talvas3", "who": "DLC2Talvas", "teammate": true, "status": "any", "text": "Is this what adventurers do all day? It's terrifying. It's also much better than scrubbing out Master Neloth's cauldrons."},
 
 		{ "id": "guard_e",       "guards": "any", "rank": "E",   "text": "E-rank adventurer, is it? Everyone starts somewhere. Usually somewhere with rats." },
 		{ "id": "guard_ed1",     "guards": "any", "rank": "E-D", "text": "New to the Adventurers Guild? Stick to skeevers and wolves for a while." },
