@@ -359,11 +359,11 @@
   /* something bought at the counter that is running out (a Guild Augment): in green ink, with the hours it has left */
   .chips span.timed { color: #2f4a1c; border-color: rgba(47, 74, 28, 0.75); background: rgba(70, 104, 40, 0.14); }
   .cardstats .stat { border-left-color: rgba(52, 32, 12, 0.35); }
-  /* The wax: larger than it was (author), and on the darker sheet a little deeper in tone, sitting in the oil it has
-     bled into the paper, with a shadow of its own - on this paper the plain image looked flat (the pixels measured
-     the same as on the old pale sheet; it was the contrast that had gone). */
-  .seal-wax { width: 132px; height: 132px; right: 12px; top: 4px;
-    filter: brightness(0.86) contrast(1.16) saturate(0.94) drop-shadow(0 0 8px rgba(92, 58, 20, 0.55)) drop-shadow(2px 5px 4px rgba(24, 10, 2, 0.8)); }
+  /* The wax: larger than it was (author). It is pressed INTO the sheet, so the page gives it no shadow of its own: the
+     image carries the dark line where wax meets paper and the oil it has bled (tools/make_seal.py). An offset shadow
+     and a glow, tried first, made it float over the card (author, 2026-10-09). Only its tone is deepened here, for
+     the darker sheet. */
+  .seal-wax { width: 136px; height: 136px; right: 14px; top: 6px; filter: brightness(0.88) contrast(1.14) saturate(0.95); }
 </style>
 </head>
 <body>
