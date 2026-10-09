@@ -10,13 +10,15 @@
 - Named adventurers who travel with you rise in rank as they level, and say so
 
 **Balance Changes**
-- Rank S is rare now. In a new game it starts at level 80, not 60, and level alone is no longer enough: only the oldest
-  dragons, dragon priests and a few legends are S. Wildlife stops at B
-- Other adventurers stop at A. Only you and your companions can be S
-- Nobody loses a rank. A game already under way keeps its old levels (S at 60) until you change the new setting
+- Rank S is actually rare now. In a new game it starts at level 80, not 60, and level alone is no longer enough: only
+  the oldest dragons, dragon priests and a few legends are S. Wildlife capped at B.
+  - No more A-rank skeevers!
+  - Other adventurers stop at A. Only you and your companions can be S
+- Nobody loses a rank or gets the rug pulled. A playthrough already under way keeps its old levels (S at 60) until you
+  change the new setting yourself or start a new game.
 - Trophies earn less Merit across the board, the big game most of all (a dragon bone is 6, down from 15). Trophies
   from other mods' creatures pay 1 Merit per 25 gold of value, up to 4
-- Guild training costs more Merit from rank C up. What you have already trained is untouched
+- Guild training costs more Merit from rank C up. What you have already trained is untouched.
 
 **New Guild Stuff**
 
