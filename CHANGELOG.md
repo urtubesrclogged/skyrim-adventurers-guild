@@ -5,7 +5,7 @@
 **World Building and NPCs**
 - The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock!
 - With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too (new integration)
-- Hundreds of new and reworked voiced lines for NPCs: Solstheim, the DawnGuard, housecarls, jarls, stewards, and many
+- Hundreds of new and reworked voiced lines for NPCs: Solstheim, the Dawnguard, housecarls, jarls, stewards, and many
   others all across Skyrim.
 - Named adventurers who travel with you rise in rank as they level, and say so
 
