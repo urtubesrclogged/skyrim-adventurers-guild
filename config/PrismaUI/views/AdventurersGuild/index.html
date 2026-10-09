@@ -17,15 +17,15 @@
   html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; font-family: var(--serif); }
   #notice { position: fixed; top: 13%; left: 50%; width: 620px; margin-left: -310px; opacity: 0; }
   .scroll { position: relative; padding: 30px 60px 26px 150px; min-height: 130px;
-            background: url(tex/parchment.png), #d8c9a2; color: #3a2c1b;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), inset 0 0 40px rgba(110, 80, 40, 0.5);
-            border-top: 3px solid #5b4a33; border-bottom: 3px solid #5b4a33; transform-origin: 50% 0; }
+            background: url(tex/skin/scroll.png) center / 100% 100% no-repeat; color: #22160b;   /* the counter's own parchment (tools/make_skin_assets.py) */
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.9)) drop-shadow(3px 9px 10px rgba(0, 0, 0, 0.65));
+            border-top: 3px solid transparent; border-bottom: 3px solid transparent; transform-origin: 50% 0; }
   .rod { position: absolute; left: -14px; right: -14px; height: 14px; border-radius: 7px;
          background: linear-gradient(#6a5436, #3b2d1c); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); }
   .rod.top { top: -10px; } .rod.bottom { bottom: -10px; }
   .seal { position: absolute; left: 36px; top: 50%; height: 118px; width: 100px; object-fit: contain; margin-top: -59px; }
   #title { font-size: 34px; font-variant: small-caps; letter-spacing: 0.08em; line-height: 1.1; color: #3a2616; }
-  #sub { font-size: 20px; font-style: italic; color: #6e5a40; margin-top: 8px; }
+  #sub { font-size: 20px; font-style: italic; color: #49351d; margin-top: 8px; }
   .rule { height: 1px; background: rgba(80, 60, 30, 0.4); margin-top: 10px; }
 
   #notice.play .scroll { animation: unroll 0.55s cubic-bezier(.2, .8, .2, 1) both; }
