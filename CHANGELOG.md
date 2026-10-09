@@ -5,6 +5,8 @@
 **World Building and NPCs**
 - The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock. A card issued
   there carries Morrowind's seal
+- With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too: its jobs carry a
+  rank, pay Merit and Reputation, and show on Geldis's counter
 - Over 200 new voiced lines, nearly 600 in all. Solstheim talks about the Guild (the Redoran Guard, Raven Rock, the
   Skaal, Thirsk, Tel Mithryn), and so do every housecarl, the jarls and stewards who had no line, and the Dawnguard
   and Volkihar court
@@ -30,19 +32,15 @@
 *Services*
 - New Guild Augments: a boon for the road that lasts a day, one at a time (carry more, better prices, faster skill
   gains, hardier, or a little more Health, Stamina and Magicka)
+
+*Shop*
 - Spell tomes one rank above your own can now be bought, at twice the Merit
-
-*Guild Card and Counter*
-- A new look for the Guild's papers: the Guild Card, missives, the party banner, the Field Notes and the promotion
-  notice are aged parchment with torn edges, and the wax seal is larger
-- A lost Guild Card can be replaced on the counter's Guild Card tab, as well as by asking the rep
-- A running Guild Augment shows on the card with the hours it has left
-
-*Missives*
-- With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too: its jobs carry a
-  rank, pay Merit and Reputation, and show on Geldis's counter
+- A lost Guild Card can be bought again on the counter's Guild Card tab, as well as by asking the rep
 
 **Improvements & QoL**
+- A new look for the Guild's papers: the Guild Card, missives, the party banner, the Field Notes and the promotion
+  notice are aged parchment with torn edges, and the wax seal is larger
+- A running Guild Augment shows on the Guild Card with the hours it has left
 - New MCM setting, Level for rank S (60 to 120), for games that level far past 80 or scale their enemies up. The same
   levels apply to your promotions, threats, dungeons and other adventurers
 - The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
