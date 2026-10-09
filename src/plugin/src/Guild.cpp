@@ -41,8 +41,8 @@ namespace AG::Guild
 			float                        abandonShare{ 0.5f };      // of a taken missive's Reputation, lost when it is given up
 			std::array<int, kRankCount>  reputation{ 0, 100, 300, 700, 1500, 3000 };
 			int                          cap{ 2 };  // C
-			std::array<int, kRankCount>  missiveMerit{ 5, 10, 15, 25, 0, 0 };
-			std::array<int, kRankCount>  missiveRep{ 8, 15, 30, 55, 0, 0 };
+			std::array<int, kRankCount>  missiveMerit{ 5, 10, 15, 25, 30, 50 };
+			std::array<int, kRankCount>  missiveRep{ 8, 15, 30, 55, 65, 75 };
 			std::array<int, kRankCount>  dungeonMerit{ 5, 10, 20, 30, 40, 50 };
 			std::array<int, kRankCount>  dungeonRep{ 10, 20, 40, 70, 110, 170 };
 			KillRewards                  kills;

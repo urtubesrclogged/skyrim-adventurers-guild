@@ -28,9 +28,9 @@
 
 	"_currencies": "Two currencies. Merit is spent on guild services (intel, Appraisal, training). Reputation is standing: promotion reads it and nothing spends it. Trophies pay Merit only (see trophies.json), kills Reputation only, missives and dungeon reports both. Rewards below your rank pay the same as at rank.",
 
-	"_missiveMerit": "Paid when a completed Missive's report is handed in, by the missive's rank.",
-	"missiveMerit": { "E": 5, "D": 10, "C": 15, "B": 25 },
-	"missiveRep":   { "E": 8, "D": 15, "C": 30, "B": 55 },
+	"_missiveMerit": "Paid when a completed guild quest's report is handed in, by the quest's rank. Missives stops at B; A is The Notice Board's Bounty Dragon, and S is there for whatever comes later (until 1.4.0 both paid nothing).",
+	"missiveMerit": { "E": 5, "D": 10, "C": 15, "B": 25, "A": 30, "S": 50 },
+	"missiveRep":   { "E": 8, "D": 15, "C": 30, "B": 55, "A": 65, "S": 75 },
 	"_notDungeons": "Places the game marks as clearable that are not dungeons, so the Guild does not announce them, sell dungeon intel on them or pay for clearing them (they can still be Points of Interest, below). 'Plugin|0xID' of the location. Shipped: Stendarr's Beacon and the Hall of the Vigilant (both held by the Vigilants of Stendarr). Add another mod's peaceful place here if it gets a dungeon notice.",
 	"notDungeons": ["Skyrim.esm|0x108A5A", "Skyrim.esm|0x0C342D"],
 
