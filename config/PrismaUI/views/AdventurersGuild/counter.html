@@ -344,69 +344,55 @@
                    font-size: 14px; font-variant: normal; letter-spacing: 0; background: rgba(0, 0, 0, 0.35); }
   #padhints .key.sq { border-radius: 4px; }
   /* ====================================================================================================================
-     THE "SKYRIM" SKIN (body.skyrim; MCM > System > Counter style). The same page in other materials: tooled leather on
-     an iron-bound board, hammered iron fittings, aged parchment with a hold map's faded linework. PAINT ONLY - colours,
-     backgrounds, shadows and the typeface of written documents. Nothing here may change a size, a margin or a border
-     width: the two skins must lay out identically. Textures: tools/make_skin_textures.py (original, procedural).
-     Typeface of documents: Cyrodiil (Neale Davidson, SIL OFL 1.1 - fonts/Cyrodiil-OFL.txt travels with it).
+     THE "SKYRIM" SKIN (body.skyrim; MCM > System > Counter style). The same page as things from the game's world: a
+     counter top of dark planks bound in knotwork iron, a folded sheet with a torn edge and the map of Tamriel faded
+     into it, riveted iron plates. PAINT ONLY: nothing here may change a size, a margin or a border width - the two
+     skins must lay out identically. Images: tools/make_skin_assets.py, cut from the game's own textures (not in the
+     source repository). The name on a document is set in Cyrodiil (Neale Davidson, SIL OFL 1.1: fonts/Cyrodiil-OFL.txt).
      ==================================================================================================================== */
   @font-face { font-family: "Cyrodiil"; src: url(fonts/Cyrodiil.otf) format("opentype"); font-weight: 400; font-style: normal; }
-  @font-face { font-family: "Cyrodiil"; src: url(fonts/Cyrodiil-Italic.otf) format("opentype"); font-weight: 400; font-style: italic; }
-  @font-face { font-family: "Cyrodiil"; src: url(fonts/Cyrodiil-Bold.otf) format("opentype"); font-weight: 700; font-style: normal; }
   body.skyrim {
-    --ink: #e8dcbd; --muted: #b5a585; --dim: #857862;
-    --bronze: #bf9a5e; --bronze-dim: rgba(160, 130, 85, 0.5);
-    --iron-hi: #4b4741; --iron-lo: #23211e;
-    --wax: #84281c; --paper-ink: #2c1f12; --paper-muted: #5e482e;
-    --doc: "Cyrodiil", "Palatino Linotype", "Book Antiqua", Palatino, Constantia, Georgia, serif;
-    --iron: linear-gradient(rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.56)), url(tex/skin/iron.png);
-    --iron-raised: linear-gradient(rgba(255, 236, 200, 0.07), rgba(0, 0, 0, 0.38)), url(tex/skin/iron.png);
-    --strap: linear-gradient(rgba(255, 230, 190, 0.05), rgba(0, 0, 0, 0.30)), url(tex/skin/leather_lt.png);
-    --fitting: inset 0 1px 0 rgba(255, 238, 205, 0.13), inset 0 -1px 0 rgba(0, 0, 0, 0.65), 0 2px 4px rgba(0, 0, 0, 0.65);
-    --sheet: 0 6px 18px rgba(0, 0, 0, 0.82), inset 0 0 22px rgba(84, 54, 20, 0.62), inset 0 0 90px rgba(120, 86, 40, 0.34);
+    --ink: #e9dfc6; --muted: #b9ab8e; --dim: #8a7d66;
+    --bronze: #c8a465; --bronze-dim: rgba(0, 0, 0, 0.55);
+    --wax: #7e2418; --paper-ink: #22160b; --paper-muted: #49351d;
+    --plate: linear-gradient(rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0.38)), url(tex/skin/plate.png) center / 100% 100% no-repeat;
+    --plate-lit: linear-gradient(rgba(255, 236, 200, 0.16), rgba(0, 0, 0, 0.12)), url(tex/skin/plate.png) center / 100% 100% no-repeat;
+    --plate-dim: linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.60)), url(tex/skin/plate.png) center / 100% 100% no-repeat;
+    --lift: 0 3px 5px rgba(0, 0, 0, 0.75);
   }
-  /* the board: leather, stitched a finger in from the edge, bound in iron with a rivet at each corner */
-  body.skyrim #panel { background: linear-gradient(rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0.30)), url(tex/skin/leather.png) repeat, #2b1c12;
-    border-color: #0b0a08; outline: 1px dashed rgba(198, 164, 116, 0.5);
-    box-shadow: 0 0 0 5px #2c2a27, 0 0 0 6px #080706, 0 0 0 7px #58534c, 0 0 80px rgba(0, 0, 0, 0.85), inset 0 0 150px rgba(0, 0, 0, 0.72); }
-  body.skyrim .stud { border-radius: 50%; background: radial-gradient(circle at 36% 30%, #9a9388, #4a4640 55%, #171615);
-    box-shadow: 0 0 0 2px #0b0a08, 0 2px 3px rgba(0, 0, 0, 0.8), inset 0 -2px 2px rgba(0, 0, 0, 0.5); }
-  body.skyrim h1 { color: #cfae74; text-shadow: 0 2px 0 #000, 0 -1px 0 rgba(255, 235, 190, 0.16); }
-  body.skyrim nav { border-bottom-color: rgba(0, 0, 0, 0.6); box-shadow: 0 1px 0 rgba(255, 232, 190, 0.07); }
-  body.skyrim nav button.on { text-shadow: 0 1px 0 #000; }
-  body.skyrim nav button.on::after { background: linear-gradient(#d9b877, #8a6a38); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
-  /* iron fittings: boxes, tiles and buttons */
-  body.skyrim .coin, body.skyrim .item, body.skyrim .tcard, body.skyrim .record, body.skyrim .tier,
+  body.skyrim #panel { background: url(tex/skin/board.jpg) center / 100% 100% no-repeat, #1a120c; border-color: #050403; outline-color: transparent;
+    box-shadow: 0 0 0 1px #2e2a26, 0 18px 70px rgba(0, 0, 0, 0.9); }
+  body.skyrim .stud { visibility: hidden; }
+  body.skyrim header, body.skyrim nav, body.skyrim .medallion, body.skyrim .bar-top, body.skyrim .row, body.skyrim footer { text-shadow: 0 2px 2px rgba(0, 0, 0, 0.95); }
+  body.skyrim h1 { color: #d8b877; text-shadow: 0 2px 2px #000, 0 0 12px rgba(0, 0, 0, 0.8); }
+  body.skyrim nav { border-bottom-color: rgba(0, 0, 0, 0.7); box-shadow: 0 1px 0 rgba(255, 225, 180, 0.08); }
+  body.skyrim nav button.on::after { background: linear-gradient(#e2c383, #8c6b37); box-shadow: 0 1px 3px #000; }
+  /* iron: every box and button is a plate off a strongbox */
+  body.skyrim .coin, body.skyrim .tier, body.skyrim .item, body.skyrim .tcard, body.skyrim .record,
   body.skyrim .qsec button, body.skyrim .sections button, body.skyrim .itabs button, body.skyrim .trait {
-    background: var(--iron); border-color: #0d0c0a; box-shadow: var(--fitting); }
-  body.skyrim .btn { background: var(--iron-raised); border-color: #0d0c0a; box-shadow: var(--fitting); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.9); }
-  body.skyrim .btn:hover { border-color: var(--bronze); background: linear-gradient(rgba(255, 236, 200, 0.16), rgba(0, 0, 0, 0.26)), url(tex/skin/iron.png); }
-  body.skyrim .btn[disabled] { border-color: #0d0c0a; }
-  body.skyrim .btn.danger { border-color: #4a120b; background: linear-gradient(rgba(150, 40, 24, 0.55), rgba(70, 18, 10, 0.72)), url(tex/skin/iron.png); }
-  /* the chosen one of a set: a leather strap laid over the iron */
+    background: var(--plate-dim); border-color: #060504; box-shadow: var(--lift); }
+  body.skyrim .btn { background: var(--plate); border-color: #060504; box-shadow: var(--lift); text-shadow: 0 1px 1px #000; }
+  body.skyrim .btn:hover { background: var(--plate-lit); border-color: var(--bronze); }
+  body.skyrim .btn[disabled] { border-color: #060504; }
+  body.skyrim .btn.danger { background: linear-gradient(rgba(140, 34, 20, 0.6), rgba(60, 14, 8, 0.72)), url(tex/skin/plate.png) center / 100% 100% no-repeat; border-color: #3a0e08; }
   body.skyrim .qsec button.on, body.skyrim .sections button.on, body.skyrim .itabs button.on, body.skyrim .trait.on, body.skyrim .tcard.active {
-    background: var(--strap); border-color: #120c07; color: #fff3d8; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.85);
-    box-shadow: inset 0 1px 0 rgba(255, 228, 180, 0.22), inset 0 -1px 0 rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.65); }
-  body.skyrim .trait.active { background: linear-gradient(rgba(255, 230, 190, 0.16), rgba(0, 0, 0, 0.18)), url(tex/skin/leather_lt.png); }
-  body.skyrim .tcard.paused { border-color: var(--bronze); }
-  body.skyrim .record .stat, body.skyrim .cardstats .stat { border-left-color: rgba(0, 0, 0, 0.45); }
-  body.skyrim .cardstats .stat { border-left-color: rgba(70, 46, 20, 0.3); }
-  /* rows: a groove tooled into the leather */
-  body.skyrim .row { border-bottom-color: rgba(0, 0, 0, 0.5); box-shadow: 0 1px 0 rgba(255, 228, 185, 0.06); }
-  /* written documents: parchment, in the book hand */
-  body.skyrim .paper, body.skyrim .note, body.skyrim .banner, body.skyrim .namefield input, body.skyrim .medallion .todo { font-family: var(--doc); }
-  body.skyrim .paper { background: url(tex/skin/map.png) center / 100% 100% no-repeat, url(tex/skin/parchment.png), #d6c79f; box-shadow: var(--sheet); }
-  body.skyrim .note { background: url(tex/skin/parchment.png), #d6c79f; box-shadow: var(--sheet); }
-  body.skyrim .banner { background: url(tex/skin/parchment.png), #d6c79f; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75), inset 0 0 18px rgba(84, 54, 20, 0.6), inset 0 0 60px rgba(120, 86, 40, 0.3); }
-  body.skyrim .banner.warnbox { background: linear-gradient(rgba(120, 40, 25, 0.35), rgba(80, 25, 15, 0.45)), url(tex/skin/parchment.png), #d6c79f; }
-  body.skyrim .namefield input { background: url(tex/skin/parchment.png), #d6c79f; border-color: #1c140b; box-shadow: inset 0 0 14px rgba(84, 54, 20, 0.5); }
-  body.skyrim .paper hr { border-top-color: rgba(60, 38, 14, 0.5); }
-  body.skyrim .bar { border-color: rgba(48, 30, 12, 0.75); background: rgba(70, 46, 18, 0.16); box-shadow: inset 0 1px 2px rgba(40, 24, 8, 0.4); }
-  body.skyrim .fill { background: linear-gradient(#5b3f20, #3a2713); }
-  body.skyrim .req.ok .fill { background: linear-gradient(#4f6630, #33451f); }
-  body.skyrim .chips span { border-color: rgba(60, 38, 14, 0.6); background: rgba(96, 64, 26, 0.10); }
-  body.skyrim .lostveil { background: rgba(8, 6, 4, 0.56); }
-  body.pad.skyrim .padfocus, body.kbnav.skyrim .padfocus { outline-color: #d9b877; }
+    background: var(--plate-lit); border-color: var(--bronze); color: #fff3d8; text-shadow: 0 1px 1px #000; }
+  body.skyrim .row { border-bottom-color: rgba(0, 0, 0, 0.6); box-shadow: 0 1px 0 rgba(255, 225, 180, 0.05); }
+  body.skyrim .record .stat { border-left-color: rgba(0, 0, 0, 0.55); }
+  /* documents: the folded sheet, lying on the planks */
+  body.skyrim .paper, body.skyrim .note, body.skyrim .banner {
+    background: url(tex/skin/sheet.png) center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.8)); }
+  body.skyrim .banner.warnbox { background: linear-gradient(rgba(120, 40, 25, 0.30), rgba(80, 25, 15, 0.40)), url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
+  body.skyrim .namefield input { background: #d9caa3; border-color: #2a1c10; box-shadow: inset 0 0 12px rgba(84, 54, 20, 0.55); }
+  body.skyrim .paper h2, body.skyrim .banner .pname, body.skyrim .note h3 { font-family: "Cyrodiil", var(--serif); }
+  body.skyrim .paper hr { border-top-color: rgba(52, 32, 12, 0.55); }
+  body.skyrim .bar { border-color: rgba(42, 26, 10, 0.8); background: rgba(60, 38, 14, 0.14); }
+  body.skyrim .fill { background: linear-gradient(#573a1c, #38240f); }
+  body.skyrim .req.ok .fill { background: linear-gradient(#4c632d, #30421c); }
+  body.skyrim .chips span { border-color: rgba(52, 32, 12, 0.65); }
+  body.skyrim .cardstats .stat { border-left-color: rgba(52, 32, 12, 0.35); }
+  body.skyrim .lostveil { background: rgba(6, 4, 3, 0.58); }
+  body.pad.skyrim .padfocus, body.kbnav.skyrim .padfocus { outline-color: #e2c383; }
 </style>
 </head>
 <body>
