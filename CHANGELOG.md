@@ -35,18 +35,16 @@
 - A lost Guild Card can be bought again on the counter's Guild Card tab, as well as by asking the rep
 
 **Improvements & QoL**
-- A new look for the Guild's papers: the Guild Card, missives, the party banner, the Field Notes and the promotion
-  notice are aged parchment with torn edges, and the wax seal is larger
+- A little polish on the look of the Prisma UI; better theming with Skyrim's palette and aesthetic.
 - A running Guild Augment shows on the Guild Card with the hours it has left
 - New MCM setting, Level for rank S (60 to 120), for games that level far past 80 or scale their enemies up. The same
   levels apply to your promotions, threats, dungeons and other adventurers
-- The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
 - An empty Dungeons tab now says why: nothing in this hold at your rank
 - Stendarr's Beacon and the Hall of the Vigilant are Points of Interest now, not dungeons
-- Dawnstar's lines change once the nightmares end
-- SkyrimNet: NPCs know what rank S means, and know about Guild Augments and tomes
+- Dawnstar's lines change correctly once the nightmares end
 
 **Fixes/Bugs**
+- The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
 - Places a quest has not yet put on the map are no longer sold as intel
 - Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
   with you
