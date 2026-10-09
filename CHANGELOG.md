@@ -3,51 +3,60 @@
 ## 1.4.0
 
 **World Building and NPCs**
-- The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock
-- With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too: its jobs carry a
-  rank, pay Merit and Reputation, and show on Geldis's counter
-- A card issued in Raven Rock carries Morrowind's seal, and the counter there reads Morrowind Region
-- Solstheim talks about the Guild: the Redoran Guard, Raven Rock's townsfolk, the Skaal, Thirsk and Tel Mithryn
-- New voiced lines for every housecarl, the jarls and stewards who had none, and the Dawnguard and Volkihar court
+- The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock. A card issued
+  there carries Morrowind's seal
+- Over 200 new voiced lines, nearly 600 in all. Solstheim talks about the Guild (the Redoran Guard, Raven Rock, the
+  Skaal, Thirsk, Tel Mithryn), and so do every housecarl, the jarls and stewards who had no line, and the Dawnguard
+  and Volkihar court
+- Every Guild rep has more ways to answer "I have guild business"
 - Teldryn Sero and Gunmar are Guild members. Frea, Talvas and the Dawnguard's followers join when they travel with you
 - Named adventurers who travel with you rise in rank as they level, and say so
-- Every Guild rep has more ways to answer "I have guild business"
-- Dawnstar's lines change once the nightmares end
 
-**Intel**
+**Balance Changes**
+- Rank S is rare now. In a new game it starts at level 80, not 60, and level alone is no longer enough: only the oldest
+  dragons, dragon priests and a few legends are S. Wildlife stops at B
+- Other adventurers stop at A. Only you and your companions can be S
+- Nobody loses a rank. A game already under way keeps its old levels (S at 60) until you change the new setting
+- Trophies earn less Merit across the board, the big game most of all (a dragon bone is 6, down from 15). Trophies
+  from other mods' creatures pay 1 Merit per 25 gold of value, up to 4
+- Guild training costs more Merit from rank C up. What you have already trained is untouched
+
+**New Guild Stuff**
+
+*Intel*
 - New Points of Interest tab: the Guild sells the whereabouts of Orc strongholds, standing stones, Daedric shrines,
   camps, landmarks, shipwrecks and more
-- Stendarr's Beacon and the Hall of the Vigilant are Points of Interest now, not dungeons
-- Places a quest has not yet put on the map are no longer sold as intel
-- An empty Dungeons tab now says why: nothing in this hold at your rank
 
-**Ranks Reworked**
-- Rank S is rare now. It starts at level 80, not 60, and level alone is no longer enough: only the oldest dragons,
-  dragon priests and a few legends are S. Wildlife stops at B
-- New MCM setting, Level for rank S (60 to 120), for games that level far past 80 or scale their enemies up. The same
-  levels apply to your promotions, threats, dungeons and other adventurers
-- Nobody loses a rank. A game already under way keeps its old levels (S at 60) until you change the setting
-- Other adventurers stop at A. Only you and your companions can be S
-
-**Services**
+*Services*
 - New Guild Augments: a boon for the road that lasts a day, one at a time (carry more, better prices, faster skill
   gains, hardier, or a little more Health, Stamina and Magicka)
 - Spell tomes one rank above your own can now be bought, at twice the Merit
-- Guild training costs more Merit from rank C up. What you have already trained is untouched
-- Trophies earn less Merit across the board, the big game most of all (a dragon bone is 6, down from 15)
 
-**Guild Card and Counter**
-- A new look for the Guild's papers: the Guild Card, missives, the party banner and the Field Notes are aged parchment
-  with torn edges, and the wax seal is larger
+*Guild Card and Counter*
+- A new look for the Guild's papers: the Guild Card, missives, the party banner, the Field Notes and the promotion
+  notice are aged parchment with torn edges, and the wax seal is larger
 - A lost Guild Card can be replaced on the counter's Guild Card tab, as well as by asking the rep
-- A running Guild Augment shows on the card with the hours it has left (the missive counts moved to the stats row)
+- A running Guild Augment shows on the card with the hours it has left
 
-**Other**
+*Missives*
+- With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too: its jobs carry a
+  rank, pay Merit and Reputation, and show on Geldis's counter
+
+**Improvements & QoL**
+- New MCM setting, Level for rank S (60 to 120), for games that level far past 80 or scale their enemies up. The same
+  levels apply to your promotions, threats, dungeons and other adventurers
+- The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
+- An empty Dungeons tab now says why: nothing in this hold at your rank
+- Stendarr's Beacon and the Hall of the Vigilant are Points of Interest now, not dungeons
+- Dawnstar's lines change once the nightmares end
+- SkyrimNet: NPCs know what rank S means, and know about Guild Augments and tomes
+
+**Fixes/Bugs**
+- Places a quest has not yet put on the map are no longer sold as intel
 - Followers who also work at an inn (Immersive Wenches and the like) no longer offer Guild dialogue while they travel
   with you
-- The Guild counter, Guild Card and notices now scale up on screens larger than 1080p (they were tiny at 4K)
 - "Jarl" is pronounced the way Skyrim says it in every voiced line
-- A handful of voiced lines that opened with a distorted first word were re-recorded
+- A few voiced lines that opened with a distorted first word were re-recorded
 
 ## 1.3.1
 
