@@ -75,7 +75,8 @@ New keys, all optional (English is shown for any you leave out):
 * Points of Interest categories: `$AG_Poi_outpost`, `$AG_Poi_orc`, `$AG_Poi_camp`, `$AG_Poi_daedric`, `$AG_Poi_stone`,
   `$AG_Poi_landmark`, `$AG_Poi_wreck`. A category someone adds to `guild.json` is keyed `$AG_Poi_<its id>`.
 * Buying one: `$AG_Poi_Bought` (place, Merit), `$AG_Log_Poi` (the ledger line: place, Merit).
-* `$AG_City_RavenRock`: the tenth counter's town.
+* `$AG_City_RavenRock`: the tenth counter's town. Its counter is in Morrowind's region, not Skyrim's:
+  `$AG_UI_BranchMorrowind` (`{0}` is the town) and `$AG_UI_RegionMorrowind`.
 * MCM, System page, the level of rank S: `$AG_MCM_System_Ranks_Header`, `$AG_MCM_System_iSLevel_Text`,
   `$AG_MCM_System_iSLevel_Help`, `$AG_MCM_System_RankLevels_Header`, and the five rows `$AG_MCM_System_RankD_Text` to
   `$AG_MCM_System_RankS_Text`.

@@ -471,6 +471,17 @@ namespace AG::Counter
 				for (const char c : city)
 					if (std::isalnum(static_cast<unsigned char>(c))) key += c;
 				data["branch"] = city.empty() ? city : Loc::T(key, city);
+				// Solstheim belongs to Morrowind: the counter there, and the Guild Card read on the island, say so
+				bool morrowind = city == "Raven Rock";
+				if (!morrowind && city.empty()) {
+					static auto* solstheim = [] {
+						auto* dh = RE::TESDataHandler::GetSingleton();
+						return dh ? dh->LookupForm<RE::BGSLocation>(0x016E2A, "Dragonborn.esm") : nullptr;
+					}();
+					auto* pc = RE::PlayerCharacter::GetSingleton();
+					for (auto* l = pc ? pc->GetCurrentLocation() : nullptr; l && solstheim && !morrowind; l = l->parentLoc) morrowind = l == solstheim;
+				}
+				data["region"] = morrowind ? "Morrowind" : "Skyrim";
 			}
 			data["cardOnly"] = g_cardOnly.load();
 			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress();  // the card's "to do" note

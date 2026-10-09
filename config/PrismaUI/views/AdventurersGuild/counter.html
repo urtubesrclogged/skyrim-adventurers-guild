@@ -902,7 +902,10 @@ function fitText() {
 function render() {
   $("merit").textContent = data.merit;
   $("rep").textContent = data.reputation;
-  $("where").textContent = data.branch ? t("$AG_UI_Branch", "Skyrim Region · {0} Branch", data.branch) : t("$AG_UI_Region", "Skyrim Region");
+  /* Solstheim is Morrowind's: the Raven Rock counter, and the Guild Card read on the island */
+  $("where").textContent = data.region === "Morrowind"
+    ? (data.branch ? t("$AG_UI_BranchMorrowind", "Morrowind Region · {0} Branch", data.branch) : t("$AG_UI_RegionMorrowind", "Morrowind Region"))
+    : (data.branch ? t("$AG_UI_Branch", "Skyrim Region · {0} Branch", data.branch) : t("$AG_UI_Region", "Skyrim Region"));
   const counts = { quests: (data.reports || []).length, trophies: ((data.trophies || {}).items || []).length,
                    party: (((data.party || {}).active || {}).traits || []).filter((x) => x.new).length };
   /* opened from the physical guild card: the Guild Card page alone, a shorter panel with no tabs */
