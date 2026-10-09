@@ -51,6 +51,11 @@
 - "Jarl" is pronounced the way Skyrim says it in every voiced line
 - A few voiced lines that opened with a distorted first word were re-recorded
 
+**Misc.**
+- SkyrimNet: NPCs know about the Guild on Solstheim, what rank S means now, and Guild Augments and tomes
+- Translations: new text for the Points of Interest tab, Guild Augments, the rank S setting and the lost Guild Card
+  (the keys are listed in docs/TRANSLATING.md). Anything not yet translated shows in English
+
 ## 1.3.1
 
 **Fixes**
