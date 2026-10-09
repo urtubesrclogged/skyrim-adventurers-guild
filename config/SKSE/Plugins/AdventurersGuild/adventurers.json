@@ -4,7 +4,7 @@
 	"_members": "Guild members from the start: anyone who can be a follower or hired. Custom followers usually add PotentialFollowerFaction; ones that don't are caught when they first become your teammate.",
 	"members": { "factions": ["PotentialFollowerFaction", "PotentialHireling", "CurrentHireling", "CurrentFollowerFaction"] },
 
-	"_named": "Named NPCs the Guild has on its books whatever their factions say. npcs = editor IDs (resolved by tools/EspGen). level = the least level they have in game (raised in memory when the game loads, no record is edited), which also sets their rank: 24 is C. retiredWhen = a location, a keyword on it and the value that means they have taken another service (Sinmir is made captain of the guard when the Stormcloaks hold Whiterun: CWOwner 2); until then they are an active member. rank = their Guild rank, fixed whatever their level (followers who level with the player would otherwise drift). note / retiredNote = a line for their SkyrimNet bio.",
+	"_named": "Named NPCs the Guild has on its books whatever their factions say. npcs = editor IDs (resolved by tools/EspGen). level = the least level they have in game (raised in memory when the game loads, no record is edited), which also sets their rank: 24 is C. retiredWhen = a location, a keyword on it and the value that means they have taken another service (Sinmir is made captain of the guard when the Stormcloaks hold Whiterun: CWOwner 2); until then they are an active member. rank = the Guild rank they START at. One who has travelled with the player holds the higher of it and the rank of their level from then on, and never drops (Uthgerd, D, makes C at level 24); one who never has keeps it. note / retiredNote = a line for their SkyrimNet bio.",
 	"named": [
 		{
 			"npcs": ["Sinmir"],
@@ -27,6 +27,10 @@
 			"npcs": ["Annekke"],
 			"rank": "D",
 			"note": "A D-rank scout of the Adventurers Guild who found the ore vein Darkwater Crossing was built on. She settled down when she married Verner, still carries her guild card, and misses the road more than she admits to him."
+		},
+		{
+			"npcs": ["DLC2RRTeldrynSero"],
+			"rank": "B"
 		}
 	],
 

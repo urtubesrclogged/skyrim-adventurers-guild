@@ -13,6 +13,8 @@
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
+//   0xC91-0xC92  AG_AdventurerRankFaction, AG_AdventurerPromotedFaction (a named member's rank, and "just promoted")
+//   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
 //   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
 //   0xC00-0xC7F  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
@@ -230,6 +232,11 @@ mod.Factions.Add(partyFaction);
 // wandering adventurers (the DLL adds them as they load, at their Guild rank): for their greetings
 var wandererFaction = new Faction(FK(0xC80), Rel) { EditorID = "AG_WanderingAdventurerFaction", Name = "Wandering Adventurer", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(wandererFaction);
+// a NAMED member's Guild rank (rank in the faction, kept by the DLL), and "has just been promoted" (rank 0 for a few days)
+var rankFaction = new Faction(FK(0xC91), Rel) { EditorID = "AG_AdventurerRankFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC };
+var promotedFaction = new Faction(FK(0xC92), Rel) { EditorID = "AG_AdventurerPromotedFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC };
+mod.Factions.Add(rankFaction);
+mod.Factions.Add(promotedFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);
 var gReports = Global(0x8C7, "AG_ReportsWaitingGlobal", 0);
@@ -611,6 +618,22 @@ IEnumerable<Condition> RankConds(string spec)
     else if (spec.Contains('-')) { var p = spec.Split('-'); yield return GlobalCmp(gRank, CompareOperator.GreaterThanOrEqualTo, R(p[0])); yield return GlobalCmp(gRank, CompareOperator.LessThanOrEqualTo, R(p[1])); }
     else yield return GlobalCmp(gRank, CompareOperator.EqualTo, R(spec));
 }
+// the SPEAKER's own Guild rank (a named member: their rank in AG_AdventurerRankFaction), same notation as the player's
+ConditionFloat OwnRankCmp(CompareOperator op, float v)
+{
+    var d = new GetFactionRankConditionData();
+    d.Faction.Link.SetTo(rankFaction.FormKey);
+    return new ConditionFloat { CompareOperator = op, ComparisonValue = v, Data = d };
+}
+IEnumerable<Condition> OwnRankConds(string spec)
+{
+    int R(string l) { var r = "EDCBAS".IndexOf(l.Trim().ToUpperInvariant()); if (r < 0) { Console.Error.WriteLine($"ERROR world_dialogue.json: bad ownRank '{spec}'"); errors++; } return r; }
+    if (spec.EndsWith("+")) yield return OwnRankCmp(CompareOperator.GreaterThanOrEqualTo, R(spec[..^1]));
+    else if (spec.StartsWith("<")) { yield return OwnRankCmp(CompareOperator.GreaterThanOrEqualTo, 0); yield return OwnRankCmp(CompareOperator.LessThan, R(spec[1..])); }
+    else if (spec.Contains('-')) { var p = spec.Split('-'); yield return OwnRankCmp(CompareOperator.GreaterThanOrEqualTo, R(p[0])); yield return OwnRankCmp(CompareOperator.LessThanOrEqualTo, R(p[1])); }
+    else yield return OwnRankCmp(CompareOperator.EqualTo, R(spec));
+}
+var worldTopics = new Dictionary<string, DialogTopic>();
 var chance = world["chance"]!;
 var holdGuards = world["holdGuards"]!.AsObject();
 var worldCount = 0;
@@ -622,7 +645,24 @@ foreach (var ln in world["lines"]!.AsArray())
     var conds = new List<Condition>();
     var voices = new List<Condition>();
     string kind;
-    if (ln["who"] is JsonNode who) { conds.Add(IsNpc(Npc(who.GetValue<string>()), false)); kind = "npc"; }
+    if (ln["who"] is JsonNode who)
+    {
+        conds.Add(IsNpc(Npc(who.GetValue<string>()), false)); kind = "npc";
+        if (ln["ownRank"] is JsonNode orank) conds.AddRange(OwnRankConds(orank.GetValue<string>()));
+        if (ln["ownPromoted"] is not null) conds.Add(new ConditionFloat { CompareOperator = CompareOperator.GreaterThanOrEqualTo, ComparisonValue = 0, Data = new GetFactionRankConditionData { Faction = { Link = { FormKey = promotedFaction.FormKey } } } });
+        // their rank against the player's
+        if (ln["theirRank"] is JsonNode ntr)
+        {
+            var fr = new GetFactionRankConditionData();
+            fr.Faction.Link.SetTo(rankFaction.FormKey);
+            conds.Add(OwnRankCmp(CompareOperator.GreaterThanOrEqualTo, 0));
+            conds.Add(new ConditionGlobal
+            {
+                CompareOperator = ntr.GetValue<string>() switch { "above" => CompareOperator.GreaterThan, "below" => CompareOperator.LessThan, _ => CompareOperator.EqualTo },
+                ComparisonValue = new FormLink<IGlobalGetter>(gRank.FormKey), Data = fr,
+            });
+        }
+    }
     else if (ln["wanderers"] is not null)
     {
         conds.Add(InFaction(wandererFaction.FormKey)); kind = "wanderer"; voices = VoiceGroup("wandererVoices");
@@ -679,8 +719,20 @@ foreach (var ln in world["lines"]!.AsArray())
         // one player topic per NPC: branch and topic FormIDs are fixed here (append only)
         var whoId = ln["who"]!.GetValue<string>();
         var (branchId, topicId) = whoId switch { "Ysolda" => (0x8C2u, 0x8C3u), "Sinmir" => (0x8C8u, 0x8C9u), "Uthgerd" => (0x8CAu, 0x8CBu),
-            "Mjoll" => (0x8CCu, 0x8CDu), "Annekke" => (0x8CEu, 0x8CFu), _ => (0u, 0u) };
+            "Mjoll" => (0x8CCu, 0x8CDu), "Annekke" => (0x8CEu, 0x8CFu), "DLC2RRTeldrynSero" => (0xC93u, 0xC94u), _ => (0u, 0u) };
         if (branchId == 0) { Console.Error.WriteLine($"ERROR world_dialogue.json: no topic FormIDs assigned for '{whoId}' (tools/EspGen/Program.cs)"); errors++; continue; }
+        // a second answer to the same question (by the speaker's own rank): another INFO in the topic that is already
+        // there. Order in the file is the order they are tried in, so the conditioned ones go first.
+        if (worldTopics.TryGetValue(whoId, out var have))
+        {
+            var more = new DialogResponses(FK(InfoId("world:" + id)), Rel) { EditorID = "AG_Info_world_" + id };
+            more.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            foreach (var c in conds) more.Conditions.Add(c);
+            more.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(have.Responses[^1].FormKey);
+            have.Responses.Add(more);
+            worldCount++;
+            continue;
+        }
         ysoldaBranch = new DialogBranch(FK(branchId), Rel)
         {
             EditorID = "AG_BranchWorld" + whoId,
@@ -706,6 +758,7 @@ foreach (var ln in world["lines"]!.AsArray())
         t.Responses.Add(ti);
         mod.DialogBranches.Add(ysoldaBranch);
         mod.DialogTopics.Add(t);
+        worldTopics[whoId] = t;
         worldCount++;
         continue;
     }

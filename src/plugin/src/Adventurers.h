@@ -65,6 +65,15 @@ namespace AG::Adventurers
 	void           Load(const nlohmann::json& a_j);
 	nlohmann::json SaveHeldS();
 	void           LoadHeldS(const nlohmann::json& a_j);
+	nlohmann::json SaveNamedRanks();
+	void           LoadNamedRanks(const nlohmann::json& a_j);
+
+	// Named members (adventurers.json "named"): the rank set there is where they START. One who has travelled with
+	// the player holds the higher of it and the rank of their level, and never drops.
+	bool IsNamed(RE::Actor* a_actor);
+	// Remembers the rank a named member was last seen at. True when it has just risen (not the first time they are seen).
+	bool NoteRank(RE::Actor* a_actor, int a_rank, float a_today);
+	bool RecentlyPromoted(RE::Actor* a_actor, float a_today, float a_days);
 	void           Revert();
 
 	// "Plugin.esp|0x00ABCD" for a form, stable across load-order changes ("FF|0x..." for runtime refs)

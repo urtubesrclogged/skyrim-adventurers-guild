@@ -94,6 +94,8 @@ namespace AG::Guild
 		RE::TESGlobal*       g_gRecentPromo{ nullptr };      // AG_RecentPromotionGlobal: rank just reached, else -1
 		RE::TESFaction*      g_retiredFaction{ nullptr };    // AG_RetiredAdventurerFaction, for world dialogue
 		RE::TESFaction*      g_wandererFaction{ nullptr };   // AG_WanderingAdventurerFaction: rank in it = their Guild rank
+		RE::TESFaction*      g_rankFaction{ nullptr };       // AG_AdventurerRankFaction: a NAMED member's rank (their own lines read it)
+		RE::TESFaction*      g_promotedFaction{ nullptr };   // AG_AdventurerPromotedFaction: rank 0 for a few days after one rises
 		RE::TESFaction*      g_liaisonFaction{ nullptr };    // AG_GuildLiaisonFaction, for SkyrimNet actions
 		RE::TESGlobal*       g_gReports{ nullptr };          // AG_ReportsWaitingGlobal, for SkyrimNet actions
 		RE::TESGlobal*       g_gReady{ nullptr };
@@ -363,6 +365,7 @@ namespace AG::Guild
 			}
 			j["recruited"] = Adventurers::Save();
 			j["heldS"] = Adventurers::SaveHeldS();
+			j["namedRanks"] = Adventurers::SaveNamedRanks();
 			j["sLevel"] = GetSLevel();
 			j["dungeons"] = Dungeons::Save();
 			j["parties"] = Party::Save();
@@ -462,6 +465,7 @@ namespace AG::Guild
 					}
 					if (j.contains("recruited")) Adventurers::Load(j.at("recruited"));
 					if (j.contains("heldS")) Adventurers::LoadHeldS(j.at("heldS"));
+					if (j.contains("namedRanks")) Adventurers::LoadNamedRanks(j.at("namedRanks"));
 					// a save from before 1.4.0 keeps the levels it always had; the MCM (which holds the setting) agrees
 					SetSLevel(j.value("sLevel", kSLevelBefore140));
 					Dungeons::Load(j.value("dungeons", nlohmann::json::object()));
@@ -582,6 +586,8 @@ namespace AG::Guild
 		g_retiredFaction = Own<RE::TESFaction>(0x8C4);
 		g_liaisonFaction = Own<RE::TESFaction>(0x8C6);
 		g_wandererFaction = Own<RE::TESFaction>(0xC80);
+		g_rankFaction = Own<RE::TESFaction>(0xC91);
+		g_promotedFaction = Own<RE::TESFaction>(0xC92);
 		g_gReports = Own<RE::TESGlobal>(0x8C7);
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESObjectLoadedEvent>(RetiredSink::Get());
 		try {
@@ -705,11 +711,30 @@ namespace AG::Guild
 		if (!g_wandererFaction || !pl || Dormant()) return;
 		for (auto& h : pl->highActorHandles) {
 			auto* actor = h.get().get();
-			if (!actor || actor->IsPlayerRef() || actor->IsDead() || !Adventurers::IsWanderer(actor)) continue;
+			if (!actor || actor->IsPlayerRef() || actor->IsDead()) continue;
+			const bool wanderer = Adventurers::IsWanderer(actor), named = !wanderer && g_rankFaction && Adventurers::IsNamed(actor);
+			if (!wanderer && !named) continue;
 			const auto info = Adventurers::Of(actor);
-			if (info.kind != Adventurers::Kind::kMember) continue;
+			if (info.kind != Adventurers::Kind::kMember) {
+				if (named && actor->GetFactionRank(g_rankFaction, false) >= 0) actor->AddToFaction(g_rankFaction, -1);   // retired: no rank to speak of
+				continue;
+			}
 			const auto rank = static_cast<std::int8_t>(std::clamp(info.rank, 0, 5));
-			if (!actor->IsInFaction(g_wandererFaction) || actor->GetFactionRank(g_wandererFaction, false) != rank) actor->AddToFaction(g_wandererFaction, rank);
+			if (wanderer) {
+				if (!actor->IsInFaction(g_wandererFaction) || actor->GetFactionRank(g_wandererFaction, false) != rank) actor->AddToFaction(g_wandererFaction, rank);
+				continue;
+			}
+			// a named member (Uthgerd, Teldryn Sero): the lines in which they state their own rank are conditioned on this
+			if (actor->GetFactionRank(g_rankFaction, false) != rank) actor->AddToFaction(g_rankFaction, rank);
+			if (Adventurers::NoteRank(actor, rank, Today())) {
+				const std::string name = actor->GetDisplayFullName();
+				SKSE::log::info("Guild: {} rose to rank {} at the player's side", name, Letter(rank));
+				RE::SendHUDMessage::ShowHUDMessage(Loc::F("$AG_Hud_CompanionPromoted", "{} has been promoted to Rank {} by the Adventurers Guild.", name, Letter(rank)).c_str());
+			}
+			if (g_promotedFaction) {
+				const bool recent = Adventurers::RecentlyPromoted(actor, Today(), kGossipDays), marked = actor->GetFactionRank(g_promotedFaction, false) >= 0;
+				if (recent != marked) actor->AddToFaction(g_promotedFaction, recent ? 0 : -1);
+			}
 		}
 	}
 

@@ -25,7 +25,7 @@ namespace AG::Adventurers
 			RE::BGSLocation* where{ nullptr };
 			RE::BGSKeyword*  keyword{ nullptr };
 			float            value{ 0.0f };
-			int              rank{ -1 };  // fixed Guild rank, or -1: from their level
+			int              rank{ -1 };  // the Guild rank they start at (they rise with their level once they have travelled with the player), or -1: from their level
 			std::string      note, retiredNote;
 			bool Retired() const
 			{
@@ -124,6 +124,8 @@ namespace AG::Adventurers
 		std::unordered_map<RE::FormID, std::string> g_liaisonCity;
 		std::unordered_set<std::string>         g_recruited;  // StableKey of refs that joined on recruitment
 		std::unordered_set<RE::FormID>          g_heldS;      // refs that held rank S at the player's side
+		struct Seen { int rank{ -1 }; float day{ -1.0f }; };
+		std::unordered_map<std::string, Seen>   g_namedSeen;  // StableKey of a named member -> rank last seen, day it last rose
 		std::unordered_map<RE::FormID, Kind>    g_cache;      // decided kind for non-recruited refs
 
 		RE::TESFaction* Resolve(const std::string& a_key)
@@ -413,7 +415,7 @@ namespace AG::Adventurers
 	{
 		if (!a_actor || a_actor->IsPlayerRef()) return {};
 		Kind kind;
-		bool joined = false;
+		bool joined = false, travelled = false;
 		int  pinned = -1;
 		{
 			std::lock_guard l(g_lock);
@@ -422,6 +424,10 @@ namespace AG::Adventurers
 			if (auto nm = base ? g_named.find(base->GetFormID()) : g_named.end(); nm != g_named.end()) {
 				kind = nm->second.Retired() ? Kind::kRetired : Kind::kMember;  // asked each time: the world can change it
 				pinned = nm->second.rank;
+				if (pinned >= 0) {
+					if (a_actor->IsPlayerTeammate()) g_recruited.insert(key);
+					travelled = g_recruited.contains(key);   // with the player now, or once: from then on they rise with their level
+				}
 			} else if (g_recruited.contains(key)) {
 				kind = Kind::kMember;
 			} else if (a_actor->IsPlayerTeammate()) {
@@ -448,7 +454,8 @@ namespace AG::Adventurers
 			});
 		}
 		if (kind == Kind::kNone) return {};
-		return { kind, pinned >= 0 ? pinned : MemberRank(a_actor) };
+		if (pinned < 0) return { kind, MemberRank(a_actor) };
+		return { kind, travelled ? std::max(pinned, MemberRank(a_actor)) : pinned };
 	}
 
 	std::string JoinStatus(RE::Actor* a_actor)
@@ -585,6 +592,56 @@ namespace AG::Adventurers
 		}
 	}
 
+	bool IsNamed(RE::Actor* a_actor)
+	{
+		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		if (!base) return false;
+		std::lock_guard l(g_lock);
+		return g_named.contains(base->GetFormID());
+	}
+
+	bool NoteRank(RE::Actor* a_actor, int a_rank, float a_today)
+	{
+		if (!a_actor || a_rank < 0) return false;
+		const auto key = StableKey(a_actor);
+		std::lock_guard l(g_lock);
+		auto it = g_namedSeen.find(key);
+		if (it == g_namedSeen.end()) {
+			g_namedSeen[key] = { a_rank, -1.0f };
+			return false;
+		}
+		const bool rose = a_rank > it->second.rank;
+		if (rose) it->second.day = a_today;
+		it->second.rank = a_rank;
+		return rose;
+	}
+
+	bool RecentlyPromoted(RE::Actor* a_actor, float a_today, float a_days)
+	{
+		if (!a_actor) return false;
+		const auto key = StableKey(a_actor);
+		std::lock_guard l(g_lock);
+		auto it = g_namedSeen.find(key);
+		return it != g_namedSeen.end() && it->second.day >= 0.0f && a_today - it->second.day <= a_days;
+	}
+
+	nlohmann::json SaveNamedRanks()
+	{
+		std::lock_guard l(g_lock);
+		auto            out = nlohmann::json::object();
+		for (auto& [key, seen] : g_namedSeen) out[key] = { seen.rank, seen.day };
+		return out;
+	}
+
+	void LoadNamedRanks(const nlohmann::json& a_j)
+	{
+		std::lock_guard l(g_lock);
+		g_namedSeen.clear();
+		if (!a_j.is_object()) return;
+		for (auto& [key, v] : a_j.items())
+			if (v.is_array() && v.size() >= 2) g_namedSeen[CanonicalKey(key)] = { v[0].get<int>(), v[1].get<float>() };
+	}
+
 	nlohmann::json SaveHeldS()
 	{
 		std::lock_guard l(g_lock);
@@ -608,6 +665,7 @@ namespace AG::Adventurers
 		std::lock_guard l(g_lock);
 		g_recruited.clear();
 		g_heldS.clear();
+		g_namedSeen.clear();
 		g_cache.clear();
 	}
 }
