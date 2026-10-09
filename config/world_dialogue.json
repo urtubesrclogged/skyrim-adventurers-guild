@@ -199,7 +199,7 @@
 		{"id": "uth_own_promo", "who": "Uthgerd", "ownPromoted": true, "chance": 60, "status": "any", "text": "They read my name out at the Bannered Mare. I'd have got there alone. Not this fast, though."},
 		{"id": "uth_sinmir_c", "who": "Uthgerd", "chance": 33, "ownRank": "C", "whileAlive": "Sinmir", "owner": "notSons", "text": "I stand level with Sinmir now. He's stopped mentioning rank. Funny, that."},
 		{"id": "uth_c_same", "who": "Uthgerd", "chance": 33, "rank": "C", "ownRank": "C", "text": "Same letter on both our cards again. I mean to keep it that way, so don't get ahead of yourself."},
-		{"id": "uth_topic_c", "who": "Uthgerd", "status": "any", "ownRank": "C", "topic": "You're with the Adventurers Guild?", "text": "C-rank now. Took walking half of Skyrim behind you to get it. Jorrvaskr can keep its door shut."},
+		{"id": "uth_topic_c", "who": "Uthgerd", "status": "any", "ownRank": "C", "topic": "You're with the Adventurers Guild?", "text": "C-rank now. Took walking half of Skyrim with you to get it. I'd be honored to walk the other half fighting by your side."},
 		{"id": "uth_topic_any", "who": "Uthgerd", "status": "any", "topic": "You're with the Adventurers Guild?", "text": "I carry a guild card, and the letter on it is my business. Ask me what I've killed instead."},
 		{"id": "mjoll_new", "who": "Mjoll", "chance": 33, "status": "unregistered", "text": "If you can hold a blade, register with the Adventurers Guild. Skyrim needs people who run toward trouble."},
 		{"id": "mjoll_low", "who": "Mjoll", "chance": 33, "rank": "E-D", "text": "Every adventurer starts at the bottom of the ledger. Keep your word, finish your missives, and the rank will come."},
