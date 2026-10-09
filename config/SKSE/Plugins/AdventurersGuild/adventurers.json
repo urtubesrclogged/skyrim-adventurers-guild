@@ -16,21 +16,22 @@
 		{
 			"npcs": ["Uthgerd"],
 			"rank": "D",
-			"note": "A D-rank adventurer who drinks at the Bannered Mare. The Companions turned her away after she killed a recruit in her trial, and she took her blade to the Adventurers Guild instead; she is proud of earning her rank on her own and bitter about Jorrvaskr. Hard, blunt and always ready for a brawl. Sinmir, a rank above her, gets on her nerves."
+			"note": "An adventurer who drinks at the Bannered Mare. The Companions turned her away after she killed a recruit in her trial, and she took her blade to the Adventurers Guild instead; she is proud of earning her rank on her own and bitter about Jorrvaskr. Hard, blunt and always ready for a brawl. Sinmir, who has always outranked her and says so, gets on her nerves."
 		},
 		{
 			"npcs": ["Mjoll"],
 			"rank": "B",
-			"note": "A B-rank adventurer who roamed Tamriel for years before a Dwemer ruin cost her blade and nearly her life. She has not taken a missive in years and now gives herself to cleaning up Riften, but the Adventurers Guild keeps her name on its books and she is proud to be a member. Warm and encouraging to newer adventurers, level with her equals, glad to see anyone surpass her."
+			"note": "An adventurer who roamed Tamriel for years before a Dwemer ruin cost her blade and nearly her life. She has not taken a missive in years and now gives herself to cleaning up Riften, but the Adventurers Guild keeps her name on its books and she is proud to be a member. Warm and encouraging to newer adventurers, level with her equals, glad to see anyone surpass her."
 		},
 		{
 			"npcs": ["Annekke"],
 			"rank": "D",
-			"note": "A D-rank scout of the Adventurers Guild who found the ore vein Darkwater Crossing was built on. She settled down when she married Verner, still carries her guild card, and misses the road more than she admits to him."
+			"note": "A scout of the Adventurers Guild who found the ore vein Darkwater Crossing was built on. She settled down when she married Verner, still carries her guild card, and misses the road more than she admits to him."
 		},
 		{
 			"npcs": ["DLC2RRTeldrynSero"],
-			"rank": "B"
+			"rank": "B",
+			"note": "A sellsword and Guild adventurer who waits for patrons at the Retching Netch in Raven Rock. He calls himself the best swordsman in all Morrowind and takes Guild work when it pays. He grew up in Blacklight, spent years in Windhelm's Gray Quarter, and has had enough of Solstheim's ash."
 		}
 	],
 
