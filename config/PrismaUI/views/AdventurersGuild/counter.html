@@ -136,7 +136,7 @@
   .note-hold { color: var(--wax); font-style: italic; margin-top: 6px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
   .chips span { border: 1px solid rgba(80, 60, 30, 0.45); padding: 3px 10px; font-size: 15px; }
-  .seal-wax { position: absolute; right: 16px; top: 10px; width: 96px; height: 96px; transform: rotate(-9deg); }  /* the Guild's wax seal (tools/make_seal.py) */
+  .seal-wax { position: absolute; right: 16px; top: 10px; width: 96px; height: 96px; transform: rotate(-9deg); }  /* the Guild's wax seal (tools/make_seal.py): the issuing region's - a card from Raven Rock carries Morrowind's */
   /* career record: the same tile bar as the party's (Analysis), in parchment colours, at the foot of the card */
   .cardrec { position: absolute; left: 30px; right: 30px; bottom: 22px; }
   .cardrec .line { margin-bottom: 4px; }
@@ -507,7 +507,7 @@ function renderCard() {
         <span>${esc(t("$AG_UI_ChipEndurance", "Endurance +{0}", (tr[1] || 0) * 10))}</span><span>${esc(t("$AG_UI_ChipArcana", "Arcana +{0}", (tr[2] || 0) * 10))}</span>
         <span>${esc(t("$AG_UI_ChipMissives", "Missives"))} E ${m[0] || 0} · D ${m[1] || 0} · C ${m[2] || 0} · B ${m[3] || 0}</span></div>
       ${cardStats()}
-      ${data.registered ? `<img class="seal-wax" src="tex/seal.png" alt=""/>` : ""}
+      ${data.registered ? `<img class="seal-wax" src="tex/seal${data.seal === "morrowind" ? "_morrowind" : ""}.png" alt=""/>` : ""}
     </div></div>`;
 }
 

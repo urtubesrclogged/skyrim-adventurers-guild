@@ -23,7 +23,12 @@ namespace AG::GuildCard
 	void Sync(bool a_announce);
 
 	bool        Has();      // the player carries a card
-	std::string Replace();  // a liaison hands over a new card for Guild::CardFee() gold; the line for the HUD
+	// The seal a card carries is the region's that issued it: Stamp() at registration and at a replacement, with the
+	// liaison's city ("Raven Rock" is Morrowind's; anywhere else, and every card from before 1.4.0, Skyrim's).
+	void        Stamp(const std::string& a_city);
+	std::string Seal();                           // "" (Skyrim) or "morrowind": the page's tex/seal_<name>.png
+	void        SetSeal(const std::string& a_seal);  // co-save
+	std::string Replace(const std::string& a_city = {});  // a liaison hands over a new card for Guild::CardFee() gold; the line for the HUD
 
 	// MCM: a key that opens the card (a book cannot be favourited). SkyUI key code, 0 or less = none (the default).
 	void SetHotkey(int a_key);

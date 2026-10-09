@@ -11,6 +11,7 @@
 #include "RankCore.h"
 
 #include <chrono>
+#include <mutex>
 #include <thread>
 
 namespace AG::GuildCard
@@ -21,6 +22,8 @@ namespace AG::GuildCard
 		RE::TESObjectBOOK*    g_card{ nullptr };
 		std::atomic<bool>     g_opening{ false };
 		std::atomic<bool>     g_issued{ false };  // the free first card has been handed over (co-save)
+		std::mutex            g_sealLock;
+		std::string           g_seal;             // which region's seal the card carries (co-save): "" = Skyrim's
 		RE::TESGlobal*        g_gMissing{ nullptr };  // AG_CardMissingGlobal: 1 while a member carries no card (SkyrimNet eligibility)
 		std::atomic<int>      g_hotkey{ -1 };     // SkyUI key code (DirectInput scan code; mouse 256+, gamepad 266+), <= 0 none
 
@@ -251,7 +254,26 @@ namespace AG::GuildCard
 		return g_card && pc && pc->GetItemCount(g_card) > 0;
 	}
 
-	std::string Replace()
+	void Stamp(const std::string& a_city)
+	{
+		std::lock_guard l(g_sealLock);
+		g_seal = a_city == "Raven Rock" ? "morrowind" : "";
+		SKSE::log::info("GuildCard: issued at {} - {} seal", a_city.empty() ? "an unnamed counter" : a_city, g_seal.empty() ? "Skyrim's" : "Morrowind's");
+	}
+
+	std::string Seal()
+	{
+		std::lock_guard l(g_sealLock);
+		return g_seal;
+	}
+
+	void SetSeal(const std::string& a_seal)
+	{
+		std::lock_guard l(g_sealLock);
+		g_seal = a_seal;
+	}
+
+	std::string Replace(const std::string& a_city)
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!g_card || !pc || !Guild::Registered() || Guild::Dormant()) return {};
@@ -260,6 +282,7 @@ namespace AG::GuildCard
 		if (!Guild::PayGold(fee)) return Loc::F("$AG_Card_NoGold", "A replacement guild card costs {} gold.", fee);
 		pc->AddObjectToContainer(g_card, nullptr, 1, nullptr);
 		g_issued = true;
+		Stamp(a_city);   // a card reissued in another region carries that region's seal
 		SKSE::log::info("GuildCard: replacement issued for {} gold", fee);
 		return Loc::T("$AG_Card_Replaced", "The Guild has issued you a new guild card.");
 	}

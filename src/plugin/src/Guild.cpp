@@ -298,18 +298,23 @@ namespace AG::Guild
 				if (!a_e || a_e->type != RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin) return RE::BSEventNotifyControl::kContinue;
 				const auto id = a_e->topicInfoFormID;
 				if (!id) return RE::BSEventNotifyControl::kContinue;
+				const std::string city = Adventurers::LiaisonCity(a_e->speakerRef.get());
 				if (g_infoRegister.contains(id)) {
-					SKSE::GetTaskInterface()->AddTask(DoRegister);
+					SKSE::GetTaskInterface()->AddTask([city] {
+						const bool was = Registered();
+						DoRegister();
+						if (!was && Registered()) GuildCard::Stamp(city);
+					});
 				} else if (g_infoPromote.contains(id)) {
 					SKSE::GetTaskInterface()->AddTask(DoPromote);
 				} else if (g_infoReplace.contains(id)) {
 					// "Here, a fresh one.": the player's own line named the fee, so it is paid without asking again
-					SKSE::GetTaskInterface()->AddTask([] {
-						if (auto msg = GuildCard::Replace(); !msg.empty()) RE::SendHUDMessage::ShowHUDMessage(msg.c_str());
+					SKSE::GetTaskInterface()->AddTask([city] {
+						if (auto msg = GuildCard::Replace(city); !msg.empty()) RE::SendHUDMessage::ShowHUDMessage(msg.c_str());
 					});
 				} else if (g_infoBusiness.contains(id)) {
 					// the line is a Goodbye: the counter opens as the menu closes, labelled with this branch
-					Counter::OpenAfterDialogue(Adventurers::LiaisonCity(a_e->speakerRef.get()));
+					Counter::OpenAfterDialogue(city);
 				}
 				return RE::BSEventNotifyControl::kContinue;
 			}
@@ -346,6 +351,7 @@ namespace AG::Guild
 				if (g_augment >= 0) j["augment"] = { { "index", g_augment }, { "until", g_augmentUntil } };
 				j["dormant"] = g_dormant.load();
 				j["cardIssued"] = GuildCard::Issued();
+				j["cardSeal"] = GuildCard::Seal();
 				j["bounties"] = g_bountySeen;
 				j["bountyKnown"] = g_bountyKnown;
 				j["bountyCarry"] = g_bountyCarry;
@@ -373,6 +379,7 @@ namespace AG::Guild
 			g_repCarry = 0.0f;
 			g_regMissiveGiven = false;
 			GuildCard::SetIssued(false);
+			GuildCard::SetSeal({});
 			g_bountySeen.clear();
 			g_bountyKnown = false;
 			g_bountyCarry = 0.0;
@@ -427,6 +434,7 @@ namespace AG::Guild
 						g_appraisal = std::clamp(j.value("appraisal", 0), 0, 3);
 						g_dormant = j.value("dormant", false);
 						GuildCard::SetIssued(j.value("cardIssued", false));
+						GuildCard::SetSeal(j.value("cardSeal", std::string()));
 						g_bountySeen = j.value("bounties", std::map<std::string, int>{});
 						g_bountyKnown = j.value("bountyKnown", false);
 						g_bountyCarry = j.value("bountyCarry", 0.0);
@@ -929,6 +937,7 @@ namespace AG::Guild
 		if (auto* cal = RE::Calendar::GetSingleton())
 			j["date"] = { { "year", cal->GetYear() }, { "month", cal->GetMonth() }, { "day", static_cast<int>(cal->GetDay()) }, { "hour", cal->GetHour() } };
 		j["registeredDay"] = g_registeredDay;
+		j["seal"] = GuildCard::Seal();   // which region's wax seal the card carries ("" = Skyrim's)
 		j["missives"] = g_missives;
 		j["goldEarned"] = g_goldEarned;
 		{
@@ -1287,6 +1296,7 @@ namespace AG::Guild
 		if (!Adventurers::IsLiaison(a_liaison)) return "not a Guild rep";
 		if (Registered()) return "already registered";
 		DoRegister();
+		if (Registered()) GuildCard::Stamp(Adventurers::LiaisonCity(a_liaison));
 		return Registered() ? "registered" : "not registered (fee)";
 	}
 
@@ -1311,7 +1321,7 @@ namespace AG::Guild
 	{
 		if (!Adventurers::IsLiaison(a_liaison)) return "not a Guild rep";
 		if (!Registered()) return "not registered";
-		const auto msg = GuildCard::Replace();
+		const auto msg = GuildCard::Replace(Adventurers::LiaisonCity(a_liaison));
 		if (!msg.empty()) Hud(msg);
 		return msg;
 	}
