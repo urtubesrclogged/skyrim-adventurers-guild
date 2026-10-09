@@ -11,8 +11,9 @@ done < "$R/local.env"
 # AG_MOD_DIR (environment) overrides local.env for one run, e.g. to stage a test build outside the mod manager
 M="${AG_MOD_DIR:-${MOD_DIR:?local.env: MOD_DIR is not set}}"
 GAME_EXE="${GAME_EXE:-SkyrimSE.exe}"
-if tasklist 2>/dev/null | grep -qi "$GAME_EXE"; then
-	echo "$GAME_EXE is running - close the game before deploying." >&2
+# any Skyrim, not only $GAME_EXE: AG_MOD_DIR can point at another install (an SE list while local.env names the VR one)
+if tasklist 2>/dev/null | grep -qiE "$GAME_EXE|SkyrimSE\.exe|SkyrimVR\.exe"; then
+	echo "Skyrim is running - close the game before deploying." >&2
 	exit 1
 fi
 P="$M/SKSE/Plugins/AdventurersGuild"
