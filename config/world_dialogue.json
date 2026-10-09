@@ -40,7 +40,7 @@
 		{ "id": "wh_guard_new",  "guards": "Eastmarch",      "status": "unregistered", "text": "Candlelight Hall keeps the Adventurers Guild counter. Elda will take your name, if not your excuses." },
 		{ "id": "wh_guard_hi",   "guards": "Eastmarch",      "rank": "B+", "text": "Heard a ranked adventurer cleared out a barrow near Kynesgrove. That you? Hm. Not bad." },
 
-		{ "id": "anuriel",       "who": "Anuriel",           "text": "The Jarl pays her bounties in gold, the Adventurers Guild pays in Merit, and the Black-Briars pay in favors. Choose wisely." },
+		{ "id": "anuriel",       "who": "Anuriel",           "text": "In Riften, the Jarl pays her bounties in gold. The Adventurers Guild pays in Merit, and the Black-Briars pay in favors. Choose wisely." },
 		{ "id": "rif_guard",     "guards": "Rift",           "text": "An adventurer. Good for you. Keep your hands where I can see them anyway." },
 		{ "id": "brynjolf",      "who": "Brynjolf",          "rank": "<A", "text": "The Adventurers Guild? A guild with a ledger and no fence doesn't sound like much of a guild, lad." },
 		{ "id": "brynjolf_hi",   "who": "Brynjolf",          "rank": "A+", "text": "One of the top-ranked adventurers, eh? With hands like yours, you're wasted on a ledger, lad." },
