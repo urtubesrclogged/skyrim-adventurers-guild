@@ -10,7 +10,10 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 
 - A **Guild Counter** at the inn of each of the nine hold capitals, and at the Retching Netch in Raven Rock: Guild
   Card, Quests, Trophies, Services, Party and Records, in one window that works with mouse, controller and VR lasers.
-- Your own **Guild Card**: your rank, registration date, progress toward the next rank, and career stats.
+- Your own **Guild Card**: your rank, registration date, progress toward the next rank, and more.
+  - A physical card in your inventory; can be viewed at any time as long as you have it on you to track progress.
+  - Can be replaced at any guild counter if lost (for a small fee); just talk to the inn keeper.
+  - Can optionally be mapped to a hot key in MCM or a VRIK gesture (for VR players)
 - **Rank** up from E to S:
   - Registration comes with an assessment that places an experienced character as high as rank C, so the mod is safe
     to add in the middle of a playthrough.
