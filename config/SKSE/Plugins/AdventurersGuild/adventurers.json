@@ -32,6 +32,11 @@
 			"npcs": ["DLC2RRTeldrynSero"],
 			"rank": "B",
 			"note": "A sellsword and Guild adventurer who waits for patrons at the Retching Netch in Raven Rock. He calls himself the best swordsman in all Morrowind and takes Guild work when it pays. He grew up in Blacklight, spent years in Windhelm's Gray Quarter, and has had enough of Solstheim's ash."
+		},
+		{
+			"npcs": ["DLC1Gunmar"],
+			"rank": "B",
+			"note": "A Nord beast hunter and smith of the Dawnguard who has carried an Adventurers Guild card for years and never gave it up. He hunted trolls and bears on Guild missives before Isran called him back, and still thinks of himself as an adventurer first."
 		}
 	],
 
@@ -63,8 +68,8 @@
 
 	"_joinOnRecruit": "Followers whose story makes guild membership unlikely until they travel with you. They register when first recruited.",
 	"joinOnRecruit": {
-		"_npcs": "Named NPCs treated the same way (Erik the Slayer is for hire, but only becomes an adventurer when the player takes him along; Frea of the Skaal and Talvas of Tel Mithryn would never sign up on their own).",
-		"npcs": ["HirelingErikTheSlayer", "DLC2Frea", "DLC2Talvas"],
+		"_npcs": "Named NPCs treated the same way (Erik the Slayer is for hire, but only becomes an adventurer when the player takes him along; Frea of the Skaal and Talvas of Tel Mithryn would never sign up on their own). The Dawnguard's followers likewise: Celann was a Vigilant, Durak hunts vampires for his own reasons, Agmaer nearly signed as an E-rank before he heard of the Dawnguard, Ingjard handed her card back when she joined Isran, and Beleval was a bandit. Gunmar, who never stopped being a member, is under named.",
+		"npcs": ["HirelingErikTheSlayer", "DLC2Frea", "DLC2Talvas", "DLC1Celann", "DLC1Durak", "DLC1Agmaer", "DLC1Ingjard", "DLC1Beleval"],
 		"factions": [
 			"CompanionsFaction", "PlayerHousecarlFaction",
 			"HousecarlWhiterunCrimeFaction", "HousecarlSolitudeCrimeFaction", "HousecarlWindhelmCrimeFaction",
