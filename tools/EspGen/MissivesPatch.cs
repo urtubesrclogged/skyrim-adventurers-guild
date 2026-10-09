@@ -32,6 +32,71 @@ static class MissivesPatch
     };
     static char Letter(int r) => "EDCB"[r];
 
+    // Missives add-ons the Guild knows (Missives - Worldspace Additions, Nexus 26788): the plugin, and the global the
+    // DLL sets to 1 while it is loaded (dialogue reads it: Geldis Sadri and the Raven Rock board).
+    public static readonly (string plugin, string global)[] Addons = { ("Missives - Solstheim.esp", "AG_MissivesSolstheimGlobal") };
+    // Missives' own notes by rank, from Apply(): (note, rank) -> the note to use (the original, or our rank variant)
+    static readonly Dictionary<(FormKey book, int rank), FormKey> NoteVariant = new();
+
+    /// An add-on brings its own quests, sorted into "_M_ListQuests<Region><Tier>" lists like Missives' own. Nothing of
+    /// it is copied or overridden: this writes the same kind of manifest (FormIDs and ranks) for the DLL, which applies
+    /// it only while the add-on is loaded. The add-on's plugin is needed at BUILD time only (MISSIVES_ADDONS: folders
+    /// to look in, separated by ';'); without it the manifest in config/ is left as it is.
+    public static void ApplyAddons(string configDir, FormKey rankGlobal, IReadOnlyDictionary<string, FormKey> globals)
+    {
+        var rel = SkyrimRelease.SkyrimSE;
+        var dirs = (Environment.GetEnvironmentVariable("MISSIVES_ADDONS") ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var path = Path.Combine(configDir, "missives.addons.json");
+        var listNameRe = new Regex(@"^_M_ListQuests([A-Za-z]+?)(Low|Med|High|VeryHigh)$");
+        var addons = new List<object>();
+        foreach (var (plugin, global) in Addons)
+        {
+            var file = dirs.Select(d => Path.Combine(d, plugin)).FirstOrDefault(File.Exists);
+            if (file is null) { Console.WriteLine($"Missives add-on {plugin}: not found (MISSIVES_ADDONS) - {path} left as it is"); return; }
+            var addon = SkyrimMod.CreateFromBinaryOverlay(file, rel);
+            var quests = new List<object>();
+            var ownNotes = new Dictionary<FormKey, SortedSet<int>>();
+            int gateable = 0, reused = 0, unlabeled = 0;
+            foreach (var list in addon.FormLists)
+            {
+                var m = listNameRe.Match(list.EditorID ?? "");
+                if (!m.Success) continue;
+                var (rank, letter) = TierRank[m.Groups[2].Value];
+                foreach (var item in list.Items)
+                {
+                    if (item.FormKey.ModKey != addon.ModKey) { reused++; continue; }   // one of Missives' own: already in missives.json
+                    var q = addon.Quests.FirstOrDefault(x => x.FormKey == item.FormKey);
+                    if (q is null) { Console.WriteLine($"WARNING {plugin}: quest {item.FormKey} is listed but not defined - skipped"); continue; }
+                    if (q.Aliases.Any(a => a.Conditions.Count > 0 && !(a.Flags?.HasFlag(QuestAlias.Flag.Optional) ?? false))) gateable++;
+                    else Console.WriteLine($"WARNING {plugin}: {q.EditorID} has no gateable alias");
+                    string? noteFrom = null, noteTo = null;
+                    var note = q.Aliases.FirstOrDefault(a => a.Name == "Missive" && a.CreateReferenceToObject is not null)?.CreateReferenceToObject!.Object.FormKey;
+                    if (note is FormKey nk)
+                    {
+                        if (nk.ModKey == addon.ModKey) { if (!ownNotes.TryGetValue(nk, out var rs)) ownNotes[nk] = rs = new(); rs.Add(rank); }
+                        else if (NoteVariant.TryGetValue((nk, rank), out var use)) { if (use != nk) { noteFrom = $"0x{nk.ID:X6}"; noteTo = $"0x{use.ID:X6}"; } }
+                        else { unlabeled++; Console.WriteLine($"WARNING {plugin}: {q.EditorID} (rank {letter}) uses a Missives note that has no rank {letter} label"); }
+                    }
+                    quests.Add(new { formId = $"0x{item.FormKey.ID:X6}", tier = letter.ToString(), hold = m.Groups[1].Value, noteFrom, noteTo });
+                }
+            }
+            foreach (var (nk, rs) in ownNotes.Where(kv => kv.Value.Count > 1))
+                Console.WriteLine($"WARNING {plugin}: its note {nk} serves ranks {string.Join(",", rs.Select(Letter))} - labeled for the lowest");
+            var books = ownNotes.Select(kv => new { formId = $"0x{kv.Key.ID:X6}", tier = Letter(kv.Value.Min).ToString() }).ToList();
+            var boards = addon.Containers.Where(c => (c.EditorID ?? "").StartsWith("_M_MissiveBoard")).Select(c => $"0x{c.FormKey.ID:X6}").ToList();
+            var triggers = addon.Activators.Where(a => (a.EditorID ?? "").StartsWith("_M_ActivatorBoard")).Select(a => $"0x{a.FormKey.ID:X6}").ToList();
+            addons.Add(new { plugin, global = $"0x{globals[global].ID:X6}", rankGlobal = $"0x{rankGlobal.ID:X6}", quests, books, boardTriggers = triggers, boardContainers = boards });
+            Console.WriteLine($"Missives add-on {plugin}: {quests.Count} quests ({gateable} gateable, {reused} of Missives' own reused), {books.Count} notes of its own, " +
+                              $"{boards.Count} board container(s), {unlabeled} notes without a label");
+        }
+        File.WriteAllText(path, JsonSerializer.Serialize(new
+        {
+            _comment = "Missives add-ons (Missives - Worldspace Additions): each one's quests with the guild rank of its difficulty list, its own notes and its board. Generated by tools/EspGen from the add-on's plugin; AdventurersGuild.dll applies an entry only while that plugin is loaded. FormIDs are local to the add-on (noteTo: to AdventurersGuild.esp).",
+            addons,
+        }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
+        Console.WriteLine($"wrote {path}");
+    }
+
     /// Adds the Missives overrides and rank-variant notes to <paramref name="mod"/>; new books take FormIDs from
     /// <paramref name="nextBookId"/> up. Writes missives.json to <paramref name="outDir"/>. Returns the next free id.
     public static uint Apply(SkyrimMod mod, string missivesPath, string outDir, FormKey rankGlobal, uint nextBookId)
@@ -89,6 +154,7 @@ static class MissivesPatch
             var ranks = group.Select(x => x.rank).Distinct().OrderBy(r => r).ToList();
             var baseName = source.Name?.String ?? source.EditorID ?? group.Key.ToString();
             bookLabels.Add(new { formId = $"0x{group.Key.ID:X6}", tier = Letter(ranks[0]).ToString() });
+            NoteVariant[(group.Key, ranks[0])] = group.Key;
             if (ranks.Count == 1) continue;
             var variant = new Dictionary<int, FormKey> { [ranks[0]] = group.Key };
             foreach (var rank in ranks.Skip(1))
@@ -118,6 +184,7 @@ static class MissivesPatch
                 }
                 mod.Books.Add(clone);
                 variant[rank] = clone.FormKey;
+                NoteVariant[(group.Key, rank)] = clone.FormKey;
                 cloned++;
             }
             foreach (var (quest, _, rank) in group)

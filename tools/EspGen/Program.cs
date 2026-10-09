@@ -13,6 +13,7 @@
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
+//   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
 //   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
 //   0xC00-0xC7F  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 using System.Text.Json;
@@ -168,6 +169,8 @@ var gPromoReady = Global(0x802, "AG_PromotionReadyGlobal", 0);
 var gRegFee = Global(0x814, "AG_RegisterFee", 50);
 var gPromoFee = Global(0x815, "AG_PromotionFee", 50);
 var gCardFee = Global(0x81D, "AG_CardFee", 25);            // a replacement guild card (the DLL sets it from guild.json)
+// 1 while a Missives add-on is loaded (the DLL sets it on every load): dialogue that depends on its board reads it
+var addonGlobals = new Dictionary<string, GlobalShort> { ["AG_MissivesSolstheimGlobal"] = Global(0xC90, "AG_MissivesSolstheimGlobal", 0) };
 Global(0x81E, "AG_CardMissingGlobal", 0);                  // 1 while a member carries no card (SkyrimNet action eligibility; DLL keeps it)
 
 // ---------- MCM quest (SkyUI / MCM Helper wiring, structure unchanged from the proven Ranks quest) ----------
@@ -467,6 +470,12 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         {
             var als = an is JsonArray aa ? aa.Select(x => x!.GetValue<string>()).ToArray() : new[] { an.GetValue<string>() };
             Add($"{key}:after", als, new Condition[] { QuestDone(after["quest"]!.GetValue<string>(), true) });
+        }
+        // a global the DLL keeps changes what they say (Geldis Sadri, once Raven Rock has a missive board)
+        if (l["whenGlobal"] is JsonObject wg && wg[role] is JsonNode wn)
+        {
+            var wls = wn is JsonArray wa ? wa.Select(x => x!.GetValue<string>()).ToArray() : new[] { wn.GetValue<string>() };
+            Add($"{key}:when", wls, new Condition[] { GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 1) });
         }
         Add(key, lines, Array.Empty<Condition>());
     }
@@ -1113,6 +1122,7 @@ for (int si = 0; si < 3; si++)
 var missivesPath = args.Length > 2 ? args[2] : Environment.GetEnvironmentVariable("MISSIVES_ESP")
     ?? throw new ArgumentException("pass Missives.esp (2.03) as the third argument, or set MISSIVES_ESP");
 var nextMissivesId = MissivesPatch.Apply(mod, missivesPath, outDir, gRank.FormKey, 0x900);
+MissivesPatch.ApplyAddons(configDir, gRank.FormKey, addonGlobals.ToDictionary(kv => kv.Key, kv => kv.Value.FormKey));
 
 // ---------- write ----------
 mod.ModHeader.Stats.NextFormID = Math.Max(0x900u, nextMissivesId);

@@ -22,7 +22,7 @@ rm -f "$M/Scripts/AG_ConfigMenu.pex" "$M/MCM/Config/AdventurersGuild/config.json
 rmdir "$M/MCM/Config/AdventurersGuild" "$M/MCM/Config" "$M/MCM" 2>/dev/null || true
 cp "$R/src/plugin/build/AdventurersGuild.dll"             "$M/SKSE/Plugins/AdventurersGuild.dll"
 cp "$R/config/SKSE/Plugins/AdventurersGuild.ini"          "$M/SKSE/Plugins/AdventurersGuild.ini"
-for f in guild.json adventurers.json trophies.json shop.json traits.json notices.json threat.json; do
+for f in guild.json adventurers.json trophies.json shop.json traits.json notices.json threat.json missives.addons.json; do
 	cp "$R/config/SKSE/Plugins/AdventurersGuild/$f" "$P/$f"      # sources (documentation; the DLL reads guild.json directly)
 done
 cp "$R"/build/esp/*.resolved.json "$P/"

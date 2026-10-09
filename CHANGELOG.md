@@ -4,6 +4,8 @@
 
 **World Building and NPCs**
 - The Adventurers Guild now has a counter on Solstheim: Geldis Sadri at the Retching Netch in Raven Rock
+- With Missives - Worldspace Additions installed, the Raven Rock missive board is a Guild board too: its jobs carry a
+  rank, pay Merit and Reputation, and show on Geldis's counter
 
 **Intel**
 - New Points of Interest tab: the Guild sells the whereabouts of Orc strongholds, standing stones, Daedric shrines,

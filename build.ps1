@@ -21,6 +21,7 @@ function NeedWin([string]$key) { return (Need $key).Replace('/', '\') }  # cmd /
 if (-not $Only -or $Only -eq "esp") {
   # AdventurersGuild.esp with the Missives integration (Missives.esp is read, not mastered), plus missives.json
   $env:SKYRIM_DATA = Need "SKYRIM_DATA"  # the vanilla masters EspGen resolves names against
+  $env:MISSIVES_ADDONS = $cfg["MISSIVES_ADDONS"]   # optional: folders holding Missives add-on plugins (see local.env.example)
   dotnet run -c Release --project "$root\tools\EspGen" -- "$root\build\esp" "$root\config\SKSE\Plugins\AdventurersGuild" (Need "MISSIVES_ESP")
   if ($LASTEXITCODE -ne 0) { throw "EspGen failed" }
 }

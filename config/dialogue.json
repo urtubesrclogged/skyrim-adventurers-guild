@@ -1,6 +1,6 @@
 {
  "_comment": "All Adventurers Guild innkeeper dialogue. tools/EspGen turns this into dialogue records (INFO FormIDs are pinned in dialogue.ids.json, which voice files are named after - never renumber). The voice pipeline reads the same file. Keep lines short: they will be voiced.",
- "_liaisons": "The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask). 'successor' {of, quest, alias, ref, cell}: this NPC keeps the counter once the liaison they follow is dead, whoever runs the inn (with the Unofficial Patch Mikael takes the Bannered Mare over, not Ysolda). quest + alias = the hold's Dialogue quest and its Innkeeper alias ('Plugin|0xID', number): the game swaps the backup in when the innkeeper dies, which is how the DLL knows. ref = the successor's own reference; cell = the inn: they do Guild business only there, and 'away' is what they say anywhere else. The DLL adds them to AG_GuildLiaisonFaction, and every line of theirs waits for that.",
+ "_liaisons": "Optional 'whenGlobal': {global, <role>: lines} replaces a role's lines while that global is 1 (the DLL keeps it: AG_MissivesSolstheimGlobal = Raven Rock has the missive board of Missives - Worldspace Additions). The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers E-D), 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask). 'successor' {of, quest, alias, ref, cell}: this NPC keeps the counter once the liaison they follow is dead, whoever runs the inn (with the Unofficial Patch Mikael takes the Bannered Mare over, not Ysolda). quest + alias = the hold's Dialogue quest and its Innkeeper alias ('Plugin|0xID', number): the game swaps the backup in when the innkeeper dies, which is how the DLL knows. ref = the successor's own reference; cell = the inn: they do Guild business only there, and 'away' is what they say anywhere else. The DLL adds them to AG_GuildLiaisonFaction, and every line of theirs waits for that.",
  "liaisons": [
   {
    "npc": "Hulda",
@@ -345,6 +345,14 @@
     "There's no missive board here. People with a problem tell their barkeep, and their barkeep tells an adventurer. It's an older system.",
     "Names come over from Windhelm on the Northern Maiden. Adventurers the mainland says are on their way. I keep a second page for the ones who never walk through my door. It's longer than I'd like."
    ],
+   "whenGlobal": {
+    "global": "AG_MissivesSolstheimGlobal",
+    "about": [
+     "Councilor Morvayn wouldn't hear of the Adventurers Guild for years. Then the ash spawn came over the Bulwark, and he sent Adril to my bar with a pen.",
+     "There's a missive board up by Morvayn Manor now. Half of Raven Rock still tells their barkeep first, and their barkeep tells an adventurer. It's an older system.",
+     "Names come over from Windhelm on the Northern Maiden. Adventurers the mainland says are on their way. I keep a second page for the ones who never walk through my door. It's longer than I'd like."
+    ]
+   },
    "registerAsk": "You want to sign with the Adventurers Guild in Raven Rock? Most people who land here are trying to leave. I like you already, outlander. There's a fee. There's always a fee.",
    "businessByRank": {
     "C": "The Redoran Guard asked me who you were. I told them C-rank adventurer, and they stopped asking. What do you need?",

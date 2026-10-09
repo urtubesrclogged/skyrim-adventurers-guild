@@ -41,6 +41,9 @@ namespace AG::MissiveWatch
 		std::unordered_set<RE::FormID>             g_boardContainers;  // _M_MissiveBoard: the board the player opens
 		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
 		std::unordered_set<RE::FormID> g_taken;  // missives the player has taken and not finished (for "gave it up")
+		// one global per known Missives add-on, and whether that add-on is loaded: set on every load, because a save
+		// carries the value it had (dialogue reads these: Geldis Sadri and the Raven Rock board)
+		std::vector<std::pair<RE::TESGlobal*, float>> g_addonGlobals;
 
 		// Missives names its boards by hold; the guild's liaisons are named by capital.
 		std::string HoldOf(const std::string& a_city)
@@ -49,6 +52,7 @@ namespace AG::MissiveWatch
 				{ "Whiterun", "Whiterun" }, { "Solitude", "Haafingar" }, { "Windhelm", "Eastmarch" },
 				{ "Riften", "Rift" }, { "Markarth", "Reach" }, { "Morthal", "Hjaalmarch" },
 				{ "Dawnstar", "Pale" }, { "Winterhold", "Winterhold" }, { "Falkreath", "Falkreath" },
+				{ "Raven Rock", "Solstheim" },  // Missives - Worldspace Additions (missives.addons.json)
 			};
 			auto it = m.find(a_city);
 			return it == m.end() ? std::string{} : it->second;
@@ -261,7 +265,8 @@ namespace AG::MissiveWatch
 
 		// The Missives integration, in memory, on top of whichever version of each quest won the load order (see
 		// tools/EspGen/MissivesPatch.cs for why nothing is overridden in the plugin). Data-load time, once.
-		void Integrate(const nlohmann::json& a_j, RE::TESDataHandler* a_dh)
+		// a_plugin: whose quests and notes these are (Missives.esp, or an add-on of it)
+		void Integrate(const nlohmann::json& a_j, RE::TESDataHandler* a_dh, const char* a_plugin)
 		{
 			auto* rankGlobal = a_dh->LookupForm<RE::TESGlobal>(Hex(a_j.at("rankGlobal")), "AdventurersGuild.esp");
 			if (!rankGlobal) {
@@ -270,7 +275,7 @@ namespace AG::MissiveWatch
 			}
 			int gated = 0, ungated = 0, labeled = 0, retargeted = 0, keptPatched = 0;
 			for (auto& entry : a_j.value("quests", nlohmann::json::array())) {
-				auto* quest = a_dh->LookupForm<RE::TESQuest>(Hex(entry.at("formId")), "Missives.esp");
+				auto* quest = a_dh->LookupForm<RE::TESQuest>(Hex(entry.at("formId")), a_plugin);
 				const auto tier = entry.value("tier", "");
 				if (!quest || tier.empty()) continue;
 				Label(quest, tier[0]);
@@ -307,16 +312,76 @@ namespace AG::MissiveWatch
 				}
 			}
 			for (auto& b : a_j.value("books", nlohmann::json::array())) {
-				auto* book = a_dh->LookupForm<RE::TESObjectBOOK>(Hex(b.at("formId")), "Missives.esp");
+				auto* book = a_dh->LookupForm<RE::TESObjectBOOK>(Hex(b.at("formId")), a_plugin);
 				const auto tier = b.value("tier", "");
 				if (book && !tier.empty()) {
 					Label(book, tier[0]);
 					++labeled;
 				}
 			}
-			SKSE::log::info("MissiveWatch: integration applied in memory - {} quests rank-gated, {} ungated, {} notes labeled, {} notes "
+			SKSE::log::info("MissiveWatch: {} integration applied in memory - {} quests rank-gated, {} ungated, {} notes labeled, {} notes "
 							"swapped to rank variants, {} left as another patch set them",
-				gated, ungated, labeled, retargeted, keptPatched);
+				a_plugin, gated, ungated, labeled, retargeted, keptPatched);
+		}
+
+		// One manifest (missives.json, or an add-on's entry in missives.addons.json): what to watch, then the
+		// integration. Caller holds g_lock.
+		void LoadManifest(const nlohmann::json& a_j, RE::TESDataHandler* a_dh, const char* a_plugin)
+		{
+			int resolved = 0, missing = 0;
+			for (auto& b : a_j.value("boardTriggers", nlohmann::json::array())) {
+				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
+				if (auto* act = a_dh->LookupForm(localId, a_plugin)) g_boardBases.insert(act->GetFormID());
+			}
+			for (auto& b : a_j.value("boardContainers", nlohmann::json::array())) {
+				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
+				if (auto* c = a_dh->LookupForm(localId, a_plugin)) g_boardContainers.insert(c->GetFormID());
+			}
+			for (auto& entry : a_j.value("quests", nlohmann::json::array())) {
+				const auto localId = static_cast<std::uint32_t>(std::stoul(entry.at("formId").get<std::string>(), nullptr, 16));
+				const auto tierStr = entry.at("tier").get<std::string>();
+				if (tierStr.empty()) continue;
+				auto* quest = a_dh->LookupForm<RE::TESQuest>(localId, a_plugin);
+				if (!quest) {
+					missing++;
+					continue;
+				}
+				g_watch[quest->GetFormID()] = tierStr[0];
+				g_hold[quest->GetFormID()] = entry.value("hold", "");
+				resolved++;
+			}
+			SKSE::log::info("MissiveWatch: {} - {} quests resolved, {} missing, {} board trigger bases, {} board containers", a_plugin, resolved, missing,
+				g_boardBases.size(), g_boardContainers.size());
+			Integrate(a_j, a_dh, a_plugin);
+		}
+
+		// Missives add-ons (missives.addons.json): each is applied only while its plugin is loaded. Caller holds g_lock.
+		void LoadAddons(RE::TESDataHandler* a_dh)
+		{
+			g_addonGlobals.clear();
+			std::ifstream f("Data/SKSE/Plugins/AdventurersGuild/missives.addons.json");
+			if (!f) return;
+			try {
+				auto j = nlohmann::json::parse(f, nullptr, true, true);
+				for (auto& a : j.value("addons", nlohmann::json::array())) {
+					const auto plugin = a.value("plugin", std::string());
+					if (plugin.empty()) continue;
+					const auto* file = a_dh->LookupModByName(plugin);
+					const bool  loaded = file && file->compileIndex != 0xFF;
+					if (a.contains("global"))
+						if (auto* g = a_dh->LookupForm<RE::TESGlobal>(Hex(a.at("global")), "AdventurersGuild.esp")) {
+							g->value = loaded ? 1.0f : 0.0f;
+							g_addonGlobals.emplace_back(g, g->value);
+						}
+					if (!loaded) {
+						SKSE::log::info("MissiveWatch: add-on {} not loaded", plugin);
+						continue;
+					}
+					LoadManifest(a, a_dh, plugin.c_str());
+				}
+			} catch (const std::exception& e) {
+				SKSE::log::error("MissiveWatch: missives.addons.json error: {}", e.what());
+			}
 		}
 	}
 
@@ -325,6 +390,10 @@ namespace AG::MissiveWatch
 		auto* dh = RE::TESDataHandler::GetSingleton();
 		if (!dh || !dh->LookupLoadedModByName("Missives.esp")) {
 			SKSE::log::info("MissiveWatch: Missives.esp not loaded - watch inactive");
+			if (dh) {
+				std::lock_guard l(g_lock);
+				LoadAddons(dh);   // none can be loaded without it: their globals go to 0
+			}
 			return;
 		}
 
@@ -339,30 +408,8 @@ namespace AG::MissiveWatch
 			std::lock_guard l(g_lock);
 			g_watch.clear();
 			g_hold.clear();
-			int resolved = 0, missing = 0;
-			for (auto& b : j.value("boardTriggers", nlohmann::json::array())) {
-				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
-				if (auto* act = dh->LookupForm(localId, "Missives.esp")) g_boardBases.insert(act->GetFormID());
-			}
-			for (auto& b : j.value("boardContainers", nlohmann::json::array())) {
-				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
-				if (auto* c = dh->LookupForm(localId, "Missives.esp")) g_boardContainers.insert(c->GetFormID());
-			}
-			for (auto& entry : j.value("quests", nlohmann::json::array())) {
-				const auto localId = static_cast<std::uint32_t>(std::stoul(entry.at("formId").get<std::string>(), nullptr, 16));
-				const auto tierStr = entry.at("tier").get<std::string>();
-				if (tierStr.empty()) continue;
-				auto* quest = dh->LookupForm<RE::TESQuest>(localId, "Missives.esp");
-				if (!quest) {
-					missing++;
-					continue;
-				}
-				g_watch[quest->GetFormID()] = tierStr[0];
-				g_hold[quest->GetFormID()] = entry.value("hold", "");
-				resolved++;
-			}
-			SKSE::log::info("MissiveWatch: {} quests resolved, {} missing, {} board trigger bases", resolved, missing, g_boardBases.size());
-			Integrate(j, dh);
+			LoadManifest(j, dh, "Missives.esp");
+			LoadAddons(dh);
 		} catch (const std::exception& e) {
 			SKSE::log::error("MissiveWatch: missives.json error: {}", e.what());
 			return;
@@ -380,6 +427,10 @@ namespace AG::MissiveWatch
 	// After a load: which missives the player is carrying (running, past the board, not finished)
 	void OnGameLoaded()
 	{
+		{
+			std::lock_guard l(g_lock);
+			for (auto& [global, value] : g_addonGlobals) global->value = value;   // the save brought its own
+		}
 		if (!g_active) return;
 		std::lock_guard l(g_lock);
 		g_taken.clear();
