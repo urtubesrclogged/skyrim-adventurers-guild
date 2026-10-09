@@ -82,7 +82,14 @@
   footer { height: 50px; padding: 12px 30px; font-style: italic; color: var(--good); font-size: 17px; }
 
   /* ---------- guild card: a parchment document beside a carved stone medallion ---------- */
-  .card { display: flex; gap: 26px; height: 100%; padding-bottom: 12px; }
+  .card { display: flex; gap: 26px; height: 100%; padding-bottom: 12px; position: relative; }
+  /* a member who does not carry their card: the card greyed under a veil, and a replacement for sale */
+  .card.lost > .medallion, .card.lost > .paper { filter: grayscale(0.9) brightness(0.8); }
+  .lostveil { position: absolute; left: 0; right: 0; top: 0; bottom: 12px; z-index: 5; background: rgba(10, 8, 6, 0.5);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+  .lostveil .lost-h { font-family: var(--serif); font-size: 40px; letter-spacing: 0.1em; color: #fff6df; }
+  .lostveil .lost-p { font-size: 22px; color: var(--ink); max-width: 760px; line-height: 1.35; }
+  .lostveil .btn { min-height: 60px; font-size: 24px; padding: 0 30px; }
   .medallion { width: 250px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 18px; }
   .plaque { width: 236px; height: auto; margin-top: -4px; }
   .medallion .cap { font-size: 22px; color: var(--ink); margin-top: -6px; }
@@ -487,7 +494,13 @@ function renderCard() {
       ${data.promotionBlocked ? `<div class="note-hold">${esc(t("$AG_UI_PromoHold", "Promotion on hold — clear your bounty first."))}</div>` : ""}`;
   }
   const app = [t("$AG_UI_None", "None"), "I", "II", "III"][data.appraisal || 0];
-  return `<div class="card">
+  const lost = data.registered && data.hasCard === false && !data.cardOnly;
+  const veil = !lost ? "" : `<div class="lostveil">
+      <div class="lost-h caps">${esc(t("$AG_UI_CardLost", "Guild card lost"))}</div>
+      <div class="lost-p">${esc(t("$AG_UI_CardLostNote", "You are not carrying your guild card. This branch can issue a replacement."))}</div>
+      <button class="btn" data-action="replacecard"${data.cardAfford === false ? " disabled" : ""}>${esc(t("$AG_UI_CardReplaceBuy", "Buy a replacement ({0} gold)", data.cardFee))}</button>
+      ${data.cardAfford === false ? `<div class="lost-p">${esc(t("$AG_UI_CardReplaceNoGold", "You do not have enough gold."))}</div>` : ""}</div>`;
+  return `<div class="card${lost ? " lost" : ""}">${veil}
     <div class="medallion">${data.registered ? `<img class="plaque" src="tex/rank_${esc(data.letter)}.png" alt=""/>` : ""}
       <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", data.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(data.letter)))}</div>${cardTodo()}</div>
     <div class="paper">

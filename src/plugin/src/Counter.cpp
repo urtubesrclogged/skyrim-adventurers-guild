@@ -208,6 +208,9 @@ namespace AG::Counter
 				}
 				std::string msg;
 				if (arg == "claim") msg = Guild::ClaimAll();
+				// a lost guild card, replaced at the counter as the liaison's dialogue line does (same fee, this branch's seal).
+				// Not from the card itself: read from the inventory, there is one, and no branch to issue another.
+				else if (arg == "replacecard") { if (g_cardOnly.load()) return; msg = GuildCard::Replace(Branch()); }
 				else if (arg.starts_with("service:")) msg = Guild::BuyService(arg.substr(8));
 				else if (arg.starts_with("turnin:")) msg = Shop::TurnIn(arg.substr(7));
 				else if (arg.starts_with("accept:")) msg = NoticeWatch::Owns(arg.substr(7)) ? NoticeWatch::Accept(arg.substr(7)) : MissiveWatch::Accept(arg.substr(7));
@@ -484,6 +487,10 @@ namespace AG::Counter
 				data["region"] = morrowind ? "Morrowind" : "Skyrim";
 			}
 			data["cardOnly"] = g_cardOnly.load();
+			// a member without their card: the Guild Card page shows it masked, with a replacement for sale
+			data["hasCard"] = GuildCard::Has();
+			data["cardFee"] = Guild::CardFee();
+			if (auto* pc = RE::PlayerCharacter::GetSingleton()) data["cardAfford"] = pc->GetGoldAmount() >= Guild::CardFee();
 			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress();  // the card's "to do" note
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());
