@@ -9,3 +9,4 @@ Bool Function RemoveSpell(Spell akSpell) native
 Bool Function DispelSpell(Spell akSpell) native
 String Function GetDisplayName() native
 bool Function IsInFaction(Faction akFaction) native
+Function AddToFaction(Faction akFaction) native

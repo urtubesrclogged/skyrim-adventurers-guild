@@ -29,7 +29,7 @@ if (-not $Only -or $Only -eq "esp") {
 if (-not $Only -or $Only -eq "papyrus") {
   New-Item -ItemType Directory -Force "$root\build\papyrus" | Out-Null
   Push-Location "$root\src\papyrus"
-  & (Need "CAPRICA") --game skyrim --import headers --import . --flags (Need "PAPYRUS_FLAGS") --output "$root\build\papyrus" AG_Native.psc AG_QuestHelper.psc AG_MCM.psc AG_SkyrimNet_Decorators.psc AG_SkyrimNetInit.psc AG_SkyrimNetActions.psc AG_TIF_GuildBusiness.psc
+  & (Need "CAPRICA") --game skyrim --import headers --import . --flags (Need "PAPYRUS_FLAGS") --output "$root\build\papyrus" AG_Native.psc AG_QuestHelper.psc AG_MCM.psc AG_SkyrimNet_Decorators.psc AG_SkyrimNetInit.psc AG_SkyrimNetActions.psc AG_TIF_GuildBusiness.psc AG_TIF_ShowCardStage.psc AG_TIF_ShowCardFaction.psc
   $rc = $LASTEXITCODE
   Pop-Location
   if ($rc -ne 0) { throw "Caprica failed" }

@@ -65,6 +65,15 @@ Rank letters (E to S) are the same in every language.
 `data-t` in the counter page, and `config/lang/mcm_english.json` (`build.ps1 -Only lang`). New player-facing text
 must go through those, never as a bare string, or it cannot be translated.
 
+## Since 1.5.0
+
+No new keys in the interface file. New text in the plugin (section 2):
+
+* The player's line `I'm with the Adventurers Guild. (Show Guild Card)`: three topics share it,
+  `AG_TopicShowCardCollege`, `AG_TopicShowCardTreasury` and `AG_TopicShowCardOrcs`.
+* Four replies to it: two for Faralda (`AG_Info_showcard_college_E`, `AG_Info_showcard_college`), one for Rhiada
+  (`AG_Info_showcard_treasury`) and one for the gate guards of the Orc strongholds (`AG_Info_showcard_orcs`).
+
 ## Since 1.4.0
 
 New keys, all optional (English is shown for any you leave out):

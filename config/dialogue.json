@@ -519,6 +519,17 @@
  "_generic": "Any other innkeeper, including ones added by other mods (anyone in JobInnkeeperFaction), unless they are travelling with the player as a follower.",
  "generic": "The Adventurers Guild keeps its counters in the hold capitals, near the missive boards. You won't find one out here.",
  "_prompts": "What the player says.",
+ "_showCard": "Show Guild Card (1.5.0): a member carrying the card can show it where vanilla asks the player to talk their way in. Each is our own top-level topic beside the vanilla one (no vanilla line is touched), offered only while the vanilla check is still open. college: Faralda, any rank ('E' for a rank E member, 'other' for the rest), and she goes on into her own vanilla welcome. treasury: Rhiada, rank C and up. orcs: a stronghold's gate guard, rank A and up, in each voice of 'orcVoices'.",
+ "showCard": {
+  "prompt": "I'm with the Adventurers Guild. (Show Guild Card)",
+  "college": {
+   "E": "A guild card, and newly stamped. Forgive me, I took you for another sightseer. The Adventurers Guild vouches for its own, and that will serve in place of a test.",
+   "other": "The Adventurers Guild. Forgive me. I should not ask a ranked adventurer to prove themselves on a doorstep."
+  },
+  "treasury": "Oh, you're with the Adventurers Guild! I'm so sorry, I didn't realize. The Silver-Bloods hold the lease on your counter, so that's family business. Head right in.",
+  "orcs": "That card says you have bled for your rank, outlander. Malacath honors strength that is proven. You are no Orc, but you have earned a place at our fire. Enter.",
+  "orcVoices": ["MaleOrc", "FemaleOrc"]
+ },
  "prompts": {
   "register": "I'd like to register with the Adventurers Guild.",
   "business": "I have guild business.",

@@ -17,6 +17,7 @@
 //   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
 //   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
+//   0xCE0-0xCE5  Show Guild Card: branch and topic for the College (0xCE0/1), the Treasury House (0xCE2/3), the strongholds (0xCE4/5)
 //   0xC00-0xC7F  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -803,6 +804,127 @@ foreach (var ln in world["lines"]!.AsArray())
     worldCount++;
 }
 mod.DialogTopics.Add(hello);
+
+// ---------- Show Guild Card (1.5.0) ----------
+// Where vanilla makes the player talk their way past someone, a member carrying the card can show it instead. Each case
+// is our own TOP-LEVEL topic on that speaker, beside the vanilla one and under the same "still shut out" conditions, so
+// no vanilla line is overridden and nothing is added to a vanilla line's own list of choices. Only checks whose vanilla
+// choice is itself a top-level topic are done this way (verified in the records 2026-10-10: MG01FaraldaWhyAreYouHereBranch,
+// MS01RhiadaThonar, DialogueOrcsGuardQuestionsLetInBranch). The Whiterun and Riften gates, the Raven Rock arrival and the
+// roadside robber are forced greetings with a fixed list: not done.
+// The effect is what vanilla's own success does: Faralda goes on into her vanilla "you're in" line (as her Persuade
+// success does); Rhiada's line sets MS01 to stage 50 (TIF__000D66BA); the orcs take the player into OrcFriendFaction
+// (QF_FavorOrcsIntro, QF_RelationshipOrcs), which is all that Blood-Kin is to the game.
+{
+    var sc = dlg["showCard"]!;
+    var cardFk = FK(0x81A);
+    FormKey Vanilla(uint id) => new FormKey(Skyrim.ModKey, id);
+    Condition OnPlayer(ConditionFloat c) { c.Data.RunOnType = Condition.RunOnType.Target; return c; }
+    ConditionFloat HasCard()
+    {
+        var d = new GetItemCountConditionData { RunOnType = Condition.RunOnType.Target };
+        d.ItemOrList.Link.SetTo(cardFk);
+        return new ConditionFloat { CompareOperator = CompareOperator.GreaterThanOrEqualTo, ComparisonValue = 1, Data = d };
+    }
+    ConditionFloat Stage(uint quest, CompareOperator op, float v)
+    {
+        var d = new GetStageConditionData();
+        d.Quest.Link.SetTo(Vanilla(quest));
+        return new ConditionFloat { CompareOperator = op, ComparisonValue = v, Data = d };
+    }
+    ConditionFloat StageDone(uint quest, int stage, bool done)
+    {
+        var d = new GetStageDoneConditionData { Stage = stage };
+        d.Quest.Link.SetTo(Vanilla(quest));
+        return new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = done ? 1 : 0, Data = d };
+    }
+    ConditionFloat FactionIs(string edid, bool member)
+    {
+        var c = InFaction(FactionFk(edid));
+        c.ComparisonValue = member ? 1 : 0;
+        return c;
+    }
+    DialogTopic Topic(uint branchId, uint topicId, string stem)
+    {
+        var b = new DialogBranch(FK(branchId), Rel)
+        {
+            EditorID = "AG_BranchShowCard" + stem,
+            Quest = new FormLink<IQuestGetter>(worldQuest.FormKey),
+            Category = DialogBranch.CategoryType.Player,
+            Flags = DialogBranch.Flag.TopLevel,
+            StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(topicId)),
+        };
+        var t = new DialogTopic(FK(topicId), Rel)
+        {
+            EditorID = "AG_TopicShowCard" + stem,
+            Name = sc["prompt"]!.GetValue<string>(),
+            Priority = 50,
+            Branch = new FormLinkNullable<IDialogBranchGetter>(b.FormKey),
+            Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
+            Category = DialogTopic.CategoryEnum.Topic,
+            Subtype = DialogTopic.SubtypeEnum.Custom,
+            SubtypeName = new RecordType("CUST"),
+        };
+        mod.DialogBranches.Add(b);
+        mod.DialogTopics.Add(t);
+        return t;
+    }
+    DialogResponses Line(DialogTopic t, string key, string text, IEnumerable<Condition> conds)
+    {
+        var info = new DialogResponses(FK(InfoId("showcard:" + key)), Rel) { EditorID = "AG_Info_showcard_" + key.Replace(':', '_') };
+        info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+        foreach (var c in conds) info.Conditions.Add(c);
+        info.Conditions.Add(HasCard());
+        info.Conditions.Add(GlobalIs(gRegistered, 1));
+        if (t.Responses.Count > 0) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
+        t.Responses.Add(info);
+        return info;
+    }
+    DialogResponsesAdapter Fragment(string script, ScriptProperty prop) => new()
+    {
+        Scripts = { new ScriptEntry { Name = script, Properties = { prop } } },
+        ScriptFragments = new ScriptFragments { FileName = script, OnEnd = new ScriptFragment { ScriptName = script, FragmentName = "Fragment_0" } },
+    };
+    ScriptObjectProperty Obj(string name, FormKey fk) => new() { Name = name, Object = new FormLinkNullable<ISkyrimMajorRecordGetter>(fk), Flags = ScriptProperty.Flag.Edited };
+
+    // the College: beside "May I enter the College?", from the moment Faralda has greeted the player until she lets them in
+    const uint MG01 = 0x01F251, MS01 = 0x018B4B, DialogueOrcs = 0x03907C;
+    var college = Topic(0xCE0, 0xCE1, "College");
+    Condition[] CollegeOpen()
+    {
+        var progress = new GetVMQuestVariableConditionData { VariableName = "::FaraldaProgress_var" };
+        progress.Quest.Link.SetTo(Vanilla(MG01));
+        return new Condition[] { IsNpc(Npc("Faralda"), false), Stage(MG01, CompareOperator.LessThan, 30),
+            new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = progress } };
+    }
+    foreach (var (key, text, rank) in new[] { ("college:E", sc["college"]!["E"]!.GetValue<string>(), "E"), ("college", sc["college"]!["other"]!.GetValue<string>(), "") })
+    {
+        var info = Line(college, key, text, rank == "" ? CollegeOpen() : CollegeOpen().Concat(RankConds(rank)));
+        // as vanilla's Persuade success (INFO 0B810C): no pause, straight on into her own "Welcome, Apprentice" line,
+        // whose script admits the player (MG01 stage 30) and has her lead the way
+        info.Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.InvisibleContinue };
+        info.LinkTo.Add(new FormLink<IDialogTopicGetter>(Vanilla(0x0B8102)));
+    }
+
+    // the Treasury House: beside "I need to see Thonar.", while Rhiada still bars the way (MS01 stage 38 done, 50 not)
+    var treasury = Topic(0xCE2, 0xCE3, "Treasury");
+    var rhiada = Line(treasury, "treasury", sc["treasury"]!.GetValue<string>(),
+        new Condition[] { IsNpc(Npc("Rhiada"), false), StageDone(MS01, 38, true), StageDone(MS01, 50, false) }.Concat(RankConds("C+")));
+    rhiada.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", Vanilla(MS01)));
+    ((ScriptEntry)rhiada.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = 50, Flags = ScriptProperty.Flag.Edited });
+
+    // the strongholds: beside "How can I convince you to let me in?", from a gate guard who has already turned the
+    // player away (DialogueOrcs stage 10), while the player is neither Blood-Kin nor an Orc. Not Largashbur, which
+    // vanilla keeps out of this conversation for its own quest.
+    var orcs = Topic(0xCE4, 0xCE5, "Orcs");
+    var orcRace = new GetIsRaceConditionData { RunOnType = Condition.RunOnType.Target };
+    orcRace.Race.Link.SetTo(idx["races"]["OrcRace"]);
+    var gate = Line(orcs, "orcs", sc["orcs"]!.GetValue<string>(),
+        new Condition[] { FactionIs("OrcGuardFaction", true), FactionIs("TownLargashburFaction", false), StageDone(DialogueOrcs, 10, true),
+            OnPlayer(FactionIs("OrcFriendFaction", false)), new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = orcRace } }.Concat(RankConds("A+")));
+    gate.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardFaction", Obj("TargetFaction", FactionFk("OrcFriendFaction")));
+    Console.WriteLine("show guild card: 3 topics, 4 lines");
+}
 Console.WriteLine($"world dialogue: {worldCount} lines");
 
 File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptions { WriteIndented = true }));
