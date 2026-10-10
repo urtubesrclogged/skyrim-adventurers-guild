@@ -961,24 +961,21 @@ mod.DialogTopics.Add(hello);
         // Riften, north gate: "This is obviously a shakedown. (Persuade)". Vanilla's success sets DialogueRiftenGateGuards to 30.
         const uint riftenPersuade = 0x0E66B4;
         var riften = Hang(riftenPersuade);
-        var prev = Added(riften, "riften:E", sc["riften"]!["E"]!.GetValue<string>(), cardPrompt, Vanilla(0x0E66D2),
-            SpeakerOf(riftenPersuade, 0x051A45).Concat(RankConds("E")).Concat(Member()), "DialogueRiftenGateGuards", 30).FormKey;
-        Added(riften, "riften", sc["riften"]!["other"]!.GetValue<string>(), cardPrompt, prev,
+        // one line whatever the rank: it is said once in a playthrough
+        Added(riften, "riften", sc["riften"]!.GetValue<string>(), cardPrompt, Vanilla(0x0E66D2),
             SpeakerOf(riftenPersuade, 0x051A45).Concat(Member()), "DialogueRiftenGateGuards", 30);
 
         // Whiterun, main gate: "Riverwood calls for the Jarl's aid.". Vanilla's successes set DialogueWhiterunGuardGateStop to 10.
         var whiterun = Hang(0x0D1979);
         Condition[] GateGuard() => new Condition[] { IsNpc(Npc("GuardWhiterunImperialGate"), false) };
-        prev = Added(whiterun, "whiterun:E", sc["whiterun"]!["E"]!.GetValue<string>(), cardPrompt, Vanilla(0x0DF1F9),
-            GateGuard().Concat(RankConds("E")).Concat(Member()), "DialogueWhiterunGuardGateStop", 10).FormKey;
-        Added(whiterun, "whiterun", sc["whiterun"]!["other"]!.GetValue<string>(), cardPrompt, prev,
+        Added(whiterun, "whiterun", sc["whiterun"]!.GetValue<string>(), cardPrompt, Vanilla(0x0DF1F9),
             GateGuard().Concat(Member()), "DialogueWhiterunGuardGateStop", 10);
 
         // the College: "I think we both know I'll succeed here. (Persuade)", behind the Speech success (very hard) and
         // before the refusal. As that success does (INFO 0B810C): no pause, straight on into her own "Welcome, Apprentice"
         // line, whose script admits the player (MG01 stage 30) and has her lead the way. Any rank.
         var college = Hang(0x0B8106);
-        prev = Vanilla(0x0B810C);
+        var prev = Vanilla(0x0B810C);
         foreach (var (key, text, rank) in new[] { ("college:E", sc["college"]!["E"]!.GetValue<string>(), "E"), ("college", sc["college"]!["other"]!.GetValue<string>(), "") })
         {
             var who = new Condition[] { IsNpc(Npc("Faralda"), false) };
@@ -1012,7 +1009,7 @@ mod.DialogTopics.Add(hello);
             SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("A+")), "WERJ02", 100).FormKey;
         Added(robber, "robber:B", sc["robber"]!["B"]!.GetValue<string>(), rankPrompt, prev,
             SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("B")), "WERJ02", 100);
-        Console.WriteLine("show guild card: 10 replies added to 6 vanilla choices (the College, the Treasury House, the strongholds, Riften, Whiterun, the robber)");
+        Console.WriteLine("show guild card: 8 replies added to 6 vanilla choices (the College, the Treasury House, the strongholds, Riften, Whiterun, the robber)");
     }
     Console.WriteLine("show guild card: 1 topic of its own (the strongholds)");
 }

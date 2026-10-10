@@ -70,14 +70,14 @@ must go through those, never as a bare string, or it cannot be translated.
 No new keys in the interface file. New text in the plugin (section 2), all of it for Show Guild Card:
 
 * The player's line `I'm with the Adventurers Guild. (Show Guild Card)`. It is the name of one topic of the mod's own
-  (`AG_TopicShowCardOrcs`) and the prompt of nine replies (below), so it appears ten times: keep them the same.
+  (`AG_TopicShowCardOrcs`) and the prompt of seven replies (below), so it appears eight times: keep them the same.
 * The player's line `You're robbing a ranked adventurer of the Adventurers Guild. Walk away.`: the prompt of the two
   robber replies.
-* Eleven replies, by editor ID: `AG_Info_showcard_college_E`, `AG_Info_showcard_college` (Faralda),
+* Nine replies, by editor ID: `AG_Info_showcard_college_E`, `AG_Info_showcard_college` (Faralda),
   `AG_Info_showcard_treasury` (Rhiada), `AG_Info_showcard_orcs`, `AG_Info_showcard_orcs_gate` (a stronghold's gate
-  guard: the same line twice), `AG_Info_showcard_riften_E`, `AG_Info_showcard_riften`, `AG_Info_showcard_whiterun_E`,
-  `AG_Info_showcard_whiterun` (the two gate guards), `AG_Info_showcard_robber_AS`, `AG_Info_showcard_robber_B`.
-* Ten of those replies sit inside six VANILLA topics, which the plugin carries as unchanged copies:
+  guard: the same line twice), `AG_Info_showcard_riften`, `AG_Info_showcard_whiterun` (the two gate guards),
+  `AG_Info_showcard_robber_AS`, `AG_Info_showcard_robber_B`.
+* Eight of those replies sit inside six VANILLA topics, which the plugin carries as unchanged copies:
   `MG01FaraldaEntryPersuade`, `MS01RhiadaThonarTopic01`, `DialogueOrcsGuardTopic02`,
   `DialogueRiftenGateNorthBranchTopic05`, `DialogueWhiterunGuardGateStopNote`, `WERJ02Intimidate`. Give those six
   topics the wording your game's own translation has for them, so the vanilla choice reads as it always did.
