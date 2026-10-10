@@ -923,6 +923,37 @@ mod.DialogTopics.Add(hello);
         new Condition[] { FactionIs("OrcGuardFaction", true), FactionIs("TownLargashburFaction", false), StageDone(DialogueOrcs, 10, true),
             OnPlayer(FactionIs("OrcFriendFaction", false)), new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = orcRace } }.Concat(RankConds("A+")));
     gate.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardFaction", Obj("TargetFaction", FactionFk("OrcFriendFaction")));
+
+    // PROTOTYPE (2026-10-10, not for release as it stands): a reply of ours ADDED to a vanilla choice. The Riften north
+    // gate's choices are a fixed list on the guard's line, so a topic of ours cannot join them; but its "(Persuade)"
+    // choice is a topic, and a plugin may add an INFO to a vanilla topic without overriding the INFOs already in it. Ours
+    // passes only for a member carrying the card, carries its own wording for the player's choice (the INFO's prompt),
+    // and does what vanilla's success does (TIF__000E66D2: DialogueRiftenGateGuards stage 30). The topic's own record is
+    // copied from vanilla unchanged, as the place to hang it. THE QUESTION THE TEST ANSWERS: does the game try this INFO
+    // before vanilla's two (success by Speech, then the refusal)? It has no "previous" INFO, which should put it first.
+    {
+        var riftenPersuade = Vanilla(0x0E66B4);
+        var vanillaTopic = masters.SelectMany(m => m.DialogTopics).Last(t => t.FormKey == riftenPersuade);
+        var refusal = vanillaTopic.Responses.First(i => i.FormKey == Vanilla(0x051A45));  // the speaker is the north guard (either side's)
+        var hang = vanillaTopic.DeepCopy();
+        hang.Responses.Clear();
+        var info = new DialogResponses(FK(InfoId("showcard:riften")), Rel)
+        {
+            EditorID = "AG_Info_showcard_riften",
+            Prompt = sc["prompt"]!.GetValue<string>(),
+            Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Goodbye },
+        };
+        info.Responses.Add(new DialogResponse { Text = "(PROTOTYPE, unvoiced) The Adventurers Guild? My mistake, adventurer. Forget the tax. Go on in.", Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+        foreach (var c in refusal.Conditions) info.Conditions.Add(c.DeepCopy());
+        info.Conditions[^1].Flags &= ~Condition.Flag.OR;  // vanilla leaves OR on its last condition, where nothing follows; here something does
+        info.Conditions.Add(HasCard());
+        info.Conditions.Add(GlobalIs(gRegistered, 1));
+        info.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", Vanilla(0x0E66FC)));
+        ((ScriptEntry)info.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = 30, Flags = ScriptProperty.Flag.Edited });
+        hang.Responses.Add(info);
+        mod.DialogTopics.Add(hang);
+        Console.WriteLine("show guild card PROTOTYPE: one reply added to the vanilla topic " + vanillaTopic.EditorID);
+    }
     Console.WriteLine("show guild card: 3 topics, 4 lines");
 }
 Console.WriteLine($"world dialogue: {worldCount} lines");
