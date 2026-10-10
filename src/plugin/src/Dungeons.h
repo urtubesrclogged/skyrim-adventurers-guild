@@ -23,6 +23,10 @@ namespace AG::Dungeons
 	void           SetPointsOfInterest(const nlohmann::json& a_cfg); // guild.json "pointsOfInterest"
 	nlohmann::json Save();
 	int            ClearedCount();  // dungeons cleared this save (each counted once)
+	// Hold stamps (1.5.0): the dungeons cleared in the hold a counter serves, named by its city as the liaisons are
+	// ("Whiterun" ... "Raven Rock", which is all of Solstheim). Counted from the saved record of cleared dungeons every
+	// time, so it holds for a save from before 1.5.0 as well. -1 for a city that has no counter.
+	int            ClearedIn(const std::string& a_city);
 	void           Load(const nlohmann::json& a_j);
 	void           Revert();
 

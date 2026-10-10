@@ -6,8 +6,10 @@
 #include "GuildCard.h"
 
 #include "Counter.h"
+#include "Dungeons.h"
 #include "Guild.h"
 #include "Loc.h"
+#include "PrismaToast.h"
 #include "RankCore.h"
 
 #include <chrono>
@@ -283,8 +285,53 @@ namespace AG::GuildCard
 		pc->AddObjectToContainer(g_card, nullptr, 1, nullptr);
 		g_issued = true;
 		Stamp(a_city);   // a card reissued in another region carries that region's seal
+		SetHoldStamps({});          // a new card is a blank one: its hold stamps are collected again, counter by counter
+		CollectHoldStamp(a_city);   // ... starting with this counter's, if it is earned
 		SKSE::log::info("GuildCard: replacement issued for {} gold", fee);
 		return Loc::T("$AG_Card_Replaced", "The Guild has issued you a new guild card.");
+	}
+
+	namespace
+	{
+		std::vector<std::string> g_holdStamps;  // guarded by g_sealLock
+	}
+
+	std::vector<std::string> HoldStamps()
+	{
+		std::lock_guard l(g_sealLock);
+		return g_holdStamps;
+	}
+
+	void SetHoldStamps(std::vector<std::string> a_cities)
+	{
+		std::lock_guard l(g_sealLock);
+		g_holdStamps = std::move(a_cities);
+	}
+
+	std::string StampFile(const std::string& a_city)
+	{
+		std::string out;
+		for (const char c : a_city)
+			if (std::isalnum(static_cast<unsigned char>(c))) out += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		return out;
+	}
+
+	bool CollectHoldStamp(const std::string& a_city)
+	{
+		if (a_city.empty() || !Guild::Registered() || Guild::Dormant() || !Has()) return false;  // no card in hand, nothing to stamp
+		const int cleared = Dungeons::ClearedIn(a_city);
+		if (cleared < Guild::StampDungeons()) return false;
+		{
+			std::lock_guard l(g_sealLock);
+			if (std::find(g_holdStamps.begin(), g_holdStamps.end(), a_city) != g_holdStamps.end()) return false;
+			g_holdStamps.push_back(a_city);
+		}
+		const auto city = Guild::CityName(a_city);
+		Guild::Record(Loc::F("$AG_Log_Stamp", "The {} counter stamped your guild card.", city));
+		PrismaToast::Show(Loc::T("$AG_Toast_StampAdded", "GUILD CARD STAMPED"), Loc::F("$AG_Toast_StampAddedSub", "The {} counter has added its hold's stamp to your card", city),
+			"tex/skin/stamp_" + StampFile(a_city) + ".png");
+		SKSE::log::info("GuildCard: stamped at {} ({} dungeons cleared in the hold, {} needed)", a_city, cleared, Guild::StampDungeons());
+		return true;
 	}
 
 	bool Issued() { return g_issued.load(); }

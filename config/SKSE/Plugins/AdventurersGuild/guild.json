@@ -7,6 +7,9 @@
 	"_cardReplacementFee": "The first guild card is free (handed over at registration; a member from before 1.2.0 gets theirs on loading). Gold for a replacement after that, asked of any Guild liaison (only offered while you carry no card).",
 	"cardReplacementFee": 25,
 
+	"_stampDungeons": "Hold stamps on the Guild Card (1.5.0): how many dungeons a member must clear in a hold before that hold's counter stamps their card with the hold's crest. Counted from the record of cleared dungeons, so a save from before 1.5.0 is credited for what it has already cleared. The stamp is put on the card at that hold's counter only; a replacement card is stamped again there. Raven Rock's counter counts all of Solstheim. The smallest holds (Haafingar, Hjaalmarch) have 15 clearable dungeons in the unmodded game.",
+	"stampDungeons": 8,
+
 	"_promotion": "Promotion to rank N needs guild Reputation >= reputation[N] AND the level of that rank. Reputation is standing: earned from missives, dungeon reports and kills, never spent. The levels are not set here: they follow the level of rank S (MCM > System > Level for rank S; [Ranks] in AdventurersGuild.ini for a new game), the same table that ranks threats, dungeons and other adventurers, so a rank-X adventurer is at least a rank-X threat. Apply at any innkeeper once eligible.",
 	"promotion": {
 		"reputation": [0, 100, 300, 700, 1500, 3000]

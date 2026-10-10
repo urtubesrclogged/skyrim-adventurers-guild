@@ -30,6 +30,15 @@ namespace AG::GuildCard
 	void        SetSeal(const std::string& a_seal);  // co-save
 	std::string Replace(const std::string& a_city = {});  // a liaison hands over a new card for Guild::CardFee() gold; the line for the HUD
 
+	// Hold stamps (1.5.0): a hold's crest, inked on the card at that hold's counter once the member has cleared
+	// Guild::StampDungeons() dungeons in the hold. Whether a stamp is EARNED is never stored: it is counted from the
+	// record of cleared dungeons each time (Dungeons::ClearedIn). What is stored is what is ON THIS CARD, in the order
+	// it was stamped: a replacement card starts with none and is stamped again counter by counter.
+	std::vector<std::string> HoldStamps();                         // counter cities, in the order stamped
+	void SetHoldStamps(std::vector<std::string> a_cities);         // co-save
+	bool CollectHoldStamp(const std::string& a_city);              // at that city's counter: stamps the card if earned and not there yet
+	std::string StampFile(const std::string& a_city);              // "Raven Rock" -> "ravenrock": the page's tex/skin/stamp_<name>.png
+
 	// MCM: a key that opens the card (a book cannot be favourited). SkyUI key code, 0 or less = none (the default).
 	void SetHotkey(int a_key);
 	void Toggle();  // what the key does: open the card in the world, or close it (also the VRIK gesture action)

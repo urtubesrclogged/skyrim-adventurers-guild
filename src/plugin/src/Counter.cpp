@@ -411,6 +411,7 @@ namespace AG::Counter
 		g_open = true;
 		if (!g_cardOnly.load()) {  // only a real visit to a counter does counter business
 			Party::AtCounter();  // chosen affinities the roster no longer fits are unselected on every visit
+			GuildCard::CollectHoldStamp(Branch());  // this hold's stamp goes on the card here, and only here, once it is earned
 			NoticeWatch::Post();  // newly allowed notices go up here as they would at a board
 		}
 		// the page's text in the player's language (it keeps English fallbacks for anything missing)
@@ -491,6 +492,17 @@ namespace AG::Counter
 			data["hasCard"] = GuildCard::Has();
 			data["cardFee"] = Guild::CardFee();
 			if (auto* pc = RE::PlayerCharacter::GetSingleton()) data["cardAfford"] = pc->GetGoldAmount() >= Guild::CardFee();
+			// the hold stamps on the card, in the order they were stamped (the page lays them out), and at a counter how
+			// far this hold's is from being earned
+			{
+				auto stamps = nlohmann::json::array();
+				const auto have = GuildCard::HoldStamps();
+				for (auto& c : have) stamps.push_back(GuildCard::StampFile(c));
+				data["stamps"] = std::move(stamps);
+				const auto here = Branch();
+				if (const int cleared = here.empty() ? -1 : Dungeons::ClearedIn(here); cleared >= 0 && std::find(have.begin(), have.end(), here) == have.end())
+					data["stampProgress"] = { { "city", Guild::CityName(here) }, { "have", cleared }, { "need", Guild::StampDungeons() } };
+			}
 			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress();  // the card's "to do" note
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());

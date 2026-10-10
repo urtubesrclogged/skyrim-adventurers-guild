@@ -67,7 +67,15 @@ must go through those, never as a bare string, or it cannot be translated.
 
 ## Since 1.5.0
 
-No new keys in the interface file. New text in the plugin (section 2), all of it for Show Guild Card:
+New keys in the interface file, all optional, for the hold stamps on the Guild Card:
+
+* `$AG_Toast_StampEarned`, `$AG_Toast_StampCollect`: the notice when the dungeon that earns a hold's stamp is cleared
+  (`{}` = the number of dungeons, then the city of the counter to collect it at).
+* `$AG_Toast_StampAdded`, `$AG_Toast_StampAddedSub`, `$AG_Log_Stamp`: the notice and the Records line when a counter
+  stamps the card (`{}` = the city).
+* `$AG_UI_StampProgress`: under the rank medallion at a counter, `{0}` = the city, `{1}` of `{2}` dungeons.
+
+New text in the plugin (section 2), all of it for Show Guild Card:
 
 * The player's line `I'm with the Adventurers Guild. (Show Guild Card)`. It is the name of one topic of the mod's own
   (`AG_TopicShowCardOrcs`) and the prompt of seven replies (below), so it appears eight times: keep them the same.

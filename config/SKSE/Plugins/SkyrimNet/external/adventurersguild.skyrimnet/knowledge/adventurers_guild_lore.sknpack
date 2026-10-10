@@ -361,6 +361,21 @@
         ]
       },
       {
+        "key": "ag_hold_stamps",
+        "display_name": "Hold stamps on a guild card",
+        "content": "A well-travelled guild card carries more than the wax seal of the region that issued it. When a member has cleared enough dungeons in a hold, the Guild counter in that hold's capital inks the hold's own crest onto the card: Whiterun's horse, Solitude's wolf, Windhelm's bear, Riften's crossed daggers, Markarth's ram, Falkreath's stag, Morthal's triskelion, Dawnstar's star, Winterhold's crown, and House Redoran's scarab at Raven Rock. Each counter stamps only for its own hold, so the stamps on a card show where an adventurer has done real work, and in what order. A replacement card comes blank and must be stamped again, counter by counter.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "adventurers",
+          "guild card",
+          "holds",
+          "dungeons"
+        ]
+      },
+      {
         "key": "ag_conduct",
         "display_name": "An adventurer's good name",
         "content": "The Adventurers Guild does not much care what its members get up to outside its work, until they are caught at it. The Guild works in each hold by the leave of its Jarl and will not have that put at risk, so a price on an adventurer's head in any hold reaches the Guild's ledger: it costs the adventurer Reputation, and no innkeeper will hear a case for promotion while it stands. Paying the fine or serving the time settles it. An adventurer who takes a missive and walks away from it loses standing too. The Guild never strips a rank once earned.",

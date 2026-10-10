@@ -362,6 +362,11 @@
   /* The wax: larger than it was (author). The page adds NOTHING to it - no shadow, no glow, no change of tone: all of
      how it sits on the sheet is in the image (tools/make_seal.py, "seating it on the sheet"), made for this paper. */
   .seal-wax { width: 136px; height: 136px; right: 14px; top: 6px; }
+  /* Hold stamps (1.5.0): a hold's crest inked on the card at that hold's counter (tools/make_stamps.py). They sit where
+     the sheet has room: four above the first rule, four across it, two under the wax seal, each in its own place and
+     at its own tilt (STAMP_PLACES), filled in the order the card was stamped. Ink darkens the paper under it. */
+  .stamp { position: absolute; pointer-events: none; mix-blend-mode: multiply; }
+  .medallion .stampline { font-size: 16px; color: var(--muted); margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -497,6 +502,15 @@ function cardTodo() {
     ${data.ready && data.next ? `<div class="tpromo">${esc(t("$AG_UI_TodoPromotion", "Eligible for promotion!"))}</div>` : ""}
     ${data.promotionBlocked ? `<div class="tpromo">${esc(t("$AG_UI_TodoPromoHold", "Promotion on hold: bounty"))}</div>` : ""}</div>`;
 }
+// where each hold stamp goes on the sheet, in the order they are earned: [right, top, size, tilt in degrees]
+const STAMP_PLACES = [[388, 16, 60, 8], [314, 13, 58, -6], [238, 19, 60, 3], [164, 14, 58, -10],
+  [353, 85, 58, -5], [277, 90, 58, 11], [201, 83, 60, -3], [131, 90, 56, 7], [22, 136, 56, 6], [80, 142, 56, -8]];
+function cardStamps() {
+  return (data.stamps || []).slice(0, STAMP_PLACES.length).map((name, i) => {
+    const [r, top, size, tilt] = STAMP_PLACES[i];
+    return `<img class="stamp" src="tex/skin/stamp_${esc(name)}.png" style="right:${r}px;top:${top}px;width:${size}px;height:${size}px;transform:rotate(${tilt}deg)" alt=""/>`;
+  }).join("");
+}
 function renderCard() {
   const n = data.next, m = data.missives || [], tr = data.training || [];
   let next = `<div class="note-ok">${esc(t("$AG_UI_TopRank", "Rank S — the highest honour the Guild bestows."))}</div>`;
@@ -521,7 +535,7 @@ function renderCard() {
       ${data.cardAfford === false ? `<div class="lost-p">${esc(t("$AG_UI_CardReplaceNoGold", "You do not have enough gold."))}</div>` : ""}</div>`;
   return `<div class="card${lost ? " lost" : ""}">${veil}
     <div class="medallion">${data.registered ? `<img class="plaque" src="tex/rank_${esc(data.letter)}.png" alt=""/>` : ""}
-      <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", data.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(data.letter)))}</div>${cardTodo()}</div>
+      <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", data.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(data.letter)))}</div>${cardTodo()}${data.stampProgress && !data.cardOnly ? `<div class="stampline">${esc(t("$AG_UI_StampProgress", "{0} stamp · {1} of {2} dungeons", data.stampProgress.city, Math.min(data.stampProgress.have, data.stampProgress.need), data.stampProgress.need))}</div>` : ""}</div>
     <div class="paper">
       <h2>${esc(data.name || t("$AG_UI_Adventurer", "Adventurer"))}</h2>
       <div class="line">${esc(data.registered ? t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", data.letter) : t("$AG_UI_NotRegistered", "Not registered with the Adventurers Guild"))}${data.registeredDay >= 0 ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", gameDate(data.registeredDay))) : ""}</div>
@@ -539,6 +553,7 @@ function renderCard() {
         <span>${esc(t("$AG_UI_ChipEndurance", "Endurance +{0}", (tr[1] || 0) * 10))}</span><span>${esc(t("$AG_UI_ChipArcana", "Arcana +{0}", (tr[2] || 0) * 10))}</span>
         ${(data.passives || []).map((x) => `<span class="timed">${esc(t("$AG_UI_ChipTimed", "{0} · {1}h left", x.name, x.hours))}</span>`).join("")}</div>
       ${cardStats()}
+      ${data.registered ? cardStamps() : ""}
       ${data.registered ? `<img class="seal-wax" src="tex/seal${data.seal === "morrowind" ? "_morrowind" : ""}.png" alt=""/>` : ""}
     </div></div>`;
 }

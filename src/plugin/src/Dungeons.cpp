@@ -8,6 +8,7 @@
 #include "Adventurers.h"
 #include "Counter.h"
 #include "Guild.h"
+#include "GuildCard.h"
 #include "Party.h"
 #include "Loc.h"
 #include "PrismaToast.h"
@@ -296,6 +297,8 @@ namespace AG::Dungeons
 			SKSE::log::info("Dungeons: entered {} [{}] rank {} (level {}){}", name, key, Letter(rank), LevelHere(), first ? " - first visit" : "");
 		}
 
+		std::string CounterCityOf(RE::BGSLocation* a_loc);  // below, with the hold stamps
+
 		void OnCleared(RE::BGSLocation* a_dungeon)
 		{
 			if (!a_dungeon) return;
@@ -318,6 +321,11 @@ namespace AG::Dungeons
 				else
 					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReportPlain", "{} · report to the Guild for your reward", name), -1);
 				Guild::Notify("AG_DungeonCleared", name, static_cast<float>(rank));
+				// the dungeon that earns the hold's stamp: it is put on the card at that hold's counter, so say where
+				if (const auto city = CounterCityOf(a_dungeon); !city.empty() && ClearedIn(city) == Guild::StampDungeons())
+					PrismaToast::Show(Loc::T("$AG_Toast_StampEarned", "HOLD STAMP EARNED"),
+						Loc::F("$AG_Toast_StampCollect", "{} dungeons cleared in the hold · collect your stamp at the {} counter", Guild::StampDungeons(), Guild::CityName(city)),
+						"tex/skin/stamp_" + GuildCard::StampFile(city) + ".png");
 				Party::OnDungeonCleared(rank);
 				if (Counter::IsOpen()) Counter::Refresh();
 			}
@@ -402,6 +410,47 @@ namespace AG::Dungeons
 	{
 		std::lock_guard l(g_lock);
 		return static_cast<int>(g_reported.size());
+	}
+
+	namespace
+	{
+		// the hold each counter serves: the game's own hold locations (Skyrim.esm), and Solstheim for Raven Rock
+		struct CounterHold { const char* city; RE::FormID id; const char* plugin; };
+		constexpr CounterHold kCounterHolds[]{ { "Whiterun", 0x016772, "Skyrim.esm" }, { "Solitude", 0x016770, "Skyrim.esm" }, { "Windhelm", 0x01676A, "Skyrim.esm" },
+			{ "Riften", 0x01676C, "Skyrim.esm" }, { "Markarth", 0x016769, "Skyrim.esm" }, { "Falkreath", 0x01676F, "Skyrim.esm" }, { "Morthal", 0x01676E, "Skyrim.esm" },
+			{ "Dawnstar", 0x01676D, "Skyrim.esm" }, { "Winterhold", 0x01676B, "Skyrim.esm" }, { "Raven Rock", 0x016E2A, "Dragonborn.esm" } };
+
+		// the city whose counter serves the hold a place is in ("" when it is in none)
+		std::string CounterCityOf(RE::BGSLocation* a_loc)
+		{
+			auto* hold = HoldOf(a_loc);
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			if (!hold || !dh) return {};
+			for (auto& h : kCounterHolds)
+				if (dh->LookupForm<RE::BGSLocation>(h.id, h.plugin) == hold) return h.city;
+			return {};
+		}
+	}
+
+	int ClearedIn(const std::string& a_city)
+	{
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		RE::BGSLocation* hold = nullptr;
+		for (auto& h : kCounterHolds)
+			if (a_city == h.city && dh) hold = dh->LookupForm<RE::BGSLocation>(h.id, h.plugin);
+		if (!hold) return -1;
+		std::vector<std::string> keys;
+		{
+			std::lock_guard l(g_lock);
+			keys.assign(g_reported.begin(), g_reported.end());
+		}
+		int n = 0;
+		for (auto& k : keys) {
+			auto* form = Adventurers::FormOfKey(k);
+			auto* loc = form ? form->As<RE::BGSLocation>() : nullptr;
+			if (loc && HoldOf(loc) == hold) ++n;   // a dungeon whose mod is gone, or that sits in no hold, counts for none
+		}
+		return n;
 	}
 
 	void SetNotDungeons(std::vector<std::string> a_keys)

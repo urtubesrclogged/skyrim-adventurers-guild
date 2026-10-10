@@ -37,6 +37,7 @@ namespace AG::Guild
 			int                          fee{ 50 };
 			int                          promotionFee{ 50 };
 			int                          cardFee{ 25 };  // a replacement guild card (the first is free)
+			int                          stampDungeons{ 8 };  // dungeons cleared in a hold for its stamp on the card
 			float                        repPerBountyGold{ 0.1f };  // Reputation lost per gold of new bounty
 			float                        abandonShare{ 0.5f };      // of a taken missive's Reputation, lost when it is given up
 			std::array<int, kRankCount>  reputation{ 0, 100, 300, 700, 1500, 3000 };
@@ -354,6 +355,7 @@ namespace AG::Guild
 				j["dormant"] = g_dormant.load();
 				j["cardIssued"] = GuildCard::Issued();
 				j["cardSeal"] = GuildCard::Seal();
+				j["cardStamps"] = GuildCard::HoldStamps();
 				j["bounties"] = g_bountySeen;
 				j["bountyKnown"] = g_bountyKnown;
 				j["bountyCarry"] = g_bountyCarry;
@@ -383,6 +385,7 @@ namespace AG::Guild
 			g_regMissiveGiven = false;
 			GuildCard::SetIssued(false);
 			GuildCard::SetSeal({});
+			GuildCard::SetHoldStamps({});
 			g_bountySeen.clear();
 			g_bountyKnown = false;
 			g_bountyCarry = 0.0;
@@ -438,6 +441,7 @@ namespace AG::Guild
 						g_dormant = j.value("dormant", false);
 						GuildCard::SetIssued(j.value("cardIssued", false));
 						GuildCard::SetSeal(j.value("cardSeal", std::string()));
+						GuildCard::SetHoldStamps(j.value("cardStamps", std::vector<std::string>{}));
 						g_bountySeen = j.value("bounties", std::map<std::string, int>{});
 						g_bountyKnown = j.value("bountyKnown", false);
 						g_bountyCarry = j.value("bountyCarry", 0.0);
@@ -510,6 +514,7 @@ namespace AG::Guild
 				c.fee = std::max(0, j.value("registrationFee", c.fee));
 				c.promotionFee = std::max(0, j.value("promotionFee", c.promotionFee));
 				c.cardFee = std::max(0, j.value("cardReplacementFee", c.cardFee));
+				c.stampDungeons = std::max(1, j.value("stampDungeons", c.stampDungeons));
 				if (j.contains("conduct")) {
 					c.repPerBountyGold = std::max(0.0f, j.at("conduct").value("repPerBountyGold", c.repPerBountyGold));
 					c.abandonShare = std::clamp(j.at("conduct").value("abandonShare", c.abandonShare), 0.0f, 1.0f);
@@ -1256,6 +1261,15 @@ namespace AG::Guild
 	}
 
 	int CardFee() { return g_cfg.cardFee; }
+	int StampDungeons() { return g_cfg.stampDungeons; }
+
+	std::string CityName(const std::string& a_city)
+	{
+		std::string key = "$AG_City_";
+		for (const char c : a_city)
+			if (std::isalnum(static_cast<unsigned char>(c))) key += c;
+		return a_city.empty() ? a_city : Loc::T(key, a_city);
+	}
 
 	bool PayGold(int a_amount)
 	{
