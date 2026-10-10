@@ -218,6 +218,23 @@ static class Probe
             }
             return;
         }
+        if (what == "packages") {   // packages by editor ID: template, every record they point at (a forced greeting names its topic), and the data values
+            var names = Names(mods);
+            foreach (var pk in mods.SelectMany(m => m.Packages).GroupBy(x => x.FormKey).Select(g => g.Last()).Where(x => re.IsMatch(x.EditorID ?? "")))
+            {
+                Console.WriteLine("== " + pk.EditorID + "  template=" + names.GetValueOrDefault(pk.PackageTemplate.FormKey, pk.PackageTemplate.FormKey.ToString()) + " flags=" + pk.Flags);
+                Console.WriteLine("   links: " + string.Join(", ", pk.EnumerateFormLinks().Select(l => names.GetValueOrDefault(l.FormKey, l.FormKey.ToString())).Distinct()));
+                foreach (var d in pk.Data) Console.WriteLine("   data[" + d.Key + "] " + d.Value.GetType().Name.Replace("BinaryOverlay", "") + " " + d.Value.Name + " :: " + string.Join(", ", d.Value.EnumerateFormLinks().Select(l => names.GetValueOrDefault(l.FormKey, l.FormKey.ToString()))));
+            }
+            return;
+        }
+        if (what == "branches") {   // dialogue branches by editor ID: quest (with its priority), flags (top-level or blocking) and starting topic
+            var names = Names(mods);
+            var quests = mods.SelectMany(m => m.Quests).GroupBy(q => q.FormKey).ToDictionary(g => g.Key, g => g.Last());
+            foreach (var b in mods.SelectMany(m => m.DialogBranches).GroupBy(x => x.FormKey).Select(g => g.Last()).Where(x => re.IsMatch(x.EditorID ?? "")))
+                Console.WriteLine(b.EditorID + "  quest=" + (quests.TryGetValue(b.Quest.FormKey, out var q) ? q.EditorID + " prio " + q.Priority : "?") + " flags=" + b.Flags + " category=" + b.Category + " start=" + names.GetValueOrDefault(b.StartingTopic.FormKey, "-"));
+            return;
+        }
         if (what == "cells") {      // interior cells by editor ID
             foreach (var m in mods)
                 foreach (var c in m.EnumerateMajorRecords<ICellGetter>().Where(c => re.IsMatch(c.EditorID ?? "")))
