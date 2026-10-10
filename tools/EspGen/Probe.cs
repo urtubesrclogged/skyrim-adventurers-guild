@@ -148,7 +148,7 @@ static class Probe
                     var links = string.Join(",", i.LinkTo.Select(l => names.GetValueOrDefault(l.FormKey, l.FormKey.ToString())));
                     var text = string.Join(" | ", i.Responses.Select(r => r.Text?.String));
                     var script = i.VirtualMachineAdapter is null ? "-" : "yes";
-                    Console.WriteLine("  " + i.FormKey.ID.ToString("X") + " prev=" + prev + " flags=" + i.Flags?.Flags + " links=[" + links + "] script=" + script + " :: " + text);
+                    Console.WriteLine("  " + i.FormKey.ID.ToString("X") + " prev=" + prev + " flags=" + i.Flags?.Flags + " links=[" + links + "] script=" + script + (string.IsNullOrEmpty(i.Prompt?.String) ? "" : " prompt=[" + i.Prompt!.String + "]") + " :: " + text);
                     var cs = i.Conditions.ToList();
                     Console.WriteLine("        " + string.Concat(cs.Select((c, n) => Cond(c, names) + (n == cs.Count - 1 ? "" : c.Flags.HasFlag(Condition.Flag.OR) ? " OR " : " AND "))));
                 }
