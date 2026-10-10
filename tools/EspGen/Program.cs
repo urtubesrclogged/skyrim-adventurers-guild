@@ -17,7 +17,8 @@
 //   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
 //   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
-//   0xCE0-0xCE5  Show Guild Card: branch and topic for the College (0xCE0/1), the Treasury House (0xCE2/3), the strongholds (0xCE4/5)
+//   0xCE0-0xCE5  Show Guild Card: the strongholds' branch and topic (0xCE4/5). 0xCE0-0xCE3 were the College's and the Treasury House's in
+//                development builds only (never released): free.
 //   0xC00-0xC7F  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -806,15 +807,14 @@ foreach (var ln in world["lines"]!.AsArray())
 mod.DialogTopics.Add(hello);
 
 // ---------- Show Guild Card (1.5.0) ----------
-// Where vanilla makes the player talk their way past someone, a member carrying the card can show it instead. Each case
-// is our own TOP-LEVEL topic on that speaker, beside the vanilla one and under the same "still shut out" conditions, so
-// no vanilla line is overridden and nothing is added to a vanilla line's own list of choices. Only checks whose vanilla
-// choice is itself a top-level topic are done this way (verified in the records 2026-10-10: MG01FaraldaWhyAreYouHereBranch,
-// MS01RhiadaThonar, DialogueOrcsGuardQuestionsLetInBranch). The Whiterun and Riften gates, the Raven Rock arrival and the
-// roadside robber are forced greetings with a fixed list: not done.
-// The effect is what vanilla's own success does: Faralda goes on into her vanilla "you're in" line (as her Persuade
-// success does); Rhiada's line sets MS01 to stage 50 (TIF__000D66BA); the orcs take the player into OrcFriendFaction
-// (QF_FavorOrcsIntro, QF_RelationshipOrcs), which is all that Blood-Kin is to the game.
+// Where vanilla makes the player talk their way past someone, a member carrying the card can show it instead. No
+// vanilla line is overridden. Wherever vanilla has a "(Persuade)" (or, for the robber, "(Intimidate)") choice, the card
+// takes that choice over, by a reply ADDED to its topic (see below). The Orc strongholds have no such choice, so there
+// the card takes over one of the gate guard's first-meeting choices and ALSO has a topic of its own in his menu, for a
+// member who first came by below the rank it needs.
+// The effect is always what vanilla's own success does: Faralda goes on into her vanilla "you're in" line; Rhiada's
+// line sets MS01 to stage 50 (TIF__000D66BA); the orcs take the player into OrcFriendFaction (QF_FavorOrcsIntro,
+// QF_RelationshipOrcs), which is all that Blood-Kin is to the game; the gates and the robber set their quest's stage.
 {
     var sc = dlg["showCard"]!;
     var cardFk = FK(0x81A);
@@ -887,33 +887,9 @@ mod.DialogTopics.Add(hello);
     };
     ScriptObjectProperty Obj(string name, FormKey fk) => new() { Name = name, Object = new FormLinkNullable<ISkyrimMajorRecordGetter>(fk), Flags = ScriptProperty.Flag.Edited };
 
-    // the College: beside "May I enter the College?", from the moment Faralda has greeted the player until she lets them in
-    const uint MG01 = 0x01F251, MS01 = 0x018B4B, DialogueOrcs = 0x03907C;
-    var college = Topic(0xCE0, 0xCE1, "College");
-    Condition[] CollegeOpen()
-    {
-        var progress = new GetVMQuestVariableConditionData { VariableName = "::FaraldaProgress_var" };
-        progress.Quest.Link.SetTo(Vanilla(MG01));
-        return new Condition[] { IsNpc(Npc("Faralda"), false), Stage(MG01, CompareOperator.LessThan, 30),
-            new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = progress } };
-    }
-    foreach (var (key, text, rank) in new[] { ("college:E", sc["college"]!["E"]!.GetValue<string>(), "E"), ("college", sc["college"]!["other"]!.GetValue<string>(), "") })
-    {
-        var info = Line(college, key, text, rank == "" ? CollegeOpen() : CollegeOpen().Concat(RankConds(rank)));
-        // as vanilla's Persuade success (INFO 0B810C): no pause, straight on into her own "Welcome, Apprentice" line,
-        // whose script admits the player (MG01 stage 30) and has her lead the way
-        info.Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.InvisibleContinue };
-        info.LinkTo.Add(new FormLink<IDialogTopicGetter>(Vanilla(0x0B8102)));
-    }
+    const uint MG01 = 0x01F251, DialogueOrcs = 0x03907C;
 
-    // the Treasury House: beside "I need to see Thonar.", while Rhiada still bars the way (MS01 stage 38 done, 50 not)
-    var treasury = Topic(0xCE2, 0xCE3, "Treasury");
-    var rhiada = Line(treasury, "treasury", sc["treasury"]!.GetValue<string>(),
-        new Condition[] { IsNpc(Npc("Rhiada"), false), StageDone(MS01, 38, true), StageDone(MS01, 50, false) }.Concat(RankConds("C+")));
-    rhiada.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", Vanilla(MS01)));
-    ((ScriptEntry)rhiada.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = 50, Flags = ScriptProperty.Flag.Edited });
-
-    // the strongholds: beside "How can I convince you to let me in?", from a gate guard who has already turned the
+    // the strongholds, a topic of our own: beside "How can I convince you to let me in?", from a gate guard who has already turned the
     // player away (DialogueOrcs stage 10), while the player is neither Blood-Kin nor an Orc. Not Largashbur, which
     // vanilla keeps out of this conversation for its own quest.
     var orcs = Topic(0xCE4, 0xCE5, "Orcs");
@@ -924,7 +900,7 @@ mod.DialogTopics.Add(hello);
             OnPlayer(FactionIs("OrcFriendFaction", false)), new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = orcRace } }.Concat(RankConds("A+")));
     gate.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardFaction", Obj("TargetFaction", FactionFk("OrcFriendFaction")));
 
-    // ---- replies ADDED to a vanilla choice (the gates of Riften and Whiterun, the roadside robber) ----
+    // ---- replies ADDED to a vanilla choice ----
     // Their choices are a fixed list on the speaker's line, so a topic of ours cannot join them. But each choice is a
     // topic, and a plugin may add an INFO to a vanilla topic without overriding the INFOs already in it. Ours carries its
     // own wording for the player's choice (the INFO's prompt) and does what vanilla's success does. The topic's own
@@ -959,8 +935,8 @@ mod.DialogTopics.Add(hello);
             Console.Error.WriteLine($"ERROR show guild card: unknown quest '{edid}'"); errors++;
             return default;
         }
-        // one added INFO, tried right after "after"; returns its key so the next can follow it
-        FormKey Added(DialogTopic hang, string key, string text, string prompt, FormKey after, IEnumerable<Condition> conds, string quest, int stage)
+        // one added INFO, tried right after "after". quest and stage: what the line sets (vanilla's own success), or null for none
+        DialogResponses Added(DialogTopic hang, string key, string text, string prompt, FormKey after, IEnumerable<Condition> conds, string? quest, int stage)
         {
             var info = new DialogResponses(FK(InfoId("showcard:" + key)), Rel)
             {
@@ -971,10 +947,13 @@ mod.DialogTopics.Add(hello);
             };
             info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
             foreach (var c in conds) info.Conditions.Add(c);
-            info.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", QuestFk(quest)));
-            ((ScriptEntry)info.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = stage, Flags = ScriptProperty.Flag.Edited });
+            if (quest != null)
+            {
+                info.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", QuestFk(quest)));
+                ((ScriptEntry)info.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = stage, Flags = ScriptProperty.Flag.Edited });
+            }
             hang.Responses.Add(info);
-            return info.FormKey;
+            return info;
         }
         IEnumerable<Condition> Member() => new Condition[] { HasCard(), GlobalIs(gRegistered, 1) };
         var cardPrompt = sc["prompt"]!.GetValue<string>();
@@ -983,7 +962,7 @@ mod.DialogTopics.Add(hello);
         const uint riftenPersuade = 0x0E66B4;
         var riften = Hang(riftenPersuade);
         var prev = Added(riften, "riften:E", sc["riften"]!["E"]!.GetValue<string>(), cardPrompt, Vanilla(0x0E66D2),
-            SpeakerOf(riftenPersuade, 0x051A45).Concat(RankConds("E")).Concat(Member()), "DialogueRiftenGateGuards", 30);
+            SpeakerOf(riftenPersuade, 0x051A45).Concat(RankConds("E")).Concat(Member()), "DialogueRiftenGateGuards", 30).FormKey;
         Added(riften, "riften", sc["riften"]!["other"]!.GetValue<string>(), cardPrompt, prev,
             SpeakerOf(riftenPersuade, 0x051A45).Concat(Member()), "DialogueRiftenGateGuards", 30);
 
@@ -991,9 +970,38 @@ mod.DialogTopics.Add(hello);
         var whiterun = Hang(0x0D1979);
         Condition[] GateGuard() => new Condition[] { IsNpc(Npc("GuardWhiterunImperialGate"), false) };
         prev = Added(whiterun, "whiterun:E", sc["whiterun"]!["E"]!.GetValue<string>(), cardPrompt, Vanilla(0x0DF1F9),
-            GateGuard().Concat(RankConds("E")).Concat(Member()), "DialogueWhiterunGuardGateStop", 10);
+            GateGuard().Concat(RankConds("E")).Concat(Member()), "DialogueWhiterunGuardGateStop", 10).FormKey;
         Added(whiterun, "whiterun", sc["whiterun"]!["other"]!.GetValue<string>(), cardPrompt, prev,
             GateGuard().Concat(Member()), "DialogueWhiterunGuardGateStop", 10);
+
+        // the College: "I think we both know I'll succeed here. (Persuade)", behind the Speech success (very hard) and
+        // before the refusal. As that success does (INFO 0B810C): no pause, straight on into her own "Welcome, Apprentice"
+        // line, whose script admits the player (MG01 stage 30) and has her lead the way. Any rank.
+        var college = Hang(0x0B8106);
+        prev = Vanilla(0x0B810C);
+        foreach (var (key, text, rank) in new[] { ("college:E", sc["college"]!["E"]!.GetValue<string>(), "E"), ("college", sc["college"]!["other"]!.GetValue<string>(), "") })
+        {
+            var who = new Condition[] { IsNpc(Npc("Faralda"), false) };
+            var info = Added(college, key, text, cardPrompt, prev, (rank == "" ? who : who.Concat(RankConds(rank))).Concat(Member()), null, 0);
+            info.Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.InvisibleContinue };
+            info.LinkTo.Add(new FormLink<IDialogTopicGetter>(Vanilla(0x0B8102)));
+            prev = info.FormKey;
+        }
+
+        // the Treasury House: "He's expecting me. (Persuade)", behind the Speech success (average) and before the refusal.
+        // Rank C and up; below that vanilla's Persuade is as it was. Vanilla's success sets MS01 to 50 and says no goodbye.
+        Added(Hang(0x0D6630), "treasury", sc["treasury"]!.GetValue<string>(), cardPrompt, Vanilla(0x0D66BA),
+            new Condition[] { IsNpc(Npc("Rhiada"), false) }.Concat(RankConds("C+")).Concat(Member()), "MS01", 50).Flags = new DialogResponseFlags { Flags = 0 };
+
+        // the strongholds, at the first meeting: the gate guard's "I go where I please, Orc.", behind the reply an Orc
+        // player gets and before the one that turns everyone else away. Rank A and up. Vanilla's replies here set
+        // DialogueOrcs to 10 (the halt has been said); ours does too, and takes the player into OrcFriendFaction.
+        var orcGate = Added(Hang(0x0BBA89), "orcs:gate", sc["orcs"]!.GetValue<string>(), cardPrompt, Vanilla(0x0BBA91),
+            new Condition[] { FactionIs("TownLargashburFaction", false), OnPlayer(FactionIs("OrcFriendFaction", false)) }.Concat(RankConds("A+")).Concat(Member()), null, 0);
+        orcGate.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardFaction", Obj("TargetFaction", FactionFk("OrcFriendFaction")));
+        var orcScript = (ScriptEntry)orcGate.VirtualMachineAdapter.Scripts[0];
+        orcScript.Properties.Add(Obj("TargetQuest", Vanilla(DialogueOrcs)));
+        orcScript.Properties.Add(new ScriptIntProperty { Name = "Stage", Data = 10, Flags = ScriptProperty.Flag.Edited });
 
         // the roadside robber: "Walk away. Right now. (Intimidate)". Vanilla's success sets WERJ02 to 100. Ranks E to C
         // are left to vanilla (the robber is not impressed); B backs off; A and S beg.
@@ -1001,12 +1009,12 @@ mod.DialogTopics.Add(hello);
         var robber = Hang(robberIntimidate);
         var rankPrompt = sc["robber"]!["prompt"]!.GetValue<string>();
         prev = Added(robber, "robber:AS", sc["robber"]!["AS"]!.GetValue<string>(), rankPrompt, Vanilla(0x0B8164),
-            SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("A+")), "WERJ02", 100);
+            SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("A+")), "WERJ02", 100).FormKey;
         Added(robber, "robber:B", sc["robber"]!["B"]!.GetValue<string>(), rankPrompt, prev,
             SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("B")), "WERJ02", 100);
-        Console.WriteLine("show guild card: 6 replies added to 3 vanilla choices (Riften, Whiterun, the robber)");
+        Console.WriteLine("show guild card: 10 replies added to 6 vanilla choices (the College, the Treasury House, the strongholds, Riften, Whiterun, the robber)");
     }
-    Console.WriteLine("show guild card: 3 topics, 4 lines");
+    Console.WriteLine("show guild card: 1 topic of its own (the strongholds)");
 }
 Console.WriteLine($"world dialogue: {worldCount} lines");
 

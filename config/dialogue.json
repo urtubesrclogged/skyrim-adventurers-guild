@@ -519,7 +519,7 @@
  "_generic": "Any other innkeeper, including ones added by other mods (anyone in JobInnkeeperFaction), unless they are travelling with the player as a follower.",
  "generic": "The Adventurers Guild keeps its counters in the hold capitals, near the missive boards. You won't find one out here.",
  "_prompts": "What the player says.",
- "_showCard": "Show Guild Card (1.5.0): a member carrying the card can show it where vanilla asks the player to talk their way in. Each is our own top-level topic beside the vanilla one (no vanilla line is touched), offered only while the vanilla check is still open. college: Faralda, any rank ('E' for a rank E member, 'other' for the rest), and she goes on into her own vanilla welcome. treasury: Rhiada, rank C and up. orcs: a stronghold's gate guard, rank A and up, in each voice of 'orcVoices'.",
+ "_showCard": "Show Guild Card (1.5.0): a member carrying the card can show it where vanilla asks the player to talk their way in. No vanilla line is overridden: each reply is ADDED to a vanilla choice, which it takes over when vanilla's own replies before it do not apply (tools/EspGen/Program.cs has the detail). college: Faralda, in place of '(Persuade)', any rank ('E' for a rank E member, 'other' for the rest), and she goes on into her own vanilla welcome. treasury: Rhiada, in place of '(Persuade)', rank C and up. orcs: a stronghold's gate guard, rank A and up, in each voice of 'orcVoices': in place of 'I go where I please, Orc.' at the first meeting, and as a topic of our own in his menu after it.",
  "showCard": {
   "prompt": "I'm with the Adventurers Guild. (Show Guild Card)",
   "college": {
@@ -529,7 +529,7 @@
   "treasury": "Oh, you're with the Adventurers Guild! I'm so sorry, I didn't realize. The Silver-Bloods hold the lease on your counter, so that's family business. Head right in.",
   "orcs": "That card says you have bled for your rank, outlander. Malacath honors strength that is proven. You are no Orc, but you have earned a place at our fire. Enter.",
   "orcVoices": ["MaleOrc", "FemaleOrc"],
-  "_added": "The three below are replies ADDED to a vanilla choice, which they take over when vanilla's own replies before them do not apply (tools/EspGen/Program.cs has the detail). riften: the north gate guard, in place of '(Persuade)' for a member whose Speech would not pass it. whiterun: the gate guard, in the place of the Riverwood line for a member Riverwood did not send. robber: the roadside thief, in place of '(Intimidate)' by Guild rank alone, B backs off, A and S beg; 'voices' are the voice types the encounter can use.",
+  "_added": "riften: the north gate guard, in place of '(Persuade)' for a member whose Speech would not pass it. whiterun: the gate guard, in the place of the Riverwood line for a member Riverwood did not send. robber: the roadside thief, in place of '(Intimidate)' by Guild rank alone, B backs off, A and S beg; 'voices' are the voice types the encounter can use.",
   "riften": {
    "E": "The Adventurers Guild? Sorry, sorry. Forget I said anything about a tax, adventurer. Let me get that gate unlocked.",
    "other": "A ranked adventurer. Forgive me, I didn't know. There's no tax, not for the Adventurers Guild. I'll unlock the gate right away."

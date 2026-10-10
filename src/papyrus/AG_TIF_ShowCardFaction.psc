@@ -11,6 +11,9 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 Game.GetPlayer().AddToFaction(TargetFaction)
+If TargetQuest
+	TargetQuest.SetStage(Stage)
+EndIf
 ;END CODE
 EndFunction
 ;END FRAGMENT
@@ -19,4 +22,8 @@ EndFunction
 
 ; Show Guild Card: the line that accepts the player puts them in the faction vanilla's own acceptance does
 ; (the Orc strongholds: OrcFriendFaction, as QF_FavorOrcsIntro and QF_RelationshipOrcs do).
+; TargetQuest and Stage are optional: at a stronghold's gate the same line also marks the guard's halt as said
+; (DialogueOrcs stage 10, as vanilla's replies there do).
 Faction Property TargetFaction Auto
+Quest Property TargetQuest Auto
+Int Property Stage Auto
