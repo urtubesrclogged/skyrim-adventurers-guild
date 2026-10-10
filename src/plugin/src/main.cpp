@@ -6,6 +6,7 @@
 #include "ControlsGuard.h"
 #include "Adventurers.h"
 #include "Counter.h"
+#include "SteamVRAim.h"
 #include "Diag.h"
 #include "Dungeons.h"
 #include "GuildCard.h"
@@ -56,6 +57,7 @@ namespace
 			AG::PrismaToast::Install();
 			AG::LoadRaceRules();
 			AG::Counter::Install();
+			AG::SteamVRAim::Install();  // native SteamVR: Prisma UI 1.5.1's lasers need aim poses nobody else gives it
 			AG::GuildCard::Install();
 			AG::MissiveWatch::Register();
 			AG::NoticeWatch::Register();
