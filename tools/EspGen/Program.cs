@@ -950,6 +950,9 @@ mod.DialogTopics.Add(hello);
         info.Conditions.Add(GlobalIs(gRegistered, 1));
         info.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", Vanilla(0x0E66FC)));
         ((ScriptEntry)info.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = 30, Flags = ScriptProperty.Flag.Edited });
+        // TEST 2 (test 1, no "previous" INFO: the game put ours LAST, behind vanilla's refusal, and the choice was unchanged).
+        // Named after vanilla's Speech success, ours should be tried second: before the refusal.
+        info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(Vanilla(0x0E66D2));
         hang.Responses.Add(info);
         mod.DialogTopics.Add(hang);
         Console.WriteLine("show guild card PROTOTYPE: one reply added to the vanilla topic " + vanillaTopic.EditorID);
