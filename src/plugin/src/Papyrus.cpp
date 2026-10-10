@@ -17,6 +17,7 @@
 #include "LevelDisplay.h"
 #include "MissiveWatch.h"
 #include "NameHook.h"
+#include "DialogueSpike.h"
 #include "PrismaToast.h"
 #include "RankCore.h"
 #include "Shop.h"
@@ -79,6 +80,10 @@ namespace AG
 		void         SLevelSet(Tag*, std::int32_t a_level) { AG::SetSLevel(a_level); Guild::OnBandsChanged(); }
 		std::int32_t GetRankLevel(Tag*, std::int32_t a_rank) { return AG::MinLevel(a_rank); }
 		void         NoticeRankLevelsKept(Tag*) { Guild::NoticeRankLevelsKept(); }
+		// TEMPORARY (Show Guild Card): the dialogue-choice test harness
+		std::string DebugDialogueDump(Tag*) { return DialogueSpike::Dump(); }
+		std::string DebugDialogueAdd(Tag*, std::int32_t a_topic, std::int32_t a_place) { return DialogueSpike::Add(a_topic, a_place); }
+		std::string DebugDialogueArm(Tag*, std::int32_t a_topic, std::int32_t a_when, std::int32_t a_place) { return DialogueSpike::Arm(a_topic, a_when, a_place); }
 		std::string CancelUninstall(Tag*) { return Guild::CancelUninstall(); }
 		std::string UninstallText(Tag*, std::int32_t a_which)
 		{
@@ -205,6 +210,9 @@ namespace AG
 		a_vm->RegisterFunction("SetSLevel", kClass, SLevelSet);
 		REG(GetRankLevel);
 		REG(NoticeRankLevelsKept);
+		REG(DebugDialogueDump);
+		REG(DebugDialogueAdd);
+		REG(DebugDialogueArm);
 		REG(CancelUninstall);
 		REG(UninstallText);
 		REG(IsGuildLiaison);

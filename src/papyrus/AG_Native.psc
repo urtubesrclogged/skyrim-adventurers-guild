@@ -66,6 +66,10 @@ Int Function GetSLevel() Global Native
 Int Function GetDefaultSLevel() Global Native                ; a new game's: [Ranks] SLevel in the ini
 Function SetSLevel(Int aiLevel) Global Native
 Int Function GetRankLevel(Int aiRank) Global Native
+; TEMPORARY (Show Guild Card): the dialogue-choice test harness. Topic = full form ID; place 0 first, 1 last; when 1 line starts, 2 line ends.
+String Function DebugDialogueDump() Global Native
+String Function DebugDialogueAdd(Int aiTopic, Int aiPlace) Global Native
+String Function DebugDialogueArm(Int aiTopic, Int aiWhen, Int aiPlace) Global Native
 Function NoticeRankLevelsKept() Global Native                ; the one-time notice on a save from before 1.4.0
 Float Function GetToastSeconds() Global Native               ; seconds a guild notice stays fully visible
 Function SetToastSeconds(Float afSeconds) Global Native

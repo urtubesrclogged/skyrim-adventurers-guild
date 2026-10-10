@@ -3,6 +3,7 @@
 // Free software under the GNU GPL v3 or later, with the additional permissions in EXCEPTIONS.md. NO WARRANTY.
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
+#include "DialogueSpike.h"
 #include "ControlsGuard.h"
 #include "GuildCard.h"
 #include "Guild.h"
@@ -296,6 +297,7 @@ namespace AG::Guild
 
 			RE::BSEventNotifyControl ProcessEvent(const RE::TESTopicInfoEvent* a_e, RE::BSTEventSource<RE::TESTopicInfoEvent>*) override
 			{
+				if (a_e && a_e->topicInfoFormID) DialogueSpike::OnInfo(a_e->type == RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin, a_e->topicInfoFormID);  // TEMPORARY
 				// Act once, when the innkeeper starts the line (verified in VR).
 				if (!a_e || a_e->type != RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin) return RE::BSEventNotifyControl::kContinue;
 				const auto id = a_e->topicInfoFormID;
