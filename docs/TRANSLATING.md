@@ -73,6 +73,12 @@ No new keys in the interface file. New text in the plugin (section 2):
   `AG_TopicShowCardCollege`, `AG_TopicShowCardTreasury` and `AG_TopicShowCardOrcs`.
 * Four replies to it: two for Faralda (`AG_Info_showcard_college_E`, `AG_Info_showcard_college`), one for Rhiada
   (`AG_Info_showcard_treasury`) and one for the gate guards of the Orc strongholds (`AG_Info_showcard_orcs`).
+* Six replies added to three vanilla topics, each with its own player line (the reply's prompt): the Riften gate guard
+  (`AG_Info_showcard_riften_E`, `AG_Info_showcard_riften`), the Whiterun gate guard (`AG_Info_showcard_whiterun_E`,
+  `AG_Info_showcard_whiterun`) and the roadside robber (`AG_Info_showcard_robber_AS`, `AG_Info_showcard_robber_B`, whose
+  player line is `You're robbing a ranked adventurer of the Adventurers Guild. Walk away.`). The plugin also carries
+  unchanged copies of the three vanilla topics they sit in (`DialogueRiftenGateNorthBranchTopic05`,
+  `DialogueWhiterunGuardGateStopNote`, `WERJ02Intimidate`): leave those as your game's own translation has them.
 
 ## Since 1.4.0
 

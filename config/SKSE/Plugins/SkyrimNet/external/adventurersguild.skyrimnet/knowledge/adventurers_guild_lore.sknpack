@@ -347,7 +347,7 @@
       {
         "key": "ag_card_shown",
         "display_name": "Showing a guild card",
-        "content": "A guild card is more than a keepsake: it is proof that the Adventurers Guild vouches for its bearer, and some doors open to it. At the College of Winterhold, Faralda accepts the card in place of her test of magic. At the Treasury House in Markarth, the Silver-Bloods hold the lease on the Guild counter, so a member of C-rank or above is shown in as family business. The Orc strongholds, which turn outlanders away, respect proven strength: an adventurer of A-rank or above is welcomed at the gate as a friend of the stronghold. City gate guards and tax collectors are not bound to honor it.",
+        "content": "A guild card is more than a keepsake: it is proof that the Adventurers Guild vouches for its bearer, and some doors open to it. At the College of Winterhold, Faralda accepts the card in place of her test of magic. At the Treasury House in Markarth, the Silver-Bloods hold the lease on the Guild counter, so a member of C-rank or above is shown in as family business. The Orc strongholds, which turn outlanders away, respect proven strength: an adventurer of A-rank or above is welcomed at the gate as a friend of the stronghold. City gates open to it as well: the guard at Whiterun's gate lets a member through with an apology when the city is closed to strangers, and the guard at Riften's north gate drops his talk of a visitor's tax. On the roads, a robber who learns he has stopped an adventurer of B-rank backs off, and one who has stopped an A-rank or S-rank begs for his life.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,

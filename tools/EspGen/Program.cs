@@ -924,38 +924,87 @@ mod.DialogTopics.Add(hello);
             OnPlayer(FactionIs("OrcFriendFaction", false)), new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = orcRace } }.Concat(RankConds("A+")));
     gate.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardFaction", Obj("TargetFaction", FactionFk("OrcFriendFaction")));
 
-    // PROTOTYPE (2026-10-10, not for release as it stands): a reply of ours ADDED to a vanilla choice. The Riften north
-    // gate's choices are a fixed list on the guard's line, so a topic of ours cannot join them; but its "(Persuade)"
-    // choice is a topic, and a plugin may add an INFO to a vanilla topic without overriding the INFOs already in it. Ours
-    // passes only for a member carrying the card, carries its own wording for the player's choice (the INFO's prompt),
-    // and does what vanilla's success does (TIF__000E66D2: DialogueRiftenGateGuards stage 30). The topic's own record is
-    // copied from vanilla unchanged, as the place to hang it. THE QUESTION THE TEST ANSWERS: does the game try this INFO
-    // before vanilla's two (success by Speech, then the refusal)? It has no "previous" INFO, which should put it first.
+    // ---- replies ADDED to a vanilla choice (the gates of Riften and Whiterun, the roadside robber) ----
+    // Their choices are a fixed list on the speaker's line, so a topic of ours cannot join them. But each choice is a
+    // topic, and a plugin may add an INFO to a vanilla topic without overriding the INFOs already in it. Ours carries its
+    // own wording for the player's choice (the INFO's prompt) and does what vanilla's success does. The topic's own
+    // record is copied from vanilla unchanged, as the place to hang it.
+    // WHERE IT SITS, tested in game 2026-10-10 on the Riften gate: an added INFO with no "previous" INFO is tried LAST
+    // (behind vanilla's refusal: never reached); named after a vanilla INFO, it is tried right after that one. It can
+    // never be first. So it takes a choice over only when the vanilla INFOs before it fail their own conditions:
+    //   Riften, "(Persuade)": behind the Speech success, before the refusal. A player whose Speech passes keeps vanilla's.
+    //   Whiterun, "Riverwood calls for the Jarl's aid.": behind both vanilla INFOs, which need the Riverwood errand. A
+    //     member who was not sent by Riverwood gets the card in the place vanilla leaves empty. (Its Persuade, Bribe and
+    //     Intimidate each have one INFO that always passes: nothing behind them is ever reached.)
+    //   the robber, "(Intimidate)": behind the Intimidate success, before the refusal; by Guild rank, no card needed.
     {
-        var riftenPersuade = Vanilla(0x0E66B4);
-        var vanillaTopic = masters.SelectMany(m => m.DialogTopics).Last(t => t.FormKey == riftenPersuade);
-        var refusal = vanillaTopic.Responses.First(i => i.FormKey == Vanilla(0x051A45));  // the speaker is the north guard (either side's)
-        var hang = vanillaTopic.DeepCopy();
-        hang.Responses.Clear();
-        var info = new DialogResponses(FK(InfoId("showcard:riften")), Rel)
+        DialogTopic Hang(uint topicId)
         {
-            EditorID = "AG_Info_showcard_riften",
-            Prompt = sc["prompt"]!.GetValue<string>(),
-            Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Goodbye },
-        };
-        info.Responses.Add(new DialogResponse { Text = "(PROTOTYPE, unvoiced) The Adventurers Guild? My mistake, adventurer. Forget the tax. Go on in.", Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
-        foreach (var c in refusal.Conditions) info.Conditions.Add(c.DeepCopy());
-        info.Conditions[^1].Flags &= ~Condition.Flag.OR;  // vanilla leaves OR on its last condition, where nothing follows; here something does
-        info.Conditions.Add(HasCard());
-        info.Conditions.Add(GlobalIs(gRegistered, 1));
-        info.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", Vanilla(0x0E66FC)));
-        ((ScriptEntry)info.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = 30, Flags = ScriptProperty.Flag.Edited });
-        // TEST 2 (test 1, no "previous" INFO: the game put ours LAST, behind vanilla's refusal, and the choice was unchanged).
-        // Named after vanilla's Speech success, ours should be tried second: before the refusal.
-        info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(Vanilla(0x0E66D2));
-        hang.Responses.Add(info);
-        mod.DialogTopics.Add(hang);
-        Console.WriteLine("show guild card PROTOTYPE: one reply added to the vanilla topic " + vanillaTopic.EditorID);
+            var hang = masters.SelectMany(m => m.DialogTopics).Last(t => t.FormKey == Vanilla(topicId)).DeepCopy();
+            hang.Responses.Clear();
+            mod.DialogTopics.Add(hang);
+            return hang;
+        }
+        // the speaker conditions of a vanilla INFO of that topic (who may say it), ready to have more added after them
+        List<Condition> SpeakerOf(uint topicId, uint infoId)
+        {
+            var from = masters.SelectMany(m => m.DialogTopics).Last(t => t.FormKey == Vanilla(topicId)).Responses.First(x => x.FormKey == Vanilla(infoId));
+            var cs = from.Conditions.Select(c => c.DeepCopy()).ToList();
+            cs[^1].Flags &= ~Condition.Flag.OR;  // vanilla leaves OR on its last condition, where nothing follows; here something does
+            return cs;
+        }
+        FormKey QuestFk(string edid)
+        {
+            if (questIdx.TryGetValue(edid, out var qk)) return qk;
+            Console.Error.WriteLine($"ERROR show guild card: unknown quest '{edid}'"); errors++;
+            return default;
+        }
+        // one added INFO, tried right after "after"; returns its key so the next can follow it
+        FormKey Added(DialogTopic hang, string key, string text, string prompt, FormKey after, IEnumerable<Condition> conds, string quest, int stage)
+        {
+            var info = new DialogResponses(FK(InfoId("showcard:" + key)), Rel)
+            {
+                EditorID = "AG_Info_showcard_" + key.Replace(':', '_'),
+                Prompt = prompt,
+                Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Goodbye },
+                PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(after),
+            };
+            info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            foreach (var c in conds) info.Conditions.Add(c);
+            info.VirtualMachineAdapter = Fragment("AG_TIF_ShowCardStage", Obj("TargetQuest", QuestFk(quest)));
+            ((ScriptEntry)info.VirtualMachineAdapter.Scripts[0]).Properties.Add(new ScriptIntProperty { Name = "Stage", Data = stage, Flags = ScriptProperty.Flag.Edited });
+            hang.Responses.Add(info);
+            return info.FormKey;
+        }
+        IEnumerable<Condition> Member() => new Condition[] { HasCard(), GlobalIs(gRegistered, 1) };
+        var cardPrompt = sc["prompt"]!.GetValue<string>();
+
+        // Riften, north gate: "This is obviously a shakedown. (Persuade)". Vanilla's success sets DialogueRiftenGateGuards to 30.
+        const uint riftenPersuade = 0x0E66B4;
+        var riften = Hang(riftenPersuade);
+        var prev = Added(riften, "riften:E", sc["riften"]!["E"]!.GetValue<string>(), cardPrompt, Vanilla(0x0E66D2),
+            SpeakerOf(riftenPersuade, 0x051A45).Concat(RankConds("E")).Concat(Member()), "DialogueRiftenGateGuards", 30);
+        Added(riften, "riften", sc["riften"]!["other"]!.GetValue<string>(), cardPrompt, prev,
+            SpeakerOf(riftenPersuade, 0x051A45).Concat(Member()), "DialogueRiftenGateGuards", 30);
+
+        // Whiterun, main gate: "Riverwood calls for the Jarl's aid.". Vanilla's successes set DialogueWhiterunGuardGateStop to 10.
+        var whiterun = Hang(0x0D1979);
+        Condition[] GateGuard() => new Condition[] { IsNpc(Npc("GuardWhiterunImperialGate"), false) };
+        prev = Added(whiterun, "whiterun:E", sc["whiterun"]!["E"]!.GetValue<string>(), cardPrompt, Vanilla(0x0DF1F9),
+            GateGuard().Concat(RankConds("E")).Concat(Member()), "DialogueWhiterunGuardGateStop", 10);
+        Added(whiterun, "whiterun", sc["whiterun"]!["other"]!.GetValue<string>(), cardPrompt, prev,
+            GateGuard().Concat(Member()), "DialogueWhiterunGuardGateStop", 10);
+
+        // the roadside robber: "Walk away. Right now. (Intimidate)". Vanilla's success sets WERJ02 to 100. Ranks E to C
+        // are left to vanilla (the robber is not impressed); B backs off; A and S beg.
+        const uint robberIntimidate = 0x0B8155;
+        var robber = Hang(robberIntimidate);
+        var rankPrompt = sc["robber"]!["prompt"]!.GetValue<string>();
+        prev = Added(robber, "robber:AS", sc["robber"]!["AS"]!.GetValue<string>(), rankPrompt, Vanilla(0x0B8164),
+            SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("A+")), "WERJ02", 100);
+        Added(robber, "robber:B", sc["robber"]!["B"]!.GetValue<string>(), rankPrompt, prev,
+            SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("B")), "WERJ02", 100);
+        Console.WriteLine("show guild card: 6 replies added to 3 vanilla choices (Riften, Whiterun, the robber)");
     }
     Console.WriteLine("show guild card: 3 topics, 4 lines");
 }

@@ -528,7 +528,22 @@
   },
   "treasury": "Oh, you're with the Adventurers Guild! I'm so sorry, I didn't realize. The Silver-Bloods hold the lease on your counter, so that's family business. Head right in.",
   "orcs": "That card says you have bled for your rank, outlander. Malacath honors strength that is proven. You are no Orc, but you have earned a place at our fire. Enter.",
-  "orcVoices": ["MaleOrc", "FemaleOrc"]
+  "orcVoices": ["MaleOrc", "FemaleOrc"],
+  "_added": "The three below are replies ADDED to a vanilla choice, which they take over when vanilla's own replies before them do not apply (tools/EspGen/Program.cs has the detail). riften: the north gate guard, in place of '(Persuade)' for a member whose Speech would not pass it. whiterun: the gate guard, in the place of the Riverwood line for a member Riverwood did not send. robber: the roadside thief, in place of '(Intimidate)' by Guild rank alone, B backs off, A and S beg; 'voices' are the voice types the encounter can use.",
+  "riften": {
+   "E": "The Adventurers Guild? Sorry, sorry. Forget I said anything about a tax, adventurer. Let me get that gate unlocked.",
+   "other": "A ranked adventurer. Forgive me, I didn't know. There's no tax, not for the Adventurers Guild. I'll unlock the gate right away."
+  },
+  "whiterun": {
+   "E": "A guild card? Beg your pardon, adventurer. My orders are to keep strangers out, not the Adventurers Guild. Go on in.",
+   "other": "My apologies, adventurer. I didn't see the card. The Adventurers Guild is always welcome in Whiterun. Go right in."
+  },
+  "robber": {
+   "prompt": "You're robbing a ranked adventurer of the Adventurers Guild. Walk away.",
+   "B": "A ranked adventurer? Right. Wrong traveler. No harm done, eh? On your way.",
+   "AS": "Gods, I didn't know! I've heard what your kind does to giants. Please, I'm sorry. Don't kill me!",
+   "voices": ["MaleNord", "MaleKhajiit", "MaleArgonian", "MaleDarkElf", "FemaleDarkElf"]
+  }
  },
  "prompts": {
   "register": "I'd like to register with the Adventurers Guild.",
