@@ -5,8 +5,8 @@
 **Fixes/Bugs**
 - For VR players using SteamVR: the laser pointers work again with Prisma UI 1.5.1. That version only points under
   OpenComposite, so the Guild counter opened but could not be used or even closed. Adventurers Guild now includes its own
-  fix (dynamically applied only if needed) which gives Prisma UI what it was missing for Steam VR users.
-  This *may* bring the lasers back for other Prisma UI mods too?
+  fix (dynamically applied only if needed) which gives Prisma UI what it was missing for SteamVR users.
+  This *may* bring the lasers back for other Prisma UI mods too.
 
 ## 1.4.0
 
