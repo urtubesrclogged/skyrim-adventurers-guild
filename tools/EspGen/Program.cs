@@ -945,7 +945,8 @@ mod.DialogTopics.Add(hello);
                 Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Goodbye },
                 PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(after),
             };
-            info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            byte part = 0;
+            foreach (var t in text.Split('\n')) info.Responses.Add(new DialogResponse { Text = t, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = ++part });
             foreach (var c in conds) info.Conditions.Add(c);
             if (quest != null)
             {
@@ -957,18 +958,21 @@ mod.DialogTopics.Add(hello);
         }
         IEnumerable<Condition> Member() => new Condition[] { HasCard(), GlobalIs(gRegistered, 1) };
         var cardPrompt = sc["prompt"]!.GetValue<string>();
+        // a reply in parts (a json list): the speaker asks for the card, looks, then answers. One response each, as
+        // vanilla splits a longer reply; they play one after the other with the game's own short gap between them
+        string Txt(JsonNode? n) => n is JsonArray a ? string.Join("\n", a.Select(x => x!.GetValue<string>())) : n!.GetValue<string>();
 
         // Riften, north gate: "This is obviously a shakedown. (Persuade)". Vanilla's success sets DialogueRiftenGateGuards to 30.
         const uint riftenPersuade = 0x0E66B4;
         var riften = Hang(riftenPersuade);
-        // one line whatever the rank: it is said once in a playthrough
-        Added(riften, "riften", sc["riften"]!.GetValue<string>(), cardPrompt, Vanilla(0x0E66D2),
+        // one reply whatever the rank: it is said once in a playthrough
+        Added(riften, "riften", Txt(sc["riften"]), cardPrompt, Vanilla(0x0E66D2),
             SpeakerOf(riftenPersuade, 0x051A45).Concat(Member()), "DialogueRiftenGateGuards", 30);
 
         // Whiterun, main gate: "Riverwood calls for the Jarl's aid.". Vanilla's successes set DialogueWhiterunGuardGateStop to 10.
         var whiterun = Hang(0x0D1979);
         Condition[] GateGuard() => new Condition[] { IsNpc(Npc("GuardWhiterunImperialGate"), false) };
-        Added(whiterun, "whiterun", sc["whiterun"]!.GetValue<string>(), cardPrompt, Vanilla(0x0DF1F9),
+        Added(whiterun, "whiterun", Txt(sc["whiterun"]), cardPrompt, Vanilla(0x0DF1F9),
             GateGuard().Concat(Member()), "DialogueWhiterunGuardGateStop", 10);
 
         // the College: "I think we both know I'll succeed here. (Persuade)", behind the Speech success (very hard) and
@@ -976,7 +980,7 @@ mod.DialogTopics.Add(hello);
         // line, whose script admits the player (MG01 stage 30) and has her lead the way. Any rank.
         var college = Hang(0x0B8106);
         var prev = Vanilla(0x0B810C);
-        foreach (var (key, text, rank) in new[] { ("college:E", sc["college"]!["E"]!.GetValue<string>(), "E"), ("college", sc["college"]!["other"]!.GetValue<string>(), "") })
+        foreach (var (key, text, rank) in new[] { ("college:E", Txt(sc["college"]!["E"]), "E"), ("college", Txt(sc["college"]!["other"]), "") })
         {
             var who = new Condition[] { IsNpc(Npc("Faralda"), false) };
             var info = Added(college, key, text, cardPrompt, prev, (rank == "" ? who : who.Concat(RankConds(rank))).Concat(Member()), null, 0);
