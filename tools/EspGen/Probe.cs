@@ -17,6 +17,46 @@ static class Probe
     public static List<ISkyrimModDisposableGetter> LoadMasters()
         => Masters.Select(m => SkyrimMod.CreateFromBinaryOverlay(Path.Combine(DataDir, m), SkyrimRelease.SkyrimSE)).ToList();
 
+    // editor ID of every record with one, the last plugin's copy winning
+    static Dictionary<FormKey, string> Names(List<ISkyrimModDisposableGetter> mods)
+        => mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
+
+    // One condition as text: Function(parameters) Operator Value, with the global it compares against and the reference
+    // it runs on named. A parameter that cannot be read is shown as such, never left out. The AND/OR is the caller's.
+    static string Cond(IConditionGetter c, Dictionary<FormKey, string> names)
+    {
+        string N(FormKey k) => k.IsNull ? "none" : names.GetValueOrDefault(k, k.ToString());
+        var d = c.Data;
+        var ps = d.GetType().GetProperties()
+            .Where(p => p.Name is not ("RunOnType" or "Reference" or "Unknown3" or "UseAliases" or "UsePackageData" or "StaticRegistration" or "Function") && !p.Name.Contains("Unused"))
+            .Select(p => {
+                object? v;
+                try { v = p.GetValue(d); } catch (Exception e) { return "<unreadable " + p.Name + ": " + (e.InnerException ?? e).GetType().Name + ">"; }
+                var link = v?.GetType().GetProperty("Link")?.GetValue(v) ?? v;
+                var fk = link?.GetType().GetProperty("FormKey")?.GetValue(link);
+                return fk is FormKey k ? N(k) : (v is string or int or float or bool or Enum ? v.ToString() : null); })
+            .Where(x => !string.IsNullOrEmpty(x));
+        var cmp = c is IConditionFloatGetter f ? f.ComparisonValue.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : c is IConditionGlobalGetter g ? "global " + N(g.ComparisonValue.FormKey) : "?";
+        var on = d.RunOnType == Condition.RunOnType.Subject ? "" : " @" + d.RunOnType + (d.RunOnType == Condition.RunOnType.Reference ? "(" + N(d.Reference.FormKey) + ")" : "");
+        return d.GetType().Name.Replace("ConditionDataBinaryOverlay", "").Replace("ConditionData", "") + "(" + string.Join(",", ps) + ") " + c.CompareOperator + " " + cmp + on;
+    }
+
+    // A topic's INFOs in the order the game tries them: the PreviousDialog chain, not the order they are stored in.
+    // Null when the chain cannot be followed (two starts, a break, a loop): the caller then says so.
+    static List<IDialogResponsesGetter>? Chain(IReadOnlyList<IDialogResponsesGetter> infos)
+    {
+        var own = infos.Select(i => i.FormKey).ToHashSet();
+        var starts = infos.Where(i => i.PreviousDialog.IsNull || !own.Contains(i.PreviousDialog.FormKey)).ToList();
+        if (starts.Count != 1) return null;
+        var next = new Dictionary<FormKey, IDialogResponsesGetter>();
+        foreach (var i in infos.Where(i => i != starts[0]))
+            if (!next.TryAdd(i.PreviousDialog.FormKey, i)) return null;
+        var order = new List<IDialogResponsesGetter> { starts[0] };
+        while (next.TryGetValue(order[^1].FormKey, out var n) && order.Count <= infos.Count) order.Add(n);
+        return order.Count == infos.Count ? order : null;
+    }
+
     public static void Run(string[] args)
     {
         var what = args.Length > 1 ? args[1] : "factions";
@@ -86,32 +126,31 @@ static class Probe
                             Console.WriteLine($"{m.ModKey.FileName}\t{i.FormKey.ID:X8}_{r.ResponseNumber}\t{t.EditorID}\t{t.Subtype}\t\"{r.Text?.String}\"");
             return;
         }
-        if (what == "topic") {      // the LAST plugin's topics (editor ID match), every INFO in the order the game tries them: conditions, flags, links
-            var names = mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
-            string C(IConditionGetter c)
-            {
-                var d = c.Data;
-                var ps = d.GetType().GetProperties().Where(p => p.Name is not ("RunOnType" or "Reference" or "Unknown3" or "UseAliases" or "UsePackageData" or "StaticRegistration" or "Function"))
-                    .Select(p => { object? v = null; try { v = p.GetValue(d); } catch { }
-                        var link = v?.GetType().GetProperty("Link")?.GetValue(v) ?? v;
-                        var fk = link?.GetType().GetProperty("FormKey")?.GetValue(link);
-                        return fk is FormKey k ? names.GetValueOrDefault(k, k.ToString()) : (v is string or int or float or bool or Enum ? v.ToString() : null); })
-                    .Where(x => !string.IsNullOrEmpty(x));
-                var cmp = c is IConditionFloatGetter f ? f.ComparisonValue.ToString() : "global";
-                return $"{d.GetType().Name.Replace("ConditionDataBinaryOverlay", "").Replace("ConditionData", "")}({string.Join(",", ps)}){c.CompareOperator}{cmp}{(d.RunOnType != Condition.RunOnType.Subject ? "@" + d.RunOnType : "")}{(c.Flags.HasFlag(Condition.Flag.OR) ? " OR" : " AND")}";
-            }
-            foreach (var t in mods[^1].DialogTopics.Where(t => re.IsMatch(t.EditorID ?? "")))
+        if (what == "topic") {      // the plugin's topics (editor ID match), every INFO in the order the game tries them: conditions, flags, links
+            if (args.Length <= 3) { Console.Error.WriteLine("topic: needs the plugin to read: --probe topic <regex> <plugin path>"); Environment.ExitCode = 2; return; }
+            var names = Names(mods);
+            var plugin = mods[^1];
+            foreach (var t in plugin.DialogTopics.Where(t => re.IsMatch(t.EditorID ?? "")))
             {
                 var branch = names.GetValueOrDefault(t.Branch.FormKey, "-");
                 Console.WriteLine("## " + t.EditorID + " (" + t.FormKey.ID.ToString("X") + ") [" + t.Name?.String + "] " + t.Subtype + " branch=" + branch + " infos=" + t.Responses.Count);
-                foreach (var i in t.Responses)
+                if (t.FormKey.ModKey != plugin.ModKey)
+                {
+                    var theirs = mods.Take(mods.Count - 1).SelectMany(m => m.DialogTopics).Where(x => x.FormKey == t.FormKey).SelectMany(x => x.Responses).Select(x => x.FormKey).Distinct().Count();
+                    Console.WriteLine("  !! a topic of " + t.FormKey.ModKey.FileName + ": only this plugin's INFOs are listed (the masters hold " + theirs + " more); a prev= outside the list is one of theirs");
+                }
+                var order = Chain(t.Responses);
+                if (order is null) Console.WriteLine("  !! the PreviousDialog chain cannot be followed (two starts, a break or a loop): listed as stored, which may not be the order the game uses");
+                else if (!order.Select(x => x.FormKey).SequenceEqual(t.Responses.Select(x => x.FormKey))) Console.WriteLine("  !! stored out of order: listed by the PreviousDialog chain, as the game tries them");
+                foreach (var i in order ?? t.Responses.ToList())
                 {
                     var prev = i.PreviousDialog.IsNull ? "-" : i.PreviousDialog.FormKey.ID.ToString("X");
                     var links = string.Join(",", i.LinkTo.Select(l => names.GetValueOrDefault(l.FormKey, l.FormKey.ToString())));
                     var text = string.Join(" | ", i.Responses.Select(r => r.Text?.String));
                     var script = i.VirtualMachineAdapter is null ? "-" : "yes";
                     Console.WriteLine("  " + i.FormKey.ID.ToString("X") + " prev=" + prev + " flags=" + i.Flags?.Flags + " links=[" + links + "] script=" + script + " :: " + text);
-                    Console.WriteLine("        " + string.Join(" ", i.Conditions.Select(C)));
+                    var cs = i.Conditions.ToList();
+                    Console.WriteLine("        " + string.Concat(cs.Select((c, n) => Cond(c, names) + (n == cs.Count - 1 ? "" : c.Flags.HasFlag(Condition.Flag.OR) ? " OR " : " AND "))));
                 }
             }
             return;
@@ -119,31 +158,19 @@ static class Probe
         if (what == "sayswhen") {   // like "says", with each INFO's other conditions and the NPC's level: WHEN they say it
             var npc = mods.SelectMany(m => m.Npcs).GroupBy(n => n.FormKey).Select(g => g.Last()).FirstOrDefault(n => re.IsMatch(n.EditorID ?? ""));
             if (npc is null) { Console.WriteLine("no NPC matches"); return; }
-            var names = mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
+            var names = Names(mods);
             Console.WriteLine($"{npc.EditorID}: level {(npc.Configuration.Level is INpcLevelGetter nl ? nl.Level.ToString() : npc.Configuration.Level is IPcLevelMultGetter pm ? "player x" + pm.LevelMult : "?")} (calc {npc.Configuration.CalcMinLevel}-{npc.Configuration.CalcMaxLevel}), flags {npc.Configuration.Flags}, class {names.GetValueOrDefault(npc.Class.FormKey, "?")}, aggression {npc.AIData.Aggression}, confidence {npc.AIData.Confidence}");
-            string Cond(IConditionGetter c)
-            {
-                var d = c.Data;
-                var ps = d.GetType().GetProperties().Where(p => p.Name is not ("RunOnType" or "Reference" or "Unknown3" or "UseAliases" or "UsePackageData" or "StaticRegistration" or "Function"))
-                    .Select(p => { object? v = null; try { v = p.GetValue(d); } catch { }
-                        var link = v?.GetType().GetProperty("Link")?.GetValue(v) ?? v;
-                        var fk = link?.GetType().GetProperty("FormKey")?.GetValue(link);
-                        return fk is FormKey k ? names.GetValueOrDefault(k, k.ToString()) : (v is string or int or float or bool or Enum ? v.ToString() : null); })
-                    .Where(x => !string.IsNullOrEmpty(x));
-                var cmp = c is IConditionFloatGetter f ? f.ComparisonValue.ToString() : "global";
-                return $"{d.GetType().Name.Replace("ConditionDataBinaryOverlay", "").Replace("ConditionData", "")}({string.Join(",", ps)}) {c.CompareOperator} {cmp}{(c.Flags.HasFlag(Condition.Flag.OR) ? " OR" : "")}";
-            }
             foreach (var m in mods)
                 foreach (var t in m.DialogTopics)
                     foreach (var i in t.Responses.Where(i => i.Conditions.Any(c => c.Data is IGetIsIDConditionDataGetter g && g.Object.Link.FormKey == npc.FormKey)))
                     {
                         Console.WriteLine($"[{t.EditorID} / {t.Subtype}] {string.Join(" | ", i.Responses.Select(r => "\"" + r.Text?.String + "\""))}");
-                        Console.WriteLine("      when: " + string.Join("; ", i.Conditions.Where(c => c.Data is not IGetIsIDConditionDataGetter).Select(Cond)));
+                        Console.WriteLine("      when: " + string.Join("; ", i.Conditions.Where(c => c.Data is not IGetIsIDConditionDataGetter).Select(c => Cond(c, names) + (c.Flags.HasFlag(Condition.Flag.OR) ? " OR" : ""))));
                     }
             return;
         }
         if (what == "npcdetail") {  // scripts (with object properties), packages and their conditions: what an NPC is wired to do
-            var names = mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
+            var names = Names(mods);
             var pkgs = mods.SelectMany(m => m.Packages).GroupBy(x => x.FormKey).ToDictionary(g => g.Key, g => g.Last());
             foreach (var n in mods.SelectMany(m => m.Npcs).GroupBy(n => n.FormKey).Select(g => g.Last()).Where(n => re.IsMatch(n.EditorID ?? "")))
             {
@@ -173,7 +200,7 @@ static class Probe
             return;
         }
         if (what == "aliases") {    // a quest's aliases: who fills each, the factions and packages it gives, its scripts and fill conditions
-            var names = mods.SelectMany(m => m.EnumerateMajorRecords()).Where(r => r.EditorID != null).GroupBy(r => r.FormKey).ToDictionary(g => g.Key, g => g.Last().EditorID!);
+            var names = Names(mods);
             string N(FormKey k) => k.IsNull ? "-" : names.GetValueOrDefault(k, k.ToString());
             foreach (var q in mods.SelectMany(m => m.Quests).GroupBy(x => x.FormKey).Select(g => g.Last()).Where(x => re.IsMatch(x.EditorID ?? "")))
             {
