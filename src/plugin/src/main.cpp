@@ -112,7 +112,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 	SKSE::Init(a_skse);
 	InitLog();
 	AG::Diag::Init(a_skse->SKSEVersion());
-	SKSE::log::info("Adventurers Guild {}.{}.{} loading (runtime {})", AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH, a_skse->RuntimeVersion().string());
+	SKSE::log::info("Adventurers Guild {}.{}.{}{} loading (runtime {})", AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH, AG_VERSION_LABEL, a_skse->RuntimeVersion().string());
 
 	AG::LoadConfig();
 	AG::Names::Install();

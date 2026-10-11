@@ -81,8 +81,8 @@ namespace AG::Diag
 	{
 		const auto& game = REL::Module::get();
 		const char* edition = REL::Module::IsVR() ? "Skyrim VR" : REL::Module::IsAE() ? "Skyrim AE" : "Skyrim SE";
-		SKSE::log::info("Environment: {} {}, SKSE {}.{}.{}, Adventurers Guild {}.{}.{}, detailed log {}", edition, game.version().string("."),
-			(g_skse >> 24) & 0xFF, (g_skse >> 16) & 0xFF, (g_skse >> 4) & 0xFFF, AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH,
+		SKSE::log::info("Environment: {} {}, SKSE {}.{}.{}, Adventurers Guild {}.{}.{}{}, detailed log {}", edition, game.version().string("."),
+			(g_skse >> 24) & 0xFF, (g_skse >> 16) & 0xFF, (g_skse >> 4) & 0xFFF, AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH, AG_VERSION_LABEL,
 			g_ini.load() || g_mcm.load() ? "on" : "off");
 		SKSE::log::info("Environment: AdventurersGuild.esp {}", Plugin("AdventurersGuild.esp"));
 		SKSE::log::info("Environment: SkyUI_SE.esp {} (the MCM needs it)", Plugin("SkyUI_SE.esp"));
