@@ -3,6 +3,7 @@
 // Free software under the GNU GPL v3 or later, with the additional permissions in EXCEPTIONS.md. NO WARRANTY.
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
+#include "Diag.h"
 #include "Kills.h"
 #include "Adventurers.h"
 #include <chrono>
@@ -133,6 +134,7 @@ namespace AG::Kills
 			RE::BSEventNotifyControl ProcessEvent(const RE::TESDeathEvent* a_e, RE::BSTEventSource<RE::TESDeathEvent>*) override
 			{
 				if (!a_e || !a_e->actorDying) return RE::BSEventNotifyControl::kContinue;
+				const Diag::Timed timed("crediting a death");
 				Party::OnDeath(a_e->actorDying->As<RE::Actor>());
 				// an innkeeper who keeps a Guild counter: the game hands the inn to their backup from a script (a few
 				// seconds), and whoever it is takes the counter over then
@@ -151,6 +153,7 @@ namespace AG::Kills
 			RE::BSEventNotifyControl ProcessEvent(const RE::TESHitEvent* a_e, RE::BSTEventSource<RE::TESHitEvent>*) override
 			{
 				if (!a_e || !a_e->target || !a_e->cause) return RE::BSEventNotifyControl::kContinue;
+				const Diag::Timed timed("noting a hit");
 				auto* pc = RE::PlayerCharacter::GetSingleton();
 				auto* attacker = a_e->cause->As<RE::Actor>();
 				if (!pc || !attacker || !a_e->target->As<RE::Actor>() || !PlayerSideAttacker(attacker, pc)) return RE::BSEventNotifyControl::kContinue;

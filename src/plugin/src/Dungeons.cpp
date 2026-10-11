@@ -3,6 +3,7 @@
 // Free software under the GNU GPL v3 or later, with the additional permissions in EXCEPTIONS.md. NO WARRANTY.
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
+#include "Diag.h"
 #include "Dungeons.h"
 
 #include "Adventurers.h"
@@ -358,6 +359,7 @@ namespace AG::Dungeons
 
 			RE::BSEventNotifyControl ProcessEvent(const RE::BGSActorCellEvent* a_e, RE::BSTEventSource<RE::BGSActorCellEvent>*) override
 			{
+				const Diag::Timed timed("noting that the player changed cell");
 				if (a_e && a_e->flags.all(RE::BGSActorCellEvent::CellFlag::kEnter)) {
 					SKSE::GetTaskInterface()->AddTask([] {
 						Guild::SyncGlobals();  // time-based globals (recent-promotion gossip) catch up on every cell change

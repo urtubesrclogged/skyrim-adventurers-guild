@@ -3,6 +3,7 @@
 // Free software under the GNU GPL v3 or later, with the additional permissions in EXCEPTIONS.md. NO WARRANTY.
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
+#include "Diag.h"
 #include "ControlsGuard.h"
 #include "GuildCard.h"
 #include "Guild.h"
@@ -16,6 +17,7 @@
 #include "RankCore.h"
 #include "Shop.h"
 
+#include <SimpleIni.h>
 #include <chrono>
 #include <deque>
 #include <unordered_set>
@@ -87,6 +89,7 @@ namespace AG::Guild
 		// "Prepare to Uninstall" (MCM): every ability and perk of ours is taken back and nothing re-grants it, so
 		// the plugin can be removed without leaving stat changes baked into the save. Cancel restores everything.
 		std::atomic<bool>            g_dormant{ false };
+		std::atomic<SaveData>        g_saveData{ SaveData::kNone };  // set as a save loads; see Guild.h
 		std::array<int, 3>           g_training{};      // purchased steps: Health, Stamina, Magicka
 
 		// ---- our forms ----
@@ -113,7 +116,21 @@ namespace AG::Guild
 		RE::TESTopic*  g_replaceTopic{ nullptr };  // the player's "I've lost my guild card" line: the DLL writes the fee into it
 		// Liaison dialogue lines by role (dialogue.resolved.json). Staff/referral lines are not listed,
 		// so choosing a topic at a non-guild inn only gets the innkeeper's pointer to the right city.
-		std::unordered_set<RE::FormID> g_infoRegister, g_infoPromote, g_infoBusiness, g_infoReplace;
+		//
+		// A line is recognised WHEN IT IS SPOKEN, never from a table of forms looked up at start-up (1.4.2). Until 1.4.1
+		// each line was looked up once, at kDataLoaded, and kept; on a player's 1.6.1170 game with some 2,900 light
+		// plugins every one of the 147 lookups failed (their log, 2026-10-11: "0 register, 0 promote, 0 business lines";
+		// every other record of the plugin was found), so for that whole session the innkeeper said her line and nothing
+		// happened. The same file on another 1.6.1170 game found them all: the cause is in that install, unknown and not
+		// ours to find. So nothing here depends on that moment any more: the line's own ID is taken apart when the game
+		// reports it (RoleOfLine), and a line that is not at our IDs is recognised by its topic and kind.
+		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace };
+		std::unordered_map<std::uint32_t, Role> g_roleOfLocal;  // the plugin's own line IDs (0xA00...), as the json gives them
+		std::atomic<RE::FormID>                 g_ownBase{ 0 }, g_ownMask{ 0 };  // this session's form IDs of the plugin: base and local part
+		std::atomic<bool>                       g_saidByTopic{ false };
+		std::atomic<std::uint32_t>              g_saidNothing{ 0 };  // one bit for each of the four acting topics: "spoken, nothing done" is logged once
+		std::vector<std::uint32_t>              g_lineLocals;        // every line ID the json names, for the count taken again at the first load
+		int                                     g_foundAtStart = -1;
 		RE::TESQuest*        g_regQuest{ nullptr };
 		RE::TESObjectBOOK*   g_regMissive{ nullptr };
 		RE::TESBoundObject*  g_gold{ nullptr };
@@ -255,6 +272,80 @@ namespace AG::Guild
 
 		// ---- event sinks ----
 
+		// Which of the plugin's own lines a form ID is: true with its local ID (0xA00...) when the ID is one of this
+		// plugin's. Worked out from the ID alone; the plugin's base is asked for once it can be given.
+		bool OwnLocal(RE::FormID a_id, std::uint32_t& a_local)
+		{
+			auto base = g_ownBase.load(std::memory_order_relaxed);
+			if (!base) {
+				auto* dh = RE::TESDataHandler::GetSingleton();
+				base = dh ? dh->LookupFormID(0, kPlugin) : 0;
+				if (!base) return false;
+				g_ownMask = (base >> 24) == 0xFE ? 0xFFFu : 0xFFFFFFu;  // a light plugin's records have 12 bits, a full one's 24
+				g_ownBase = base;
+			}
+			const auto mask = g_ownMask.load(std::memory_order_relaxed);
+			if ((a_id & ~mask) != base) return false;
+			a_local = a_id & mask;
+			return true;
+		}
+
+		int GoldCount();  // below
+
+		// What a line that is starting means to the Guild. First by its ID (exact: the line is one of ours and the json
+		// names it). Failing that, and only for a line said to the player in conversation, by what it is: the topic it
+		// belongs to (topics keep their editor IDs at run time) and its kind. Checked against every INFO of the released
+		// plugin (2026-10-11): in AG_TopicRegisterPay, AG_TopicPromotePay and AG_TopicBusiness the lines that act are
+		// exactly the ones flagged Goodbye (15 / 15 / 103; the 1 / 1 / 26 others are not); in AG_TopicReplace the 14
+		// that act are not flagged, and are told from the other 5 by who speaks (a rep, at her counter) and by the
+		// player having the fee. That second way is what still works if a line of ours is not where its ID says.
+		Role RoleOfLine(RE::FormID a_id, RE::TESObjectREFR* a_speaker)
+		{
+			std::uint32_t local = 0;
+			const bool    own = OwnLocal(a_id, local);
+			if (own)
+				if (auto it = g_roleOfLocal.find(local); it != g_roleOfLocal.end()) return it->second;
+			auto* mtm = RE::MenuTopicManager::GetSingleton();
+			if (!mtm || !a_speaker) return Role::kNone;
+			const bool toPlayer = mtm->speaker.get().get() == a_speaker;  // otherwise idle talk: not said to the player
+			// A line with one of our IDs that the json does not name is one that does nothing (a greeting, "you can't
+			// afford it"), unless the IDs have already proved wrong this session. A line with someone else's ID is looked
+			// at even when it is not said to the player: if it turns out to be ours, the log has to say why nothing came of it.
+			const bool suspect = !own || g_saidByTopic.load(std::memory_order_relaxed);
+			if (!toPlayer && !suspect) return Role::kNone;
+			auto* info = RE::TESForm::LookupByID<RE::TESTopicInfo>(a_id);
+			if (!info && mtm->currentTopicInfo && mtm->currentTopicInfo->GetFormID() == a_id) info = mtm->currentTopicInfo;
+			auto*       topic = info ? info->parentTopic : nullptr;
+			const char* name = topic ? topic->GetFormEditorID() : nullptr;
+			if (!name || std::strncmp(name, "AG_Topic", 8) != 0) return Role::kNone;
+			const std::string_view edid(name);
+			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"
+			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusiness" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
+			if (acting < 0) return Role::kNone;
+			Role        role = Role::kNone;
+			std::string why;
+			if (!toPlayer) {
+				auto* with = mtm->speaker.get().get();
+				why = std::format("it was not said in the player's conversation (which is with {})", with ? std::format("{:08X}", with->GetFormID()) : std::string("nobody"));
+			} else if (acting < 3) {
+				if (goodbye) role = acting == 0 ? Role::kRegister : acting == 1 ? Role::kPromote : Role::kBusiness;
+				else why = "the line is not one that ends the conversation (in this topic those are the ones that act)";
+			} else {
+				const bool rep = Adventurers::IsLiaison(a_speaker->As<RE::Actor>());
+				const int  gold = GoldCount();
+				if (!goodbye && rep && gold >= g_cfg.cardFee) role = Role::kReplace;
+				else why = goodbye ? "the line ends the conversation (in this topic those do not act)" : !rep ? "the speaker is not one of the Guild's representatives"
+				                   : std::format("the player has {} gold and the card costs {}", gold, g_cfg.cardFee);
+			}
+			if (role == Role::kNone && suspect && !(g_saidNothing.fetch_or(1u << acting) & (1u << acting)))
+				SKSE::log::warn("Guild: line {:08X} of {} was spoken by {:08X} and the Guild did nothing: {}. (Said once for this topic. The line's ID is {}.)", a_id, name,
+					a_speaker->GetFormID(), why, own ? "one of ours that the plugin does not know" : "not one of ours");
+			if (role != Role::kNone && !g_saidByTopic.exchange(true))
+				SKSE::log::warn("Guild: line {:08X} of {} is not at one of this plugin's line IDs ({}) - recognised by its topic and kind instead. Something in this load order has moved the plugin's dialogue; the Guild works all the same.",
+					a_id, name, own ? "an ID of ours the plugin does not know" : "not an ID of ours");
+			return role;
+		}
+
 		// Retired adventurers (a guard or soldier who once held a guild rank, Adventurers::Of) join
 		// AG_RetiredAdventurerFaction as they load, so world dialogue can pick them out with a plain
 		// GetInFaction condition. The same NPC always gets the same answer, so this is idempotent.
@@ -269,6 +360,7 @@ namespace AG::Guild
 			RE::BSEventNotifyControl ProcessEvent(const RE::TESObjectLoadedEvent* a_e, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) override
 			{
 				if (!a_e || !a_e->loaded) return RE::BSEventNotifyControl::kContinue;
+				const Diag::Timed timed("marking an actor as it loaded (retired adventurers, wanderers, representatives)");
 				auto* actor = RE::TESForm::LookupByID<RE::Actor>(a_e->formID);
 				if (!actor || actor->IsPlayerRef()) return RE::BSEventNotifyControl::kContinue;
 				if (g_retiredFaction && !actor->IsInFaction(g_retiredFaction) && Adventurers::Of(actor).kind == Adventurers::Kind::kRetired)
@@ -301,21 +393,25 @@ namespace AG::Guild
 				if (!a_e || a_e->type != RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin) return RE::BSEventNotifyControl::kContinue;
 				const auto id = a_e->topicInfoFormID;
 				if (!id) return RE::BSEventNotifyControl::kContinue;
+				const Diag::Timed timed("looking at a line someone started to speak");
+				// every line anyone says comes through here (some 25 a second in a busy inn): all but ours stop at this test
+				const Role role = RoleOfLine(id, a_e->speakerRef.get());
+				if (role == Role::kNone) return RE::BSEventNotifyControl::kContinue;
 				const std::string city = Adventurers::LiaisonCity(a_e->speakerRef.get());
-				if (g_infoRegister.contains(id)) {
+				if (role == Role::kRegister) {
 					SKSE::GetTaskInterface()->AddTask([city] {
 						const bool was = Registered();
 						DoRegister();
 						if (!was && Registered()) GuildCard::Stamp(city);
 					});
-				} else if (g_infoPromote.contains(id)) {
+				} else if (role == Role::kPromote) {
 					SKSE::GetTaskInterface()->AddTask(DoPromote);
-				} else if (g_infoReplace.contains(id)) {
+				} else if (role == Role::kReplace) {
 					// "Here, a fresh one.": the player's own line named the fee, so it is paid without asking again
 					SKSE::GetTaskInterface()->AddTask([city] {
 						if (auto msg = GuildCard::Replace(city); !msg.empty()) RE::SendHUDMessage::ShowHUDMessage(msg.c_str());
 					});
-				} else if (g_infoBusiness.contains(id)) {
+				} else if (role == Role::kBusiness) {
 					// the line is a Goodbye: the counter opens as the menu closes, labelled with this branch
 					Counter::OpenAfterDialogue(city);
 				}
@@ -412,11 +508,17 @@ namespace AG::Guild
 			Dungeons::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
+			g_saveData = SaveData::kNone;
 			std::uint32_t type, ver, len;
 			while (a->GetNextRecordInfo(type, ver, len)) {
 				if (type != kRec) continue;
 				std::string s(len, '\0');
-				a->ReadRecordData(s.data(), len);
+				const auto got = a->ReadRecordData(s.data(), len);
+				g_saveData = SaveData::kBroken;  // until every part of it has been read
+				if (got != len) {
+					SKSE::log::error("Guild: co-save record cut short ({} of {} bytes read); this session takes no posted job down", got, len);
+					continue;
+				}
 				try {
 					auto j = nlohmann::json::parse(s);
 					{
@@ -474,8 +576,9 @@ namespace AG::Guild
 					SetSLevel(j.value("sLevel", kSLevelBefore140));
 					Dungeons::Load(j.value("dungeons", nlohmann::json::object()));
 					Party::Load(j.value("parties", nlohmann::json::array()));
+					g_saveData = SaveData::kClean;
 				} catch (const std::exception& e) {
-					SKSE::log::error("Guild: co-save parse error: {}", e.what());
+					SKSE::log::error("Guild: co-save parse error: {}; this session takes no posted job down", e.what());
 				}
 			}
 			SKSE::log::info("Guild: co-save loaded ({})", Dump());
@@ -492,6 +595,7 @@ namespace AG::Guild
 			Dungeons::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());
+			g_saveData = SaveData::kNone;
 		}
 
 		template <class T>
@@ -595,20 +699,26 @@ namespace AG::Guild
 		g_promotedFaction = Own<RE::TESFaction>(0xC92);
 		g_gReports = Own<RE::TESGlobal>(0x8C7);
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESObjectLoadedEvent>(RetiredSink::Get());
+		int lines = 0, found = 0;
 		try {
 			std::ifstream df("Data/SKSE/Plugins/AdventurersGuild/dialogue.resolved.json");
 			auto dj = nlohmann::json::parse(df, nullptr, true, true);
-			auto load = [&](const char* a_role, std::unordered_set<RE::FormID>& a_out) {
-				a_out.clear();
+			g_roleOfLocal.clear();
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			auto  load = [&](const char* a_role, Role a_is) {
 				for (auto& hex : dj.at("roles").value(a_role, nlohmann::json::array())) {
-					if (auto* i = Own<RE::TESTopicInfo>(static_cast<RE::FormID>(std::stoul(hex.get<std::string>(), nullptr, 16))))
-						a_out.insert(i->GetFormID());
+					const auto local = static_cast<std::uint32_t>(std::stoul(hex.get<std::string>(), nullptr, 16));
+					g_roleOfLocal[local] = a_is;
+					g_lineLocals.push_back(local);
+					++lines;
+					// only to say so in the log: nothing is kept from this, and nothing depends on it
+					if (dh && dh->LookupForm<RE::TESTopicInfo>(local, kPlugin)) ++found;
 				}
 			};
-			load("register", g_infoRegister);
-			load("promote", g_infoPromote);
-			load("business", g_infoBusiness);
-			load("replace", g_infoReplace);
+			load("register", Role::kRegister);
+			load("promote", Role::kPromote);
+			load("business", Role::kBusiness);
+			load("replace", Role::kReplace);
 		} catch (const std::exception& e) {
 			SKSE::log::error("Guild: dialogue.resolved.json error: {} - guild dialogue will do nothing", e.what());
 		}
@@ -636,8 +746,36 @@ namespace AG::Guild
 		auto* s = Sinks::Get();
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTopicInfoEvent>(s);
 		if (auto* src = RE::LevelIncrease::GetEventSource()) src->AddEventSink(s);
-		SKSE::log::info("Guild: forms resolved ({} register, {} promote, {} business lines), sinks registered",
-			g_infoRegister.size(), g_infoPromote.size(), g_infoBusiness.size());
+		SKSE::log::info("Guild: {} dialogue lines act for the Guild; they are recognised as they are spoken. Sinks registered", lines);
+		// For testing the second way of recognising a line: [Debug] ForgetLineIDs = 1 empties the table of line IDs, so
+		// every line has to be recognised by its topic and kind, as on an install where the IDs are of no use.
+		{
+			CSimpleIniA ini;
+			ini.SetUnicode();
+			if (ini.LoadFile("Data/SKSE/Plugins/AdventurersGuild.ini") >= 0 && ini.GetBoolValue("Debug", "ForgetLineIDs", false)) {
+				g_roleOfLocal.clear();
+				SKSE::log::warn("Guild: [Debug] ForgetLineIDs is on - no line is known by its ID; each is recognised by its topic and kind (a test setting)");
+			}
+		}
+		g_foundAtStart = found;
+		if (found < lines) {
+			// The 1.4.1 failure, seen for what it is. What the game does hold for our topics goes in the log, so the next
+			// such report says how: no lines yet (they come later), or lines under other IDs (something renumbered them).
+			SKSE::log::warn("Guild: the game gave back {} of those {} lines by their IDs at start-up. 1.4.1 and earlier did nothing for a line it could not find here; from 1.4.2 this no longer matters. For the record:", found, lines);
+			for (const RE::FormID t : { RE::FormID{ 0x816 }, RE::FormID{ 0x818 }, RE::FormID{ 0x80C }, RE::FormID{ 0x81C } }) {
+				auto* dh = RE::TESDataHandler::GetSingleton();
+				auto* topic = dh ? dh->LookupForm<RE::TESTopic>(t, kPlugin) : nullptr;
+				if (!topic) {
+					SKSE::log::warn("Guild:   topic 0x{:03X}: not found either", t);
+					continue;
+				}
+				std::string ids;
+				for (std::uint32_t i = 0; i < topic->numTopicInfos && i < 6 && topic->topicInfos; ++i)
+					if (auto* x = topic->topicInfos[i]) ids += std::format(" {:08X}", x->GetFormID());
+				SKSE::log::warn("Guild:   topic 0x{:03X} {} ({:08X}): {} lines in the game{}{}", t, topic->GetFormEditorID() ? topic->GetFormEditorID() : "", topic->GetFormID(),
+					topic->numTopicInfos, ids.empty() ? "" : ", the first:", ids);
+			}
+		}
 	}
 
 	void SetupSerialization()
@@ -659,8 +797,21 @@ namespace AG::Guild
 		}
 		SyncGlobals();
 		ApplyAbilities();
+		// Once: the count of lines found by their IDs, taken again now that a game is loaded. Said only when it differs
+		// from start-up - which would mean the answer depends on when it is asked (a timing fault, not a renumbering).
+		static std::atomic<bool> counted{ false };
+		if (!counted.exchange(true) && g_foundAtStart >= 0) {
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			int   now = 0;
+			for (const auto local : g_lineLocals)
+				if (dh && dh->LookupForm<RE::TESTopicInfo>(local, kPlugin)) ++now;
+			if (now != g_foundAtStart)
+				SKSE::log::warn("Guild: {} of {} dialogue lines are found by their IDs now that a game is loaded; at start-up it was {}. The answer depends on when it is asked.", now,
+					g_lineLocals.size(), g_foundAtStart);
+		}
 	}
 
+	SaveData SaveState() { return g_saveData.load(); }
 	bool Registered() { std::lock_guard l(g_lock); return g_registered; }
 	int  Rank() { std::lock_guard l(g_lock); return g_registered ? g_rank : -1; }
 	int  Merit() { std::lock_guard l(g_lock); return g_merit; }
@@ -751,6 +902,7 @@ namespace AG::Guild
 	void ConductTick()
 	{
 		SyncWanderers();
+		SyncSuccessors();
 		AugmentTick();
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!pc || !pc->Is3DLoaded() || Dormant()) return;
@@ -1250,14 +1402,24 @@ namespace AG::Guild
 		LogLocked(std::move(a_text));
 	}
 
+	// A successor is in the liaison faction while, and only while, the counter is theirs. Run on the 5-second beat and
+	// when an innkeeper dies, and it works both ways: until 1.4.1 it ran once, as a game started or loaded, when the
+	// city quests had not yet put anyone in their roles; the question came back empty, empty was read as "the innkeeper
+	// is gone", and all four successors were marked for good with every innkeeper alive (seen on a new game,
+	// 2026-10-11). An empty answer now means nothing has changed (Adventurers.cpp), and a mark that is wrong is removed.
 	void SyncSuccessors()
 	{
 		if (!g_liaisonFaction) return;
-		for (auto* actor : Adventurers::SucceededLiaisons())
-			if (!actor->IsInFaction(g_liaisonFaction)) {
+		for (auto& [actor, keeps] : Adventurers::Successors()) {
+			const bool marked = actor->GetFactionRank(g_liaisonFaction, false) >= 0;
+			if (keeps && !marked) {
 				actor->AddToFaction(g_liaisonFaction, 0);
 				SKSE::log::info("Guild: {} keeps a dead liaison's Adventurers Guild counter now", actor->GetDisplayFullName());
+			} else if (!keeps && marked) {
+				actor->AddToFaction(g_liaisonFaction, -1);  // rank -1: no longer of the faction
+				SKSE::log::info("Guild: {} does not keep an Adventurers Guild counter - the liaison is alive (the mark is taken back)", actor->GetDisplayFullName());
 			}
+		}
 	}
 
 	int CardFee() { return g_cfg.cardFee; }

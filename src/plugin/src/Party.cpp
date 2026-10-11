@@ -3,6 +3,7 @@
 // Free software under the GNU GPL v3 or later, with the additional permissions in EXCEPTIONS.md. NO WARRANTY.
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
+#include "Diag.h"
 #include "Party.h"
 
 #include <chrono>
@@ -687,6 +688,7 @@ namespace AG::Party
 			for (;;) {
 				std::this_thread::sleep_for(std::chrono::seconds(5));
 				SKSE::GetTaskInterface()->AddTask([] {
+					const Diag::Timed timed("the five-second check (party field time, bounties, successors, augments)");
 					Tick();
 					Guild::ConductTick();  // the player's bounties, on the same beat
 				});

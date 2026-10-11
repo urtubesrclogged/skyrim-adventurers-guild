@@ -82,6 +82,10 @@ namespace AG::Adventurers
 		{
 			if (!a_s.quest) return nullptr;
 			auto  held = a_s.quest->GetAliasedRef(a_s.alias).get();
+			// Nobody in the role: the quest has not filled it yet (a game that is starting or still loading), which says
+			// nothing about the innkeeper. When one dies the game puts the backup INTO this role (SwapAliasOnDeath:
+			// ForceRefTo), so a death never shows as an empty role, always as somebody else in it.
+			if (!held) return nullptr;
 			auto* holder = held ? held->As<RE::Actor>() : nullptr;
 			auto* hbase = holder ? holder->GetActorBase() : nullptr;
 			// the Innkeeper alias still holds the original, alive: nothing has happened
@@ -504,6 +508,15 @@ namespace AG::Adventurers
 		for (auto& su : g_successors)
 			if (su.npc == base->GetFormID()) return Active(su) == a_actor && AtInn(su, a_actor);  // only at her inn
 		return false;
+	}
+
+	std::vector<std::pair<RE::Actor*, bool>> Successors()
+	{
+		std::vector<std::pair<RE::Actor*, bool>> out;
+		std::lock_guard                          l(g_lock);
+		for (auto& su : g_successors)
+			if (auto* a = RE::TESForm::LookupByID<RE::Actor>(su.ref)) out.emplace_back(a, Active(su) == a);
+		return out;
 	}
 
 	std::vector<RE::Actor*> SucceededLiaisons()

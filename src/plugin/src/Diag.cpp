@@ -53,6 +53,21 @@ namespace AG::Diag
 		}
 	}
 
+	Timed::~Timed()
+	{
+		const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - _from).count();
+		if (ms < _limit) return;
+		static std::mutex                 lock;
+		static std::map<const char*, int> times;  // by the literal's address: one entry for each place that is timed
+		int                               n;
+		{
+			std::lock_guard l(lock);
+			n = ++times[_what];
+		}
+		if (n <= 5 || n % 50 == 0)
+			SKSE::log::warn("Slow: {} took {} ms ({} time(s) this session, counted from {} ms) - a hitch of that length at this moment is this mod's doing", _what, ms, n, _limit);
+	}
+
 	void Init(std::uint32_t a_skseVersion)
 	{
 		g_skse = a_skseVersion;
@@ -66,11 +81,30 @@ namespace AG::Diag
 	{
 		const auto& game = REL::Module::get();
 		const char* edition = REL::Module::IsVR() ? "Skyrim VR" : REL::Module::IsAE() ? "Skyrim AE" : "Skyrim SE";
-		SKSE::log::info("Environment: {} {}, SKSE {}.{}.{}, Adventurers Guild {}.{}.{}, detailed log {}", edition, game.version().string("."),
-			(g_skse >> 24) & 0xFF, (g_skse >> 16) & 0xFF, (g_skse >> 4) & 0xFFF, AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH,
+		SKSE::log::info("Environment: {} {}, SKSE {}.{}.{}, Adventurers Guild {}.{}.{}{}, detailed log {}", edition, game.version().string("."),
+			(g_skse >> 24) & 0xFF, (g_skse >> 16) & 0xFF, (g_skse >> 4) & 0xFFF, AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH, AG_VERSION_LABEL,
 			g_ini.load() || g_mcm.load() ? "on" : "off");
 		SKSE::log::info("Environment: AdventurersGuild.esp {}", Plugin("AdventurersGuild.esp"));
 		SKSE::log::info("Environment: SkyUI_SE.esp {} (the MCM needs it)", Plugin("SkyUI_SE.esp"));
+		// The weight of the load order, and whether another plugin's version of one of this mod's own records wins
+		if (auto* dh = RE::TESDataHandler::GetSingleton()) {
+			const auto*              ours = dh->LookupModByName("AdventurersGuild.esp");
+			std::vector<std::string> changed;
+			const auto               look = [&](RE::TESForm* a_form) {
+				if (!ours || !a_form || a_form->GetFile(0) != ours) return;
+				if (const auto* last = a_form->GetFile(-1); last && last != ours) changed.push_back(std::format("{:08X} by {}", a_form->GetFormID(), last->GetFilename()));
+			};
+			for (auto* f : dh->GetFormArray<RE::TESQuest>()) look(f);
+			for (auto* f : dh->GetFormArray<RE::TESTopic>()) look(f);
+			for (auto* f : dh->GetFormArray<RE::TESGlobal>()) look(f);
+			std::string list;
+			for (std::size_t i = 0; i < changed.size() && i < 6; ++i) list += (i ? ", " : "") + changed[i];
+			if (changed.empty())
+				SKSE::log::info("Environment: {} full and {} light plugins active; no other plugin changes this mod's quests, topics or globals", dh->GetLoadedModCount(), dh->GetLoadedLightModCount());
+			else
+				SKSE::log::warn("Environment: {} full and {} light plugins active; ANOTHER PLUGIN CHANGES {} of this mod's quests, topics or globals: {}{}", dh->GetLoadedModCount(),
+					dh->GetLoadedLightModCount(), changed.size(), list, changed.size() > 6 ? ", ..." : "");
+		}
 		if (REL::Module::IsVR()) {
 			SKSE::log::info("Environment: Skyrim VR ESL Support {} (VR needs it for a light plugin)", Module(L"skyrimvresl.dll"));
 			SKSE::log::info("Environment: VR runtime {}", Counter::IsOpenComposite() ? "OpenComposite" : "SteamVR");

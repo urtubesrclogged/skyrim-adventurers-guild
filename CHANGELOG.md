@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.4.2
+
+**Fixes/Bugs**
+- Registering, promotions, the Guild counter and replacement cards did nothing for some players: the mod now
+  recognizes its own lines as they are spoken as a backup instead of relying on a list made at start-up.
+- Wrye Bash could not read the plugin (KeyError: b'FNAM') and failed to build a Bashed Patch. Fixed.
+- Ysolda, Sorex Vinius, Nils and Talen-Jei could be treated as running a Guild counter while the real innkeeper was
+  alive and well. They no longer are, and saves where it already happened fix themselves on load.
+- Jobs above your rank are no longer taken off the boards while a save is loading unless the Guild's own save data
+  was read without a problem. They still come down when you walk up to a board.
+
+**Support**
+- The log says more when something goes wrong (and nothing extra when it doesn't). If you report a problem, please
+  attach `AdventurersGuild.log`.
+
 ## 1.4.1
 
 **Fixes/Bugs**

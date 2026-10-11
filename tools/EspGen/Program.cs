@@ -185,6 +185,10 @@ mod.Quests.Add(new Quest(cfgFk, Rel)
     Name = "Adventurers Guild Config",
     Flags = Quest.Flag.StartGameEnabled,
     Priority = 50,
+    // ANAM, "next alias ID": the field that introduces a quest's aliases. The game loads the quest without it, but
+    // Wrye Bash requires it and failed on this plugin (KeyError b'FNAM' while building a Bashed Patch, reported
+    // 2026-10-10): it only knows how to read an alias once it has seen ANAM. One alias (ID 0), so the next is 1.
+    NextAliasID = 1,
     Aliases =
     {
         new QuestAlias

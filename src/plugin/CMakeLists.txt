@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(AdventurersGuild VERSION 1.4.1 LANGUAGES CXX)  # the mod's version: the DLL reports it, package.sh names the zip after it
+project(AdventurersGuild VERSION 1.5.0 LANGUAGES CXX)  # the mod's version: the DLL reports it, package.sh names the zip after it
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,7 +16,10 @@ add_library(AdventurersGuild SHARED src/main.cpp src/RankCore.cpp src/Adventurer
 target_link_libraries(AdventurersGuild PRIVATE CommonLibSSE::CommonLibSSE)
 target_precompile_headers(AdventurersGuild PRIVATE <SKSE/SKSE.h> <RE/Skyrim.h>)
 target_compile_definitions(AdventurersGuild PRIVATE _UNICODE UNICODE NOMINMAX
-	AG_VERSION_MAJOR=${PROJECT_VERSION_MAJOR} AG_VERSION_MINOR=${PROJECT_VERSION_MINOR} AG_VERSION_PATCH=${PROJECT_VERSION_PATCH})
+	AG_VERSION_MAJOR=${PROJECT_VERSION_MAJOR} AG_VERSION_MINOR=${PROJECT_VERSION_MINOR} AG_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+	# A build handed out for testing names itself in the log: configure with the environment variable AG_VERSION_LABEL set
+	# (e.g. -experimental). It is read at configure time only and is empty for a release.
+	AG_VERSION_LABEL="$ENV{AG_VERSION_LABEL}")
 set_target_properties(AdventurersGuild PROPERTIES OUTPUT_NAME "AdventurersGuild")
 
 # Diagnostic plugin, not part of the mod and not built by default: cmake --build build --target ControlsWatch
