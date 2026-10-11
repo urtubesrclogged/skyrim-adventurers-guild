@@ -3,6 +3,7 @@
 // Free software under the GNU GPL v3 or later, with the additional permissions in EXCEPTIONS.md. NO WARRANTY.
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
+#include "Diag.h"
 #include "ControlsGuard.h"
 #include "GuildCard.h"
 #include "Guild.h"
@@ -126,6 +127,9 @@ namespace AG::Guild
 		std::unordered_map<std::uint32_t, Role> g_roleOfLocal;  // the plugin's own line IDs (0xA00...), as the json gives them
 		std::atomic<RE::FormID>                 g_ownBase{ 0 }, g_ownMask{ 0 };  // this session's form IDs of the plugin: base and local part
 		std::atomic<bool>                       g_saidByTopic{ false };
+		std::atomic<std::uint32_t>              g_saidNothing{ 0 };  // one bit for each of the four acting topics: "spoken, nothing done" is logged once
+		std::vector<std::uint32_t>              g_lineLocals;        // every line ID the json names, for the count taken again at the first load
+		int                                     g_foundAtStart = -1;
 		RE::TESQuest*        g_regQuest{ nullptr };
 		RE::TESObjectBOOK*   g_regMissive{ nullptr };
 		RE::TESBoundObject*  g_gold{ nullptr };
@@ -301,7 +305,13 @@ namespace AG::Guild
 			if (own)
 				if (auto it = g_roleOfLocal.find(local); it != g_roleOfLocal.end()) return it->second;
 			auto* mtm = RE::MenuTopicManager::GetSingleton();
-			if (!mtm || !a_speaker || mtm->speaker.get().get() != a_speaker) return Role::kNone;  // idle talk: not said to the player
+			if (!mtm || !a_speaker) return Role::kNone;
+			const bool toPlayer = mtm->speaker.get().get() == a_speaker;  // otherwise idle talk: not said to the player
+			// A line with one of our IDs that the json does not name is one that does nothing (a greeting, "you can't
+			// afford it"), unless the IDs have already proved wrong this session. A line with someone else's ID is looked
+			// at even when it is not said to the player: if it turns out to be ours, the log has to say why nothing came of it.
+			const bool suspect = !own || g_saidByTopic.load(std::memory_order_relaxed);
+			if (!toPlayer && !suspect) return Role::kNone;
 			auto* info = RE::TESForm::LookupByID<RE::TESTopicInfo>(a_id);
 			if (!info && mtm->currentTopicInfo && mtm->currentTopicInfo->GetFormID() == a_id) info = mtm->currentTopicInfo;
 			auto*       topic = info ? info->parentTopic : nullptr;
@@ -309,11 +319,26 @@ namespace AG::Guild
 			if (!name || std::strncmp(name, "AG_Topic", 8) != 0) return Role::kNone;
 			const std::string_view edid(name);
 			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"
-			Role                   role = Role::kNone;
-			if (edid == "AG_TopicRegisterPay" && goodbye) role = Role::kRegister;
-			else if (edid == "AG_TopicPromotePay" && goodbye) role = Role::kPromote;
-			else if (edid == "AG_TopicBusiness" && goodbye) role = Role::kBusiness;
-			else if (edid == "AG_TopicReplace" && !goodbye && Adventurers::IsLiaison(a_speaker->As<RE::Actor>()) && GoldCount() >= g_cfg.cardFee) role = Role::kReplace;
+			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusiness" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
+			if (acting < 0) return Role::kNone;
+			Role        role = Role::kNone;
+			std::string why;
+			if (!toPlayer) {
+				auto* with = mtm->speaker.get().get();
+				why = std::format("it was not said in the player's conversation (which is with {})", with ? std::format("{:08X}", with->GetFormID()) : std::string("nobody"));
+			} else if (acting < 3) {
+				if (goodbye) role = acting == 0 ? Role::kRegister : acting == 1 ? Role::kPromote : Role::kBusiness;
+				else why = "the line is not one that ends the conversation (in this topic those are the ones that act)";
+			} else {
+				const bool rep = Adventurers::IsLiaison(a_speaker->As<RE::Actor>());
+				const int  gold = GoldCount();
+				if (!goodbye && rep && gold >= g_cfg.cardFee) role = Role::kReplace;
+				else why = goodbye ? "the line ends the conversation (in this topic those do not act)" : !rep ? "the speaker is not one of the Guild's representatives"
+				                   : std::format("the player has {} gold and the card costs {}", gold, g_cfg.cardFee);
+			}
+			if (role == Role::kNone && suspect && !(g_saidNothing.fetch_or(1u << acting) & (1u << acting)))
+				SKSE::log::warn("Guild: line {:08X} of {} was spoken by {:08X} and the Guild did nothing: {}. (Said once for this topic. The line's ID is {}.)", a_id, name,
+					a_speaker->GetFormID(), why, own ? "one of ours that the plugin does not know" : "not one of ours");
 			if (role != Role::kNone && !g_saidByTopic.exchange(true))
 				SKSE::log::warn("Guild: line {:08X} of {} is not at one of this plugin's line IDs ({}) - recognised by its topic and kind instead. Something in this load order has moved the plugin's dialogue; the Guild works all the same.",
 					a_id, name, own ? "an ID of ours the plugin does not know" : "not an ID of ours");
@@ -334,6 +359,7 @@ namespace AG::Guild
 			RE::BSEventNotifyControl ProcessEvent(const RE::TESObjectLoadedEvent* a_e, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) override
 			{
 				if (!a_e || !a_e->loaded) return RE::BSEventNotifyControl::kContinue;
+				const Diag::Timed timed("marking an actor as it loaded (retired adventurers, wanderers, representatives)");
 				auto* actor = RE::TESForm::LookupByID<RE::Actor>(a_e->formID);
 				if (!actor || actor->IsPlayerRef()) return RE::BSEventNotifyControl::kContinue;
 				if (g_retiredFaction && !actor->IsInFaction(g_retiredFaction) && Adventurers::Of(actor).kind == Adventurers::Kind::kRetired)
@@ -366,6 +392,7 @@ namespace AG::Guild
 				if (!a_e || a_e->type != RE::TESTopicInfoEvent::TopicInfoEventType::kTopicBegin) return RE::BSEventNotifyControl::kContinue;
 				const auto id = a_e->topicInfoFormID;
 				if (!id) return RE::BSEventNotifyControl::kContinue;
+				const Diag::Timed timed("looking at a line someone started to speak");
 				// every line anyone says comes through here (some 25 a second in a busy inn): all but ours stop at this test
 				const Role role = RoleOfLine(id, a_e->speakerRef.get());
 				if (role == Role::kNone) return RE::BSEventNotifyControl::kContinue;
@@ -677,6 +704,7 @@ namespace AG::Guild
 				for (auto& hex : dj.at("roles").value(a_role, nlohmann::json::array())) {
 					const auto local = static_cast<std::uint32_t>(std::stoul(hex.get<std::string>(), nullptr, 16));
 					g_roleOfLocal[local] = a_is;
+					g_lineLocals.push_back(local);
 					++lines;
 					// only to say so in the log: nothing is kept from this, and nothing depends on it
 					if (dh && dh->LookupForm<RE::TESTopicInfo>(local, kPlugin)) ++found;
@@ -724,6 +752,7 @@ namespace AG::Guild
 				SKSE::log::warn("Guild: [Debug] ForgetLineIDs is on - no line is known by its ID; each is recognised by its topic and kind (a test setting)");
 			}
 		}
+		g_foundAtStart = found;
 		if (found < lines) {
 			// The 1.4.1 failure, seen for what it is. What the game does hold for our topics goes in the log, so the next
 			// such report says how: no lines yet (they come later), or lines under other IDs (something renumbered them).
@@ -763,6 +792,18 @@ namespace AG::Guild
 		}
 		SyncGlobals();
 		ApplyAbilities();
+		// Once: the count of lines found by their IDs, taken again now that a game is loaded. Said only when it differs
+		// from start-up - which would mean the answer depends on when it is asked (a timing fault, not a renumbering).
+		static std::atomic<bool> counted{ false };
+		if (!counted.exchange(true) && g_foundAtStart >= 0) {
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			int   now = 0;
+			for (const auto local : g_lineLocals)
+				if (dh && dh->LookupForm<RE::TESTopicInfo>(local, kPlugin)) ++now;
+			if (now != g_foundAtStart)
+				SKSE::log::warn("Guild: {} of {} dialogue lines are found by their IDs now that a game is loaded; at start-up it was {}. The answer depends on when it is asked.", now,
+					g_lineLocals.size(), g_foundAtStart);
+		}
 	}
 
 	SaveData SaveState() { return g_saveData.load(); }

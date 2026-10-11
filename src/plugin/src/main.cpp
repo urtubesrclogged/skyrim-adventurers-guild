@@ -39,6 +39,27 @@ namespace
 		spdlog::flush_on(spdlog::level::info);
 	}
 
+	// A save has been read (or a new game begun): the Guild catches up with it.
+	void GameLoaded(bool a_newGame)
+	{
+		const AG::Diag::Timed timed("the work done once a game is loaded", 250);
+		AG::Guild::OnGameLoaded();
+		AG::Guild::SyncSuccessors();
+		AG::MissiveWatch::OnGameLoaded();
+		AG::GuildCard::Sync(false);  // a member from before 1.2.0, or one who lost theirs, gets a card
+		AG::ControlsGuard::OnGameLoaded();
+		// Taking a posted job down cannot be undone, and here it would be done on what the save said a moment ago.
+		// Only a save read whole is believed; otherwise it waits until the player walks up to a board.
+		if (AG::Guild::SaveState() == AG::Guild::SaveData::kClean) {
+			AG::MissiveWatch::WithdrawAboveRank();
+			AG::NoticeWatch::WithdrawAboveRank();
+		} else {
+			SKSE::log::info("Game loaded without the Guild's own record ({}): posted jobs are left as they are until a board is visited",
+				a_newGame ? "a new game" : AG::Guild::SaveState() == AG::Guild::SaveData::kBroken ? "it could not be read" : "this save has none");
+		}
+		SKSE::log::info("Game loaded: player level {}, {}", RE::PlayerCharacter::GetSingleton()->GetLevel(), AG::Guild::Dump());
+	}
+
 	void OnMessage(SKSE::MessagingInterface::Message* a_msg)
 	{
 		switch (a_msg->type) {
@@ -66,23 +87,13 @@ namespace
 			AG::Party::Register();
 			SKSE::log::info("Data loaded; sinks registered");
 			break;
+		case SKSE::MessagingInterface::kPreLoadGame:
+			// the one line that tells a load that never ends from one that does: "Game loaded" follows it, or nothing does
+			SKSE::log::info("Loading a save");
+			break;
 		case SKSE::MessagingInterface::kPostLoadGame:
 		case SKSE::MessagingInterface::kNewGame:
-			AG::Guild::OnGameLoaded();
-			AG::Guild::SyncSuccessors();
-			AG::MissiveWatch::OnGameLoaded();
-			AG::GuildCard::Sync(false);  // a member from before 1.2.0, or one who lost theirs, gets a card
-			AG::ControlsGuard::OnGameLoaded();
-			// Taking a posted job down cannot be undone, and here it would be done on what the save said a moment ago.
-			// Only a save read whole is believed; otherwise it waits until the player walks up to a board.
-			if (AG::Guild::SaveState() == AG::Guild::SaveData::kClean) {
-				AG::MissiveWatch::WithdrawAboveRank();
-				AG::NoticeWatch::WithdrawAboveRank();
-			} else {
-				SKSE::log::info("Game loaded without the Guild's own record ({}): posted jobs are left as they are until a board is visited",
-					a_msg->type == SKSE::MessagingInterface::kNewGame ? "a new game" : AG::Guild::SaveState() == AG::Guild::SaveData::kBroken ? "it could not be read" : "this save has none");
-			}
-			SKSE::log::info("Game loaded: player level {}, {}", RE::PlayerCharacter::GetSingleton()->GetLevel(), AG::Guild::Dump());
+			GameLoaded(a_msg->type == SKSE::MessagingInterface::kNewGame);
 			break;
 		default:
 			break;

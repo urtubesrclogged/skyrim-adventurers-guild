@@ -22,4 +22,21 @@ namespace AG::Diag
 	// mod could not hook it up; Not Detected: not loaded).
 	std::vector<std::pair<std::string, std::string>> Integrations();
 	void SetSkyrimNetReady(bool a_ready);  // from AG_SkyrimNetInit, each load
+
+	// "Is the freeze this mod's?" Put one of these at the top of work the game calls us for; if the work took
+	// a_limitMs or longer, the log says so (the first five times for each kind of work, then every 50th). A healthy
+	// session writes nothing. The cost is two clock reads.
+	class Timed
+	{
+	public:
+		explicit Timed(const char* a_what, int a_limitMs = 50) : _what(a_what), _limit(a_limitMs), _from(std::chrono::steady_clock::now()) {}
+		~Timed();
+		Timed(const Timed&) = delete;
+		Timed& operator=(const Timed&) = delete;
+
+	private:
+		const char*                           _what;
+		int                                   _limit;
+		std::chrono::steady_clock::time_point _from;
+	};
 }
