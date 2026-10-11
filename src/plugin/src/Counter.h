@@ -16,7 +16,7 @@ namespace AG::Counter
 	// Hold stamps: the card was stamped during this visit; she says so as the counter closes (GuildCard tells us).
 	void Stamped();
 	// the representative of the last counter opened through her, has her say a topic of ours (0 = the stamp line)
-	std::string SayStampLine(std::uint32_t a_topic = 0);
+	std::string SayStampLine(std::uint32_t a_topic = 0, int a_attempt = 0);
 	void StampLineStarted();  // she has begun it: the lock on the line closes again
 	std::string Branch();                           // city of the counter currently open ("" = none / debug)
 	void Open();

@@ -909,7 +909,13 @@ mod.DialogTopics.Add(hello);
             EditorID = "AG_TopicStampSaid", Priority = 50, Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
             Category = DialogTopic.CategoryEnum.Misc, Subtype = DialogTopic.SubtypeEnum.Idle, SubtypeName = new RecordType("IDLE"),
         };
-        var info = new DialogResponses(FK(InfoId("stampsaid:Keerava")), Rel) { EditorID = "AG_Info_stampsaid_Keerava" };
+        // Random with no rest, as the wanderers' greetings: a line written with no flags record at all was said once and then
+        // refused until a save was loaded (measured 2026-10-11; a second stamp or a replacement card would get silence)
+        var info = new DialogResponses(FK(InfoId("stampsaid:Keerava")), Rel)
+        {
+            EditorID = "AG_Info_stampsaid_Keerava",
+            Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = 0f },
+        };
         info.Responses.Add(new DialogResponse { Text = "The Rift's got more bandits than honest folk, and the Black-Briars like it that way.", Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
         info.Conditions.Add(IsNpc(Npc("Keerava"), false));
         info.Conditions.Add(GlobalIs(gStampSay, 1));
