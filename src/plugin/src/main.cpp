@@ -7,6 +7,7 @@
 #include "Adventurers.h"
 #include "Counter.h"
 #include "SteamVRAim.h"
+#include "ChoiceSwap.h"
 #include "Diag.h"
 #include "Dungeons.h"
 #include "GuildCard.h"
@@ -78,6 +79,7 @@ namespace
 			AG::PrismaToast::Install();
 			AG::LoadRaceRules();
 			AG::Counter::Install();
+			AG::ChoiceSwap::Install();  // Show Guild Card: our choice in place of a vanilla one, with no vanilla record
 			AG::SteamVRAim::Install();  // native SteamVR: Prisma UI 1.5.1's lasers need aim poses nobody else gives it
 			AG::GuildCard::Install();
 			AG::MissiveWatch::Register();
@@ -115,6 +117,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 	SKSE::log::info("Adventurers Guild {}.{}.{}{} loading (runtime {})", AG_VERSION_MAJOR, AG_VERSION_MINOR, AG_VERSION_PATCH, AG_VERSION_LABEL, a_skse->RuntimeVersion().string());
 
 	AG::LoadConfig();
+	SKSE::AllocTrampoline(4096);  // one for the whole plugin: the name hook's call sites, and ChoiceSwap's two
 	AG::Names::Install();
 	AG::Guild::SetupSerialization();
 	SKSE::GetMessagingInterface()->RegisterListener(OnMessage);

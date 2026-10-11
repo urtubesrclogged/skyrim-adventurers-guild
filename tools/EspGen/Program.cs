@@ -243,6 +243,12 @@ var rankFaction = new Faction(FK(0xC91), Rel) { EditorID = "AG_AdventurerRankFac
 var promotedFaction = new Faction(FK(0xC92), Rel) { EditorID = "AG_AdventurerPromotedFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(rankFaction);
 mod.Factions.Add(promotedFaction);
+// Hold stamps (1.5.0), both kept by the DLL. Earned: on a liaison whose hold's stamp the player has earned (her replacement
+// reply says the new card is stamped). Due: on whoever inherited an inn and its stamp, while a stamp is owed there.
+var stampEarnedFaction = new Faction(FK(0xCEA), Rel) { EditorID = "AG_HoldStampEarnedFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
+var stampDueFaction = new Faction(FK(0xCEB), Rel) { EditorID = "AG_HoldStampDueFaction", Name = "Adventurers Guild Stamp Keeper", Flags = Faction.FactionFlag.HiddenFromPC };
+mod.Factions.Add(stampEarnedFaction);
+mod.Factions.Add(stampDueFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);
 var gReports = Global(0x8C7, "AG_ReportsWaitingGlobal", 0);
@@ -342,7 +348,7 @@ ConditionFloat IsNpc(FormKey npc, bool or)
     if (or) c.Flags |= Condition.Flag.OR;
     return c;
 }
-var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new() };
+var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new() };
 var liaisonKeys = new List<string>();
 var prompts = dlg["prompts"]!;
 
@@ -517,6 +523,9 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             Add($"{key}:when", wls, role == "business" ? plain.Append(GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 1)) : new Condition[] { GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 1) });
             if (role == "business") basePlain.Add(GlobalIs(addonGlobals[wg["global"]!.GetValue<string>()], 0));
         }
+        // the hold's stamp is earned: the new card is stamped at once, and she says so (GuildCard::Replace does it)
+        if (role == "replace" && l["replaceStamped"] is JsonNode rs)
+            Add($"{key}:stamped", new[] { rs.GetValue<string>() }, new Condition[] { InFaction(stampEarnedFaction.FormKey) });
         var last = Add(key, lines, role == "business" ? basePlain : Array.Empty<Condition>());
         if (role == "business") last.Flags!.Flags |= DialogResponses.Flag.RandomEnd;   // the next rep's lines are their own group
     }
@@ -563,6 +572,8 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
 }
 var liaisonCities = new Dictionary<string, string>();
 var successors = new List<object>();
+var stampKeepers = new List<object>();  // hold stamps: who keeps a dead liaison's stamp
+var choiceSwaps = new List<object>();   // Show Guild Card: the vanilla choice, and the topic of ours offered in its place
 foreach (var l in dlg["liaisons"]!.AsArray())
 {
     var k = Key(Npc(l!["npc"]!.GetValue<string>()));
@@ -901,8 +912,24 @@ mod.DialogTopics.Add(hello);
     // It has to be an Idle topic: of three kinds tried (2026-10-11), Say() only played that one. An Idle topic is also
     // what the game picks from for idle chatter, so every line is tied to its speaker AND to AG_StampSayGlobal, which
     // the plugin sets to 1 only for the moment she is to say it.
-    // TEST: one line, Keerava's, with a borrowed recording (her first "about" line), to hear that it is delivered.
     var gStampSay = Global(0xCE9, "AG_StampSayGlobal", 0);
+    // The standing a stamp gives: merchants in a hold whose stamp is on the card the player carries sell 15% cheaper.
+    // The game's own way (Haggling, Allure): a perk entry on buy prices. One hidden perk, given to every member; its
+    // entry counts only while AG_StampDiscountGlobal is 1, which the DLL keeps (in such a hold, card in hand).
+    var gStampDiscount = Global(0xCF4, "AG_StampDiscountGlobal", 0);
+    {
+        var perk = new Perk(FK(0xCF5), Rel) { EditorID = "AG_Perk_HoldStampStanding", Name = "Hold Stamp", Playable = false, Hidden = true, NumRanks = 1 };
+        var entry = new PerkEntryPointModifyValue
+        {
+            EntryPoint = APerkEntryPointEffect.EntryType.ModBuyPrices, Modification = PerkEntryPointModifyValue.ModificationType.Multiply,
+            Value = 0.85f, PerkConditionTabCount = 1,
+        };
+        var tab = new PerkCondition { RunOnTabIndex = 0 };
+        tab.Conditions.Add(GlobalIs(gStampDiscount, 1));
+        entry.Conditions.Add(tab);
+        perk.Effects.Add(entry);
+        mod.Perks.Add(perk);
+    }
     {
         var t = new DialogTopic(FK(0xCE6), Rel)
         {
@@ -911,17 +938,52 @@ mod.DialogTopics.Add(hello);
         };
         // Random with no rest, as the wanderers' greetings: a line written with no flags record at all was said once and then
         // refused until a save was loaded (measured 2026-10-11; a second stamp or a replacement card would get silence)
-        var info = new DialogResponses(FK(InfoId("stampsaid:Keerava")), Rel)
+        foreach (var l in dlg["liaisons"]!.AsArray())
         {
-            EditorID = "AG_Info_stampsaid_Keerava",
-            Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = 0f },
-        };
-        info.Responses.Add(new DialogResponse { Text = "The Rift's got more bandits than honest folk, and the Black-Briars like it that way.", Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
-        info.Conditions.Add(IsNpc(Npc("Keerava"), false));
-        info.Conditions.Add(GlobalIs(gStampSay, 1));
-        t.Responses.Add(info);
+            if (l!["stamped"] is not JsonNode said) continue;
+            var npc = l["npc"]!.GetValue<string>();
+            var info = new DialogResponses(FK(InfoId("stampsaid:" + npc)), Rel)
+            {
+                EditorID = "AG_Info_stampsaid_" + npc,
+                Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = 0f },
+            };
+            info.Responses.Add(new DialogResponse { Text = said.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            info.Conditions.Add(IsNpc(Npc(npc), false));
+            info.Conditions.Add(GlobalIs(gStampSay, 1));
+            t.Responses.Add(info);
+        }
         mod.DialogTopics.Add(t);
-        Console.WriteLine($"stamp line: topic {t.FormKey}, Keerava's line {info.FormKey}");
+    }
+    // Whoever inherited an inn whose counter closed keeps the old liaison's stamp, and puts it on a card when asked: a choice
+    // of its own, shown only while the DLL has her in AG_HoldStampDueFaction. The DLL stamps the card as she starts her reply.
+    {
+        var b = new DialogBranch(FK(0xCEC), Rel)
+        {
+            EditorID = "AG_BranchStampAsk", Quest = new FormLink<IQuestGetter>(worldQuest.FormKey),
+            Category = DialogBranch.CategoryType.Player, Flags = DialogBranch.Flag.TopLevel,
+            StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(0xCED)),
+        };
+        var t = new DialogTopic(FK(0xCED), Rel)
+        {
+            EditorID = "AG_TopicStampAsk", Name = dlg["prompts"]!["stampAsk"]!.GetValue<string>(), Priority = 50,
+            Branch = new FormLinkNullable<IDialogBranchGetter>(b.FormKey), Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
+            Category = DialogTopic.CategoryEnum.Topic, Subtype = DialogTopic.SubtypeEnum.Custom, SubtypeName = new RecordType("CUST"),
+        };
+        foreach (var k in dlg["stampKeepers"]!.AsArray())
+        {
+            var npc = k!["npc"]!.GetValue<string>();
+            var key = "stampask:" + npc;
+            var info = new DialogResponses(FK(InfoId(key)), Rel) { EditorID = "AG_Info_stampask_" + npc };
+            info.Responses.Add(new DialogResponse { Text = k["line"]!.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            info.Conditions.Add(IsNpc(Npc(npc), false));
+            info.Conditions.Add(InFaction(stampDueFaction.FormKey));
+            if (t.Responses.Count > 0) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
+            t.Responses.Add(info);
+            roles["stamp"].Add(ids[key]);
+            stampKeepers.Add(new { npc = Key(Npc(npc)), of = Key(Npc(k["of"]!.GetValue<string>())), city = k["city"]!.GetValue<string>() });
+        }
+        mod.DialogBranches.Add(b);
+        mod.DialogTopics.Add(t);
     }
     var orcs = Topic(0xCE4, 0xCE5, "Orcs");
     var orcRace = new GetIsRaceConditionData { RunOnType = Condition.RunOnType.Target };
@@ -945,11 +1007,28 @@ mod.DialogTopics.Add(hello);
     //     Intimidate each have one INFO that always passes: nothing behind them is ever reached.)
     //   the robber, "(Intimidate)": behind the Intimidate success, before the refusal; by Guild rank, no card needed.
     {
+        // 1.5.0, second design. The replies used to be added to the vanilla topic itself, which meant carrying a copy of
+        // that topic record: its text (in English), its settings, and a conflict with any mod that changes them (the
+        // Unofficial Patch corrects one). Now each set of replies has a topic of the mod's own, with no branch, and the
+        // DLL offers it IN PLACE of the vanilla choice when one of its replies would be said (ChoiceSwap). The plugin
+        // carries no vanilla record for this.
+        var swapOf = new Dictionary<uint, (uint id, string stem, string prompt)>
+        {
+            [0x0E66B4] = (0xCEE, "Riften", "prompt"), [0x0D1979] = (0xCEF, "Whiterun", "prompt"), [0x0B8106] = (0xCF0, "College", "prompt"),
+            [0x0D6630] = (0xCF1, "Treasury", "prompt"), [0x0BBA89] = (0xCF2, "OrcGate", "prompt"), [0x0B8155] = (0xCF3, "Robber", "robber"),
+        };
         DialogTopic Hang(uint topicId)
         {
-            var hang = masters.SelectMany(m => m.DialogTopics).Last(t => t.FormKey == Vanilla(topicId)).DeepCopy();
-            hang.Responses.Clear();
+            var (id, stem, prompt) = swapOf[topicId];
+            var hang = new DialogTopic(FK(id), Rel)
+            {
+                EditorID = "AG_TopicShowCard" + stem,
+                Name = prompt == "robber" ? sc["robber"]!["prompt"]!.GetValue<string>() : sc["prompt"]!.GetValue<string>(),
+                Priority = 50, Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
+                Category = DialogTopic.CategoryEnum.Topic, Subtype = DialogTopic.SubtypeEnum.Custom, SubtypeName = new RecordType("CUST"),
+            };
             mod.DialogTopics.Add(hang);
+            choiceSwaps.Add(new { vanilla = Key(Vanilla(topicId)), ours = $"0x{id:X3}" });
             return hang;
         }
         // the speaker conditions of a vanilla INFO of that topic (who may say it), ready to have more added after them
@@ -972,10 +1051,10 @@ mod.DialogTopics.Add(hello);
             var info = new DialogResponses(FK(InfoId("showcard:" + key)), Rel)
             {
                 EditorID = "AG_Info_showcard_" + key.Replace(':', '_'),
-                Prompt = prompt,
                 Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Goodbye },
-                PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(after),
             };
+            // in a topic of our own the replies are tried in the order written ("after" named a vanilla line and is not used)
+            if (hang.Responses.Count > 0) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(hang.Responses[^1].FormKey);
             byte part = 0;
             foreach (var t in text.Split('\n')) info.Responses.Add(new DialogResponse { Text = t, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = ++part });
             foreach (var c in conds) info.Conditions.Add(c);
@@ -1082,7 +1161,7 @@ File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptio
     }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
     Console.WriteLine($"threat rules: {rules.Count} races, {named.Count} actors");
 }
-File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors }, new JsonSerializerOptions { WriteIndented = true }));
+File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors, stampKeepers, choiceSwaps }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"dialogue: {ids.Count} INFO ids pinned, {liaisonKeys.Count} liaisons");
 
 // ---------- onboarding: the registration missive ----------

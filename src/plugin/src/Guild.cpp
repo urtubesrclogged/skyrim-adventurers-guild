@@ -125,7 +125,13 @@ namespace AG::Guild
 		// happened. The same file on another 1.6.1170 game found them all: the cause is in that install, unknown and not
 		// ours to find. So nothing here depends on that moment any more: the line's own ID is taken apart when the game
 		// reports it (RoleOfLine), and a line that is not at our IDs is recognised by its topic and kind.
-		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace };
+		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace, kStamp };
+		RE::TESFaction*                         g_stampEarnedFaction = nullptr;  // on a liaison whose hold's stamp is earned
+		RE::TESFaction*                         g_stampDueFaction = nullptr;     // on a stamp keeper who owes the player a stamp
+		RE::BGSPerk*                            g_stampPerk = nullptr;           // buy prices x0.85 while g_gStampDiscount is 1
+		RE::TESGlobal*                          g_gStampDiscount = nullptr;      // 1 in a hold whose stamp is on the card in hand
+		std::mutex                              g_stampActorsLock;
+		std::vector<RE::ObjectRefHandle>        g_stampActors;                   // liaisons and keepers seen loaded this session
 		std::unordered_map<std::uint32_t, Role> g_roleOfLocal;  // the plugin's own line IDs (0xA00...), as the json gives them
 		std::atomic<RE::FormID>                 g_ownBase{ 0 }, g_ownMask{ 0 };  // this session's form IDs of the plugin: base and local part
 		std::atomic<bool>                       g_saidByTopic{ false };
@@ -326,6 +332,7 @@ namespace AG::Guild
 				return Role::kNone;
 			}
 			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"
+			if (edid == "AG_TopicStampAsk") return toPlayer ? Role::kStamp : Role::kNone;  // the line's own conditions say she owes one
 			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusiness" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
 			if (acting < 0) return Role::kNone;
 			Role        role = Role::kNone;
@@ -379,6 +386,15 @@ namespace AG::Guild
 				// the nine Guild reps, for SkyrimNet actions' is_in_faction(currentActor, "AG_GuildLiaisonFaction")
 				if (g_liaisonFaction && !actor->IsInFaction(g_liaisonFaction) && Adventurers::IsLiaison(actor))
 					actor->AddToFaction(g_liaisonFaction, 0);
+				// hold stamps: a liaison (or a successor) and a stamp keeper carry a mark dialogue reads; kept in step from here on
+				if (auto* base = actor->GetActorBase(); base && (Adventurers::IsLiaisonBase(base->GetFormID()) || !Adventurers::StampKeeperCity(actor).empty())) {
+					{
+						std::lock_guard l(g_stampActorsLock);
+						const auto h = actor->GetHandle();
+						if (std::find(g_stampActors.begin(), g_stampActors.end(), h) == g_stampActors.end()) g_stampActors.push_back(h);
+					}
+					SKSE::GetTaskInterface()->AddTask(SyncStampMarks);
+				}
 				return RE::BSEventNotifyControl::kContinue;
 			}
 		};
@@ -403,6 +419,15 @@ namespace AG::Guild
 				// every line anyone says comes through here (some 25 a second in a busy inn): all but ours stop at this test
 				const Role role = RoleOfLine(id, a_e->speakerRef.get());
 				if (role == Role::kNone) return RE::BSEventNotifyControl::kContinue;
+				if (role == Role::kStamp) {
+					// "There. Markarth's ram.": whoever inherited the inn puts the old liaison's stamp on the card
+					const auto hold = Adventurers::StampKeeperCity(a_e->speakerRef.get());
+					SKSE::GetTaskInterface()->AddTask([hold] {
+						if (!hold.empty()) GuildCard::CollectHoldStamp(hold);
+						SyncStampMarks();
+					});
+					return RE::BSEventNotifyControl::kContinue;
+				}
 				const std::string city = Adventurers::LiaisonCity(a_e->speakerRef.get());
 				if (role == Role::kRegister) {
 					SKSE::GetTaskInterface()->AddTask([city] {
@@ -700,6 +725,10 @@ namespace AG::Guild
 		g_gRecentPromo = Own<RE::TESGlobal>(0x8C5);
 		g_retiredFaction = Own<RE::TESFaction>(0x8C4);
 		g_liaisonFaction = Own<RE::TESFaction>(0x8C6);
+		g_stampEarnedFaction = Own<RE::TESFaction>(0xCEA);
+		g_stampDueFaction = Own<RE::TESFaction>(0xCEB);
+		g_stampPerk = Own<RE::BGSPerk>(0xCF5);
+		g_gStampDiscount = Own<RE::TESGlobal>(0xCF4);
 		g_wandererFaction = Own<RE::TESFaction>(0xC80);
 		g_rankFaction = Own<RE::TESFaction>(0xC91);
 		g_promotedFaction = Own<RE::TESFaction>(0xC92);
@@ -725,6 +754,7 @@ namespace AG::Guild
 			load("promote", Role::kPromote);
 			load("business", Role::kBusiness);
 			load("replace", Role::kReplace);
+			load("stamp", Role::kStamp);
 		} catch (const std::exception& e) {
 			SKSE::log::error("Guild: dialogue.resolved.json error: {} - guild dialogue will do nothing", e.what());
 		}
@@ -905,10 +935,49 @@ namespace AG::Guild
 		void AugmentTick();  // below, with the abilities
 	}
 
+	void SyncStampMarks()
+	{
+		if (!g_stampEarnedFaction || !g_stampDueFaction) return;
+		std::vector<RE::ObjectRefHandle> seen;
+		{
+			std::lock_guard l(g_stampActorsLock);
+			seen = g_stampActors;
+		}
+		const bool member = Registered() && !Dormant();
+		const auto onCard = GuildCard::HoldStamps();
+		// the standing a stamp gives: 15% off what merchants sell, in a hold whose stamp is on the card the player carries
+		if (g_stampPerk && g_gStampDiscount) {
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			if (pc && member && !pc->HasPerk(g_stampPerk)) pc->AddPerk(g_stampPerk);
+			const auto here = Dungeons::CityHere();
+			const float on = member && GuildCard::Has() && !here.empty() && std::find(onCard.begin(), onCard.end(), here) != onCard.end() ? 1.0f : 0.0f;
+			if (g_gStampDiscount->value != on) {
+				g_gStampDiscount->value = on;
+				SKSE::log::info("Guild: hold stamp standing {} ({})", on > 0.0f ? "applies here" : "does not apply here", here.empty() ? "no hold" : here);
+			}
+		}
+		const auto set = [](RE::Actor* a_actor, RE::TESFaction* a_faction, bool a_in) {
+			if ((a_actor->GetFactionRank(a_faction, false) >= 0) != a_in) a_actor->AddToFaction(a_faction, a_in ? 0 : -1);
+		};
+		for (auto& h : seen) {
+			auto ref = h.get();
+			auto* actor = ref ? ref->As<RE::Actor>() : nullptr;
+			if (!actor || !actor->Is3DLoaded()) continue;
+			// a liaison at her counter: is her hold's stamp earned? (her replacement reply says the new card is stamped)
+			const auto city = Adventurers::IsLiaison(actor) ? Adventurers::LiaisonCity(actor) : std::string();
+			set(actor, g_stampEarnedFaction, member && !city.empty() && Dungeons::ClearedIn(city) >= StampDungeons());
+			// a keeper: does she owe the player a stamp? (earned, not on the card, and the card is in hand)
+			const auto hold = Adventurers::StampKeeperCity(actor);
+			set(actor, g_stampDueFaction, member && !hold.empty() && GuildCard::Has() && Dungeons::ClearedIn(hold) >= StampDungeons() &&
+				std::find(onCard.begin(), onCard.end(), hold) == onCard.end());
+		}
+	}
+
 	void ConductTick()
 	{
 		SyncWanderers();
 		SyncSuccessors();
+		SyncStampMarks();
 		AugmentTick();
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!pc || !pc->Is3DLoaded() || Dormant()) return;
@@ -1092,9 +1161,15 @@ namespace AG::Guild
 		for (auto& city : Dungeons::HandIn(dungeons)) {
 			SKSE::log::info("Guild: the {} stamp is earned ({} dungeon reports from the hold handed in)", city, StampDungeons());
 			if (city == a_city && GuildCard::CollectHoldStamp(city)) continue;
-			Hud(Loc::F("$AG_Hud_StampEarned", "The {} counter of the Adventurers Guild has a stamp for your guild card.", CityName(city)));
+			if (const auto keeper = Adventurers::StampKeeperName(city); !keeper.empty())
+				Hud(Loc::F("$AG_Hud_StampEarnedKeeper", "{} in {} keeps the hold's stamp for your guild card.", keeper, CityName(city)));
+			else
+				Hud(Loc::F("$AG_Hud_StampEarned", "The {} counter of the Adventurers Guild has a stamp for your guild card.", CityName(city)));
 		}
-		if (!dungeons.empty()) Counter::Refresh();
+		if (!dungeons.empty()) {
+			Counter::Refresh();
+			SyncStampMarks();
+		}
 		const auto plural = n == 1 ? "" : "s";
 		return gold > 0 ? std::format("Submitted {} report{}: {} gold, {} Merit and {} Reputation.", n, plural, gold, merit, rep)
 		                : std::format("Submitted {} report{}: {} Merit and {} Reputation.", n, plural, merit, rep);

@@ -152,7 +152,11 @@ namespace AG::Names
 		SKSE::log::info("Names: GetDisplayFullName @ base+0x{:X}, {} direct call sites found", target - g_base, sites.size());
 		if (sites.empty()) return;
 
-		SKSE::AllocTrampoline(sites.size() * 14 + 64);
+		// the trampoline is made once, in main (SKSEPluginLoad): 14 bytes a site here, and ChoiceSwap's two calls
+		if (sites.size() * 14 + 64 > 4096 - 64) {
+			SKSE::log::warn("Names: {} call sites is more than the trampoline was sized for - rank labels are off", sites.size());
+			return;
+		}
 		auto& tr = SKSE::GetTrampoline();
 		for (auto s : sites) {
 			tr.write_call<5>(s, reinterpret_cast<std::uintptr_t>(&Thunk));

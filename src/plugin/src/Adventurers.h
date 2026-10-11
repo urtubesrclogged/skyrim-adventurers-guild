@@ -61,6 +61,11 @@ namespace AG::Adventurers
 	std::vector<std::pair<RE::Actor*, bool>> Successors();
 	bool                    IsLiaisonBase(RE::FormID a_base);  // one of the nine, or a successor's base (for death watching)
 	std::string LiaisonCity(RE::TESObjectREFR* a_ref);  // "Whiterun" for Hulda, "" for anyone else
+	// Hold stamps: whoever inherited an inn whose counter closed with its liaison keeps the liaison's stamp.
+	// The city whose stamp this actor keeps, once that liaison has died; "" for anyone else, or while the liaison lives.
+	std::string StampKeeperCity(RE::TESObjectREFR* a_ref);
+	// The keeper's name for a city whose liaison has died ("" when the counter is open, or the city has no keeper).
+	std::string StampKeeperName(const std::string& a_city);
 
 	// co-save (part of Guild's record)
 	nlohmann::json Save();

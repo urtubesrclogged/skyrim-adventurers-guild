@@ -71,25 +71,33 @@ New keys in the interface file, all optional, for the hold stamps on the Guild C
 
 * `$AG_Hud_StampEarned`: the plain notification when handing in reports earns a hold's stamp that is collected at
   another counter (`{}` = that counter's city).
-* `$AG_Toast_StampAdded`, `$AG_Toast_StampAddedSub`, `$AG_Log_Stamp`: the notice and the Records line when a counter
-  stamps the card (`{}` = the city).
+* `$AG_Hud_StampEarnedKeeper`: the same, for a hold whose counter has closed (`{}` = who keeps the stamp, then the city).
+* `$AG_Toast_StampAdded`, `$AG_Toast_StampAddedSub`, `$AG_Log_Stamp`: the notice and the Records line when the card is
+  stamped (`{}` = the city).
 * `$AG_UI_StampProgress`: under the rank medallion at a counter, `{0}` = the city, `{1}` of `{2}` dungeons reported.
 * `$AG_UI_StampWaiting`: added to that line when cleared dungeons of the hold are still to be reported (`{0}` = how many).
+
+New text in the plugin (section 2) for the hold stamps:
+
+* Fourteen lines `AG_Info_stampsaid_<NPC>`: what a representative says, unasked, when she has stamped the card.
+* Fourteen replies `AG_Info_replace_<NPC>_stamped`: her answer to the replacement request when her hold's stamp is
+  earned (the new card is stamped at once).
+* The player's line `I've earned this hold's stamp for my guild card. (Show Guild Card)` (topic `AG_TopicStampAsk`)
+  and five replies `AG_Info_stampask_<NPC>`: whoever inherited an inn whose counter closed still keeps its stamp.
+* The hidden perk `AG_Perk_HoldStampStanding` is named `Hold Stamp`; the game does not show it.
 
 New text in the plugin (section 2), all of it for Show Guild Card:
 
 * The player's line `I'm with the Adventurers Guild. (Show Guild Card)`. It is the name of one topic of the mod's own
-  (`AG_TopicShowCardOrcs`) and the prompt of seven replies (below), so it appears eight times: keep them the same.
-* The player's line `You're robbing a ranked adventurer of the Adventurers Guild. Walk away.`: the prompt of the two
-  robber replies.
+  and the name of six topics (`AG_TopicShowCardOrcs`, `...Riften`, `...Whiterun`, `...College`, `...Treasury`, `...OrcGate`): keep them the same.
+* The player's line `You're robbing a ranked adventurer of the Adventurers Guild. Walk away.`: the name of the topic
+  `AG_TopicShowCardRobber`.
 * Nine replies, by editor ID: `AG_Info_showcard_college_E`, `AG_Info_showcard_college` (Faralda),
   `AG_Info_showcard_treasury` (Rhiada), `AG_Info_showcard_orcs`, `AG_Info_showcard_orcs_gate` (a stronghold's gate
   guard: the same line twice), `AG_Info_showcard_riften`, `AG_Info_showcard_whiterun` (the two gate guards),
   `AG_Info_showcard_robber_AS`, `AG_Info_showcard_robber_B`.
-* Eight of those replies sit inside six VANILLA topics, which the plugin carries as unchanged copies:
-  `MG01FaraldaEntryPersuade`, `MS01RhiadaThonarTopic01`, `DialogueOrcsGuardTopic02`,
-  `DialogueRiftenGateNorthBranchTopic05`, `DialogueWhiterunGuardGateStopNote`, `WERJ02Intimidate`. Give those six
-  topics the wording your game's own translation has for them, so the vanilla choice reads as it always did.
+* All of those replies sit in topics of the mod's own. Earlier 1.5.0 test builds carried copies of six vanilla topics;
+  the plugin no longer contains any vanilla dialogue record, so there is nothing of the game's own to translate here.
 
 ## Since 1.4.0
 

@@ -360,6 +360,7 @@ namespace AG::Dungeons
 			RE::BSEventNotifyControl ProcessEvent(const RE::BGSActorCellEvent* a_e, RE::BSTEventSource<RE::BGSActorCellEvent>*) override
 			{
 				const Diag::Timed timed("noting that the player changed cell");
+				if (a_e && a_e->flags.all(RE::BGSActorCellEvent::CellFlag::kEnter)) SKSE::GetTaskInterface()->AddTask(Guild::SyncStampMarks);  // the hold may have changed
 				if (a_e && a_e->flags.all(RE::BGSActorCellEvent::CellFlag::kEnter)) {
 					SKSE::GetTaskInterface()->AddTask([] {
 						Guild::SyncGlobals();  // time-based globals (recent-promotion gossip) catch up on every cell change
@@ -464,6 +465,12 @@ namespace AG::Dungeons
 			if (a_city == h.city && dh) hold = dh->LookupForm<RE::BGSLocation>(h.id, h.plugin);
 		if (!hold) return -1;
 		return CountIn(hold, false);
+	}
+
+	std::string CityHere()
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		return pc ? CounterCityOf(pc->GetCurrentLocation()) : std::string();
 	}
 
 	int WaitingIn(const std::string& a_city)

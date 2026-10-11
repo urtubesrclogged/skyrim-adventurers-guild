@@ -50,6 +50,13 @@ namespace AG::Adventurers
 			std::string      city;
 		};
 		std::vector<Successor> g_successors;
+		struct StampKeeper
+		{
+			RE::TESNPC* npc{ nullptr };  // who keeps the stamp
+			RE::TESNPC* of{ nullptr };   // the liaison whose stamp it was
+			std::string city;
+		};
+		std::vector<StampKeeper> g_stampKeepers;
 
 		// adventurers.json "notes": a SkyrimNet bio line for an NPC who is not (only) a named member, optionally only
 		// once another NPC is dead (the one who keeps a counter after an innkeeper, or says it has closed)
@@ -306,6 +313,13 @@ namespace AG::Adventurers
 						if (dj.contains("cities")) g_liaisonCity[npc->GetFormID()] = dj.at("cities").value(key, "");
 					}
 				}
+				g_stampKeepers.clear();
+				for (auto& k : dj.value("stampKeepers", nlohmann::json::array())) {
+					auto* npc = FormOfKey(k.value("npc", ""));
+					auto* of = FormOfKey(k.value("of", ""));
+					if (npc && of && npc->As<RE::TESNPC>() && of->As<RE::TESNPC>()) g_stampKeepers.push_back({ npc->As<RE::TESNPC>(), of->As<RE::TESNPC>(), k.value("city", "") });
+					else SKSE::log::warn("Adventurers: a stamp keeper does not resolve ({})", k.dump());
+				}
 				g_successors.clear();
 				for (auto& su : dj.value("successors", nlohmann::json::array())) {
 					auto* npc = FormOfKey(su.value("npc", ""));
@@ -532,6 +546,33 @@ namespace AG::Adventurers
 	{
 		std::lock_guard l(g_lock);
 		return g_liaisons.contains(a_base) || std::ranges::any_of(g_successors, [&](const Successor& su) { return su.npc == a_base; });
+	}
+
+	std::string StampKeeperCity(RE::TESObjectREFR* a_ref)
+	{
+		auto* actor = a_ref ? a_ref->As<RE::Actor>() : nullptr;
+		auto* base = actor ? actor->GetActorBase() : nullptr;
+		if (!base) return {};
+		StampKeeper found;
+		{
+			std::lock_guard l(g_lock);
+			for (auto& k : g_stampKeepers)
+				if (k.npc == base) found = k;
+		}
+		return found.npc && HasDied(found.of) && !actor->IsDead() ? found.city : std::string();  // asked of the game outside the lock
+	}
+
+	std::string StampKeeperName(const std::string& a_city)
+	{
+		StampKeeper found;
+		{
+			std::lock_guard l(g_lock);
+			for (auto& k : g_stampKeepers)
+				if (k.city == a_city) found = k;
+		}
+		if (!found.npc || !HasDied(found.of)) return {};
+		const char* name = found.npc->GetFullName();
+		return name ? name : "";
 	}
 
 	std::string LiaisonCity(RE::TESObjectREFR* a_ref)

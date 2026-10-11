@@ -118,6 +118,9 @@ namespace AG::Guild
 	void  ConductTick();                                              // every few seconds, game thread
 	void  OnMissiveAbandoned(int a_rank, std::string_view a_title);
 	int   CardFee();                            // gold for a replacement guild card
+	// Hold stamps: the two marks dialogue conditions read, set again for the liaisons and stamp keepers that are loaded.
+	// Cheap; run on the five-second beat and whenever what it depends on has just changed.
+	void  SyncStampMarks();
 	int   StampDungeons();                      // dungeons to clear in a hold for its stamp on the Guild Card (guild.json)
 	std::string CityName(const std::string& a_city);  // a counter's city in the player's language ($AG_City_<Name>)
 	// The player's page of the Guild ledger, compact JSON for SkyrimNet (liaisons read it; see ag_player()).
