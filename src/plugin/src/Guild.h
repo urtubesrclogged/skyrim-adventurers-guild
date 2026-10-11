@@ -73,7 +73,12 @@ namespace AG::Guild
 	void  SetAugment(int a_index, float a_days);
 	void  ApplyAbilities();                     // perks/abilities to match Appraisal + training (idempotent)
 	// "Prepare to Uninstall" (MCM): take back every ability, perk and item of ours and stay dormant; Cancel undoes it
-	bool        Dormant();
+	bool Dormant();
+	// What this save said about the Guild. Taking a posted job down cannot be undone, so it is only done on the
+	// word of a save that was read whole: kNone (a new game, a save this mod was never in, or one whose SKSE
+	// co-save is gone) does not do it at load, and kBroken (the record was there and could not be read) never does.
+	enum class SaveData { kNone, kClean, kBroken };
+	SaveData SaveState();
 	std::string PrepareUninstall();
 	void        OnBandsChanged();        // the level of rank S moved (MCM): what depends on it is brought up to date
 	void        NoticeRankLevelsKept();  // once, on a save from before 1.4.0: its rank levels stay as they were

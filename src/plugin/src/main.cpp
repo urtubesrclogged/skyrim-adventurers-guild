@@ -73,8 +73,15 @@ namespace
 			AG::MissiveWatch::OnGameLoaded();
 			AG::GuildCard::Sync(false);  // a member from before 1.2.0, or one who lost theirs, gets a card
 			AG::ControlsGuard::OnGameLoaded();
-			AG::MissiveWatch::WithdrawAboveRank();
-			AG::NoticeWatch::WithdrawAboveRank();
+			// Taking a posted job down cannot be undone, and here it would be done on what the save said a moment ago.
+			// Only a save read whole is believed; otherwise it waits until the player walks up to a board.
+			if (AG::Guild::SaveState() == AG::Guild::SaveData::kClean) {
+				AG::MissiveWatch::WithdrawAboveRank();
+				AG::NoticeWatch::WithdrawAboveRank();
+			} else {
+				SKSE::log::info("Game loaded without the Guild's own record ({}): posted jobs are left as they are until a board is visited",
+					a_msg->type == SKSE::MessagingInterface::kNewGame ? "a new game" : AG::Guild::SaveState() == AG::Guild::SaveData::kBroken ? "it could not be read" : "this save has none");
+			}
 			SKSE::log::info("Game loaded: player level {}, {}", RE::PlayerCharacter::GetSingleton()->GetLevel(), AG::Guild::Dump());
 			break;
 		default:

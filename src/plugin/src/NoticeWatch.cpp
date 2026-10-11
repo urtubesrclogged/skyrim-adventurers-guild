@@ -186,6 +186,7 @@ namespace AG::NoticeWatch
 	void WithdrawAboveRank()
 	{
 		if (!g_active) return;
+		if (Guild::SaveState() == Guild::SaveData::kBroken) return;  // the rank is not known this session: nothing comes down on a guess
 		const int rank = Guild::Rank();  // -1 before registering: every gated notice is above it
 		std::vector<std::pair<RE::TESQuest*, std::string>> stale;
 		{

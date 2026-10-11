@@ -443,6 +443,7 @@ namespace AG::MissiveWatch
 	void WithdrawAboveRank()
 	{
 		if (!g_active) return;
+		if (Guild::SaveState() == Guild::SaveData::kBroken) return;  // the rank is not known this session: nothing comes down on a guess
 		const int rank = Guild::Rank();  // -1 before registering: every posting is above it
 		std::vector<RE::TESQuest*> stale;
 		{

@@ -87,6 +87,7 @@ namespace AG::Guild
 		// "Prepare to Uninstall" (MCM): every ability and perk of ours is taken back and nothing re-grants it, so
 		// the plugin can be removed without leaving stat changes baked into the save. Cancel restores everything.
 		std::atomic<bool>            g_dormant{ false };
+		std::atomic<SaveData>        g_saveData{ SaveData::kNone };  // set as a save loads; see Guild.h
 		std::array<int, 3>           g_training{};      // purchased steps: Health, Stamina, Magicka
 
 		// ---- our forms ----
@@ -477,11 +478,17 @@ namespace AG::Guild
 			Dungeons::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
+			g_saveData = SaveData::kNone;
 			std::uint32_t type, ver, len;
 			while (a->GetNextRecordInfo(type, ver, len)) {
 				if (type != kRec) continue;
 				std::string s(len, '\0');
-				a->ReadRecordData(s.data(), len);
+				const auto got = a->ReadRecordData(s.data(), len);
+				g_saveData = SaveData::kBroken;  // until every part of it has been read
+				if (got != len) {
+					SKSE::log::error("Guild: co-save record cut short ({} of {} bytes read); this session takes no posted job down", got, len);
+					continue;
+				}
 				try {
 					auto j = nlohmann::json::parse(s);
 					{
@@ -538,8 +545,9 @@ namespace AG::Guild
 					SetSLevel(j.value("sLevel", kSLevelBefore140));
 					Dungeons::Load(j.value("dungeons", nlohmann::json::object()));
 					Party::Load(j.value("parties", nlohmann::json::array()));
+					g_saveData = SaveData::kClean;
 				} catch (const std::exception& e) {
-					SKSE::log::error("Guild: co-save parse error: {}", e.what());
+					SKSE::log::error("Guild: co-save parse error: {}; this session takes no posted job down", e.what());
 				}
 			}
 			SKSE::log::info("Guild: co-save loaded ({})", Dump());
@@ -556,6 +564,7 @@ namespace AG::Guild
 			Dungeons::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());
+			g_saveData = SaveData::kNone;
 		}
 
 		template <class T>
@@ -756,6 +765,7 @@ namespace AG::Guild
 		ApplyAbilities();
 	}
 
+	SaveData SaveState() { return g_saveData.load(); }
 	bool Registered() { std::lock_guard l(g_lock); return g_registered; }
 	int  Rank() { std::lock_guard l(g_lock); return g_registered ? g_rank : -1; }
 	int  Merit() { std::lock_guard l(g_lock); return g_merit; }
