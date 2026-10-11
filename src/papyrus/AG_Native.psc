@@ -66,6 +66,9 @@ Int Function GetSLevel() Global Native
 Int Function GetDefaultSLevel() Global Native                ; a new game's: [Ranks] SLevel in the ini
 Function SetSLevel(Int aiLevel) Global Native
 Int Function GetRankLevel(Int aiRank) Global Native
+; TEMPORARY DIAGNOSTIC: what the plugin sees in a quest (full form ID), for the 1.6.1170 quest-role fault
+String Function DebugQuestRaw(Int aiQuest) Global Native
+String Function DebugQuestRoles(Int aiQuest) Global Native
 Function NoticeRankLevelsKept() Global Native                ; the one-time notice on a save from before 1.4.0
 Float Function GetToastSeconds() Global Native               ; seconds a guild notice stays fully visible
 Function SetToastSeconds(Float afSeconds) Global Native
