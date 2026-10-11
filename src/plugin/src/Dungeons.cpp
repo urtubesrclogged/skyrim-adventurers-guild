@@ -26,6 +26,7 @@ namespace AG::Dungeons
 		std::mutex                           g_lock;
 		std::unordered_map<std::string, int> g_visited;   // StableKey(location) -> threat rank at first entry
 		std::unordered_set<std::string>      g_reported;  // cleared locations already paid / announced
+		std::unordered_set<std::string>      g_waiting;   // of those, the ones whose report has not been handed in (hold stamps)
 		RE::BGSLocation*                     g_current{ nullptr };  // not saved: just suppresses repeat notices
 
 		// guild.json "notDungeons": places the game marks clearable that are no dungeon (Stendarr's Beacon and the Hall
@@ -311,22 +312,18 @@ namespace AG::Dungeons
 				auto it = g_visited.find(key);
 				rank = it != g_visited.end() ? it->second : FromLevel(LevelHere());
 				g_visited[key] = rank;
+				if (Guild::Registered()) g_waiting.insert(key);  // the Guild counts it once the report below is handed in
 			}
 			const auto name = Name(a_dungeon);
 			if (Guild::Registered()) {
 				const int gold = Guild::DungeonGold(rank), merit = Guild::DungeonMerit(rank), rep = Guild::DungeonRep(rank);
-				Guild::AddReport("dungeon", Loc::F("$AG_Report_Cleared", "Cleared {}", name), Loc::F("$AG_Report_DungeonDetail", "Threat Rank {} dungeon", Letter(rank)), gold, merit, rep);
+				Guild::AddReport("dungeon", Loc::F("$AG_Report_Cleared", "Cleared {}", name), Loc::F("$AG_Report_DungeonDetail", "Threat Rank {} dungeon", Letter(rank)), gold, merit, rep, key);
 				// a member is always told to report it; the rank (and its badge) only with Appraisal
 				if (Guild::AppraisalLevel() >= 1)
 					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReport", "{} · Rank {} · report to the Guild for your reward", name, Letter(rank)), rank);
 				else
 					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReportPlain", "{} · report to the Guild for your reward", name), -1);
 				Guild::Notify("AG_DungeonCleared", name, static_cast<float>(rank));
-				// the dungeon that earns the hold's stamp: it is put on the card at that hold's counter, so say where
-				if (const auto city = CounterCityOf(a_dungeon); !city.empty() && ClearedIn(city) == Guild::StampDungeons())
-					PrismaToast::Show(Loc::T("$AG_Toast_StampEarned", "HOLD STAMP EARNED"),
-						Loc::F("$AG_Toast_StampCollect", "{} dungeons cleared in the hold · collect your stamp at the {} counter", Guild::StampDungeons(), Guild::CityName(city)),
-						"tex/skin/stamp_" + GuildCard::StampFile(city) + ".png");
 				Party::OnDungeonCleared(rank);
 				if (Counter::IsOpen()) Counter::Refresh();
 			}
@@ -434,6 +431,28 @@ namespace AG::Dungeons
 		}
 	}
 
+	namespace
+	{
+		// The cleared dungeons of a hold: the ones whose report is still waiting, or the ones the Guild has on record.
+		// A dungeon whose mod is gone, or that sits in no hold, counts for none.
+		int CountIn(RE::BGSLocation* a_hold, bool a_waiting)
+		{
+			std::vector<std::string> keys;
+			{
+				std::lock_guard l(g_lock);
+				for (auto& k : g_reported)
+					if (g_waiting.contains(k) == a_waiting) keys.push_back(k);
+			}
+			int n = 0;
+			for (auto& k : keys) {
+				auto* form = Adventurers::FormOfKey(k);
+				auto* loc = form ? form->As<RE::BGSLocation>() : nullptr;
+				if (loc && HoldOf(loc) == a_hold) ++n;
+			}
+			return n;
+		}
+	}
+
 	int ClearedIn(const std::string& a_city)
 	{
 		auto* dh = RE::TESDataHandler::GetSingleton();
@@ -441,18 +460,32 @@ namespace AG::Dungeons
 		for (auto& h : kCounterHolds)
 			if (a_city == h.city && dh) hold = dh->LookupForm<RE::BGSLocation>(h.id, h.plugin);
 		if (!hold) return -1;
-		std::vector<std::string> keys;
+		return CountIn(hold, false);
+	}
+
+	int WaitingIn(const std::string& a_city)
+	{
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		RE::BGSLocation* hold = nullptr;
+		for (auto& h : kCounterHolds)
+			if (a_city == h.city && dh) hold = dh->LookupForm<RE::BGSLocation>(h.id, h.plugin);
+		return hold ? CountIn(hold, true) : 0;
+	}
+
+	std::vector<std::string> HandIn(const std::vector<std::string>& a_keys)
+	{
+		std::vector<std::string> earned;
+		if (a_keys.empty()) return earned;
+		const int need = Guild::StampDungeons();
+		std::vector<std::pair<std::string, int>> before;
+		for (auto& h : kCounterHolds) before.emplace_back(h.city, ClearedIn(h.city));
 		{
 			std::lock_guard l(g_lock);
-			keys.assign(g_reported.begin(), g_reported.end());
+			for (auto& k : a_keys) g_waiting.erase(k);
 		}
-		int n = 0;
-		for (auto& k : keys) {
-			auto* form = Adventurers::FormOfKey(k);
-			auto* loc = form ? form->As<RE::BGSLocation>() : nullptr;
-			if (loc && HoldOf(loc) == hold) ++n;   // a dungeon whose mod is gone, or that sits in no hold, counts for none
-		}
-		return n;
+		for (auto& [city, was] : before)
+			if (was >= 0 && was < need && ClearedIn(city) >= need) earned.push_back(city);
+		return earned;
 	}
 
 	void SetNotDungeons(std::vector<std::string> a_keys)
@@ -464,7 +497,8 @@ namespace AG::Dungeons
 	nlohmann::json Save()
 	{
 		std::lock_guard l(g_lock);
-		return { { "visited", g_visited }, { "reported", std::vector<std::string>(g_reported.begin(), g_reported.end()) } };
+		return { { "visited", g_visited }, { "reported", std::vector<std::string>(g_reported.begin(), g_reported.end()) },
+			{ "waiting", std::vector<std::string>(g_waiting.begin(), g_waiting.end()) } };
 	}
 
 	void Load(const nlohmann::json& a_j)
@@ -472,12 +506,15 @@ namespace AG::Dungeons
 		std::lock_guard l(g_lock);
 		g_visited.clear();
 		g_reported.clear();
+		g_waiting.clear();
 		g_current = nullptr;
 		try {
 			// keys from before 1.1.0 are corrected (Adventurers::StableKey), so a dungeon keeps its record
 			if (a_j.contains("visited"))
 				for (auto& [k, v] : a_j.at("visited").get<std::unordered_map<std::string, int>>()) g_visited[Adventurers::CanonicalKey(k)] = v;
 			for (auto& k : a_j.value("reported", nlohmann::json::array())) g_reported.insert(Adventurers::CanonicalKey(k.get<std::string>()));
+			// absent in a save from before 1.5.0: then every cleared dungeon counts as reported
+			for (auto& k : a_j.value("waiting", nlohmann::json::array())) g_waiting.insert(Adventurers::CanonicalKey(k.get<std::string>()));
 		} catch (const std::exception& e) {
 			SKSE::log::error("Dungeons: co-save parse error: {}", e.what());
 		}
@@ -488,6 +525,7 @@ namespace AG::Dungeons
 		std::lock_guard l(g_lock);
 		g_visited.clear();
 		g_reported.clear();
+		g_waiting.clear();
 		g_current = nullptr;
 	}
 

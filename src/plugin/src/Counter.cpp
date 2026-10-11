@@ -207,7 +207,7 @@ namespace AG::Counter
 					return;
 				}
 				std::string msg;
-				if (arg == "claim") msg = Guild::ClaimAll();
+				if (arg == "claim") msg = Guild::ClaimAll(g_cardOnly.load() ? std::string() : Branch());
 				// a lost guild card, replaced at the counter as the liaison's dialogue line does (same fee, this branch's seal).
 				// Not from the card itself: read from the inventory, there is one, and no branch to issue another.
 				else if (arg == "replacecard") { if (g_cardOnly.load()) return; msg = GuildCard::Replace(Branch()); }
@@ -501,7 +501,7 @@ namespace AG::Counter
 				data["stamps"] = std::move(stamps);
 				const auto here = Branch();
 				if (const int cleared = here.empty() ? -1 : Dungeons::ClearedIn(here); cleared >= 0 && std::find(have.begin(), have.end(), here) == have.end())
-					data["stampProgress"] = { { "city", Guild::CityName(here) }, { "have", cleared }, { "need", Guild::StampDungeons() } };
+					data["stampProgress"] = { { "city", Guild::CityName(here) }, { "have", cleared }, { "need", Guild::StampDungeons() }, { "waiting", Dungeons::WaitingIn(here) } };
 			}
 			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress();  // the card's "to do" note
 			data["trophies"] = Shop::TrophiesData();

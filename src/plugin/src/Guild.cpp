@@ -59,6 +59,7 @@ namespace AG::Guild
 		{
 			std::string kind, title, detail;
 			int         gold{ 0 }, merit{ 0 }, rep{ 0 };
+			std::string key;  // a cleared dungeon's report: which dungeon (hold stamps count it once handed in)
 		};
 		struct Entry
 		{
@@ -457,7 +458,7 @@ namespace AG::Guild
 				j["bountyCarry"] = g_bountyCarry;
 				j["counterMask"] = ControlsGuard::Masked();  // the engine saves the control flags (ControlsGuard.h)
 				auto& reports = j["reports"] = nlohmann::json::array();
-				for (auto& r : g_reports) reports.push_back({ { "kind", r.kind }, { "title", r.title }, { "detail", r.detail }, { "gold", r.gold }, { "merit", r.merit }, { "rep", r.rep } });
+				for (auto& r : g_reports) reports.push_back({ { "kind", r.kind }, { "title", r.title }, { "detail", r.detail }, { "gold", r.gold }, { "merit", r.merit }, { "rep", r.rep }, { "key", r.key } });
 				auto& history = j["history"] = nlohmann::json::array();
 				for (auto& h : g_history) history.push_back({ { "day", h.day }, { "text", h.text } });
 			}
@@ -557,7 +558,7 @@ namespace AG::Guild
 							for (std::size_t i = 0; i < g_training.size() && i < v.size(); ++i) g_training[i] = std::max(0, v[i]);
 						}
 						for (auto& r : j.value("reports", nlohmann::json::array())) {
-							g_reports.push_back({ r.value("kind", ""), r.value("title", ""), r.value("detail", ""), r.value("gold", 0), r.value("merit", 0), r.value("rep", r.value("merit", 0)) });
+							g_reports.push_back({ r.value("kind", ""), r.value("title", ""), r.value("detail", ""), r.value("gold", 0), r.value("merit", 0), r.value("rep", r.value("merit", 0)), r.value("key", "") });
 						}
 						for (auto& h : j.value("history", nlohmann::json::array())) {
 							g_history.push_back({ h.value("day", 0.0f), h.value("text", "") });
@@ -1043,22 +1044,23 @@ namespace AG::Guild
 		Hud(Loc::T("$AG_Hud_NoticeDone", "Notice complete. Submit your report at any guild counter."));
 	}
 
-	void AddReport(std::string a_kind, std::string a_title, std::string a_detail, int a_gold, int a_merit, int a_rep)
+	void AddReport(std::string a_kind, std::string a_title, std::string a_detail, int a_gold, int a_merit, int a_rep, std::string a_key)
 	{
 		{
 			std::lock_guard l(g_lock);
 			if (!g_registered) return;
-			g_reports.push_back({ std::move(a_kind), std::move(a_title), std::move(a_detail), std::max(0, a_gold), std::max(0, a_merit), std::max(0, a_rep) });
+			g_reports.push_back({ std::move(a_kind), std::move(a_title), std::move(a_detail), std::max(0, a_gold), std::max(0, a_merit), std::max(0, a_rep), std::move(a_key) });
 		}
 		SyncGlobals();  // AG_ReportsWaitingGlobal (SkyrimNet's "take reports" action)
 		Counter::Refresh();
 	}
 
-	std::string ClaimAll()
+	std::string ClaimAll(const std::string& a_city)
 	{
 		const int bonus = Party::GoldRewardPercent();  // Coin-Bound; read before g_lock (Party has its own)
 		int gold = 0, merit = 0, rep = 0;
 		std::size_t n;
+		std::vector<std::string> dungeons;  // the cleared dungeons among these reports
 		{
 			std::lock_guard l(g_lock);
 			n = g_reports.size();
@@ -1067,6 +1069,7 @@ namespace AG::Guild
 				gold += r.gold;
 				merit += r.merit;
 				rep += r.rep;
+				if (!r.key.empty()) dungeons.push_back(r.key);
 			}
 			g_reports.clear();
 			gold += gold * bonus / 100;
@@ -1079,6 +1082,14 @@ namespace AG::Guild
 		SendModEvent("AG_ReportsSubmitted", std::format("{} report{} ({} gold, {} Merit, {} Reputation)", n, n == 1 ? "" : "s", gold, merit, rep), static_cast<float>(n));
 		Counter::Refresh();
 		SKSE::log::info("Guild: submitted {} reports ({} gold, {} merit, {} rep)", n, gold, merit, rep);
+		// Hold stamps: the Guild now has these clears on record. A stamp they earn goes on the card here and now when this
+		// is that hold's counter (and the card is in hand); any other is collected at its own counter, so say which.
+		for (auto& city : Dungeons::HandIn(dungeons)) {
+			SKSE::log::info("Guild: the {} stamp is earned ({} dungeon reports from the hold handed in)", city, StampDungeons());
+			if (city == a_city && GuildCard::CollectHoldStamp(city)) continue;
+			Hud(Loc::F("$AG_Hud_StampEarned", "The {} counter of the Adventurers Guild has a stamp for your guild card.", CityName(city)));
+		}
+		if (!dungeons.empty()) Counter::Refresh();
 		const auto plural = n == 1 ? "" : "s";
 		return gold > 0 ? std::format("Submitted {} report{}: {} gold, {} Merit and {} Reputation.", n, plural, gold, merit, rep)
 		                : std::format("Submitted {} report{}: {} Merit and {} Reputation.", n, plural, merit, rep);
@@ -1517,7 +1528,7 @@ namespace AG::Guild
 	std::string ActionReports(RE::Actor* a_liaison)
 	{
 		if (!Adventurers::IsLiaison(a_liaison)) return "not a Guild rep";
-		const auto msg = ClaimAll();
+		const auto msg = ClaimAll(Adventurers::LiaisonCity(a_liaison));
 		Hud(msg);
 		return msg;
 	}

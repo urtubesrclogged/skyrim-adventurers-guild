@@ -52,8 +52,11 @@ namespace AG::Guild
 	void OnNoticeCompleted(int a_rank, std::string_view a_title);   // the same for a Notice Board quest (NoticeWatch)
 
 	// Reports: rewards earned in the field (missives, dungeon clears) that wait to be claimed at a counter.
-	void        AddReport(std::string a_kind, std::string a_title, std::string a_detail, int a_gold, int a_merit, int a_rep);
-	std::string ClaimAll();                          // pays every report; returns a status line
+	// a_key: for a cleared dungeon, the dungeon (Adventurers::StableKey), so that handing the report in counts toward its hold's stamp
+	void        AddReport(std::string a_kind, std::string a_title, std::string a_detail, int a_gold, int a_merit, int a_rep, std::string a_key = {});
+	// Pays every report; returns a status line. a_city: the counter they are handed in at ("" when not at one): a hold
+	// stamp these reports earn is put on the card at once if it is that counter's, and otherwise announced.
+	std::string ClaimAll(const std::string& a_city = {});
 	std::string BuyService(const std::string& a_id);  // returns a status line
 	nlohmann::json CounterData();                    // everything the counter window shows
 	void SyncGlobals();         // AG_PlayerRankGlobal / AG_RegisteredGlobal / AG_PromotionReadyGlobal

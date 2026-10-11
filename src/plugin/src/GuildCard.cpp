@@ -330,7 +330,7 @@ namespace AG::GuildCard
 		Guild::Record(Loc::F("$AG_Log_Stamp", "The {} counter stamped your guild card.", city));
 		PrismaToast::Show(Loc::T("$AG_Toast_StampAdded", "GUILD CARD STAMPED"), Loc::F("$AG_Toast_StampAddedSub", "The {} counter has added its hold's stamp to your card", city),
 			"tex/skin/stamp_" + StampFile(a_city) + ".png");
-		SKSE::log::info("GuildCard: stamped at {} ({} dungeons cleared in the hold, {} needed)", a_city, cleared, Guild::StampDungeons());
+		SKSE::log::info("GuildCard: stamped at {} ({} dungeon reports from the hold handed in, {} needed)", a_city, cleared, Guild::StampDungeons());
 		return true;
 	}
 

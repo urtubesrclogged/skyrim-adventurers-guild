@@ -69,11 +69,12 @@ must go through those, never as a bare string, or it cannot be translated.
 
 New keys in the interface file, all optional, for the hold stamps on the Guild Card:
 
-* `$AG_Toast_StampEarned`, `$AG_Toast_StampCollect`: the notice when the dungeon that earns a hold's stamp is cleared
-  (`{}` = the number of dungeons, then the city of the counter to collect it at).
+* `$AG_Hud_StampEarned`: the plain notification when handing in reports earns a hold's stamp that is collected at
+  another counter (`{}` = that counter's city).
 * `$AG_Toast_StampAdded`, `$AG_Toast_StampAddedSub`, `$AG_Log_Stamp`: the notice and the Records line when a counter
   stamps the card (`{}` = the city).
-* `$AG_UI_StampProgress`: under the rank medallion at a counter, `{0}` = the city, `{1}` of `{2}` dungeons.
+* `$AG_UI_StampProgress`: under the rank medallion at a counter, `{0}` = the city, `{1}` of `{2}` dungeons reported.
+* `$AG_UI_StampWaiting`: added to that line when cleared dungeons of the hold are still to be reported (`{0}` = how many).
 
 New text in the plugin (section 2), all of it for Show Guild Card:
 
