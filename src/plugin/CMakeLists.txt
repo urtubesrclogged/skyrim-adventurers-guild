@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(AdventurersGuild VERSION 1.4.1 LANGUAGES CXX)  # the mod's version: the DLL reports it, package.sh names the zip after it
+project(AdventurersGuild VERSION 1.4.2 LANGUAGES CXX)  # the mod's version: the DLL reports it, package.sh names the zip after it
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
