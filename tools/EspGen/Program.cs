@@ -896,6 +896,29 @@ mod.DialogTopics.Add(hello);
     // the strongholds, a topic of our own: beside "How can I convince you to let me in?", from a gate guard who has already turned the
     // player away (DialogueOrcs stage 10), while the player is neither Blood-Kin nor an Orc. Not Largashbur, which
     // vanilla keeps out of this conversation for its own quest.
+    // Hold stamps: what a representative says when she has stamped a card. Nobody chooses it (no branch): the plugin has
+    // her say it as the counter closes (AG_QuestHelper.SayLine -> ObjectReference.Say).
+    // TEST (2026-10-11): three ways of making such a topic, one unvoiced line each, to learn which of them Say() plays.
+    {
+        (uint id, string edid, DialogTopic.CategoryEnum cat, DialogTopic.SubtypeEnum sub, string code, string text)[] tries =
+        {
+            (0xCE6, "AG_TopicStampSaid", DialogTopic.CategoryEnum.Topic, DialogTopic.SubtypeEnum.Custom, "CUST", "(Test one.) There. This hold's mark is on your card."),
+            (0xCE7, "AG_TopicStampSaidIdle", DialogTopic.CategoryEnum.Misc, DialogTopic.SubtypeEnum.Idle, "IDLE", "(Test two.) There. This hold's mark is on your card."),
+            (0xCE8, "AG_TopicStampSaidMisc", DialogTopic.CategoryEnum.Misc, DialogTopic.SubtypeEnum.Custom, "CUST", "(Test three.) There. This hold's mark is on your card."),
+        };
+        foreach (var (id, edid, cat, sub, code, text) in tries)
+        {
+            var t = new DialogTopic(FK(id), Rel)
+            {
+                EditorID = edid, Priority = 50, Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
+                Category = cat, Subtype = sub, SubtypeName = new RecordType(code),
+            };
+            var info = new DialogResponses(FK(InfoId("stampsaid:test" + (id - 0xCE5))), Rel) { EditorID = "AG_Info_stampsaid_test" + (id - 0xCE5) };
+            info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            t.Responses.Add(info);
+            mod.DialogTopics.Add(t);
+        }
+    }
     var orcs = Topic(0xCE4, 0xCE5, "Orcs");
     var orcRace = new GetIsRaceConditionData { RunOnType = Condition.RunOnType.Target };
     orcRace.Race.Link.SetTo(idx["races"]["OrcRace"]);

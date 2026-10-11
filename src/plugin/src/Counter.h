@@ -11,7 +11,12 @@
 namespace AG::Counter
 {
 	void Install();            // at kDataLoaded
-	void OpenAfterDialogue(std::string a_branch);  // opens once the Dialogue Menu closes; a_branch = the liaison's city
+	// opens once the Dialogue Menu closes; a_branch = the liaison's city, a_keeper = the liaison herself
+	void OpenAfterDialogue(std::string a_branch, RE::TESObjectREFR* a_keeper = nullptr);
+	// Hold stamps: the card was stamped during this visit; she says so as the counter closes (GuildCard tells us).
+	void Stamped();
+	// the representative of the last counter opened through her, has her say a topic of ours (0 = the stamp line)
+	std::string SayStampLine(std::uint32_t a_topic = 0);
 	std::string Branch();                           // city of the counter currently open ("" = none / debug)
 	void Open();
 	void OpenCard();           // the Guild Card page alone (the physical card, read anywhere)

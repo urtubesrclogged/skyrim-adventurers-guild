@@ -39,6 +39,8 @@ namespace AG::Counter
 		std::atomic<bool>           g_cardOnly{ false };  // opened from the physical card: the Guild Card page alone
 		std::mutex                  g_branchLock;
 		std::string                 g_branch;
+		RE::ObjectRefHandle         g_keeper;            // the representative this counter was opened through (g_branchLock)
+		std::atomic<bool>           g_stamped{ false };  // the card was stamped while the counter was open
 
 		bool Valid() { return g_api && g_view && g_api->IsValid(g_view); }
 
@@ -385,11 +387,12 @@ namespace AG::Counter
 		return g_branch;
 	}
 
-	void OpenAfterDialogue(std::string a_branch)
+	void OpenAfterDialogue(std::string a_branch, RE::TESObjectREFR* a_keeper)
 	{
 		{
 			std::lock_guard l(g_branchLock);
 			g_branch = std::move(a_branch);
+			g_keeper = a_keeper ? a_keeper->GetHandle() : RE::ObjectRefHandle{};
 		}
 		g_pending = true;
 		g_cardOnly = false;
@@ -453,6 +456,31 @@ namespace AG::Counter
 		g_cardOnly = false;
 		ControlsGuard::Unmask();
 		ControlsGuard::Hidden();
+		if (g_stamped.exchange(false)) SayStampLine();  // "There. Riften's mark, on your card."
+	}
+
+	void Stamped()
+	{
+		if (g_open.load() && !g_cardOnly.load()) g_stamped = true;
+	}
+
+	std::string SayStampLine(std::uint32_t a_topic)
+	{
+		RE::NiPointer<RE::TESObjectREFR> keeper;
+		{
+			std::lock_guard l(g_branchLock);
+			keeper = g_keeper.get();
+		}
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		auto* topic = dh ? dh->LookupForm<RE::TESTopic>(a_topic ? a_topic : 0xCE6, "AdventurersGuild.esp") : nullptr;
+		auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+		if (!keeper) return "no representative: open a counter through her first";
+		if (!topic || !vm) return "the topic is not in the plugin";
+		if (!keeper->Is3DLoaded() || keeper->IsDead()) return "she is not here to say it";
+		RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+		vm->DispatchStaticCall("AG_QuestHelper", "SayLine", RE::MakeFunctionArguments(static_cast<RE::TESObjectREFR*>(keeper.get()), static_cast<RE::TESTopic*>(topic)), cb);
+		SKSE::log::info("Counter: {} is asked to say {} ({:08X})", keeper->GetDisplayFullName(), topic->GetFormEditorID() ? topic->GetFormEditorID() : "", topic->GetFormID());
+		return std::format("{} asked to say {:08X}", keeper->GetDisplayFullName(), topic->GetFormID());
 	}
 
 	bool IsOpen() { return g_open.load(); }

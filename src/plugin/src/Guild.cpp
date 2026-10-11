@@ -313,13 +313,17 @@ namespace AG::Guild
 			// afford it"), unless the IDs have already proved wrong this session. A line with someone else's ID is looked
 			// at even when it is not said to the player: if it turns out to be ours, the log has to say why nothing came of it.
 			const bool suspect = !own || g_saidByTopic.load(std::memory_order_relaxed);
-			if (!toPlayer && !suspect) return Role::kNone;
+			if (!toPlayer && !suspect && !own) return Role::kNone;  // (a line of ours said outside a conversation is looked at: her stamp line)
 			auto* info = RE::TESForm::LookupByID<RE::TESTopicInfo>(a_id);
 			if (!info && mtm->currentTopicInfo && mtm->currentTopicInfo->GetFormID() == a_id) info = mtm->currentTopicInfo;
 			auto*       topic = info ? info->parentTopic : nullptr;
 			const char* name = topic ? topic->GetFormEditorID() : nullptr;
 			if (!name || std::strncmp(name, "AG_Topic", 8) != 0) return Role::kNone;
 			const std::string_view edid(name);
+			if (edid.starts_with("AG_TopicStampSaid")) {
+				SKSE::log::info("Guild: {} says her stamp line ({}, {:08X})", a_speaker->GetDisplayFullName(), name, a_id);
+				return Role::kNone;
+			}
 			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"
 			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusiness" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
 			if (acting < 0) return Role::kNone;
@@ -414,7 +418,7 @@ namespace AG::Guild
 					});
 				} else if (role == Role::kBusiness) {
 					// the line is a Goodbye: the counter opens as the menu closes, labelled with this branch
-					Counter::OpenAfterDialogue(city);
+					Counter::OpenAfterDialogue(city, a_e->speakerRef.get());
 				}
 				return RE::BSEventNotifyControl::kContinue;
 			}

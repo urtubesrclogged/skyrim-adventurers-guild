@@ -6,3 +6,4 @@ Function AddItem(Form akItemToAdd, Int aiCount = 1, Bool abSilent = False) nativ
 Int Function GetItemCount(Form akItem = None) native
 Function RemoveItem(Form akItemToRemove, Int aiCount = 1, Bool abSilent = False, ObjectReference akOtherContainer = None) native
 Function AddToMap(Bool abAllowFastTravel = False) native
+Function Say(Topic akTopicToSay, Actor akActorToSpeakAs = None, Bool abSpeakInPlayersHead = False) native

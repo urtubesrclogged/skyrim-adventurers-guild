@@ -123,6 +123,13 @@ Function PostNotices(FormList akQuests) Global
 	EndWhile
 EndFunction
 
+; Hold stamps: the representative says her line for having stamped the card (no menu: she just says it).
+Function SayLine(ObjectReference akSpeaker, Topic akTopic) Global
+	If akSpeaker && akTopic
+		akSpeaker.Say(akTopic)
+	EndIf
+EndFunction
+
 ; Guild intel (counter > Services > Intel): put a dungeon's map marker on the map, as a rumour or a courier
 ; note would - visible, not fast-travelable until the player actually finds it.
 Function RevealMarker(ObjectReference akMarker) Global
