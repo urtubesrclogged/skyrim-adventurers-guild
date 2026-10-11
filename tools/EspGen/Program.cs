@@ -1071,7 +1071,9 @@ var regQuest = new Quest(FK(0x810), Rel)
         new QuestStage
         {
             Index = 10,
-            LogEntries = { new QuestLogEntry { Entry = "The missive board only takes work from registered adventurers. The innkeeper of any hold capital can sign me up with the Adventurers Guild." } },
+            // Flags is given even though it is empty: without it the entry is written with no QSDT, which the game and
+            // xEdit read and Wrye Bash does not (IndexError; every vanilla log entry starts with QSDT)
+            LogEntries = { new QuestLogEntry { Flags = (QuestLogEntry.Flag)0, Entry = "The missive board only takes work from registered adventurers. The innkeeper of any hold capital can sign me up with the Adventurers Guild." } },
         },
         new QuestStage
         {
