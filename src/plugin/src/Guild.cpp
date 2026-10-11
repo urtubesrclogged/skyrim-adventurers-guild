@@ -719,7 +719,7 @@ namespace AG::Guild
 		{
 			CSimpleIniA ini;
 			ini.SetUnicode();
-			if (ini.LoadFile(L"Data\SKSE\Plugins\AdventurersGuild.ini") >= 0 && ini.GetBoolValue("Debug", "ForgetLineIDs", false)) {
+			if (ini.LoadFile("Data/SKSE/Plugins/AdventurersGuild.ini") >= 0 && ini.GetBoolValue("Debug", "ForgetLineIDs", false)) {
 				g_roleOfLocal.clear();
 				SKSE::log::warn("Guild: [Debug] ForgetLineIDs is on - no line is known by its ID; each is recognised by its topic and kind (a test setting)");
 			}
