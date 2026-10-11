@@ -79,47 +79,6 @@ namespace AG
 		void         SLevelSet(Tag*, std::int32_t a_level) { AG::SetSLevel(a_level); Guild::OnBandsChanged(); }
 		std::int32_t GetRankLevel(Tag*, std::int32_t a_rank) { return AG::MinLevel(a_rank); }
 		void         NoticeRankLevelsKept(Tag*) { Guild::NoticeRankLevelsKept(); }
-
-		// TEMPORARY DIAGNOSTIC (2026-10-11): on Skyrim 1.6.1170 the plugin read a city's Innkeeper role wrongly (the game
-		// had Hulda in it; TESQuest::GetAliasedRef did not give her back). These two say what the plugin sees in a quest,
-		// step by step, to find which read is off on that game version. Nothing calls them but DevBench.
-		// Raw: the quest object's own memory around the alias table, as 8-byte words. Reads only; cannot go wrong.
-		std::string DebugQuestRaw(Tag*, std::int32_t a_quest)
-		{
-			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(static_cast<RE::FormID>(a_quest));
-			if (!q) return "not a quest";
-			std::string out = std::format("quest {:08X} at {:p}; sizeof(TESQuest) as built {:#x}; offsets as built: aliases {:#x}, refAliasMap {:#x}, lock {:#x}, data {:#x}, currentStage {:#x}\n",
-				q->GetFormID(), static_cast<const void*>(q), sizeof(RE::TESQuest), offsetof(RE::TESQuest, aliases), offsetof(RE::TESQuest, refAliasMap),
-				offsetof(RE::TESQuest, aliasAccessLock), offsetof(RE::TESQuest, data), offsetof(RE::TESQuest, currentStage));
-			const auto* w = reinterpret_cast<const std::uint64_t*>(q);
-			for (std::size_t off = 0x20; off < 0x278; off += 8) out += std::format("{:03X}: {:016X}\n", off, w[off / 8]);
-			return out;
-		}
-
-		// Roles: what the library's own reads return for every alias of the quest.
-		std::string DebugQuestRoles(Tag*, std::int32_t a_quest)
-		{
-			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(static_cast<RE::FormID>(a_quest));
-			if (!q) return "not a quest";
-			std::string out = std::format("quest {:08X}: running {}, stage {} (library), aliases {}, refAliasMap size {}\n", q->GetFormID(), q->IsRunning(), q->GetCurrentStageID(),
-				q->aliases.size(), q->refAliasMap.size());
-			int n = 0;
-			for (auto* a : q->aliases) {
-				if (!a || ++n > 40) break;
-				const auto h = q->GetAliasedRef(a->aliasID);
-				const auto ref = h.get();
-				out += std::format("  alias {} \"{}\": handle {:#x} -> {}\n", a->aliasID, a->aliasName.c_str() ? a->aliasName.c_str() : "", h.native_handle(),
-					ref ? std::format("{:08X} {}", ref->GetFormID(), ref->GetDisplayFullName() ? ref->GetDisplayFullName() : "") : std::string("nothing"));
-			}
-			out += "  the map itself:";
-			int m = 0;
-			for (auto& [id, h] : q->refAliasMap) {
-				if (++m > 40) break;
-				const auto ref = h.get();
-				out += std::format(" [{} -> {:#x} {}]", id, h.native_handle(), ref ? std::format("{:08X}", ref->GetFormID()) : std::string("nothing"));
-			}
-			return out;
-		}
 		std::string CancelUninstall(Tag*) { return Guild::CancelUninstall(); }
 		std::string UninstallText(Tag*, std::int32_t a_which)
 		{
@@ -246,8 +205,6 @@ namespace AG
 		a_vm->RegisterFunction("SetSLevel", kClass, SLevelSet);
 		REG(GetRankLevel);
 		REG(NoticeRankLevelsKept);
-		REG(DebugQuestRaw);
-		REG(DebugQuestRoles);
 		REG(CancelUninstall);
 		REG(UninstallText);
 		REG(IsGuildLiaison);
