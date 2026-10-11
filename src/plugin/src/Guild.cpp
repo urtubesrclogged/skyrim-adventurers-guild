@@ -322,6 +322,7 @@ namespace AG::Guild
 			const std::string_view edid(name);
 			if (edid.starts_with("AG_TopicStampSaid")) {
 				SKSE::log::info("Guild: {} says her stamp line ({}, {:08X})", a_speaker->GetDisplayFullName(), name, a_id);
+				Counter::StampLineStarted();
 				return Role::kNone;
 			}
 			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"

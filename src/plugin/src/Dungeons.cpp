@@ -305,6 +305,9 @@ namespace AG::Dungeons
 		{
 			if (!a_dungeon) return;
 			const auto key = Adventurers::StableKey(a_dungeon);
+			// asked before g_lock is taken: the Guild has a lock of its own, and code that holds it calls in here
+			// (ClearedCount for the ledger, Save). Taking the two in both orders is a deadlock waiting for its moment.
+			const bool member = Guild::Registered();
 			int rank;
 			{
 				std::lock_guard l(g_lock);
@@ -312,10 +315,10 @@ namespace AG::Dungeons
 				auto it = g_visited.find(key);
 				rank = it != g_visited.end() ? it->second : FromLevel(LevelHere());
 				g_visited[key] = rank;
-				if (Guild::Registered()) g_waiting.insert(key);  // the Guild counts it once the report below is handed in
+				if (member) g_waiting.insert(key);  // the Guild counts it once the report below is handed in
 			}
 			const auto name = Name(a_dungeon);
-			if (Guild::Registered()) {
+			if (member) {
 				const int gold = Guild::DungeonGold(rank), merit = Guild::DungeonMerit(rank), rep = Guild::DungeonRep(rank);
 				Guild::AddReport("dungeon", Loc::F("$AG_Report_Cleared", "Cleared {}", name), Loc::F("$AG_Report_DungeonDetail", "Threat Rank {} dungeon", Letter(rank)), gold, merit, rep, key);
 				// a member is always told to report it; the rank (and its badge) only with Appraisal

@@ -898,26 +898,24 @@ mod.DialogTopics.Add(hello);
     // vanilla keeps out of this conversation for its own quest.
     // Hold stamps: what a representative says when she has stamped a card. Nobody chooses it (no branch): the plugin has
     // her say it as the counter closes (AG_QuestHelper.SayLine -> ObjectReference.Say).
-    // TEST (2026-10-11): three ways of making such a topic, one unvoiced line each, to learn which of them Say() plays.
+    // It has to be an Idle topic: of three kinds tried (2026-10-11), Say() only played that one. An Idle topic is also
+    // what the game picks from for idle chatter, so every line is tied to its speaker AND to AG_StampSayGlobal, which
+    // the plugin sets to 1 only for the moment she is to say it.
+    // TEST: one line, Keerava's, with a borrowed recording (her first "about" line), to hear that it is delivered.
+    var gStampSay = Global(0xCE9, "AG_StampSayGlobal", 0);
     {
-        (uint id, string edid, DialogTopic.CategoryEnum cat, DialogTopic.SubtypeEnum sub, string code, string text)[] tries =
+        var t = new DialogTopic(FK(0xCE6), Rel)
         {
-            (0xCE6, "AG_TopicStampSaid", DialogTopic.CategoryEnum.Topic, DialogTopic.SubtypeEnum.Custom, "CUST", "(Test one.) There. This hold's mark is on your card."),
-            (0xCE7, "AG_TopicStampSaidIdle", DialogTopic.CategoryEnum.Misc, DialogTopic.SubtypeEnum.Idle, "IDLE", "(Test two.) There. This hold's mark is on your card."),
-            (0xCE8, "AG_TopicStampSaidMisc", DialogTopic.CategoryEnum.Misc, DialogTopic.SubtypeEnum.Custom, "CUST", "(Test three.) There. This hold's mark is on your card."),
+            EditorID = "AG_TopicStampSaid", Priority = 50, Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
+            Category = DialogTopic.CategoryEnum.Misc, Subtype = DialogTopic.SubtypeEnum.Idle, SubtypeName = new RecordType("IDLE"),
         };
-        foreach (var (id, edid, cat, sub, code, text) in tries)
-        {
-            var t = new DialogTopic(FK(id), Rel)
-            {
-                EditorID = edid, Priority = 50, Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
-                Category = cat, Subtype = sub, SubtypeName = new RecordType(code),
-            };
-            var info = new DialogResponses(FK(InfoId("stampsaid:test" + (id - 0xCE5))), Rel) { EditorID = "AG_Info_stampsaid_test" + (id - 0xCE5) };
-            info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
-            t.Responses.Add(info);
-            mod.DialogTopics.Add(t);
-        }
+        var info = new DialogResponses(FK(InfoId("stampsaid:Keerava")), Rel) { EditorID = "AG_Info_stampsaid_Keerava" };
+        info.Responses.Add(new DialogResponse { Text = "The Rift's got more bandits than honest folk, and the Black-Briars like it that way.", Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+        info.Conditions.Add(IsNpc(Npc("Keerava"), false));
+        info.Conditions.Add(GlobalIs(gStampSay, 1));
+        t.Responses.Add(info);
+        mod.DialogTopics.Add(t);
+        Console.WriteLine($"stamp line: topic {t.FormKey}, Keerava's line {info.FormKey}");
     }
     var orcs = Topic(0xCE4, 0xCE5, "Orcs");
     var orcRace = new GetIsRaceConditionData { RunOnType = Condition.RunOnType.Target };

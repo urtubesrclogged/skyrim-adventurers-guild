@@ -412,6 +412,7 @@ namespace AG::Counter
 			return;
 		}
 		g_open = true;
+		StampLineStarted();  // a line asked for and never said must not stay unlocked
 		if (!g_cardOnly.load()) {  // only a real visit to a counter does counter business
 			Party::AtCounter();  // chosen affinities the roster no longer fits are unselected on every visit
 			GuildCard::CollectHoldStamp(Branch());  // this hold's stamp goes on the card here, and only here, once it is earned
@@ -459,6 +460,12 @@ namespace AG::Counter
 		if (g_stamped.exchange(false)) SayStampLine();  // "There. Riften's mark, on your card."
 	}
 
+	void StampLineStarted()
+	{
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		if (auto* lock = dh ? dh->LookupForm<RE::TESGlobal>(0xCE9, "AdventurersGuild.esp") : nullptr) lock->value = 0.0f;
+	}
+
 	void Stamped()
 	{
 		if (g_open.load() && !g_cardOnly.load()) g_stamped = true;
@@ -477,6 +484,8 @@ namespace AG::Counter
 		if (!keeper) return "no representative: open a counter through her first";
 		if (!topic || !vm) return "the topic is not in the plugin";
 		if (!keeper->Is3DLoaded() || keeper->IsDead()) return "she is not here to say it";
+		// the line is an idle line, locked so that it is never idle chatter: open for this one asking
+		if (auto* lock = dh->LookupForm<RE::TESGlobal>(0xCE9, "AdventurersGuild.esp")) lock->value = 1.0f;
 		RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
 		vm->DispatchStaticCall("AG_QuestHelper", "SayLine", RE::MakeFunctionArguments(static_cast<RE::TESObjectREFR*>(keeper.get()), static_cast<RE::TESTopic*>(topic)), cb);
 		SKSE::log::info("Counter: {} is asked to say {} ({:08X})", keeper->GetDisplayFullName(), topic->GetFormEditorID() ? topic->GetFormEditorID() : "", topic->GetFormID());

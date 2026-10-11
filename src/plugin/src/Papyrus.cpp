@@ -157,7 +157,7 @@ namespace AG
 		void        DebugPartyBond(Tag*, RE::Actor* a_actor, float a_amount) { Party::AddBond(a_actor, a_amount); }
 		std::string  DebugDungeon(Tag*) { return Dungeons::DebugInfo(); }
 		std::string  DebugClearDungeon(Tag*) { return Dungeons::DebugClear(); }
-		std::string  DebugStampSay(Tag*, std::int32_t a_n) { return Counter::SayStampLine(a_n >= 1 && a_n <= 3 ? 0xCE5 + a_n : 0); }
+		std::string  DebugStampSay(Tag*, std::int32_t a_n) { return Counter::SayStampLine(); }
 		void         DebugRegister(Tag*) { Guild::DebugRegister(); }
 		void         DebugPromote(Tag*) { Guild::DebugPromote(); }
 		void         DebugSetRank(Tag*, std::int32_t a_rank) { Guild::DebugSetRank(a_rank); }
