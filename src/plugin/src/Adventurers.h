@@ -57,6 +57,8 @@ namespace AG::Adventurers
 	// Successors (dialogue.json "successor": Ysolda after Hulda) whose liaison is dead, wherever they are standing.
 	// Game thread. Guild adds them to AG_GuildLiaisonFaction. IsLiaison() is true for them only at their inn.
 	std::vector<RE::Actor*> SucceededLiaisons();
+	// every successor that exists in this game, and whether the counter is theirs now (their liaison dead, they alive)
+	std::vector<std::pair<RE::Actor*, bool>> Successors();
 	bool                    IsLiaisonBase(RE::FormID a_base);  // one of the nine, or a successor's base (for death watching)
 	std::string LiaisonCity(RE::TESObjectREFR* a_ref);  // "Whiterun" for Hulda, "" for anyone else
 
