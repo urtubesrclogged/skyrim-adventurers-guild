@@ -388,13 +388,13 @@
 		{"id": "stamp_fethis", "who": "DLC2RRFethisAlor", "stamp": "here", "chance": 35, "text": "The Redoran stamp. Then you are no stranger here, and I do not charge you as one."},
 		{"id": "stampwant_carlotta", "who": "CarlottaValentia", "stamp": "wanted", "chance": 15, "text": "An adventurer. You know, do enough for Whiterun and the Adventurers Guild stamps your card with the hold's mark. Some of us at the market look kindly on that."},
 		{"id": "stampwant_evette", "who": "EvetteSan", "stamp": "wanted", "chance": 15, "text": "You're one of those adventurers, aren't you? Earn Solitude's stamp from the Adventurers Guild and people here might charge you a little less. I might."},
-		{"id": "stampwant_aval", "who": "AvalAtheron", "stamp": "wanted", "chance": 15, "text": "An adventurer. If you did enough for this hold to earn its stamp on your guild card, you might get a fairer price in Windhelm than my kind ever does."},
+		{"id": "stampwant_aval", "who": "AvalAtheron", "stamp": "wanted", "chance": 15, "text": "You carry yourself like an adventurer. Get this hold's stamp on your guild card. You might see a fairer price in Windhelm than my kind ever does."},
 		{"id": "stampwant_brandshei", "who": "BrandShei", "stamp": "wanted", "chance": 15, "text": "You look like an adventurer. A word of advice: earn Riften's stamp on your guild card. Honest merchants here notice it, and there are a few of us."},
 		{"id": "stampwant_kerah", "who": "Kerah", "stamp": "wanted", "chance": 15, "text": "You're an adventurer, yes? Help the Reach enough to earn the hold's stamp, and you may find the prices in Markarth a little gentler."},
 		{"id": "stampwant_zaria", "who": "Zaria", "stamp": "wanted", "chance": 15, "text": "An adventurer, are you? If the Adventurers Guild ever stamps your card for Falkreath, show it to me. I might be persuaded on price."},
 		{"id": "stampwant_jorgen", "who": "Jorgen", "stamp": "wanted", "chance": 15, "text": "Adventurer, eh? Do some good around Morthal and earn the hold's stamp. Folk here might treat your coin better for it."},
-		{"id": "stampwant_frida", "who": "Frida", "stamp": "wanted", "chance": 15, "text": "You're an adventurer, I can tell. Earn Dawnstar's stamp from the Adventurers Guild, dear, and shopkeepers here may go a little easier on you."},
-		{"id": "stampwant_nelacar", "who": "Nelacar", "stamp": "wanted", "chance": 15, "text": "An adventurer. If you were to earn Winterhold's stamp on your guild card, what few merchants remain here might show their gratitude in the price."},
+		{"id": "stampwant_frida", "who": "Frida", "stamp": "wanted", "chance": 15, "text": "I can tell an adventurer when I see one. Get Dawnstar's stamp on your guild card, dear. Shopkeepers here may go a little easier on you."},
+		{"id": "stampwant_nelacar", "who": "Nelacar", "stamp": "wanted", "chance": 15, "text": "So, you are an adventurer. Get Winterhold's stamp on your guild card. What few merchants remain here might show their gratitude in the price."},
 		{"id": "stampwant_milore", "who": "DLC2RRMiloreIenth", "stamp": "wanted", "chance": 15, "text": "You're an adventurer, sera? Earn the Redoran stamp on your guild card. Raven Rock remembers those who help it, and that can show in what we charge."}
 	]
 }
