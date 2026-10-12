@@ -79,11 +79,16 @@ New keys in the interface file, all optional, for the hold stamps on the Guild C
 
 New text in the plugin (section 2) for the hold stamps:
 
-* Fourteen lines `AG_Info_stampsaid_<NPC>`: what a representative says, unasked, when she has stamped the card.
+* Fourteen lines `AG_Info_stampsaid_<NPC>`: what a representative says, unasked, when she has stamped the card, and
+  fourteen `AG_Info_stampsaid_<NPC>_first`: the same the first time her hold stamps a card, with a word that the
+  merchants there might think the better of it. Nobody promises a discount before a merchant does: keep the "might".
 * Fourteen replies `AG_Info_replace_<NPC>_stamped`: her answer to the replacement request when her hold's stamp is
   earned (the new card is stamped at once).
 * The player's line `I've earned this hold's stamp for my guild card. (Show Guild Card)` (topic `AG_TopicStampAsk`)
-  and five replies `AG_Info_stampask_<NPC>`: whoever inherited an inn whose counter closed still keeps its stamp.
+  and ten replies `AG_Info_stampask_<NPC>` and `..._first`: whoever inherited an inn whose counter closed still keeps
+  its stamp.
+* Seventeen greetings `AG_Info_world_stamp_<name>`: a merchant notices the hold's stamp on the card and gives a better
+  price. Ten greetings `AG_Info_world_stampwant_<name>`: someone tells an adventurer the hold's stamp is worth earning.
 * The hidden perk `AG_Perk_HoldStampStanding` is named `Hold Stamp`; the game does not show it.
 
 New text in the plugin (section 2), all of it for Show Guild Card:

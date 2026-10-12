@@ -130,6 +130,7 @@ namespace AG::Guild
 		RE::TESFaction*                         g_stampDueFaction = nullptr;     // on a stamp keeper who owes the player a stamp
 		RE::BGSPerk*                            g_stampPerk = nullptr;           // buy prices x0.85 while g_gStampDiscount is 1
 		RE::TESGlobal*                          g_gStampDiscount = nullptr;      // 1 in a hold whose stamp is on the card in hand
+		RE::TESGlobal*                          g_gStampWanted = nullptr;        // 1 for a member in a hold whose stamp is not on the card
 		std::mutex                              g_stampActorsLock;
 		std::vector<RE::ObjectRefHandle>        g_stampActors;                   // liaisons and keepers seen loaded this session
 		std::unordered_map<std::uint32_t, Role> g_roleOfLocal;  // the plugin's own line IDs (0xA00...), as the json gives them
@@ -483,6 +484,7 @@ namespace AG::Guild
 				j["cardIssued"] = GuildCard::Issued();
 				j["cardSeal"] = GuildCard::Seal();
 				j["cardStamps"] = GuildCard::HoldStamps();
+				j["cardStampsEver"] = GuildCard::EverStampedList();
 				j["bounties"] = g_bountySeen;
 				j["bountyKnown"] = g_bountyKnown;
 				j["bountyCarry"] = g_bountyCarry;
@@ -575,6 +577,8 @@ namespace AG::Guild
 						GuildCard::SetIssued(j.value("cardIssued", false));
 						GuildCard::SetSeal(j.value("cardSeal", std::string()));
 						GuildCard::SetHoldStamps(j.value("cardStamps", std::vector<std::string>{}));
+						// a save from before this was kept: what is on the card now has been stamped before
+						GuildCard::SetEverStamped(j.value("cardStampsEver", j.value("cardStamps", std::vector<std::string>{})));
 						g_bountySeen = j.value("bounties", std::map<std::string, int>{});
 						g_bountyKnown = j.value("bountyKnown", false);
 						g_bountyCarry = j.value("bountyCarry", 0.0);
@@ -729,6 +733,7 @@ namespace AG::Guild
 		g_stampDueFaction = Own<RE::TESFaction>(0xCEB);
 		g_stampPerk = Own<RE::BGSPerk>(0xCF5);
 		g_gStampDiscount = Own<RE::TESGlobal>(0xCF4);
+		g_gStampWanted = Own<RE::TESGlobal>(0xCF6);
 		g_wandererFaction = Own<RE::TESFaction>(0xC80);
 		g_rankFaction = Own<RE::TESFaction>(0xC91);
 		g_promotedFaction = Own<RE::TESFaction>(0xC92);
@@ -951,13 +956,17 @@ namespace AG::Guild
 			if (pc && member && !pc->HasPerk(g_stampPerk)) pc->AddPerk(g_stampPerk);
 			const auto here = Dungeons::CityHere();
 			const float on = member && GuildCard::Has() && !here.empty() && std::find(onCard.begin(), onCard.end(), here) != onCard.end() ? 1.0f : 0.0f;
+			// ... and where it is not on the card, a few people say it would be worth having
+			if (g_gStampWanted) g_gStampWanted->value = member && !here.empty() && on == 0.0f ? 1.0f : 0.0f;
 			if (g_gStampDiscount->value != on) {
 				g_gStampDiscount->value = on;
 				SKSE::log::info("Guild: hold stamp standing {} ({})", on > 0.0f ? "applies here" : "does not apply here", here.empty() ? "no hold" : here);
 			}
 		}
-		const auto set = [](RE::Actor* a_actor, RE::TESFaction* a_faction, bool a_in) {
-			if ((a_actor->GetFactionRank(a_faction, false) >= 0) != a_in) a_actor->AddToFaction(a_faction, a_in ? 0 : -1);
+		// a_rank: the rank to hold in the faction when in it (a keeper's is 1 while her hold has never stamped a card)
+		const auto set = [](RE::Actor* a_actor, RE::TESFaction* a_faction, bool a_in, std::int8_t a_rank = 0) {
+			const std::int8_t want = a_in ? a_rank : -1;
+			if (a_actor->GetFactionRank(a_faction, false) != want) a_actor->AddToFaction(a_faction, want);
 		};
 		for (auto& h : seen) {
 			auto ref = h.get();
@@ -969,7 +978,7 @@ namespace AG::Guild
 			// a keeper: does she owe the player a stamp? (earned, not on the card, and the card is in hand)
 			const auto hold = Adventurers::StampKeeperCity(actor);
 			set(actor, g_stampDueFaction, member && !hold.empty() && GuildCard::Has() && Dungeons::ClearedIn(hold) >= StampDungeons() &&
-				std::find(onCard.begin(), onCard.end(), hold) == onCard.end());
+				std::find(onCard.begin(), onCard.end(), hold) == onCard.end(), GuildCard::EverStamped(hold) ? 0 : 1);
 		}
 	}
 

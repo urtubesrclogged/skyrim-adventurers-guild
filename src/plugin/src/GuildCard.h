@@ -36,6 +36,11 @@ namespace AG::GuildCard
 	// it was stamped: a replacement card starts with none and is stamped again counter by counter.
 	std::vector<std::string> HoldStamps();                         // counter cities, in the order stamped
 	void SetHoldStamps(std::vector<std::string> a_cities);         // co-save
+	// Holds that have EVER stamped a card of this player's (never cleared: a replacement card does not make a hold's
+	// stamp a first again). The first time is when she adds a word about the merchants.
+	bool EverStamped(const std::string& a_city);
+	std::vector<std::string> EverStampedList();                    // co-save
+	void SetEverStamped(std::vector<std::string> a_cities);        // co-save
 	bool CollectHoldStamp(const std::string& a_city);              // at that city's counter: stamps the card if earned and not there yet
 	std::string StampFile(const std::string& a_city);              // "Raven Rock" -> "ravenrock": the page's tex/skin/stamp_<name>.png
 

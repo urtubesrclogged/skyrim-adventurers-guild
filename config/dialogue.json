@@ -22,6 +22,7 @@
     "A": "The caravans ask for you by name before they'll take the north road. I tell them an adventurer like that doesn't come cheap, and they pay it.",
     "S": "An S-rank at the Bannered Mare. Whiterun will talk about this for a year. What can I do for you?"
    },
+   "stampedFirst": "There you are, love. Whiterun's horse, right on your card. Show it around the shops. Some of them go easier on an adventurer the hold knows.",
    "stamped": "There you are, love. Whiterun's horse, right on your card. You earned that one out there.",
    "replaceStamped": "Lost it already? Here, a fresh one, and I've put Whiterun's horse back on it. The other holds you'll have to ask yourself.",
    "replace": "Lost it already? Happens to the best of them. Here, a fresh one. Try to keep this one out of the mead."
@@ -53,6 +54,7 @@
     "Bandits are bad for trade, and so are trolls. Every missive an adventurer finishes puts coin back in Whiterun's market.",
     "Hulda kept this counter for years and never charged what it was worth. I mean to do right by her, and turn a profit doing it."
    ],
+   "stampedFirst": "Whiterun's stamp, on your card. Show it when you shop here. A merchant who knows what it means might find you a better price. I would.",
    "stamped": "Whiterun's stamp, on your card. That'll open a few purses around here. Mine included.",
    "replaceStamped": "Replacements cost, I'm afraid. Here you are, and Whiterun's stamp comes with it. No extra charge.",
    "replace": "Lost your guild card? Replacements cost, I'm afraid. A merchant can't give away stock. Here you are.",
@@ -78,6 +80,7 @@
     "A": "Our A-rank! Half of Solitude wants to hire you and the other half wants to meet you. Your card?",
     "S": "An S-rank in the Winking Skeever. I'll have Sorex frame your signature. What do you need?"
    },
+   "stampedFirst": "There, friend. Solitude's wolf, on your card. Show it around the shops. You may find the prices kinder.",
    "stamped": "There, friend. Solitude's wolf, on your card. Wear it proudly.",
    "replaceStamped": "Careless, but easily mended. There, a new card, with Solitude's wolf stamped on it again.",
    "replace": "Lost your card? Careless, but easily mended. There you are, good as new."
@@ -109,6 +112,7 @@
     "Solitude's missives are mostly wolves on the road and smugglers on the coast. Nobles pay well to have their problems go away quietly.",
     "Half the adventurers who sign this ledger never come back to it. The other half drink here. I make coin either way."
    ],
+   "stampedFirst": "Solitude's wolf. On your card. Flash it at the merchants. A few of them go soft for a stamped card. Don't ask me why.",
    "stamped": "Solitude's wolf. On your card. Try not to look so surprised you earned it.",
    "replaceStamped": "Of course you lost it. Here. I've stamped the wolf on it again, so that's one less thing for you to forget.",
    "replace": "Lost your guild card already? Of course you did. Here. That's coming out of your pocket, not mine.",
@@ -134,6 +138,7 @@
     "A": "A lad upstairs was halfway through his sabre cat story when you walked in. Stopped dead. Nobody wants to tell one in front of you.",
     "S": "That candle upstairs has burned a hundred and sixty-three years for one great warrior. First time I've thought it might have some company."
    },
+   "stampedFirst": "The bear of Eastmarch, on your card. Don't smudge it. Show it to the traders, and some might charge you less. Not much else warms this city.",
    "stamped": "The bear of Eastmarch, on your card. Don't smudge it.",
    "replaceStamped": "Here's another, and it'll cost you. The bear's on it already. The rest you can chase down yourself.",
    "replace": "Down a troll's gullet, I hope, and not just the back of a bed. Here's another, and it'll cost you."
@@ -165,6 +170,7 @@
     "Windhelm's cold, and the work's colder. Ice wraiths, trolls on the roads. Eat before you go out.",
     "Adventurers keep this city fed. When the roads are clear, the carts get through. People forget that."
    ],
+   "stampedFirst": "There now. Windhelm's bear, on your card. Show it at the market, mind. Some of the merchants take a little off for it.",
    "stamped": "There now. Windhelm's bear, on your card. I pressed it twice, to be sure.",
    "replaceStamped": "Never mind, never mind. Here's a new one, and I've put the bear on it again for you.",
    "replace": "Lost your guild card? Never mind, never mind. Here's a new one. Keep it somewhere dry.",
@@ -190,6 +196,7 @@
     "A": "An A-rank in Riften. Even the Thieves Guild knows better than to pick your pockets. Business?",
     "S": "An S-rank in the Bee and Barb. Even the Black-Briars will mind their manners. Business?"
    },
+   "stampedFirst": "There. Riften's mark, on your card. Show it to the merchants. A few might take less off you than they take off everyone else.",
    "stamped": "There. Riften's mark, on your card. You earned it, which is more than most in this city can say.",
    "replaceStamped": "Lost, or lifted? Here's a new one. Riften's daggers are on it already. Nobody can lift what you've earned.",
    "replace": "Lost, or lifted? In Riften it's usually lifted. Here's a new one. Keep it somewhere your purse isn't."
@@ -221,6 +228,7 @@
     "In Riften, not every job is posted on a board. The Adventurers Guild's work is honest. That is rarer here than it should be.",
     "The Rift is full of bears, bandits and worse. An adventurer with a clear head lives longer. I will say no more about the mead."
    ],
+   "stampedFirst": "It is done. Riften's daggers are on your card. Show it to the merchants here. Some may ask a fairer price of you.",
    "stamped": "It is done. Riften's daggers are on your card. You have done this hold much good.",
    "replaceStamped": "Here is another. I have stamped Riften's mark on it again. That, at least, no thief can take.",
    "replace": "You have lost your guild card? In Riften, check your pockets twice. Here is another.",
@@ -246,6 +254,7 @@
     "A": "One of the Guild's finest, in Markarth. The Silver-Bloods are nervous. I rather like it. What is it?",
     "S": "An S-rank, here. Thonar himself asked if you'd drink with him. Business first?"
    },
+   "stampedFirst": "There. Markarth's ram, on your card. Show it at the stalls, not to the Silver-Bloods. A merchant might charge you less for it.",
    "stamped": "There. Markarth's ram, on your card. Don't wave it at the Silver-Bloods.",
    "replaceStamped": "There, a new one, with Markarth's ram stamped back on. Quietly, now.",
    "replace": "Lost your card? In Markarth that's the least of what people lose. There, a new one."
@@ -270,6 +279,7 @@
     "A": "A-rank, and still breathing. Falkreath's never seen the like. What do you need?",
     "S": "An S-rank. The undertaker's going to be disappointed. What can I do for you?"
    },
+   "stampedFirst": "There you are, dear. Falkreath's stag, on your card. Show it at the shops. Folk here might give you a better price.",
    "stamped": "There you are, dear. Falkreath's stag, on your card. Earned above ground, too.",
    "replaceStamped": "No harm done. Here's a new card, dear, and I've put Falkreath's stag back on it.",
    "replace": "Oh, you've lost it? No harm done. Here's a new card, dear."
@@ -294,6 +304,7 @@
     "A": "Morthal's own hero, back at my counter. What can I do for you?",
     "S": "An S-rank, in Morthal. I never thought I'd see the day. What can I do for you?"
    },
+   "stampedFirst": "There. Morthal's mark, on your card. Show it to the shopkeepers. They might ask less of someone who's done this town some good.",
    "stamped": "There. Morthal's mark, on your card. This town owes you more than a stamp, but it's what I have.",
    "replaceStamped": "Here's a new card, and Morthal's mark is on it again. The marsh can't have that one.",
    "replace": "Lost in the marsh, I'd wager. Half of Morthal's belongings are. Here's a new card."
@@ -330,6 +341,7 @@
      "Fewer adventurers every year. The wars, and worse. Glad you're here."
     ]
    },
+   "stampedFirst": "There. Dawnstar's star, on your card. Show it around the shops. Some of them might go easier on your purse.",
    "stamped": "There. Dawnstar's star, on your card. You've earned some rest. Wish I could stamp that too.",
    "replaceStamped": "It happens. Here's a new one, and Dawnstar's star is back on it. The ledger remembers.",
    "replace": "Lost your card? It happens. Here's a new one, and the ledger still knows your name."
@@ -354,6 +366,7 @@
     "A": "One of the Guild's best, in Winterhold. The College keeps asking after you. What do you need?",
     "S": "An S-rank, here. Even the Arch-Mage will want to meet you. How can I be of service?"
    },
+   "stampedFirst": "There! Winterhold's crown, on your card. Show it to the merchants. There aren't many, but they might charge you less.",
    "stamped": "There! Winterhold's crown, on your card. Not many earn that. Not many try.",
    "replaceStamped": "Here's another, friend, and Winterhold's crown is stamped on it again. That part didn't vanish.",
    "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
@@ -386,6 +399,7 @@
     "A": "I've started telling people an A-rank adventurer drinks here. It's good for business. Don't make a liar of me.",
     "S": "I've got a story about an S-rank adventurer who walked into my cornerclub. True story, friend. I'm still in the middle of it."
    },
+   "stampedFirst": "House Redoran's mark, on your card. Show it to Raven Rock's traders. Some will take a little off for a face the town can vouch for.",
    "stamped": "House Redoran's mark, on your card. Now that's a story I'll be telling at this bar.",
    "replaceStamped": "Then it's the fee. Here, and I've pressed the Redoran mark on it again. The story of how you earned it, I kept.",
    "replace": "A lost guild card always comes with a story, and I collect those. No? Then it's the fee, and I'll make one up for you."
@@ -548,11 +562,11 @@
  "generic": "The Adventurers Guild keeps its counters in the hold capitals, near the missive boards. You won't find one out here.",
  "_stampKeepers": "Hold stamps (1.5.0). 'stamped' on a liaison: what she says, unasked, as her counter closes after she has stamped the card (an Idle line the DLL has her say, locked by AG_StampSayGlobal). 'replaceStamped': her reply to the replacement request when her hold's stamp is earned (the new card is stamped at once). stampKeepers: whoever takes over an inn whose counter closed with its liaison keeps the liaison's stamp and puts it on a card on request, nothing else; 'of' is the dead liaison. The DLL marks the keeper (AG_StampDueFaction) while the stamp is earned, not on the card, and the card is in hand.",
  "stampKeepers": [
-  { "npc": "Frabbi", "of": "Kleppr", "city": "Markarth", "line": "Kleppr's stamp? Under the bar, with the rest of his clutter. There. Markarth's ram. That's all I do for the Adventurers Guild, mind." },
-  { "npc": "Karita", "of": "Thoring", "city": "Dawnstar", "line": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star." },
-  { "npc": "Haran", "of": "Dagur", "city": "Winterhold", "line": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card." },
-  { "npc": "Lurbuk", "of": "Jonna", "city": "Morthal", "line": "Jonna left me the inn, and the stamp. Some say I am better with the stamp than the lute. There! Morthal's mark!" },
-  { "npc": "Narri", "of": "ValgaVinicia", "city": "Falkreath", "line": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag, and it suits you." }
+  { "npc": "Frabbi", "of": "Kleppr", "city": "Markarth", "lineFirst": "Kleppr's stamp? Under the bar, with the rest of his clutter. There. Markarth's ram. Show it at the stalls, someone might charge you less. That's all I do for the Adventurers Guild, mind.", "line": "Kleppr's stamp? Under the bar, with the rest of his clutter. There. Markarth's ram. That's all I do for the Adventurers Guild, mind." },
+  { "npc": "Karita", "of": "Thoring", "city": "Dawnstar", "lineFirst": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star. Show it at the shops. Father said it was worth more than the ink.", "line": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star." },
+  { "npc": "Haran", "of": "Dagur", "city": "Winterhold", "lineFirst": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card. Show it to the merchants. They might ask a little less of you.", "line": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card." },
+  { "npc": "Lurbuk", "of": "Jonna", "city": "Morthal", "lineFirst": "Jonna left me the inn, and the stamp. There! Morthal's mark! Show it to the merchants. Sometimes they give a better price. I asked. Many times.", "line": "Jonna left me the inn, and the stamp. Some say I am better with the stamp than the lute. There! Morthal's mark!" },
+  { "npc": "Narri", "of": "ValgaVinicia", "city": "Falkreath", "lineFirst": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag. Show it around the shops. A merchant might be sweeter to you for it.", "line": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag, and it suits you." }
  ],
  "_prompts": "What the player says.",
  "_showCard": "Show Guild Card (1.5.0): a member carrying the card can show it where vanilla asks the player to talk their way in. No vanilla line is overridden: each reply is ADDED to a vanilla choice, which it takes over when vanilla's own replies before it do not apply (tools/EspGen/Program.cs has the detail). college: Faralda, in place of '(Persuade)', any rank ('E' for a rank E member, 'other' for the rest), and she goes on into her own vanilla welcome. treasury: Rhiada, in place of '(Persuade)', rank C and up. orcs: a stronghold's gate guard, rank A and up, in each voice of 'orcVoices': in place of 'I go where I please, Orc.' at the first meeting, and as a topic of our own in his menu after it.",

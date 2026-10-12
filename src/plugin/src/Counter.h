@@ -14,9 +14,9 @@ namespace AG::Counter
 	// opens once the Dialogue Menu closes; a_branch = the liaison's city, a_keeper = the liaison herself
 	void OpenAfterDialogue(std::string a_branch, RE::TESObjectREFR* a_keeper = nullptr);
 	// Hold stamps: the card was stamped during this visit; she says so as the counter closes (GuildCard tells us).
-	void Stamped();
+	void Stamped(bool a_first);  // a_first: the first time this hold has stamped a card of the player's
 	// the representative of the last counter opened through her, has her say a topic of ours (0 = the stamp line)
-	std::string SayStampLine(std::uint32_t a_topic = 0, int a_attempt = 0);
+	std::string SayStampLine(std::uint32_t a_topic = 0, int a_attempt = 0, bool a_first = false);
 	void StampLineStarted();  // she has begun it: the lock on the line closes again
 	std::string Branch();                           // city of the counter currently open ("" = none / debug)
 	void Open();

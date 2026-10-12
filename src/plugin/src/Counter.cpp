@@ -41,6 +41,7 @@ namespace AG::Counter
 		std::string                 g_branch;
 		RE::ObjectRefHandle         g_keeper;            // the representative this counter was opened through (g_branchLock)
 		std::atomic<bool>           g_stamped{ false };  // the card was stamped while the counter was open
+		std::atomic<bool>           g_stampedFirst{ false };  // ... and for the first time by this hold
 
 		bool Valid() { return g_api && g_view && g_api->IsValid(g_view); }
 
@@ -457,7 +458,7 @@ namespace AG::Counter
 		g_cardOnly = false;
 		ControlsGuard::Unmask();
 		ControlsGuard::Hidden();
-		if (g_stamped.exchange(false)) SayStampLine();  // "There. Riften's mark, on your card."
+		if (g_stamped.exchange(false)) SayStampLine(0, 0, g_stampedFirst.exchange(false));  // "There. Riften's mark, on your card."
 	}
 
 	void StampLineStarted()
@@ -466,12 +467,15 @@ namespace AG::Counter
 		if (auto* lock = dh ? dh->LookupForm<RE::TESGlobal>(0xCE9, "AdventurersGuild.esp") : nullptr) lock->value = 0.0f;
 	}
 
-	void Stamped()
+	void Stamped(bool a_first)
 	{
-		if (g_open.load() && !g_cardOnly.load()) g_stamped = true;
+		if (g_open.load() && !g_cardOnly.load()) {
+			g_stamped = true;
+			if (a_first) g_stampedFirst = true;
+		}
 	}
 
-	std::string SayStampLine(std::uint32_t a_topic, int a_attempt)
+	std::string SayStampLine(std::uint32_t a_topic, int a_attempt, bool a_first)
 	{
 		RE::NiPointer<RE::TESObjectREFR> keeper;
 		{
@@ -486,20 +490,20 @@ namespace AG::Counter
 		if (!keeper->Is3DLoaded() || keeper->IsDead()) return "she is not here to say it";
 		// the line is an idle line, locked so that it is never idle chatter: open for this one asking
 		auto* lock = dh->LookupForm<RE::TESGlobal>(0xCE9, "AdventurersGuild.esp");
-		if (lock) lock->value = 1.0f;
+		if (lock) lock->value = a_first ? 2.0f : 1.0f;  // 2: her first-time line, with its word about the merchants
 		// the game remembers a line as said; nothing of ours is to be refused for that
 		for (std::uint32_t i = 0; topic->topicInfos && i < topic->numTopicInfos; ++i)
 			if (auto* line = topic->topicInfos[i]) line->saidOnce = false;
 		// She may still be finishing the sentence that opened the counter, and a character who is speaking takes no new
 		// line. The lock closes when she starts (StampLineStarted); while it is still open, ask again, a few times.
 		if (lock && a_attempt < 3)
-			std::thread([a_topic, a_attempt] {
+			std::thread([a_topic, a_attempt, a_first] {
 				std::this_thread::sleep_for(std::chrono::milliseconds(2500));
-				SKSE::GetTaskInterface()->AddTask([a_topic, a_attempt] {
+				SKSE::GetTaskInterface()->AddTask([a_topic, a_attempt, a_first] {
 					auto* d = RE::TESDataHandler::GetSingleton();
 					auto* l = d ? d->LookupForm<RE::TESGlobal>(0xCE9, "AdventurersGuild.esp") : nullptr;
 					if (!l || l->value < 0.5f) return;  // she said it
-					if (a_attempt + 1 < 3) SayStampLine(a_topic, a_attempt + 1);
+					if (a_attempt + 1 < 3) SayStampLine(a_topic, a_attempt + 1, a_first);
 					else {
 						l->value = 0.0f;  // never left open: an open lock would make it idle chatter
 						SKSE::log::warn("Counter: the stamp line was asked for three times and not said");

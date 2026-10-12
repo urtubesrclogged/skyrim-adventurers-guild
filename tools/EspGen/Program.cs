@@ -172,6 +172,10 @@ var gPromoReady = Global(0x802, "AG_PromotionReadyGlobal", 0);
 // and required by the liaison lines; the DLL sets both from guild.json on load.
 var gRegFee = Global(0x814, "AG_RegisterFee", 50);
 var gPromoFee = Global(0x815, "AG_PromotionFee", 50);
+// Hold stamps (1.5.0), both kept by the DLL: 1 in a hold whose stamp is on the card the player carries (merchants there charge
+// less, and some say so); 1 for a member in a hold whose stamp is NOT on the card (some people hint that it is worth earning).
+var gStampDiscount = Global(0xCF4, "AG_StampDiscountGlobal", 0);
+var gStampWanted = Global(0xCF6, "AG_StampWantedGlobal", 0);
 var gCardFee = Global(0x81D, "AG_CardFee", 25);            // a replacement guild card (the DLL sets it from guild.json)
 // 1 while a Missives add-on is loaded (the DLL sets it on every load): dialogue that depends on its board reads it
 var addonGlobals = new Dictionary<string, GlobalShort> { ["AG_MissivesSolstheimGlobal"] = Global(0xC90, "AG_MissivesSolstheimGlobal", 0) };
@@ -755,6 +759,7 @@ foreach (var ln in world["lines"]!.AsArray())
         od.Keyword.Link.SetTo(Skyrim.Keyword.CWOwner.FormKey);
         conds.Add(new ConditionFloat { CompareOperator = ow.GetValue<string>() == "sons" ? CompareOperator.EqualTo : CompareOperator.NotEqualTo, ComparisonValue = 2, Data = od });
     }
+    if (ln["stamp"] is JsonNode st) conds.Add(GlobalIs(st.GetValue<string>() == "here" ? gStampDiscount : gStampWanted, 1));
     var status = ln["status"]?.GetValue<string>() ?? "registered";
     if (status != "any") conds.Add(GlobalIs(gRegistered, status == "unregistered" ? 0 : 1));  // "any": registered or not
     if (ln["rank"] is JsonNode rk) conds.AddRange(RankConds(rk.GetValue<string>()));
@@ -812,7 +817,7 @@ foreach (var ln in world["lines"]!.AsArray())
     var info = new DialogResponses(FK(InfoId("world:" + id)), Rel)
     {
         EditorID = "AG_Info_world_" + id,
-        Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = kind == "npc" ? 24f : kind == "wanderer" ? 0f : 6f },  // wanderers: no rest. Two or three lines per case, shared by every adventurer on the road: with a rest the first one met used them up (measured: 3 Guild lines in 48 greetings). The chance mixes them with the game's own instead
+        Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = ln["restHours"] is JsonNode rest ? rest.GetValue<float>() : kind == "npc" ? 24f : kind == "wanderer" ? 0f : 6f },  // wanderers: no rest. Two or three lines per case, shared by every adventurer on the road: with a rest the first one met used them up (measured: 3 Guild lines in 48 greetings). The chance mixes them with the game's own instead
     };
     info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
     foreach (var c in conds) info.Conditions.Add(c);
@@ -916,7 +921,6 @@ mod.DialogTopics.Add(hello);
     // The standing a stamp gives: merchants in a hold whose stamp is on the card the player carries sell 15% cheaper.
     // The game's own way (Haggling, Allure): a perk entry on buy prices. One hidden perk, given to every member; its
     // entry counts only while AG_StampDiscountGlobal is 1, which the DLL keeps (in such a hold, card in hand).
-    var gStampDiscount = Global(0xCF4, "AG_StampDiscountGlobal", 0);
     {
         var perk = new Perk(FK(0xCF5), Rel) { EditorID = "AG_Perk_HoldStampStanding", Name = "Hold Stamp", Playable = false, Hidden = true, NumRanks = 1 };
         var entry = new PerkEntryPointModifyValue
@@ -951,6 +955,19 @@ mod.DialogTopics.Add(hello);
             info.Conditions.Add(IsNpc(Npc(npc), false));
             info.Conditions.Add(GlobalIs(gStampSay, 1));
             t.Responses.Add(info);
+            // the first time: the same, with a word that the merchants here might think the better of a stamped card
+            if (l["stampedFirst"] is JsonNode firstSaid)
+            {
+                var first = new DialogResponses(FK(InfoId("stampsaid:" + npc + ":first")), Rel)
+                {
+                    EditorID = "AG_Info_stampsaid_" + npc + "_first",
+                    Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = 0f },
+                };
+                first.Responses.Add(new DialogResponse { Text = firstSaid.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+                first.Conditions.Add(IsNpc(Npc(npc), false));
+                first.Conditions.Add(GlobalIs(gStampSay, 2));
+                t.Responses.Add(first);
+            }
         }
         mod.DialogTopics.Add(t);
     }
@@ -972,6 +989,19 @@ mod.DialogTopics.Add(hello);
         foreach (var k in dlg["stampKeepers"]!.AsArray())
         {
             var npc = k!["npc"]!.GetValue<string>();
+            if (k["lineFirst"] is JsonNode lf)
+            {
+                var fkey = "stampask:" + npc + ":first";
+                var first = new DialogResponses(FK(InfoId(fkey)), Rel) { EditorID = "AG_Info_stampask_" + npc + "_first" };
+                first.Responses.Add(new DialogResponse { Text = lf.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+                first.Conditions.Add(IsNpc(Npc(npc), false));
+                var rank = new GetFactionRankConditionData();
+                rank.Faction.Link.SetTo(stampDueFaction.FormKey);
+                first.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = rank });
+                if (t.Responses.Count > 0) first.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
+                t.Responses.Add(first);
+                roles["stamp"].Add(ids[fkey]);
+            }
             var key = "stampask:" + npc;
             var info = new DialogResponses(FK(InfoId(key)), Rel) { EditorID = "AG_Info_stampask_" + npc };
             info.Responses.Add(new DialogResponse { Text = k["line"]!.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });

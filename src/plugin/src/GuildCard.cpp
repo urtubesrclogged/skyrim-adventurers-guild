@@ -294,6 +294,25 @@ namespace AG::GuildCard
 	namespace
 	{
 		std::vector<std::string> g_holdStamps;  // guarded by g_sealLock
+		std::vector<std::string> g_everStamped; // guarded by g_sealLock
+	}
+
+	bool EverStamped(const std::string& a_city)
+	{
+		std::lock_guard l(g_sealLock);
+		return std::find(g_everStamped.begin(), g_everStamped.end(), a_city) != g_everStamped.end();
+	}
+
+	std::vector<std::string> EverStampedList()
+	{
+		std::lock_guard l(g_sealLock);
+		return g_everStamped;
+	}
+
+	void SetEverStamped(std::vector<std::string> a_cities)
+	{
+		std::lock_guard l(g_sealLock);
+		g_everStamped = std::move(a_cities);
 	}
 
 	std::vector<std::string> HoldStamps()
@@ -321,17 +340,20 @@ namespace AG::GuildCard
 		if (a_city.empty() || !Guild::Registered() || Guild::Dormant() || !Has()) return false;  // no card in hand, nothing to stamp
 		const int cleared = Dungeons::ClearedIn(a_city);
 		if (cleared < Guild::StampDungeons()) return false;
+		bool first = false;
 		{
 			std::lock_guard l(g_sealLock);
 			if (std::find(g_holdStamps.begin(), g_holdStamps.end(), a_city) != g_holdStamps.end()) return false;
 			g_holdStamps.push_back(a_city);
+			first = std::find(g_everStamped.begin(), g_everStamped.end(), a_city) == g_everStamped.end();
+			if (first) g_everStamped.push_back(a_city);
 		}
 		const auto city = Guild::CityName(a_city);
 		Guild::Record(Loc::F("$AG_Log_Stamp", "Your guild card was stamped in {}.", city));
 		PrismaToast::Show(Loc::T("$AG_Toast_StampAdded", "GUILD CARD STAMPED"), Loc::F("$AG_Toast_StampAddedSub", "{}'s hold stamp is on your card", city),
 			"tex/skin/stamp_" + StampFile(a_city) + ".png");
-		SKSE::log::info("GuildCard: stamped at {} ({} dungeon reports from the hold handed in, {} needed)", a_city, cleared, Guild::StampDungeons());
-		Counter::Stamped();
+		SKSE::log::info("GuildCard: stamped at {} ({} dungeon reports from the hold handed in, {} needed){}", a_city, cleared, Guild::StampDungeons(), first ? " - the first time for this hold" : "");
+		Counter::Stamped(first);
 		return true;
 	}
 
