@@ -94,7 +94,7 @@
 	"_chance": "Random world NPCs. The roll is a hash of the reference's FormID, so the same NPC always gets the same answer (no save data). kind: member = '(C)', retired = '(C, retired)', hidden = rank kept secret (only high Appraisal reveals it). First matching group wins.",
 	"chance": [
 		{ "id": "assassin",  "kind": "hidden",  "percent": 30, "factions": ["DarkBrotherhoodFaction", "DLC2MoragTongFaction"] },
-		{ "id": "hunter",    "kind": "member",  "percent": 60, "factions": ["HunterFaction", "WEServicesHunterFaction", "DLC2HunterFaction"] },
+		{ "id": "hunter",    "kind": "member",  "percent": 20, "factions": ["HunterFaction", "WEServicesHunterFaction", "DLC2HunterFaction"] },
 		{ "id": "mercenary", "kind": "member",  "percent": 60, "factions": ["WEBountyHunter", "CaravanGuard", "WERoad02BodyguardFaction"] },
 		{ "id": "guard",     "kind": "retired", "percent": 15, "factions": ["IsGuardFaction"] },
 		{ "id": "soldier",   "kind": "retired", "percent": 10, "factions": ["CWImperialFaction", "CWSonsFaction"] }
