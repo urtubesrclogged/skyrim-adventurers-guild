@@ -372,6 +372,27 @@
      the sheet has room: four above the first rule, four across it, two under the wax seal, each in its own place and
      at its own tilt (STAMP_PLACES), filled in the order the card was stamped. Ink darkens the paper under it. */
   .stamp { position: absolute; pointer-events: none; mix-blend-mode: multiply; }
+  /* blood on a dead adventurer's card: it soaks the paper as ink does, and stops where the sheet does */
+  .bloodlayer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; mix-blend-mode: multiply;
+    -webkit-mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
+  .bloodlayer img { position: absolute; max-width: none; }
+  /* the card itself took harm: a cut, folds, a nick (drawn over what is written: the cut goes through the ink too) */
+  .dmglayer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
+    -webkit-mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
+  .dmglayer img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; max-width: none; }
+  /* a worn card: the writing has run and faded, the sheet is stained, and what the player is told lies over it */
+  .card.worn .washed { filter: blur(2.6px) saturate(0.5); opacity: 0.5; }
+  .card.worn .washed .rankseal { visibility: hidden; }   /* gone: only where it sat is left (ghost-rank) */
+  /* Where the rank's seal was fixed, and where the wax sat: both cut from the real seal images (tools/make_blood.py),
+     so they have the seals' own outlines, and lie exactly where the seals do on a whole card. */
+  .ghost-rank { position: absolute; left: 24px; top: 20px; width: 76px; height: 76px; pointer-events: none; }
+  .ghost-wax { position: absolute; right: 14px; top: 6px; width: 136px; height: 136px; transform: rotate(-9deg); pointer-events: none; }
+  .wearlayer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; mix-blend-mode: multiply;
+    background: url(tex/skin/wear.png) center / 100% 100% no-repeat;
+    -webkit-mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
+  .wornnote { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .wornnote > div { max-width: 640px; padding: 16px 30px; text-align: center; font-size: 24px; line-height: 1.35; color: #fff6df;
+    background: rgba(10, 8, 6, 0.72); border: 1px solid rgba(255, 246, 223, 0.28); border-radius: 4px; }
   .medallion .stampline { font-size: 16px; color: var(--muted); margin-top: 10px; }
   .paper .retired { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%) rotate(-14deg); font-size: 54px; letter-spacing: 6px;
     color: rgba(120, 28, 22, 0.62); border: 5px double rgba(120, 28, 22, 0.55); padding: 4px 26px 2px; border-radius: 6px; mix-blend-mode: multiply; pointer-events: none; }
@@ -568,8 +589,35 @@ function cardFigures(c) {
       <hr/>
       ${next}`;
 }
+/* The card of a dead adventurer: their blood on it. Two stains (tools/make_blood.py), laid where the card's ledger
+   number puts them, so each card has its own and always the same. Kept to the sheet's own outline. */
+function cardBlood(n) {
+  const pool = [[-8, -14, 380, 0], [-14, -22, 420, 4], [-6, -30, 350, -5]][n % 3];             // its own left and lower edges on the sheet's
+  const spray = [[60, 20, 420, -12], [200, 0, 400, 8], [20, 50, 440, -24]][(n >> 2) % 3];       // across the lower half, flung from the left
+  return `<div class="dmglayer"><img src="tex/skin/damage.png" style="transform:scaleX(${n & 1 ? -1 : 1})" alt=""/></div>
+    <div class="bloodlayer">
+      <img src="tex/skin/blood_1.png" style="left:${pool[0]}px;bottom:${pool[1]}px;width:${pool[2]}px;transform:rotate(${pool[3]}deg)" alt=""/>
+      <img src="tex/skin/blood_2.png" style="right:${spray[0]}px;bottom:${spray[1]}px;width:${spray[2]}px;transform:rotate(${spray[3]}deg)" alt=""/>
+    </div>`;
+}
+/* A worn card: the same sheet as anyone's, and nothing on it can be read. What it once said is drawn as writing that
+   has run and faded (the words are filler: nothing of them survives the wash), under water stains and dirt
+   (tools/make_blood.py, wear.png). What the player is told is laid over the card, not written on it. */
+function renderWornCard() {
+  const c = { name: "Hjorvald Stonearm", letter: "D", registered: "17th of Last Seed, 4E 188", party: "", merit: 58, reputation: 312, goldEarned: 2140, level: 17,
+    next: { letter: "C", reputation: 400, level: 20 } };
+  return `<div class="card member worn">
+    <div class="paper">
+      <div class="washed">${cardFace(c)}${cardFigures(c)}</div>
+      <img class="ghost-rank" src="tex/skin/ghost_rank.png" alt=""/>
+      <div class="wearlayer"></div>
+      <img class="ghost-wax" src="tex/skin/ghost_wax.png" alt=""/>
+      <div class="wornnote"><div>${esc(t("$AG_UI_WornCard", "The remains of a card of the Adventurers Guild. The holder's name is no longer readable."))}</div></div>
+    </div></div>`;
+}
 function renderMemberCard() {
   const mb = data.member, d = mb.date || {};
+  if (mb.worn) return renderWornCard();
   const c = { name: mb.name, letter: mb.letter, registered: d.year != null ? calDate(d.year, d.month, d.day) : "",
     party: mb.party, merit: mb.merit, reputation: mb.reputation, goldEarned: mb.goldEarned, level: mb.level, next: mb.next };
   return `<div class="card member">
@@ -578,6 +626,7 @@ function renderMemberCard() {
       ${cardFigures(c)}
       ${mb.retired ? `<div class="retired caps">${esc(t("$AG_UI_Retired", "Retired"))}</div>` : ""}
       ${cardStamps(mb.stamps || [])}
+      ${mb.dead ? cardBlood(mb.number || 0) : ""}
       <img class="seal-wax" src="tex/seal${mb.seal === "morrowind" ? "_morrowind" : ""}.png" alt=""/>
     </div></div>`;
 }

@@ -1349,13 +1349,13 @@ Book CardLike(uint id, string edid, string name, string text) => new Book(FK(id)
     InventoryArt = noteSrc.InventoryArt is { } mia ? new FormLinkNullable<IStaticGetter>(mia.FormKey) : null,
     Flags = noteSrc.Flags, Type = noteSrc.Type, Value = 0, Weight = 0, Description = "", BookText = text,
 };
-mod.Books.Add(CardLike(0xCF7, "AG_MemberCard", "Guild Card",
+mod.Books.Add(CardLike(0xCF7, "AG_MemberCard", "Adventurers Guild Card (NPC)",
     "<p align=\"center\"><font size=\"30\">ADVENTURERS GUILD</font></p>" +
     "<p align=\"center\">Member's Card</p><br>" +
     "<p>The bearer is a registered adventurer of the Guild. Rank, standing and record are kept in the Guild's ledger " +
     "and may be confirmed at the inn of any hold capital.</p><br>" +
     "<p align=\"right\">- The Adventurers Guild</p>"));
-mod.Books.Add(CardLike(0xCF8, "AG_WornCard", "Worn Guild Card",
+mod.Books.Add(CardLike(0xCF8, "AG_WornCard", "Adventurers Guild Card (NPC) - Unreadable",
     "<p>The remains of a card of the Adventurers Guild. The holder's name is no longer readable.</p>"));
 
 // ---------- Appraisal: a passive Guild skill (0x820-0x82F) ----------

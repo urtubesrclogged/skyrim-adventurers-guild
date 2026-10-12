@@ -93,6 +93,9 @@ New text in the plugin (section 2) for the hold stamps:
 
 New keys in the interface file, all optional, for the other adventurers' guild cards:
 
+* `$AG_Item_GuildCardOf`: the name of the player's own card (`{}` = the player's name). It replaces
+  `$AG_Item_GuildCardRank`, which is gone: the item's name no longer says the rank.
+* `$AG_UI_WornCard`: the note laid over a worn card when it is read.
 * `$AG_MemberCard_Name` (`{}` = the holder's name) and `$AG_MemberCard_NameNo` (the name, then their ledger number,
   for two people of the same name): the name of the item. A card made before the translation was installed keeps the
   name it was given.
@@ -106,7 +109,9 @@ New keys in the interface file, all optional, for the other adventurers' guild c
 
 New text in the plugin (section 2) for the other adventurers' guild cards:
 
-* Two items: `AG_MemberCard` (`Guild Card`) and `AG_WornCard` (`Worn Guild Card`, with its one line of text).
+* Two items: `AG_MemberCard` (`Adventurers Guild Card (NPC)`) and `AG_WornCard` (`Adventurers Guild Card (NPC) -
+  Unreadable`, with its one line of text). All three kinds of card start with the same words, `Adventurers Guild Card`,
+  so an inventory lists them together: keep the three names alike in your language too.
 * The player's line `I found a guild card. (Hand in)` (topic `AG_TopicCardHandIn`) and four replies from each of the
   fourteen representatives, `AG_Info_cardhandin_<NPC>_alive`, `_dead`, `_fallen` (the card of a fallen member of the
   player's party) and `_worn` (a card nobody can read). In `_fallen` twelve of them stand the party a round; Ysolda

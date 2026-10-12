@@ -140,6 +140,17 @@ namespace AG::GuildCard
 						OpenWhenClear();
 						return;
 					}
+					// a worn card: the same page, as a sheet nothing can be read from
+					if (MemberCards::IsWorn(RE::BookMenu::GetTargetForm())) {
+						if (auto ref = RE::BookMenu::GetTargetReference(); ref)
+							if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->PickUpObject(ref.get(), 1, false, true);
+						{
+							std::lock_guard l(g_memberLock);
+							g_memberToShow = nlohmann::json{ { "worn", true }, { "name", "nobody (a worn card)" } };
+						}
+						OpenWhenClear();
+						return;
+					}
 					if (RE::BookMenu::GetTargetForm() != g_card) return;
 					if (!Guild::Registered() || Guild::Dormant()) return;  // the note's own text is shown instead
 					// Read where it lies in the world: the Book Menu we are about to close is also where "Take" lives, so
@@ -275,7 +286,10 @@ namespace AG::GuildCard
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!g_card || !pc || !Guild::Registered() || Guild::Dormant()) return;
 		const int rank = Guild::Rank();
-		if (rank >= 0) g_card->fullName = Loc::F("$AG_Item_GuildCardRank", "Adventurers Guild Card (Rank {})", Letter(rank));
+		// The three kinds of card are named alike, so an inventory lists them together: the player's "Adventurers Guild
+		// Card - <name>", another's "Adventurers Guild Card (NPC) - <name>", a worn one "... (NPC) - Unreadable".
+		// (Until 1.5.0 the player's said its rank instead; the rank is on the card.)
+		if (const char* name = pc->GetName(); name && *name) g_card->fullName = Loc::F("$AG_Item_GuildCardOf", "Adventurers Guild Card - {}", name);
 		if (g_issued.exchange(true)) return;  // the free one has been given: a missing card is replaced by a liaison, for a fee
 		if (pc->GetItemCount(g_card) > 0) return;
 		pc->AddObjectToContainer(g_card, nullptr, 1, nullptr);

@@ -33,6 +33,7 @@ namespace AG::MemberCards
 	void HandIn(RE::Actor* a_rep);      // a representative's reply to "I found a guild card" has started
 
 	void Given(RE::Actor* a_owner);  // from Papyrus, once the named copy is in their inventory: an open menu is refreshed
+	bool IsWorn(const RE::TESForm* a_form);      // AG_WornCard: opens the card page as a sheet nothing can be read from
 	bool IsPersonal(const RE::TESForm* a_form);  // AG_MemberCard: opens the card page, in its member view
 	// The item name of the copy selected in the open inventory or container menu ("" when none is).
 	std::string SelectedItemName();

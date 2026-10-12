@@ -329,12 +329,12 @@ namespace AG::MemberCards
 			r.dead = a_actor->IsDead();
 			Registered(a_actor, key, r.rank, r);
 			r.stamps = Stamps(a_actor, key, r.rank, solstheim);
-			auto item = Loc::F("$AG_MemberCard_Name", "Guild Card: {}", name);
+			auto item = Loc::F("$AG_MemberCard_Name", "Adventurers Guild Card (NPC) - {}", name);
 			{
 				std::lock_guard l(g_lock);
 				// two people with the same name: the later card says which, by its ledger number
 				if (auto it = g_records.find(Lower(item)); it != g_records.end() && it->second.key != key)
-					item = Loc::F("$AG_MemberCard_NameNo", "Guild Card: {} (No. {})", name, r.number);
+					item = Loc::F("$AG_MemberCard_NameNo", "Adventurers Guild Card (NPC) - {} (No. {})", name, r.number);
 				g_records[Lower(item)] = r;
 			}
 			// The copy is named as a renamed item is: its own display name, kept by the game with the item wherever it
@@ -434,6 +434,7 @@ namespace AG::MemberCards
 	}
 
 	bool IsPersonal(const RE::TESForm* a_form) { return a_form && a_form == g_personal; }
+	bool IsWorn(const RE::TESForm* a_form) { return a_form && a_form == g_worn; }
 
 	void Given(RE::Actor* a_owner)
 	{
@@ -461,6 +462,10 @@ namespace AG::MemberCards
 			if (it == g_records.end()) return nullptr;
 			r = it->second;
 		}
+		// their blood is on the card of someone who is dead (seen dead, fell in the player's party, or lying dead now)
+		bool dead = r.dead || Party::IsFallen(r.key);
+		if (auto* form = Adventurers::FormOfKey(r.key))
+			if (auto* actor = form->As<RE::Actor>(); actor && actor->IsDead()) dead = true;
 		// the rank is the one they show now, while they can be found; otherwise the one last seen
 		if (auto* form = Adventurers::FormOfKey(r.key))
 			if (auto* actor = form->As<RE::Actor>(); actor && actor->Is3DLoaded()) {
@@ -486,7 +491,7 @@ namespace AG::MemberCards
 		const int  repHere = Guild::ReputationFor(r.rank);
 		nlohmann::json out = { { "name", r.name }, { "letter", LetterStr(r.rank) }, { "date", { { "year", r.year }, { "month", r.month }, { "day", r.day } } },
 			{ "seal", r.seal }, { "stamps", r.stamps }, { "retired", r.retired }, { "number", r.number }, { "level", r.level },
-			{ "issuedAt", r.city.empty() ? std::string() : Guild::CityName(r.city) }, { "party", inParty ? Party::Name() : std::string() } };
+			{ "issuedAt", r.city.empty() ? std::string() : Guild::CityName(r.city) }, { "party", inParty ? Party::Name() : std::string() }, { "dead", dead } };
 		int reputation;
 		if (r.rank < 5) {
 			const int   next = r.rank + 1, repNext = Guild::ReputationFor(next), lvlHere = MinLevel(r.rank), lvlNext = MinLevel(next);
