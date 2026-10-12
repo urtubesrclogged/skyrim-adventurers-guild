@@ -1135,14 +1135,12 @@ mod.DialogTopics.Add(hello);
             choiceSwaps.Add(new { vanilla = Key(Vanilla(topicId)), ours = $"0x{id:X3}" });
             return hang;
         }
-        // the speaker conditions of a vanilla INFO of that topic (who may say it), ready to have more added after them
-        List<Condition> SpeakerOf(uint topicId, uint infoId)
-        {
-            var from = masters.SelectMany(m => m.DialogTopics).Last(t => t.FormKey == Vanilla(topicId)).Responses.First(x => x.FormKey == Vanilla(infoId));
-            var cs = from.Conditions.Select(c => c.DeepCopy()).ToList();
-            cs[^1].Flags &= ~Condition.Flag.OR;  // vanilla leaves OR on its last condition, where nothing follows; here something does
-            return cs;
-        }
+        // WHO SPEAKS is not asked again on a reply that stands in for a vanilla choice. The game only offers that choice
+        // to the right speaker, and our topic is reached no other way (it has no branch). Until 2026-10-12 the Riften
+        // and robber replies carried the speaker conditions of a vanilla line, copied as they were: GetIsAliasRef, which
+        // asks about an alias of the line's OWN quest. In the vanilla topic that was the gate's quest; in a topic of
+        // ours it is our quest, which has no such alias, so the condition was never true and the choice never
+        // appeared (seen in game at the Riften gate).
         FormKey QuestFk(string edid)
         {
             if (questIdx.TryGetValue(edid, out var qk)) return qk;
@@ -1181,7 +1179,7 @@ mod.DialogTopics.Add(hello);
         var riften = Hang(riftenPersuade);
         // one reply whatever the rank: it is said once in a playthrough
         Added(riften, "riften", Txt(sc["riften"]), cardPrompt, Vanilla(0x0E66D2),
-            SpeakerOf(riftenPersuade, 0x051A45).Concat(Member()), "DialogueRiftenGateGuards", 30);
+            Member(), "DialogueRiftenGateGuards", 30);
 
         // Whiterun, main gate: "Riverwood calls for the Jarl's aid.". Vanilla's successes set DialogueWhiterunGuardGateStop to 10.
         var whiterun = Hang(0x0D1979);
@@ -1224,9 +1222,9 @@ mod.DialogTopics.Add(hello);
         var robber = Hang(robberIntimidate);
         var rankPrompt = sc["robber"]!["prompt"]!.GetValue<string>();
         prev = Added(robber, "robber:AS", sc["robber"]!["AS"]!.GetValue<string>(), rankPrompt, Vanilla(0x0B8164),
-            SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("A+")), "WERJ02", 100).FormKey;
+            RankConds("A+"), "WERJ02", 100).FormKey;
         Added(robber, "robber:B", sc["robber"]!["B"]!.GetValue<string>(), rankPrompt, prev,
-            SpeakerOf(robberIntimidate, 0x0B8165).Concat(RankConds("B")), "WERJ02", 100);
+            RankConds("B"), "WERJ02", 100);
         Console.WriteLine("show guild card: 8 replies added to 6 vanilla choices (the College, the Treasury House, the strongholds, Riften, Whiterun, the robber)");
     }
     Console.WriteLine("show guild card: 1 topic of its own (the strongholds)");
