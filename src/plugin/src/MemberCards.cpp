@@ -39,6 +39,7 @@ namespace AG::MemberCards
 			int         number{ 0 };  // the Guild's ledger number, on the card for flavour
 			std::string city;         // the counter that issued it: their hold's (where they were first met)
 			int         level{ 1 };   // as last seen (their rank follows from it, and so do the figures below)
+			std::string item;         // the copy's name, as written (the look-up key is this in lower case)
 			bool        dead{ false };          // seen dead (kept: a body is cleaned away, and its owner can no longer be asked)
 			float       missingSince{ -1.0f };  // the game day the player was first seen carrying it; -1 while nothing is counted
 		};
@@ -61,6 +62,38 @@ namespace AG::MemberCards
 			std::uint32_t h = 2166136261u;
 			for (unsigned char c : a_key) h = (h ^ c) * 16777619u;
 			return h;
+		}
+
+		// Until 2026-10-12 a member's card was named "Guild Card: <name>"; it is "Adventurers Guild Card (NPC) - <name>"
+		// now, so the three kinds of card sit together in an inventory. A copy made before that keeps the old name until
+		// it is seen (Rename), and is found under either.
+		constexpr std::string_view kOldPrefix = "Guild Card: ";
+		bool Old(const std::string& a_item)
+		{
+			return a_item.size() > kOldPrefix.size() && _strnicmp(a_item.c_str(), kOldPrefix.data(), kOldPrefix.size()) == 0;
+		}
+		std::string Renamed(const std::string& a_item)
+		{
+			return Old(a_item) ? Loc::F("$AG_MemberCard_Name", "Adventurers Guild Card (NPC) - {}", a_item.substr(kOldPrefix.size())) : a_item;
+		}
+		std::string Key(const std::string& a_item) { return Lower(Renamed(a_item)); }
+
+		// the copies someone holds that still carry the old name are given the new one
+		void Rename(RE::TESObjectREFR* a_holder)
+		{
+			if (!a_holder || !g_personal) return;
+			for (auto& [object, data] : a_holder->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal; })) {
+				auto& entry = data.second;
+				if (!entry || !entry->extraLists) continue;
+				for (auto* xl : *entry->extraLists) {
+					auto* text = xl ? xl->GetByType<RE::ExtraTextDisplayData>() : nullptr;
+					const char* shown = xl ? xl->GetDisplayName(object) : nullptr;
+					if (!text || !shown || !Old(shown)) continue;
+					const auto now = Renamed(shown);
+					SKSE::log::info("MemberCards: \"{}\" is now \"{}\"", shown, now);
+					text->SetName(now.c_str());
+				}
+			}
 		}
 
 		// "Hjalti [Bandit]" and "Hjalti\n[Bandit]" (how a names mod may show a renamed person) -> "Hjalti"
@@ -169,6 +202,7 @@ namespace AG::MemberCards
 			auto* pc = RE::PlayerCharacter::GetSingleton();
 			if (!pc || !g_personal || !g_worn) return out;
 			auto* self = pc->GetActorBase();
+			Rename(pc);
 			auto  inv = pc->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal || &a_o == g_worn; });
 			for (auto& [object, data] : inv) {
 				auto& [count, entry] = data;
@@ -202,7 +236,7 @@ namespace AG::MemberCards
 			std::lock_guard l(g_lock);
 			for (auto& c : out) {
 				if (c.worn) continue;
-				if (const auto it = g_records.find(Lower(c.item)); it != g_records.end()) {
+				if (const auto it = g_records.find(Key(c.item)); it != g_records.end()) {
 					c.key = it->second.key;
 					c.name = it->second.name;
 				} else {
@@ -223,7 +257,7 @@ namespace AG::MemberCards
 			if (Party::IsFallen(a_card.key)) return Fate::kFallen;
 			const bool deadNow = a_owner && a_owner->IsDead();
 			std::lock_guard l(g_lock);
-			const auto it = g_records.find(Lower(a_card.item));
+			const auto it = g_records.find(Key(a_card.item));
 			if (it == g_records.end()) return deadNow ? Fate::kDead : Fate::kAlive;
 			if (deadNow) it->second.dead = true;
 			return it->second.dead ? Fate::kDead : Fate::kAlive;
@@ -249,7 +283,7 @@ namespace AG::MemberCards
 		void SetMissing(const std::string& a_item, float a_since)
 		{
 			std::lock_guard l(g_lock);
-			if (const auto it = g_records.find(Lower(a_item)); it != g_records.end()) it->second.missingSince = a_since;
+			if (const auto it = g_records.find(Key(a_item)); it != g_records.end()) it->second.missingSince = a_since;
 		}
 
 		// A living member whose card is gone has a new one from the Guild after a few days, as the player can buy one.
@@ -261,7 +295,7 @@ namespace AG::MemberCards
 			float since;
 			{
 				std::lock_guard l(g_lock);
-				const auto it = g_records.find(Lower(a_item));
+				const auto it = g_records.find(Key(a_item));
 				if (it == g_records.end()) return;
 				since = it->second.missingSince;
 			}
@@ -284,7 +318,7 @@ namespace AG::MemberCards
 		{
 			std::lock_guard l(g_lock);
 			for (auto& [item, r] : g_records)
-				if (r.key == a_key) return item;
+				if (r.key == a_key) return r.item.empty() ? item : r.item;   // as it is written on the copy, not the look-up key
 			return {};
 		}
 
@@ -303,6 +337,7 @@ namespace AG::MemberCards
 				}
 			}
 			if (issued) {
+				Rename(a_actor);
 				if (const auto item = ItemOfKey(key); !item.empty()) Replace(a_actor, item, false);
 				return;
 			}
@@ -333,9 +368,10 @@ namespace AG::MemberCards
 			{
 				std::lock_guard l(g_lock);
 				// two people with the same name: the later card says which, by its ledger number
-				if (auto it = g_records.find(Lower(item)); it != g_records.end() && it->second.key != key)
+				if (auto it = g_records.find(Key(item)); it != g_records.end() && it->second.key != key)
 					item = Loc::F("$AG_MemberCard_NameNo", "Adventurers Guild Card (NPC) - {} (No. {})", name, r.number);
-				g_records[Lower(item)] = r;
+				r.item = item;
+				g_records[Key(item)] = r;
 			}
 			// The copy is named as a renamed item is: its own display name, kept by the game with the item wherever it
 			// goes. The game makes it (AG_QuestHelper.GiveMemberCard: a reference of the card, renamed, moved into their
@@ -458,7 +494,7 @@ namespace AG::MemberCards
 		bool   inParty = false;
 		{
 			std::lock_guard l(g_lock);
-			const auto it = g_records.find(Lower(a_itemName));
+			const auto it = g_records.find(Key(a_itemName));
 			if (it == g_records.end()) return nullptr;
 			r = it->second;
 		}
@@ -476,7 +512,7 @@ namespace AG::MemberCards
 					r.level = actor->GetLevel();
 					inParty = Party::IsActiveMember(actor);
 					std::lock_guard l(g_lock);
-					if (auto it = g_records.find(Lower(a_itemName)); it != g_records.end()) {
+					if (auto it = g_records.find(Key(a_itemName)); it != g_records.end()) {
 						it->second.rank = r.rank;
 						it->second.retired = r.retired;
 						it->second.level = r.level;
@@ -592,7 +628,7 @@ namespace AG::MemberCards
 		std::lock_guard l(g_lock);
 		auto cards = nlohmann::json::object();
 		for (auto& [item, r] : g_records)
-			cards[item] = { { "key", r.key }, { "name", r.name }, { "rank", r.rank }, { "y", r.year }, { "m", r.month }, { "d", r.day }, { "seal", r.seal },
+			cards[item] = { { "item", r.item }, { "key", r.key }, { "name", r.name }, { "rank", r.rank }, { "y", r.year }, { "m", r.month }, { "d", r.day }, { "seal", r.seal },
 				{ "stamps", r.stamps }, { "retired", r.retired }, { "no", r.number }, { "city", r.city }, { "level", r.level }, { "dead", r.dead }, { "miss", r.missingSince } };
 		return { { "cards", cards }, { "issued", std::vector<std::string>(g_issued.begin(), g_issued.end()) } };
 	}
@@ -619,7 +655,9 @@ namespace AG::MemberCards
 				r.level = c.value("level", 1);
 				r.dead = c.value("dead", false);
 				r.missingSince = c.value("miss", -1.0f);
-				g_records[item] = std::move(r);
+				r.item = c.value("item", "");
+				if (r.item.empty() || Old(r.item)) r.item = Renamed(r.item.empty() ? std::string(kOldPrefix) + r.name : r.item);
+				g_records[Key(item)] = std::move(r);
 			}
 			for (auto& k : a_j.value("issued", nlohmann::json::array())) g_issued.insert(k.get<std::string>());
 		} catch (const std::exception& e) {

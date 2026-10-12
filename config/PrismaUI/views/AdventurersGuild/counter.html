@@ -380,6 +380,10 @@
   .dmglayer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
     -webkit-mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; mask: url(tex/skin/sheet.png) center / 100% 100% no-repeat; }
   .dmglayer img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; max-width: none; }
+  .card.member > .lying { flex: 0 1 940px; display: flex; min-width: 0; }
+  .card.member > .lying > .paper { flex: 1; }
+  .card.member.dead > .lying { filter: var(--lying); }
+  .card.member.dead > .lying > .paper { filter: none; -webkit-mask: url(tex/skin/sheet_torn.png) center / 100% 100% no-repeat; mask: url(tex/skin/sheet_torn.png) center / 100% 100% no-repeat; }
   /* a worn card: the writing has run and faded, the sheet is stained, and what the player is told lies over it */
   .card.worn .washed { filter: blur(2.6px) saturate(0.5); opacity: 0.5; }
   .card.worn .washed .rankseal { visibility: hidden; }   /* gone: only where it sat is left (ghost-rank) */
@@ -594,7 +598,7 @@ function cardFigures(c) {
 function cardBlood(n) {
   const pool = [[-8, -14, 380, 0], [-14, -22, 420, 4], [-6, -30, 350, -5]][n % 3];             // its own left and lower edges on the sheet's
   const spray = [[60, 20, 420, -12], [200, 0, 400, 8], [20, 50, 440, -24]][(n >> 2) % 3];       // across the lower half, flung from the left
-  return `<div class="dmglayer"><img src="tex/skin/damage.png" style="transform:scaleX(${n & 1 ? -1 : 1})" alt=""/></div>
+  return `<div class="dmglayer"><img src="tex/skin/damage.png" alt=""/></div>
     <div class="bloodlayer">
       <img src="tex/skin/blood_1.png" style="left:${pool[0]}px;bottom:${pool[1]}px;width:${pool[2]}px;transform:rotate(${pool[3]}deg)" alt=""/>
       <img src="tex/skin/blood_2.png" style="right:${spray[0]}px;bottom:${spray[1]}px;width:${spray[2]}px;transform:rotate(${spray[3]}deg)" alt=""/>
@@ -620,15 +624,17 @@ function renderMemberCard() {
   if (mb.worn) return renderWornCard();
   const c = { name: mb.name, letter: mb.letter, registered: d.year != null ? calDate(d.year, d.month, d.day) : "",
     party: mb.party, merit: mb.merit, reputation: mb.reputation, goldEarned: mb.goldEarned, level: mb.level, next: mb.next };
-  return `<div class="card member">
-    <div class="paper">
+  // a dead adventurer's card is torn: the sheet is cut to what is left of it, and the shadow it throws is thrown by
+  // that shape (so it lies on a wrapper: a shadow drawn on the sheet itself would be cut away with the rip)
+  return `<div class="card member${mb.dead ? " dead" : ""}">
+    <div class="lying"><div class="paper">
       ${cardFace(c)}
       ${cardFigures(c)}
       ${mb.retired ? `<div class="retired caps">${esc(t("$AG_UI_Retired", "Retired"))}</div>` : ""}
       ${cardStamps(mb.stamps || [])}
       ${mb.dead ? cardBlood(mb.number || 0) : ""}
       <img class="seal-wax" src="tex/seal${mb.seal === "morrowind" ? "_morrowind" : ""}.png" alt=""/>
-    </div></div>`;
+    </div></div></div>`;
 }
 function renderCard() {
   if (data.member) return renderMemberCard();
