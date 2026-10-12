@@ -512,6 +512,8 @@ function cardTodo() {
   const rows = [[t("$AG_UI_TodoQuests", "Quests in progress"), data.inProgress || 0],
     [t("$AG_UI_TodoReports", "Reports ready"), (data.reports || []).length],
     [t("$AG_UI_TodoTrophies", "Trophies to sell"), trophies]];
+  // other adventurers' guild cards in the pack: a line of its own, only while there are any
+  if (data.cardsCarried > 0) rows.push([t("$AG_UI_TodoCards", "Guild cards to hand in"), data.cardsCarried]);
   return `<div class="todo"><div class="thead caps">${esc(t("$AG_UI_TodoHead", "Field Notes"))}</div>
     ${rows.map(([k, v]) => `<div class="trow ${v ? "" : "none"}"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("")}
     ${data.ready && data.next ? `<div class="tpromo">${esc(t("$AG_UI_TodoPromotion", "Eligible for promotion!"))}</div>` : ""}

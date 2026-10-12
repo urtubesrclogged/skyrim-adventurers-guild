@@ -517,6 +517,13 @@ namespace AG::MemberCards
 		g_gCase->value = static_cast<float>(total == 0 ? 0 : weight == 0 ? 4 : weight);
 	}
 
+	int Carried()
+	{
+		int n = 0;
+		for (auto& c : Scan()) n += c.count;
+		return n;
+	}
+
 	void HandIn(RE::Actor* a_rep)
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();

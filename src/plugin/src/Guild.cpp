@@ -1229,6 +1229,7 @@ namespace AG::Guild
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		const int level = pc ? pc->GetLevel() : 1;
+		const int cardsCarried = MemberCards::Carried();  // before the lock: it reads the inventory and takes its own
 		std::lock_guard l(g_lock);
 		nlohmann::json j;
 		j["name"] = pc ? pc->GetDisplayFullName() : "";
@@ -1246,6 +1247,7 @@ namespace AG::Guild
 			j["date"] = { { "year", cal->GetYear() }, { "month", cal->GetMonth() }, { "day", static_cast<int>(cal->GetDay()) }, { "hour", cal->GetHour() } };
 		j["registeredDay"] = g_registeredDay;
 		j["seal"] = GuildCard::Seal();   // which region's wax seal the card carries ("" = Skyrim's)
+		j["cardsCarried"] = cardsCarried;         // Field Notes: other adventurers' cards that can be handed in
 		j["issuedAt"] = GuildCard::IssuedAt().empty() ? std::string() : CityName(GuildCard::IssuedAt());  // the counter that issued the card in hand
 		j["missives"] = g_missives;
 		j["goldEarned"] = g_goldEarned;

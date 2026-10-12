@@ -29,6 +29,7 @@ namespace AG::MemberCards
 {
 	void Install();  // at kDataLoaded
 	void Sync();     // game thread, every few seconds and as a container closes: the two globals dialogue reads
+	int  Carried();  // other adventurers' cards in the player's inventory, counted now (the card page's Field Notes)
 	void HandIn(RE::Actor* a_rep);      // a representative's reply to "I found a guild card" has started
 
 	void Given(RE::Actor* a_owner);  // from Papyrus, once the named copy is in their inventory: an open menu is refreshed

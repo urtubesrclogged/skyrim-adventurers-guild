@@ -98,6 +98,7 @@ New keys in the interface file, all optional, for the other adventurers' guild c
   name it was given.
 * On the card's face, the player's and anyone else's: `$AG_UI_CardParty` (the label before a party's name),
   `$AG_UI_Retired` (the stamp on a retired adventurer's card).
+* `$AG_UI_TodoCards`: a Field Notes line on the player's card, shown only while they carry someone else's card.
 * Handing a card in: `$AG_Log_CardHandedIn`, `$AG_Log_CardFallen`, `$AG_Log_CardDead`
   (Records lines, `{}` = the name on the card), `$AG_Log_CardWorn`, `$AG_Log_CardsWorn` (`{}` = how many),
   the reasons shown with the Reputation `$AG_Why_CardHandedIn`, `$AG_Why_CardsHandedIn`,
