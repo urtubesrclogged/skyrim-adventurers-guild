@@ -111,6 +111,12 @@ namespace AG::ChoiceSwap
 			return Offered(1, a_menu, a_topic, a_after, a_more);
 		}
 
+		RE::TESQuest* dh_quest()
+		{
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			return dh ? dh->LookupForm<RE::TESQuest>(0x8C0, kPlugin) : nullptr;  // AG_WorldDialogueQuest
+		}
+
 		// where a 5-byte call at a_site goes, or 0 when what is there is not such a call
 		std::uintptr_t CallTarget(std::uintptr_t a_site)
 		{
@@ -141,6 +147,25 @@ namespace AG::ChoiceSwap
 			return;
 		}
 		if (g_swaps.empty()) return;
+
+		// A topic of ours that stands in for a choice has no branch (nobody is to reach it any other way), and the game
+		// gives a player topic its quest through its branch: these arrive with NO quest, whatever their record says.
+		// The game will not list a topic without one (found at the Riften gate, 2026-10-12: the swap fired, the game
+		// listed nothing, and the log line read "quest 00000000"). So the quest is set here: the world dialogue quest
+		// they are written under. Their replies are evaluated, spoken and their voice files named by it.
+		if (auto* quest = dh_quest()) {
+			int set = 0;
+			for (auto& [vanilla, ours] : g_swaps)
+				if (!ours->ownerQuest) {
+					ours->ownerQuest = quest;
+					++set;
+				}
+			if (set) SKSE::log::info("ChoiceSwap: {} topic(s) given their quest ({})", set, quest->GetFormEditorID() ? quest->GetFormEditorID() : "the world dialogue quest");
+		} else {
+			SKSE::log::warn("ChoiceSwap: the world dialogue quest is not in {} - the Show Guild Card choices that stand in for a vanilla one are off", kPlugin);
+			g_swaps.clear();
+			return;
+		}
 
 		// The two places, by the game's function numbers (SE, AE) or its address (VR), and how far into each the call is.
 		// Nothing is changed unless both are exactly what is expected: a direct call, and both to the same routine. On a
