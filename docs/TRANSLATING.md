@@ -91,6 +91,29 @@ New text in the plugin (section 2) for the hold stamps:
   price. Ten greetings `AG_Info_world_stampwant_<name>`: someone tells an adventurer the hold's stamp is worth earning.
 * The hidden perk `AG_Perk_HoldStampStanding` is named `Hold Stamp`; the game does not show it.
 
+New keys in the interface file, all optional, for the other adventurers' guild cards:
+
+* `$AG_MemberCard_Name` (`{}` = the holder's name) and `$AG_MemberCard_NameNo` (the name, then their ledger number,
+  for two people of the same name): the name of the item. A card made before the translation was installed keeps the
+  name it was given.
+* On the card's face, the player's and anyone else's: `$AG_UI_CardParty` (the label before a party's name),
+  `$AG_UI_Retired` (the stamp on a retired adventurer's card).
+* Bringing a card back: `$AG_Log_CardReturned`, `$AG_Log_CardHandedIn`, `$AG_Log_CardFallen`, `$AG_Log_CardDead`
+  (Records lines, `{}` = the name on the card), `$AG_Log_CardWorn`, `$AG_Log_CardsWorn` (`{}` = how many),
+  the reasons shown with the Reputation `$AG_Why_CardReturned`, `$AG_Why_CardHandedIn`, `$AG_Why_CardsHandedIn`,
+  and `$AG_Hud_DrinksOnHouse` (the drink's name, then how many).
+
+New text in the plugin (section 2) for the other adventurers' guild cards:
+
+* Two items: `AG_MemberCard` (`Guild Card`) and `AG_WornCard` (`Worn Guild Card`, with its one line of text).
+* The player's line `I have your guild card. (Return Guild Card)` (topic `AG_TopicCardReturn`) and seven replies:
+  `AG_Info_cardback_<NPC>` for six named members, each in their own way of speaking, and `AG_Info_cardback_generic`
+  for anyone else.
+* The player's line `I found a guild card. (Hand in)` (topic `AG_TopicCardHandIn`) and four replies from each of the
+  fourteen representatives, `AG_Info_cardhandin_<NPC>_alive`, `_dead`, `_fallen` (the card of a fallen member of the
+  player's party) and `_worn` (a card nobody can read). In `_fallen` twelve of them stand the party a round; Ysolda
+  and Elda do not, and their lines say so: keep that difference.
+
 New text in the plugin (section 2), all of it for Show Guild Card:
 
 * The player's line `I'm with the Adventurers Guild. (Show Guild Card)`. It is the name of one topic of the mod's own

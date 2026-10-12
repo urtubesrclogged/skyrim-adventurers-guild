@@ -23,6 +23,7 @@
     "S": "An S-rank at the Bannered Mare. Whiterun will talk about this for a year. What can I do for you?"
    },
    "stampedFirst": "There you are, love. Whiterun's horse, right on your card. Show it around the shops. Some of them go easier on an adventurer whom the hold knows.",
+   "cardHandIn": { "alive": "Someone's guild card? Good of you, love. I'll see it gets back to them. They'll be glad of it.", "dead": "Ah. Then they won't be needing it. I'll close their page in the ledger and send word to their kin. Thank you for bringing it home.", "fallen": "One of yours. I'm sorry, love, truly. I'll see the ledger put right and their family told. Sit. These are on the house, for those of you still standing.", "worn": "I can't make out a name on this. Still, a card should come home. I'll send it on to the Adventurers Guild. Thank you.", "drinks": true },
    "stamped": "There you are, love. Whiterun's horse, right on your card. You earned that one out there.",
    "replaceStamped": "Lost it already? Here, a fresh one, and I've put Whiterun's horse back on it. The other holds you'll have to ask yourself.",
    "replace": "Lost it already? Happens to the best of them. Here, a fresh one. Try to keep this one out of the mead."
@@ -55,6 +56,7 @@
     "Hulda kept this counter for years and never charged what it was worth. I mean to do right by her, and turn a profit doing it."
    ],
    "stampedFirst": "Whiterun's stamp, on your card. Show it when you shop here. A merchant who knows what it means might find you a better price. I would.",
+   "cardHandIn": { "alive": "A lost guild card? Its owner will want that back. I'll see it reaches them. Honesty is good business.", "dead": "Oh. I see. I'll mark the ledger and have word sent to their family. Nobody warns you about this part of the counter.", "fallen": "They travelled with you? I'm sorry. I'll settle the ledger and write to their kin myself. Buy yourselves some drinks and I'll see their name is remembered properly.", "worn": "There's no reading this one. I'll send it to the Adventurers Guild all the same. Somebody there may know it.", "drinks": false },
    "stamped": "Whiterun's stamp, on your card. That'll open a few purses around here. Mine included.",
    "replaceStamped": "Replacements cost, I'm afraid. Here you are, and Whiterun's stamp comes with it. No extra charge.",
    "replace": "Lost your guild card? Replacements cost, I'm afraid. A merchant can't give away stock. Here you are.",
@@ -81,6 +83,7 @@
     "S": "An S-rank in the Winking Skeever. I'll have Sorex frame your signature. What do you need?"
    },
    "stampedFirst": "There, friend. Solitude's wolf, on your card. Show it around the shops. You may find the prices kinder.",
+   "cardHandIn": { "alive": "A guild card, and not yours? I'll get it back to its owner, friend. They'll thank you for it.", "dead": "Ah, that's a sad thing to carry. I'll close the ledger and see their family hears it gently. Thank you, friend.", "fallen": "One of your own? I'm sorry, friend. Leave the ledger and the letters to me. Sit, all of you. These are on the house.", "worn": "No name left on it. Well. I'll send it along to the Adventurers Guild. Better here than in a ditch.", "drinks": true },
    "stamped": "There, friend. Solitude's wolf, on your card. Wear it proudly.",
    "replaceStamped": "Careless, but easily mended. There, a new card, with Solitude's wolf stamped on it again.",
    "replace": "Lost your card? Careless, but easily mended. There you are, good as new."
@@ -113,6 +116,7 @@
     "Half the adventurers who sign this ledger never come back to it. The other half drink here. I make coin either way."
    ],
    "stampedFirst": "Solitude's wolf. On your card. Flash it at the merchants. A few of them go soft for a stamped card. Don't ask me why.",
+   "cardHandIn": { "alive": "Someone lost their guild card. Shocking. Fine, I'll see they get it back. Try not to make a habit of finding these.", "dead": "Dead, then. Right. I'll strike the name and send the letter. My father used to do this part. I see why he drank.", "fallen": "They were with you? I'm sorry. I mean that. I'll deal with the ledger. Drinks are on the house. Don't tell anyone I said so.", "worn": "I can't read a word of this. I'll send it up the line. Someone at the Adventurers Guild is paid to squint.", "drinks": true },
    "stamped": "Solitude's wolf. On your card. Try not to look so surprised you earned it.",
    "replaceStamped": "Of course you lost it. Here. I've stamped the wolf on it again, so that's one less thing for you to forget.",
    "replace": "Lost your guild card already? Of course you did. Here. That's coming out of your pocket, not mine.",
@@ -139,6 +143,7 @@
     "S": "That candle upstairs has burned a hundred and sixty-three years for one great warrior. First time I've thought it might have some company."
    },
    "stampedFirst": "The bear of Eastmarch, on your card. Don't smudge it. Show it to the traders, and some might charge you less. Not much else warms this city.",
+   "cardHandIn": { "alive": "Not your card, is it? Give it here. I'll see the fool who lost it gets it back.", "dead": "Dead, then. I'll mark the ledger and send word to whoever's left. Windhelm has had practice at that.", "fallen": "One of yours. That's a hard road home. I'll see to the ledger and the letter. I don't pour for free, but sit by the fire and drink as long as you need.", "worn": "I can't read the name. Snow's had it, or blood. I'll send it on to the Adventurers Guild.", "drinks": false },
    "stamped": "The bear of Eastmarch, on your card. Don't smudge it.",
    "replaceStamped": "Here's another, and it'll cost you. The bear's on it already. The rest you can chase down yourself.",
    "replace": "Down a troll's gullet, I hope, and not just the back of a bed. Here's another, and it'll cost you."
@@ -171,6 +176,7 @@
     "Adventurers keep this city fed. When the roads are clear, the carts get through. People forget that."
    ],
    "stampedFirst": "There now. Windhelm's bear, on your card. Show it at the market, mind. Some of the merchants take a little off for it.",
+   "cardHandIn": { "alive": "Oh, somebody's guild card! They'll be so relieved. I'll make sure it finds them. Thank you.", "dead": "Oh dear. I am sorry. I'll write it in the ledger and send word to their family. Thank you for bringing it.", "fallen": "They were one of yours? Oh, I'm so sorry. I'll see to everything. Now sit, please. A drink for each of you, and not a coin.", "worn": "I can't make out the name at all. I'll send it on to the Adventurers Guild. Somebody ought to have it.", "drinks": true },
    "stamped": "There now. Windhelm's bear, on your card. I pressed it twice, to be sure.",
    "replaceStamped": "Never mind, never mind. Here's a new one, and I've put the bear on it again for you.",
    "replace": "Lost your guild card? Never mind, never mind. Here's a new one. Keep it somewhere dry.",
@@ -197,6 +203,7 @@
     "S": "An S-rank in the Bee and Barb. Even the Black-Briars will mind their manners. Business?"
    },
    "stampedFirst": "There. Riften's mark, on your card. Show it to the merchants. A few might take less off you than they take off everyone else.",
+   "cardHandIn": { "alive": "A guild card that isn't yours, and you're handing it in? In Riften? I'll see it gets back to them.", "dead": "Dead. I'll close their page and send word to their kin. One less honest blade in the Rift.", "fallen": "One of yours. I'm sorry. I'll see to the ledger and the letter. Talen, drinks for this table. On the house.", "worn": "No name I can read. I'll send it on to the Adventurers Guild. It didn't deserve the canal.", "drinks": true },
    "stamped": "There. Riften's mark, on your card. You earned it, which is more than most in this city can say.",
    "replaceStamped": "Lost, or lifted? Here's a new one. Riften's daggers are on it already. Nobody can lift what you've earned.",
    "replace": "Lost, or lifted? In Riften it's usually lifted. Here's a new one. Keep it somewhere your purse isn't."
@@ -229,6 +236,7 @@
     "The Rift is full of bears, bandits and worse. An adventurer with a clear head lives longer. I will say no more about the mead."
    ],
    "stampedFirst": "It is done. Riften's daggers are on your card. Show it to the merchants here. Some may ask a fairer price of you.",
+   "cardHandIn": { "alive": "A guild card, and you return it. That is honest. I will see that it reaches its owner.", "dead": "Then they are gone. I will close the ledger and send word to their family. Thank you for carrying it here.", "fallen": "One of your own. I am sorry for your loss. I will see to the ledger. Please, sit. These drinks are on the house.", "worn": "The name cannot be read. I will send it to the Adventurers Guild. It should not be left in the mud.", "drinks": true },
    "stamped": "It is done. Riften's daggers are on your card. You have done this hold much good.",
    "replaceStamped": "Here is another. I have stamped Riften's mark on it again. That, at least, no thief can take.",
    "replace": "You have lost your guild card? In Riften, check your pockets twice. Here is another.",
@@ -255,6 +263,7 @@
     "S": "An S-rank, here. Thonar himself asked if you'd drink with him. Business first?"
    },
    "stampedFirst": "There. Markarth's ram, on your card. Show it at the stalls, not to the Silver-Bloods. A merchant might charge you less for it.",
+   "cardHandIn": { "alive": "Someone's guild card? Good, good. I'll get it back to them before anyone asks questions. Thank you.", "dead": "Dead? In the Reach, I'm not surprised. I'll strike the name and write to the family. Quietly.", "fallen": "One of yours. I'm sorry, friend. I'll handle the ledger. Here, drinks for your people. On the house. Don't tell Frabbi.", "worn": "I can't read it. Half of what's found in the Reach is like that. I'll send it on to the Adventurers Guild.", "drinks": true },
    "stamped": "There. Markarth's ram, on your card. Don't wave it at the Silver-Bloods.",
    "replaceStamped": "There, a new one, with Markarth's ram stamped back on. Quietly, now.",
    "replace": "Lost your card? In Markarth that's the least of what people lose. There, a new one."
@@ -280,6 +289,7 @@
     "S": "An S-rank. The undertaker's going to be disappointed. What can I do for you?"
    },
    "stampedFirst": "There you are, dear. Falkreath's stag, on your card. Show it at the shops. Folk here might give you a better price.",
+   "cardHandIn": { "alive": "Oh, somebody's guild card. I'll see they get it back, dear. They'll be so pleased.", "dead": "Oh. Another for the graveyard, then. I'll close the ledger and write to their family. Thank you, dear.", "fallen": "Oh, one of yours. I'm so sorry, dear. Falkreath knows that grief. I'll see to the ledger. These are on the house, all of them.", "worn": "I can't read the name, dear. I'll send it to the Adventurers Guild all the same. Someone may be waiting on it.", "drinks": true },
    "stamped": "There you are, dear. Falkreath's stag, on your card. Earned above ground, too.",
    "replaceStamped": "No harm done. Here's a new card, dear, and I've put Falkreath's stag back on it.",
    "replace": "Oh, you've lost it? No harm done. Here's a new card, dear."
@@ -305,6 +315,7 @@
     "S": "An S-rank, in Morthal. I never thought I'd see the day. What can I do for you?"
    },
    "stampedFirst": "There. Morthal's mark, on your card. Show it to the shopkeepers. They might ask less of someone who's done this town some good.",
+   "cardHandIn": { "alive": "A guild card? Let me keep it safe. I'll see it gets back to whoever lost it.", "dead": "Gone, then. I'll mark the ledger and send word to their people. Morthal has lost enough, but thank you for bringing it.", "fallen": "One of yours? I'm sorry. Truly. I'll take care of the ledger. Sit down, all of you. The drinks are on the house.", "worn": "The marsh has eaten the name off it. I'll send it to the Adventurers Guild anyway.", "drinks": true },
    "stamped": "There. Morthal's mark, on your card. This town owes you more than a stamp, but it's what I have.",
    "replaceStamped": "Here's a new card, and Morthal's mark is on it again. The marsh can't have that one.",
    "replace": "Lost in the marsh, I'd wager. Half of Morthal's belongings are. Here's a new card."
@@ -342,6 +353,7 @@
     ]
    },
    "stampedFirst": "There. Dawnstar's star, on your card. Show it around the shops. Some of them might go easier on your purse.",
+   "cardHandIn": { "alive": "Someone's guild card. I'll get it back to them. One less thing to lose sleep over.", "dead": "Dead. I'll close their page and send the letter. I've written too many of those.", "fallen": "One of your own. I'm sorry. I'll see to the ledger. Karita, drinks for these adventurers. On the house.", "worn": "I can't read a name on it. I'll send it on to the Adventurers Guild. Somebody should.", "drinks": true },
    "stamped": "There. Dawnstar's star, on your card. You've earned some rest. Wish I could stamp that too.",
    "replaceStamped": "It happens. Here's a new one, and Dawnstar's star is back on it. The ledger remembers.",
    "replace": "Lost your card? It happens. Here's a new one, and the ledger still knows your name."
@@ -367,6 +379,7 @@
     "S": "An S-rank, here. Even the Arch-Mage will want to meet you. How can I be of service?"
    },
    "stampedFirst": "There! Winterhold's crown, on your card. Show it to the merchants. There aren't many, but they might charge you less.",
+   "cardHandIn": { "alive": "Somebody's guild card! Wonderful, I'll see it gets back to them. That's the most business I've had all week.", "dead": "Oh. That's a shame. I'll mark the ledger and write to their family. Winterhold knows about losing people.", "fallen": "One of yours? I'm sorry, friend. I'll take care of the ledger. Haran! Drinks for everyone here. On the house.", "worn": "No name left on it. The cold does that. I'll send it to the Adventurers Guild all the same.", "drinks": true },
    "stamped": "There! Winterhold's crown, on your card. Not many earn that. Not many try.",
    "replaceStamped": "Here's another, friend, and Winterhold's crown is stamped on it again. That part didn't vanish.",
    "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
@@ -400,6 +413,7 @@
     "S": "I've got a story about an S-rank adventurer who walked into my cornerclub. True story, friend. I'm still in the middle of it."
    },
    "stampedFirst": "House Redoran's mark, on your card. Show it to Raven Rock's traders. Some will take a little off for a face the town can vouch for.",
+   "cardHandIn": { "alive": "A guild card with someone else's name? There's a story in that. I'll see it finds its owner.", "dead": "Ah. Then this is where their story ends. I'll close the ledger and send word to their kin. I'll tell it kindly.", "fallen": "One of yours, sera? I am sorry. I'll see to the ledger. Sit. The sujamma is on the house, and we'll drink to them.", "worn": "No name I can read. Ash does that. I'll send it on to the Adventurers Guild, and wonder whose it was.", "drinks": true },
    "stamped": "House Redoran's mark, on your card. Now that's a story I'll be telling at this bar.",
    "replaceStamped": "Then it's the fee. Here, and I've pressed the Redoran mark on it again. The story of how you earned it, I kept.",
    "replace": "A lost guild card always comes with a story, and I collect those. No? Then it's the fee, and I'll make one up for you."
@@ -568,6 +582,18 @@
   { "npc": "Lurbuk", "of": "Jonna", "city": "Morthal", "lineFirst": "Jonna left me the inn, and the stamp. There! Morthal's mark! Show it to the merchants. Sometimes they give a better price. I asked. Many times.", "line": "Jonna left me the inn, and the stamp. Some say I am better with the stamp than the lute. There! Morthal's mark!" },
   { "npc": "Narri", "of": "ValgaVinicia", "city": "Falkreath", "lineFirst": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag. Show it around the shops. A merchant might be sweeter to you for it.", "line": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag, and it suits you." }
  ],
+ "_cardReturn": "Other adventurers' guild cards (1.5.0, MemberCards.cpp). cardReturn: what a member says when the player hands them their own card back (a choice the DLL shows on that person only: AG_CardReturnFaction); named = by editor ID, generic = everyone else, voiced in world_dialogue.json's wandererVoices and unvoiced for any other voice. On a liaison, cardHandIn: her reply when cards are handed in at the counter, by the weightiest of them (AG_CardCaseGlobal: 1 the owner lives, 2 is dead, 3 fell as one of the player's party, 4 only worn cards); drinks = whether she stands the party a round for the third.",
+ "cardReturn": {
+  "generic": "My guild card. I thought that was gone for good. You have my thanks, adventurer.",
+  "named": {
+   "Sinmir": "My guild card. Hm. I wondered who had the nerve. Good that it was someone who brought it back.",
+   "Uthgerd": "That's my guild card. I earned every letter on it. You did right, bringing it back. I won't forget it.",
+   "Mjoll": "My guild card! I thought it gone for good. Thank you, friend. Honesty like yours is rare in Riften.",
+   "Annekke": "Oh, my old guild card! Verner says I should have put it away years ago. Thank you. It's good to see it again.",
+   "DLC2RRTeldrynSero": "My guild card. I'd say you were after a reward, but you handed it over first. Unusual. My thanks, outlander.",
+   "DLC1Gunmar": "That's mine. I've carried that card longer than this axe. Thank you. It's good to have it back in my hand."
+  }
+ },
  "_prompts": "What the player says.",
  "_showCard": "Show Guild Card (1.5.0): a member carrying the card can show it where vanilla asks the player to talk their way in. No vanilla line is overridden: each reply is ADDED to a vanilla choice, which it takes over when vanilla's own replies before it do not apply (tools/EspGen/Program.cs has the detail). college: Faralda, in place of '(Persuade)', any rank ('E' for a rank E member, 'other' for the rest), and she goes on into her own vanilla welcome. treasury: Rhiada, in place of '(Persuade)', rank C and up. orcs: a stronghold's gate guard, rank A and up, in each voice of 'orcVoices': in place of 'I go where I please, Orc.' at the first meeting, and as a topic of our own in his menu after it.",
  "showCard": {
@@ -598,6 +624,8 @@
   "promotePay": "Here's the fee. (<Global=AG_PromotionFee> gold)",
   "later": "Not now.",
   "stampAsk": "I've earned this hold's stamp for my guild card. (Show Guild Card)",
+  "cardReturn": "I have your guild card. (Return Guild Card)",
+  "cardHandIn": "I found a guild card. (Hand in)",
   "replace": "I've lost my guild card. I need a replacement."
  },
  "_nofee": "What a guild liaison says when the player picks register/promote without the fee in hand (no Goodbye; voiced per liaison voice type).",

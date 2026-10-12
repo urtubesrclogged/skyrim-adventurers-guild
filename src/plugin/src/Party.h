@@ -45,6 +45,8 @@ namespace AG::Party
 	bool           HasParty();
 	std::string    Name();                              // "" without an active party
 	bool           IsActiveMember(RE::Actor* a_actor);
+	bool           IsFallen(const std::string& a_key);   // fell as a member of one of the player's parties (Adventurers::StableKey)
+	int            LivingActiveCount();                 // active members of the party who are not dead (0 without a party)
 	nlohmann::json CounterData();                       // the counter's Party tab
 	std::string    Dump();                              // DevBench
 	// SkyrimNet ag_party(actor): the player's party (name, members, Bond, renown) and this actor's own tie to a party.

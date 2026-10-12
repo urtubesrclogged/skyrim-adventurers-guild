@@ -176,6 +176,10 @@ var gPromoFee = Global(0x815, "AG_PromotionFee", 50);
 // less, and some say so); 1 for a member in a hold whose stamp is NOT on the card (some people hint that it is worth earning).
 var gStampDiscount = Global(0xCF4, "AG_StampDiscountGlobal", 0);
 var gStampWanted = Global(0xCF6, "AG_StampWantedGlobal", 0);
+// Other adventurers' guild cards (1.5.0), kept by the DLL: how many the player carries that can be brought back, and the
+// weightiest case among them (what a representative says when they are handed in).
+var gCardsCarried = Global(0xCF9, "AG_CardsCarriedGlobal", 0);
+var gCardCase = Global(0xCFA, "AG_CardCaseGlobal", 0);
 var gCardFee = Global(0x81D, "AG_CardFee", 25);            // a replacement guild card (the DLL sets it from guild.json)
 // 1 while a Missives add-on is loaded (the DLL sets it on every load): dialogue that depends on its board reads it
 var addonGlobals = new Dictionary<string, GlobalShort> { ["AG_MissivesSolstheimGlobal"] = Global(0xC90, "AG_MissivesSolstheimGlobal", 0) };
@@ -252,6 +256,9 @@ mod.Factions.Add(promotedFaction);
 var stampEarnedFaction = new Faction(FK(0xCEA), Rel) { EditorID = "AG_HoldStampEarnedFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 var stampDueFaction = new Faction(FK(0xCEB), Rel) { EditorID = "AG_HoldStampDueFaction", Name = "Adventurers Guild Stamp Keeper", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(stampEarnedFaction);
+// on a member, by the DLL, while the player carries that member's own guild card: they can be given it back
+var cardReturnFaction = new Faction(FK(0xCFB), Rel) { EditorID = "AG_CardReturnFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC };
+mod.Factions.Add(cardReturnFaction);
 mod.Factions.Add(stampDueFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);
@@ -352,7 +359,7 @@ ConditionFloat IsNpc(FormKey npc, bool or)
     if (or) c.Flags |= Condition.Flag.OR;
     return c;
 }
-var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new() };
+var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new(), ["cardback"] = new(), ["cardhandin"] = new() };
 var liaisonKeys = new List<string>();
 var prompts = dlg["prompts"]!;
 
@@ -577,6 +584,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
 var liaisonCities = new Dictionary<string, string>();
 var successors = new List<object>();
 var stampKeepers = new List<object>();  // hold stamps: who keeps a dead liaison's stamp
+var cardNoDrinks = new List<string>();  // returned cards: the representatives who stand nobody a round
 var choiceSwaps = new List<object>();   // Show Guild Card: the vanilla choice, and the topic of ours offered in its place
 foreach (var l in dlg["liaisons"]!.AsArray())
 {
@@ -1015,6 +1023,68 @@ mod.DialogTopics.Add(hello);
         mod.DialogBranches.Add(b);
         mod.DialogTopics.Add(t);
     }
+    // Other adventurers' guild cards, brought back (1.5.0; MemberCards.cpp keeps the two globals and the faction).
+    // To the owner: a choice of its own on the person whose card the player carries (AG_CardReturnFaction). The six
+    // named members answer in their own words; anyone else says the same thanks, voiced for the wanderers' voice types
+    // and silent in any other voice. To a representative at her counter: one choice while any such card is carried
+    // (AG_CardsCarriedGlobal), and she answers for the weightiest of them (AG_CardCaseGlobal: 1 the owner lives,
+    // 2 is dead, 3 fell as one of the player's party, 4 nothing but worn cards). The DLL acts as the reply starts.
+    {
+        DialogTopic Own(uint branchId, uint topicId, string stem, string prompt)
+        {
+            var b = new DialogBranch(FK(branchId), Rel)
+            {
+                EditorID = "AG_Branch" + stem, Quest = new FormLink<IQuestGetter>(worldQuest.FormKey),
+                Category = DialogBranch.CategoryType.Player, Flags = DialogBranch.Flag.TopLevel,
+                StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(topicId)),
+            };
+            var t = new DialogTopic(FK(topicId), Rel)
+            {
+                EditorID = "AG_Topic" + stem, Name = dlg["prompts"]![prompt]!.GetValue<string>(), Priority = 50,
+                Branch = new FormLinkNullable<IDialogBranchGetter>(b.FormKey), Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
+                Category = DialogTopic.CategoryEnum.Topic, Subtype = DialogTopic.SubtypeEnum.Custom, SubtypeName = new RecordType("CUST"),
+            };
+            mod.DialogBranches.Add(b);
+            mod.DialogTopics.Add(t);
+            return t;
+        }
+        void Reply(DialogTopic t, string role, string key, string text, IEnumerable<Condition> conds)
+        {
+            var info = new DialogResponses(FK(InfoId(key)), Rel) { EditorID = "AG_Info_" + key.Replace(':', '_') };
+            info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            foreach (var c in conds) info.Conditions.Add(c);
+            if (t.Responses.Count > 0) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
+            t.Responses.Add(info);
+            roles[role].Add(ids[key]);
+        }
+        var cr = dlg["cardReturn"]!;
+        var back = Own(0xCFC, 0xCFD, "CardReturn", "cardReturn");
+        foreach (var (npc, line) in cr["named"]!.AsObject())
+            Reply(back, "cardback", "cardback:" + npc, line!.GetValue<string>(), new Condition[] { IsNpc(Npc(npc), false), InFaction(cardReturnFaction.FormKey) });
+        Reply(back, "cardback", "cardback:generic", cr["generic"]!.GetValue<string>(), new Condition[] { InFaction(cardReturnFaction.FormKey) });
+
+        var handIn = Own(0xCFE, 0xCFF, "CardHandIn", "cardHandIn");
+        var cases = new[] { ("fallen", 3), ("dead", 2), ("alive", 1), ("worn", 4) };
+        foreach (var l in dlg["liaisons"]!.AsArray())
+        {
+            if (l!["cardHandIn"] is not JsonNode hi) continue;
+            var npc = l["npc"]!.GetValue<string>();
+            foreach (var (name, n) in cases)
+            {
+                var who = new List<Condition> { IsNpc(Npc(npc), false) };
+                if (l["successor"] is JsonNode su)  // only once the counter is hers, and only at her inn
+                {
+                    who.Add(InFaction(liaisonFaction.FormKey));
+                    if (su["cell"] is JsonNode cell) who.Add(InCell(KeyFk(cell.GetValue<string>()), true));
+                }
+                who.Add(GlobalIs(gRegistered, 1));
+                who.Add(GlobalCmp(gCardsCarried, CompareOperator.GreaterThanOrEqualTo, 1));
+                who.Add(GlobalIs(gCardCase, n));
+                Reply(handIn, "cardhandin", $"cardhandin:{npc}:{name}", hi[name]!.GetValue<string>(), who);
+            }
+            if (!(hi["drinks"]?.GetValue<bool>() ?? true)) cardNoDrinks.Add(Key(Npc(npc)));
+        }
+    }
     var orcs = Topic(0xCE4, 0xCE5, "Orcs");
     var orcRace = new GetIsRaceConditionData { RunOnType = Condition.RunOnType.Target };
     orcRace.Race.Link.SetTo(idx["races"]["OrcRace"]);
@@ -1191,7 +1261,7 @@ File.WriteAllText(idsPath, JsonSerializer.Serialize(ids, new JsonSerializerOptio
     }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
     Console.WriteLine($"threat rules: {rules.Count} races, {named.Count} actors");
 }
-File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors, stampKeepers, choiceSwaps }, new JsonSerializerOptions { WriteIndented = true }));
+File.WriteAllText(Path.Combine(outDir, "dialogue.resolved.json"), JsonSerializer.Serialize(new { roles, liaisons = liaisonKeys, cities = liaisonCities, successors, stampKeepers, choiceSwaps, cardNoDrinks }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"dialogue: {ids.Count} INFO ids pinned, {liaisonKeys.Count} liaisons");
 
 // ---------- onboarding: the registration missive ----------

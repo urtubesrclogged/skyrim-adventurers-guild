@@ -40,6 +40,8 @@ namespace AG::Guild
 			int                          fee{ 50 };
 			int                          promotionFee{ 50 };
 			int                          cardFee{ 25 };  // a replacement guild card (the first is free)
+			int                          memberCardRep{ 5 };       // Reputation for another adventurer's card brought back
+			float                        memberCardDays{ 3.0f };   // days until a member whose card is gone has a replacement
 			int                          stampDungeons{ 8 };  // dungeons cleared in a hold for its stamp on the card
 			float                        repPerBountyGold{ 0.1f };  // Reputation lost per gold of new bounty
 			float                        abandonShare{ 0.5f };      // of a taken missive's Reputation, lost when it is given up
@@ -126,7 +128,7 @@ namespace AG::Guild
 		// happened. The same file on another 1.6.1170 game found them all: the cause is in that install, unknown and not
 		// ours to find. So nothing here depends on that moment any more: the line's own ID is taken apart when the game
 		// reports it (RoleOfLine), and a line that is not at our IDs is recognised by its topic and kind.
-		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace, kStamp };
+		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace, kStamp, kCardBack, kCardHandIn };
 		RE::TESFaction*                         g_stampEarnedFaction = nullptr;  // on a liaison whose hold's stamp is earned
 		RE::TESFaction*                         g_stampDueFaction = nullptr;     // on a stamp keeper who owes the player a stamp
 		RE::BGSPerk*                            g_stampPerk = nullptr;           // buy prices x0.85 while g_gStampDiscount is 1
@@ -335,6 +337,8 @@ namespace AG::Guild
 			}
 			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"
 			if (edid == "AG_TopicStampAsk") return toPlayer ? Role::kStamp : Role::kNone;  // the line's own conditions say she owes one
+			if (edid == "AG_TopicCardReturn") return toPlayer ? Role::kCardBack : Role::kNone;    // likewise: the player carries their card
+			if (edid == "AG_TopicCardHandIn") return toPlayer ? Role::kCardHandIn : Role::kNone;
 			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusiness" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
 			if (acting < 0) return Role::kNone;
 			Role        role = Role::kNone;
@@ -427,6 +431,20 @@ namespace AG::Guild
 					SKSE::GetTaskInterface()->AddTask([hold] {
 						if (!hold.empty()) GuildCard::CollectHoldStamp(hold);
 						SyncStampMarks();
+					});
+					return RE::BSEventNotifyControl::kContinue;
+				}
+				if ((role == Role::kCardBack || role == Role::kCardHandIn) && !a_e->speakerRef) return RE::BSEventNotifyControl::kContinue;
+				if (role == Role::kCardBack || role == Role::kCardHandIn) {
+					// another adventurer's guild card: given back to the one speaking, or handed in at this counter
+					const auto who = a_e->speakerRef->GetHandle();
+					const bool back = role == Role::kCardBack;
+					SKSE::GetTaskInterface()->AddTask([who, back] {
+						auto  ref = who.get();
+						auto* actor = ref ? ref->As<RE::Actor>() : nullptr;
+						if (!actor) return;
+						if (back) MemberCards::ReturnTo(actor);
+						else MemberCards::HandIn(actor);
 					});
 					return RE::BSEventNotifyControl::kContinue;
 				}
@@ -663,6 +681,8 @@ namespace AG::Guild
 				c.promotionFee = std::max(0, j.value("promotionFee", c.promotionFee));
 				c.cardFee = std::max(0, j.value("cardReplacementFee", c.cardFee));
 				c.stampDungeons = std::max(1, j.value("stampDungeons", c.stampDungeons));
+				c.memberCardRep = std::max(0, j.value("memberCardReputation", c.memberCardRep));
+				c.memberCardDays = std::max(0.0f, j.value("memberCardReplaceDays", c.memberCardDays));
 				if (j.contains("conduct")) {
 					c.repPerBountyGold = std::max(0.0f, j.at("conduct").value("repPerBountyGold", c.repPerBountyGold));
 					c.abandonShare = std::clamp(j.at("conduct").value("abandonShare", c.abandonShare), 0.0f, 1.0f);
@@ -769,6 +789,8 @@ namespace AG::Guild
 			load("business", Role::kBusiness);
 			load("replace", Role::kReplace);
 			load("stamp", Role::kStamp);
+			load("cardback", Role::kCardBack);
+			load("cardhandin", Role::kCardHandIn);
 		} catch (const std::exception& e) {
 			SKSE::log::error("Guild: dialogue.resolved.json error: {} - guild dialogue will do nothing", e.what());
 		}
@@ -996,6 +1018,7 @@ namespace AG::Guild
 		SyncWanderers();
 		SyncSuccessors();
 		SyncStampMarks();
+		MemberCards::Sync();
 		AugmentTick();
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!pc || !pc->Is3DLoaded() || Dormant()) return;
@@ -1534,6 +1557,8 @@ namespace AG::Guild
 
 	int CardFee() { return g_cfg.cardFee; }
 	int StampDungeons() { return g_cfg.stampDungeons; }
+	int CardReturnReputation() { return g_cfg.memberCardRep; }
+	float CardReplaceDays() { return g_cfg.memberCardDays; }
 	int ReputationFor(int a_rank) { return g_cfg.reputation[std::clamp(a_rank, 0, kRankCount - 1)]; }
 
 	std::string CityName(const std::string& a_city)

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <array>
+#include <fstream>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -38,6 +39,8 @@ namespace AG::MemberCards
 			int         number{ 0 };  // the Guild's ledger number, on the card for flavour
 			std::string city;         // the counter that issued it: their hold's (where they were first met)
 			int         level{ 1 };   // as last seen (their rank follows from it, and so do the figures below)
+			bool        dead{ false };          // seen dead (kept: a body is cleaned away, and its owner can no longer be asked)
+			float       missingSince{ -1.0f };  // the game day the player was first seen carrying it; -1 while nothing is counted
 		};
 
 		RE::TESObjectBOOK* g_personal = nullptr;
@@ -141,16 +144,169 @@ namespace AG::MemberCards
 			return files;
 		}
 
-		// A member is given their card: the first time only, whatever became of it since.
+
+		// ---- bringing cards back ----
+		RE::TESGlobal*  g_gCarried = nullptr;      // AG_CardsCarriedGlobal: cards the player carries that can be brought back
+		RE::TESGlobal*  g_gCase = nullptr;         // AG_CardCaseGlobal: the weightiest of them (1 alive, 2 dead, 3 fallen party member, 4 worn only)
+		RE::TESFaction* g_ownerFaction = nullptr;  // AG_CardReturnFaction: on a member whose card the player carries
+		RE::TESBoundObject* g_mead = nullptr;
+		RE::TESBoundObject* g_sujamma = nullptr;
+		std::unordered_set<RE::FormID>  g_noDrinks;  // representatives (by base) who stand nobody a round
+		std::unordered_set<std::string> g_marked;    // keys of everyone in g_ownerFaction; guarded by g_lock, kept in the co-save
+
+		// one stack of cards in the player's inventory
+		struct Carried
+		{
+			RE::TESBoundObject* object{ nullptr };
+			RE::ExtraDataList*  extra{ nullptr };  // the stack's own data (its name, its owner); null for plain worn cards
+			int                 count{ 1 };
+			bool                worn{ false };     // a worn card, or a named one this save has no record of: nobody's
+			bool                stolen{ false };   // the game holds it to be someone else's property
+			std::string         item, key, name;   // the copy's name; whose it is; the name on it
+		};
+
+		std::vector<Carried> Scan()
+		{
+			std::vector<Carried> out;
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			if (!pc || !g_personal || !g_worn) return out;
+			auto* self = pc->GetActorBase();
+			auto  inv = pc->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal || &a_o == g_worn; });
+			for (auto& [object, data] : inv) {
+				auto& [count, entry] = data;
+				if (count <= 0 || !entry) continue;
+				int listed = 0;
+				if (entry->extraLists)
+					for (auto* xl : *entry->extraLists) {
+						if (!xl) continue;
+						Carried c;
+						c.object = object;
+						c.extra = xl;
+						c.count = std::max(1, static_cast<int>(xl->GetCount()));
+						c.worn = object == g_worn;
+						auto* owner = xl->GetOwner();
+						c.stolen = owner && owner != self && owner != pc;
+						if (!c.worn) {
+							const char* shown = xl->GetDisplayName(object);
+							c.item = shown ? shown : "";
+						}
+						listed += c.count;
+						out.push_back(std::move(c));
+					}
+				if (count > listed) {
+					Carried c;
+					c.object = object;
+					c.count = count - listed;
+					c.worn = true;
+					out.push_back(std::move(c));
+				}
+			}
+			std::lock_guard l(g_lock);
+			for (auto& c : out) {
+				if (c.worn) continue;
+				if (const auto it = g_records.find(Lower(c.item)); it != g_records.end()) {
+					c.key = it->second.key;
+					c.name = it->second.name;
+				} else {
+					c.worn = true;
+				}
+			}
+			return out;
+		}
+
+		enum class Fate { kAlive, kDead, kFallen };
+
+		// What became of a card's owner. Someone who cannot be found any more is taken to be alive, unless they were
+		// seen dead while they could be.
+		Fate FateOf(const Carried& a_card, RE::Actor*& a_owner)
+		{
+			a_owner = nullptr;
+			if (auto* form = Adventurers::FormOfKey(a_card.key)) a_owner = form->As<RE::Actor>();
+			if (Party::IsFallen(a_card.key)) return Fate::kFallen;
+			const bool deadNow = a_owner && a_owner->IsDead();
+			std::lock_guard l(g_lock);
+			const auto it = g_records.find(Lower(a_card.item));
+			if (it == g_records.end()) return deadNow ? Fate::kDead : Fate::kAlive;
+			if (deadNow) it->second.dead = true;
+			return it->second.dead ? Fate::kDead : Fate::kAlive;
+		}
+
+		bool HasCard(RE::Actor* a_actor)
+		{
+			for (auto& [object, data] : a_actor->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal; }))
+				if (data.first > 0) return true;
+			return false;
+		}
+
+		// The named copy is made by the game (AG_QuestHelper.GiveMemberCard), a frame or two from now.
+		void Give(RE::Actor* a_actor, const std::string& a_item)
+		{
+			if (auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
+				RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+				vm->DispatchStaticCall("AG_QuestHelper", "GiveMemberCard",
+					RE::MakeFunctionArguments(static_cast<RE::Actor*>(a_actor), static_cast<RE::TESForm*>(g_personal), RE::BSFixedString(a_item)), cb);
+			}
+		}
+
+		void SetMissing(const std::string& a_item, float a_since)
+		{
+			std::lock_guard l(g_lock);
+			if (const auto it = g_records.find(Lower(a_item)); it != g_records.end()) it->second.missingSince = a_since;
+		}
+
+		// A living member whose card is gone has a new one from the Guild after a few days, as the player can buy one.
+		// The days are counted from when the player was first seen carrying it (a_start), and go on counting whatever
+		// the player does with it after that.
+		void Replace(RE::Actor* a_owner, const std::string& a_item, bool a_start)
+		{
+			if (!a_owner || a_owner->IsDead()) return;
+			float since;
+			{
+				std::lock_guard l(g_lock);
+				const auto it = g_records.find(Lower(a_item));
+				if (it == g_records.end()) return;
+				since = it->second.missingSince;
+			}
+			if (since < 0.0f && !a_start) return;
+			if (HasCard(a_owner)) {
+				if (since >= 0.0f) SetMissing(a_item, -1.0f);
+				return;
+			}
+			const float now = Guild::Day();
+			if (since < 0.0f) {
+				SetMissing(a_item, now);
+			} else if (now - since >= Guild::CardReplaceDays() && a_owner->Is3DLoaded()) {
+				SetMissing(a_item, -1.0f);
+				Give(a_owner, a_item);
+				SKSE::log::info("MemberCards: \"{}\" was gone {:.1f} days - its owner has a replacement", a_item, now - since);
+			}
+		}
+
+		std::string ItemOfKey(const std::string& a_key)
+		{
+			std::lock_guard l(g_lock);
+			for (auto& [item, r] : g_records)
+				if (r.key == a_key) return item;
+			return {};
+		}
+
+		// A member is given their card: the first time, and again once theirs has been gone for a few days.
 		void Ensure(RE::Actor* a_actor)
 		{
 			if (!a_actor || a_actor->IsPlayerRef() || !g_personal || !g_worn) return;
 			const auto info = Adventurers::Of(a_actor);
 			if (info.kind == Adventurers::Kind::kNone) return;
 			const auto key = Adventurers::StableKey(a_actor);
+			bool       issued = false;
 			{
 				std::lock_guard l(g_lock);
-				if (!g_issued.insert(key).second) return;
+				if (!g_issued.insert(key).second) {
+					issued = true;
+				}
+			}
+			if (issued) {
+				if (const auto item = ItemOfKey(key); !item.empty()) Replace(a_actor, item, false);
+				return;
 			}
 			auto*       base = a_actor->GetActorBase();
 			const char* shownRaw = a_actor->GetDisplayFullName();
@@ -172,6 +328,7 @@ namespace AG::MemberCards
 			r.seal = solstheim ? "morrowind" : "";
 			r.city = solstheim ? std::string("Raven Rock") : Dungeons::CityOf(a_actor->GetCurrentLocation());
 			r.level = a_actor->GetLevel();
+			r.dead = a_actor->IsDead();
 			Registered(a_actor, key, r.rank, r);
 			r.stamps = Stamps(a_actor, key, r.rank, solstheim);
 			auto item = Loc::F("$AG_MemberCard_Name", "Guild Card: {}", name);
@@ -185,11 +342,7 @@ namespace AG::MemberCards
 			// The copy is named as a renamed item is: its own display name, kept by the game with the item wherever it
 			// goes. The game makes it (AG_QuestHelper.GiveMemberCard: a reference of the card, renamed, moved into their
 			// inventory), a frame or two from now; AG_Native.MemberCardGiven then has an open inventory show it.
-			if (auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
-				RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
-				vm->DispatchStaticCall("AG_QuestHelper", "GiveMemberCard",
-					RE::MakeFunctionArguments(static_cast<RE::Actor*>(a_actor), static_cast<RE::TESForm*>(g_personal), RE::BSFixedString(item)), cb);
-			}
+			Give(a_actor, item);
 			SKSE::log::info("MemberCards: \"{}\" made for {} - rank {}, registered {}/{}/4E {}, {} seal, {} stamp(s){}", item, key, Letter(r.rank), r.day,
 				r.month + 1, r.year, solstheim ? "Morrowind" : "Skyrim", r.stamps.size(), r.retired ? ", retired" : "");
 		}
@@ -217,7 +370,11 @@ namespace AG::MemberCards
 
 			RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* a_e, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override
 			{
-				if (!a_e || !a_e->opening || a_e->menuName != RE::ContainerMenu::MENU_NAME) return RE::BSEventNotifyControl::kContinue;
+				if (!a_e || a_e->menuName != RE::ContainerMenu::MENU_NAME) return RE::BSEventNotifyControl::kContinue;
+				if (!a_e->opening) {
+					SKSE::GetTaskInterface()->AddTask(Sync);  // a card may have changed hands: whoever is spoken to next knows at once
+					return RE::BSEventNotifyControl::kContinue;
+				}
 				SKSE::GetTaskInterface()->AddTask([] {
 					RE::NiPointer<RE::TESObjectREFR> target;
 					if (!RE::LookupReferenceByHandle(RE::ContainerMenu::GetTargetRefHandle(), target) || !target) return;
@@ -257,6 +414,21 @@ namespace AG::MemberCards
 			SKSE::log::warn("MemberCards: the two card items are not in {} - other adventurers carry no card", kPlugin);
 			return;
 		}
+		g_gCarried = dh->LookupForm<RE::TESGlobal>(0xCF9, kPlugin);
+		g_gCase = dh->LookupForm<RE::TESGlobal>(0xCFA, kPlugin);
+		g_ownerFaction = dh->LookupForm<RE::TESFaction>(0xCFB, kPlugin);
+		g_mead = dh->LookupForm<RE::TESBoundObject>(0x034C5D, "Skyrim.esm");       // Nord Mead
+		g_sujamma = dh->LookupForm<RE::TESBoundObject>(0x0207E6, "Dragonborn.esm");  // Sujamma, at Raven Rock
+		g_noDrinks.clear();
+		try {
+			std::ifstream df("Data/SKSE/Plugins/AdventurersGuild/dialogue.resolved.json");
+			const auto    dj = nlohmann::json::parse(df, nullptr, true, true);
+			for (auto& k : dj.value("cardNoDrinks", nlohmann::json::array()))
+				if (auto* form = Adventurers::FormOfKey(k.get<std::string>())) g_noDrinks.insert(form->GetFormID());
+		} catch (const std::exception& e) {
+			SKSE::log::warn("MemberCards: dialogue.resolved.json: {} - every representative stands a round for a fallen party member", e.what());
+		}
+		if (!g_gCarried || !g_gCase || !g_ownerFaction) SKSE::log::warn("MemberCards: the records for bringing a card back are not in {} - cards cannot be returned", kPlugin);
 		if (auto* src = RE::ScriptEventSourceHolder::GetSingleton()) src->AddEventSink<RE::TESActivateEvent>(Sinks::Get());
 		if (auto* ui = RE::UI::GetSingleton()) ui->AddEventSink<RE::MenuOpenCloseEvent>(Sinks::Get());
 		SKSE::log::info("MemberCards: an adventurer is given their card the first time the player looks");
@@ -332,14 +504,135 @@ namespace AG::MemberCards
 		return out;
 	}
 
+	void Sync()
+	{
+		if (!g_personal || !g_gCarried || !g_gCase) return;
+		int total = 0, weight = 0;
+		std::unordered_set<std::string> want;  // living owners, here, whose card the player carries
+		for (auto& c : Scan()) {
+			total += c.count;
+			if (c.worn) continue;
+			RE::Actor* owner = nullptr;
+			const auto fate = FateOf(c, owner);
+			weight = std::max(weight, fate == Fate::kFallen ? 3 : fate == Fate::kDead ? 2 : 1);
+			if (fate != Fate::kAlive || !owner) continue;
+			Replace(owner, c.item, true);
+			if (owner->Is3DLoaded()) want.insert(c.key);
+		}
+		g_gCarried->value = static_cast<float>(total);
+		g_gCase->value = static_cast<float>(total == 0 ? 0 : weight == 0 ? 4 : weight);
+		if (!g_ownerFaction) return;
+		std::vector<std::string> add, drop;
+		{
+			std::lock_guard l(g_lock);
+			for (auto& k : want)
+				if (!g_marked.contains(k)) add.push_back(k);
+			for (auto& k : g_marked)
+				if (!want.contains(k)) drop.push_back(k);
+		}
+		const auto set = [](const std::string& a_key, bool a_in) {
+			auto* form = Adventurers::FormOfKey(a_key);
+			auto* actor = form ? form->As<RE::Actor>() : nullptr;
+			if (actor) actor->AddToFaction(g_ownerFaction, a_in ? 0 : -1);
+			std::lock_guard l(g_lock);
+			if (a_in) g_marked.insert(a_key);
+			else g_marked.erase(a_key);
+		};
+		for (auto& k : add) set(k, true);
+		for (auto& k : drop) set(k, false);
+	}
+
+	void ReturnTo(RE::Actor* a_owner)
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		if (!pc || !a_owner || !g_personal) return;
+		const auto key = Adventurers::StableKey(a_owner);
+		bool        placed = HasCard(a_owner);  // they have a replacement by now: the old card is taken and thrown away
+		const bool  spare = placed;
+		int         cards = 0, rep = 0;
+		std::string name, item;
+		for (auto& c : Scan()) {
+			if (c.worn || c.key != key) continue;
+			name = c.name;
+			item = c.item;
+			cards += c.count;
+			if (!c.stolen) rep += Guild::CardReturnReputation() * c.count;
+			pc->RemoveItem(c.object, c.count, placed ? RE::ITEM_REMOVE_REASON::kRemove : RE::ITEM_REMOVE_REASON::kStoreInContainer, c.extra, placed ? nullptr : a_owner);
+			placed = true;
+		}
+		if (cards == 0) {
+			SKSE::log::warn("MemberCards: {} thanked the player for a guild card, and the player carries none of theirs", a_owner->GetDisplayFullName());
+			Sync();
+			return;
+		}
+		SetMissing(item, -1.0f);
+		Guild::Record(Loc::F("$AG_Log_CardReturned", "Returned {}'s guild card to them.", name));
+		if (rep > 0) Guild::AddReward(0, rep, Loc::T("$AG_Why_CardReturned", "guild card returned"));
+		SKSE::log::info("MemberCards: \"{}\" given back to its owner ({}){}{}", item, key, spare ? " - they had a replacement, the old one is thrown away" : "",
+			rep > 0 ? "" : " - no Reputation: the game holds that copy to be stolen");
+		Sync();
+	}
+
+	void HandIn(RE::Actor* a_rep)
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		if (!pc || !a_rep || !g_personal) return;
+		int  rep = 0, worn = 0, cards = 0, stolen = 0;
+		bool fallen = false;
+		for (auto& c : Scan()) {
+			cards += c.count;
+			if (c.stolen) stolen += c.count;
+			else rep += Guild::CardReturnReputation() * c.count;
+			if (c.worn) {
+				worn += c.count;
+				pc->RemoveItem(c.object, c.count, RE::ITEM_REMOVE_REASON::kRemove, c.extra, nullptr);
+				continue;
+			}
+			RE::Actor* owner = nullptr;
+			const auto fate = FateOf(c, owner);
+			// a living owner has it back from the Guild (unless they have a replacement already)
+			const bool back = fate == Fate::kAlive && owner && !HasCard(owner);
+			pc->RemoveItem(c.object, c.count, back ? RE::ITEM_REMOVE_REASON::kStoreInContainer : RE::ITEM_REMOVE_REASON::kRemove, c.extra, back ? owner : nullptr);
+			if (fate == Fate::kAlive) SetMissing(c.item, -1.0f);
+			fallen |= fate == Fate::kFallen;
+			Guild::Record(fate == Fate::kAlive ? Loc::F("$AG_Log_CardHandedIn", "Handed in {}'s guild card. The Adventurers Guild will see it back to them.", c.name)
+				: fate == Fate::kFallen ? Loc::F("$AG_Log_CardFallen", "Handed in the guild card of {}, who fell at your side.", c.name)
+				: Loc::F("$AG_Log_CardDead", "Handed in the guild card of {}, who is dead.", c.name));
+			SKSE::log::info("MemberCards: \"{}\" handed in to {} - its owner {}{}", c.item, a_rep->GetDisplayFullName(),
+				fate == Fate::kAlive ? (back ? "lives and has it back" : "lives (the card is kept: they have another, or cannot be found)") : fate == Fate::kFallen ? "fell in the player's party" : "is dead",
+				c.stolen ? "; no Reputation: the game holds that copy to be stolen" : "");
+		}
+		if (cards == 0) {
+			Sync();
+			return;
+		}
+		if (worn == 1) Guild::Record(Loc::T("$AG_Log_CardWorn", "Handed in a worn guild card."));
+		else if (worn > 1) Guild::Record(Loc::F("$AG_Log_CardsWorn", "Handed in {} worn guild cards.", worn));
+		if (worn > 0) SKSE::log::info("MemberCards: {} worn card(s) handed in to {}", worn, a_rep->GetDisplayFullName());
+		if (rep > 0) Guild::AddReward(0, rep, cards - stolen == 1 ? Loc::T("$AG_Why_CardHandedIn", "guild card handed in") : Loc::T("$AG_Why_CardsHandedIn", "guild cards handed in"));
+		// a fallen party member: most representatives stand the party a round, one each for those still standing
+		auto* base = a_rep->GetActorBase();
+		if (fallen && !(base && g_noDrinks.contains(base->GetFormID()))) {
+			auto* drink = Adventurers::LiaisonCity(a_rep) == "Raven Rock" && g_sujamma ? g_sujamma : g_mead;
+			const int n = 1 + Party::LivingActiveCount();
+			if (drink) {
+				pc->AddObjectToContainer(drink, nullptr, n, nullptr);
+				RE::SendHUDMessage::ShowHUDMessage(Loc::F("$AG_Hud_DrinksOnHouse", "{} ({}) on the house", drink->GetName(), n).c_str());
+				SKSE::log::info("MemberCards: {} stands the party a round - {} x {}", a_rep->GetDisplayFullName(), n, drink->GetName());
+			}
+		}
+		Sync();
+	}
+
 	nlohmann::json Save()
 	{
 		std::lock_guard l(g_lock);
 		auto cards = nlohmann::json::object();
 		for (auto& [item, r] : g_records)
 			cards[item] = { { "key", r.key }, { "name", r.name }, { "rank", r.rank }, { "y", r.year }, { "m", r.month }, { "d", r.day }, { "seal", r.seal },
-				{ "stamps", r.stamps }, { "retired", r.retired }, { "no", r.number }, { "city", r.city }, { "level", r.level } };
-		return { { "cards", cards }, { "issued", std::vector<std::string>(g_issued.begin(), g_issued.end()) } };
+				{ "stamps", r.stamps }, { "retired", r.retired }, { "no", r.number }, { "city", r.city }, { "level", r.level }, { "dead", r.dead }, { "miss", r.missingSince } };
+		return { { "cards", cards }, { "issued", std::vector<std::string>(g_issued.begin(), g_issued.end()) },
+			{ "marked", std::vector<std::string>(g_marked.begin(), g_marked.end()) } };
 	}
 
 	void Load(const nlohmann::json& a_j)
@@ -347,6 +640,7 @@ namespace AG::MemberCards
 		std::lock_guard l(g_lock);
 		g_records.clear();
 		g_issued.clear();
+		g_marked.clear();
 		try {
 			for (auto& [item, c] : a_j.value("cards", nlohmann::json::object()).items()) {
 				Record r;
@@ -362,9 +656,12 @@ namespace AG::MemberCards
 				r.number = c.value("no", 0);
 				r.city = c.value("city", "");
 				r.level = c.value("level", 1);
+				r.dead = c.value("dead", false);
+				r.missingSince = c.value("miss", -1.0f);
 				g_records[item] = std::move(r);
 			}
 			for (auto& k : a_j.value("issued", nlohmann::json::array())) g_issued.insert(k.get<std::string>());
+			for (auto& k : a_j.value("marked", nlohmann::json::array())) g_marked.insert(k.get<std::string>());
 		} catch (const std::exception& e) {
 			SKSE::log::error("MemberCards: co-save parse error: {}", e.what());
 		}
@@ -375,16 +672,19 @@ namespace AG::MemberCards
 		std::lock_guard l(g_lock);
 		g_records.clear();
 		g_issued.clear();
+		g_marked.clear();
 	}
 
 	std::string Debug()
 	{
 		std::lock_guard l(g_lock);
-		std::string out = std::format("{} personal card(s), {} adventurer(s) given a card of either kind", g_records.size(), g_issued.size());
+		std::string out = std::format("{} personal card(s), {} adventurer(s) given a card of either kind; carried {} (case {}), {} owner(s) marked, {} representative(s) who pour nothing", g_records.size(), g_issued.size(),
+			g_gCarried ? static_cast<int>(g_gCarried->value) : -1, g_gCase ? static_cast<int>(g_gCase->value) : -1, g_marked.size(), g_noDrinks.size());
 		int n = 0;
 		for (auto& [item, r] : g_records) {
 			if (++n > 12) break;
-			out += std::format("\n  \"{}\": {} rank {} {}/{}/{} {}", item, r.key, Letter(r.rank), r.day, r.month + 1, r.year, r.retired ? "retired" : "");
+			out += std::format("\n  \"{}\": {} rank {} {}/{}/{} {}{}{}", item, r.key, Letter(r.rank), r.day, r.month + 1, r.year, r.retired ? "retired" : "", r.dead ? " dead" : "",
+				r.missingSince >= 0.0f ? std::format(" gone since day {:.1f}", r.missingSince) : std::string());
 		}
 		return out;
 	}

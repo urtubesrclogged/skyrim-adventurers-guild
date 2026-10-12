@@ -1035,6 +1035,32 @@ namespace AG::Party
 		return p ? p->name : std::string();
 	}
 
+	bool IsFallen(const std::string& a_key)
+	{
+		std::lock_guard l(g_lock);
+		for (auto& p : g_parties)
+			for (auto& m : p.members)
+				if (m.key == a_key && m.status == "fallen") return true;
+		return false;
+	}
+
+	int LivingActiveCount()
+	{
+		std::vector<std::string> keys;
+		{
+			std::lock_guard l(g_lock);
+			if (auto* p = ActiveLocked())
+				for (auto& m : p->members)
+					if (m.status == "active") keys.push_back(m.key);
+		}
+		int n = 0;
+		for (auto& k : keys) {
+			auto* a = Resolve(k);
+			if (!a || !a->IsDead()) ++n;  // dead, not yet marked fallen: no longer counts
+		}
+		return n;
+	}
+
 	bool IsActiveMember(RE::Actor* a_actor)
 	{
 		if (!a_actor) return false;
