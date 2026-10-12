@@ -367,6 +367,8 @@
      at its own tilt (STAMP_PLACES), filled in the order the card was stamped. Ink darkens the paper under it. */
   .stamp { position: absolute; pointer-events: none; mix-blend-mode: multiply; }
   .medallion .stampline { font-size: 16px; color: var(--muted); margin-top: 10px; }
+  .paper .retired { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%) rotate(-14deg); font-size: 54px; letter-spacing: 6px;
+    color: rgba(120, 28, 22, 0.62); border: 5px double rgba(120, 28, 22, 0.55); padding: 4px 26px 2px; border-radius: 6px; mix-blend-mode: multiply; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -455,6 +457,13 @@ function gameDate(d) {
     t("$AG_UI_Month3", "Rain's Hand"), t("$AG_UI_Month4", "Second Seed"), t("$AG_UI_Month5", "Midyear"), t("$AG_UI_Month6", "Sun's Height"),
     t("$AG_UI_Month7", "Last Seed"), t("$AG_UI_Month8", "Hearthfire"), t("$AG_UI_Month9", "Frostfall"), t("$AG_UI_Month10", "Sun's Dusk"),
     t("$AG_UI_Month11", "Evening Star")];
+  return calDate(y, m, dd, months);
+}
+function calDate(y, m, dd, months) {
+  months = months || [t("$AG_UI_Month0", "Morning Star"), t("$AG_UI_Month1", "Sun's Dawn"), t("$AG_UI_Month2", "First Seed"),
+    t("$AG_UI_Month3", "Rain's Hand"), t("$AG_UI_Month4", "Second Seed"), t("$AG_UI_Month5", "Midyear"), t("$AG_UI_Month6", "Sun's Height"),
+    t("$AG_UI_Month7", "Last Seed"), t("$AG_UI_Month8", "Hearthfire"), t("$AG_UI_Month9", "Frostfall"), t("$AG_UI_Month10", "Sun's Dusk"),
+    t("$AG_UI_Month11", "Evening Star")];
   const teen = dd % 100 >= 11 && dd % 100 <= 13, last = dd % 10;
   const ord = teen || last > 3 || last === 0 ? t("$AG_UI_OrdTh", "th") : [null, t("$AG_UI_OrdSt", "st"), t("$AG_UI_OrdNd", "nd"), t("$AG_UI_OrdRd", "rd")][last];
   return t("$AG_UI_DateFmt", "{0}{1} of {2}, 4E {3}", dd, ord, months[m], y);
@@ -505,13 +514,29 @@ function cardTodo() {
 // where each hold stamp goes on the sheet, in the order they are earned: [right, top, size, tilt in degrees]
 const STAMP_PLACES = [[388, 16, 60, 8], [314, 13, 58, -6], [238, 19, 60, 3], [164, 14, 58, -10],
   [353, 85, 58, -5], [277, 90, 58, 11], [201, 83, 60, -3], [131, 90, 56, 7], [22, 136, 56, 6], [80, 142, 56, -8]];
-function cardStamps() {
-  return (data.stamps || []).slice(0, STAMP_PLACES.length).map((name, i) => {
+function cardStamps(list) {
+  return (list || data.stamps || []).slice(0, STAMP_PLACES.length).map((name, i) => {
     const [r, top, size, tilt] = STAMP_PLACES[i];
     return `<img class="stamp" src="tex/skin/stamp_${esc(name)}.png" style="right:${r}px;top:${top}px;width:${size}px;height:${size}px;transform:rotate(${tilt}deg)" alt=""/>`;
   }).join("");
 }
+function renderMemberCard() {
+  const mb = data.member, d = mb.date || {};
+  return `<div class="card">
+    <div class="medallion"><img class="plaque" src="tex/rank_${esc(mb.letter)}.png" alt=""/>
+      <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", mb.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(mb.letter)))}</div></div>
+    <div class="paper">
+      <h2>${esc(mb.name)}</h2>
+      <div class="line">${esc(t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", mb.letter))}${d.year != null ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", calDate(d.year, d.month, d.day))) : ""}</div>
+      <hr/>
+      <div class="line">${esc(t("$AG_UI_LedgerNo", "Ledger No. {0}", mb.number))}</div>
+      ${mb.retired ? `<div class="retired caps">${esc(t("$AG_UI_Retired", "Retired"))}</div>` : ""}
+      ${cardStamps(mb.stamps || [])}
+      <img class="seal-wax" src="tex/seal${mb.seal === "morrowind" ? "_morrowind" : ""}.png" alt=""/>
+    </div></div>`;
+}
 function renderCard() {
+  if (data.member) return renderMemberCard();
   const n = data.next, m = data.missives || [], tr = data.training || [];
   let next = `<div class="note-ok">${esc(t("$AG_UI_TopRank", "Rank S — the highest honour the Guild bestows."))}</div>`;
   if (n) {
@@ -947,6 +972,8 @@ function fitText() {
 }
 
 function render() {
+  // someone else's card: the player's own Merit and Reputation have no place on it
+  document.querySelectorAll(".coin").forEach((c) => { c.hidden = !!data.member; });
   $("merit").textContent = data.merit;
   $("rep").textContent = data.reputation;
   /* Solstheim is Morrowind's: the Raven Rock counter, and the Guild Card read on the island */

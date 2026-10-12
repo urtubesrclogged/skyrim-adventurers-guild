@@ -8,6 +8,9 @@
 #include "Counter.h"
 #include "Dungeons.h"
 #include "Guild.h"
+#include "MemberCards.h"
+
+#include <nlohmann/json.hpp>
 #include "Loc.h"
 #include "PrismaToast.h"
 #include "RankCore.h"
@@ -70,6 +73,9 @@ namespace AG::GuildCard
 
 		// Close what the card was read from, then open it: checked every 100 ms for up to 4 s (a menu closes over a
 		// few frames, and the VR inventory takes longer). If the menus never go, nothing opens.
+		std::mutex     g_memberLock;
+		nlohmann::json g_memberToShow;  // set when the book being read is another adventurer's card
+
 		void OpenWhenClear()
 		{
 			if (g_opening.exchange(true)) return;
@@ -84,7 +90,16 @@ namespace AG::GuildCard
 					SKSE::GetTaskInterface()->AddTask([&state] { state = AnyUnder() ? 2 : 1; });
 					for (int w = 0; w < 50 && state.load() == 0; ++w) std::this_thread::sleep_for(std::chrono::milliseconds(10));
 					if (state.load() == 1) {
-						SKSE::GetTaskInterface()->AddTask([] { Counter::OpenCard(); });
+						SKSE::GetTaskInterface()->AddTask([] {
+							nlohmann::json member;
+							{
+								std::lock_guard l(g_memberLock);
+								member = std::move(g_memberToShow);
+								g_memberToShow = nullptr;
+							}
+							if (member.is_null()) Counter::OpenCard();
+							else Counter::OpenMemberCard(member);  // someone else's card: the page in its member view
+						});
 						break;
 					}
 				}
@@ -106,6 +121,24 @@ namespace AG::GuildCard
 				if (!a_e || !a_e->opening || !g_card || a_e->menuName != RE::BookMenu::MENU_NAME) return RE::BSEventNotifyControl::kContinue;
 				// which book: asked on the game thread, where the menu's target is set
 				SKSE::GetTaskInterface()->AddTask([] {
+					// another adventurer's card: which copy, by its item name (in the world, the reference's; in a menu, the
+					// selected row's). A name this save has no record of is left to the book's own text.
+					if (MemberCards::IsPersonal(RE::BookMenu::GetTargetForm())) {
+						auto        ref = RE::BookMenu::GetTargetReference();
+						const char* shown = ref ? ref->GetDisplayFullName() : nullptr;
+						const auto  item = ref ? std::string(shown ? shown : "") : MemberCards::SelectedItemName();
+						auto        member = MemberCards::CardFor(item);
+						SKSE::log::info("GuildCard: \"{}\" is being read ({}) - {}", item, ref ? "where it lies" : "from a menu", member.is_null() ? "no record of it" : "shown");
+						if (member.is_null()) return;
+						if (ref)
+							if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->PickUpObject(ref.get(), 1, false, true);  // as the player's own: read is also how it is taken
+						{
+							std::lock_guard l(g_memberLock);
+							g_memberToShow = std::move(member);
+						}
+						OpenWhenClear();
+						return;
+					}
 					if (RE::BookMenu::GetTargetForm() != g_card) return;
 					if (!Guild::Registered() || Guild::Dormant()) return;  // the note's own text is shown instead
 					// Read where it lies in the world: the Book Menu we are about to close is also where "Take" lives, so

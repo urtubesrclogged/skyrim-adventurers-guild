@@ -1276,6 +1276,27 @@ var card = new Book(FK(0x81A), Rel)
 };
 mod.Books.Add(card);
 
+// The other adventurers' cards (1.5.0, MemberCards.cpp). AG_MemberCard: one person's card; each copy carries its own display
+// name ("Guild Card: Mjoll the Lioness") and reading it opens the card page in its member view. This text is only seen if
+// that cannot happen. AG_WornCard: what an adventurer with no name of their own carries; there is nothing to read.
+Book CardLike(uint id, string edid, string name, string text) => new Book(FK(id), Rel)
+{
+    EditorID = edid, Name = name,
+    Model = noteSrc.Model?.DeepCopy(), ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
+    PickUpSound = noteSrc.PickUpSound is { } mpu ? new FormLinkNullable<ISoundDescriptorGetter>(mpu.FormKey) : null,
+    PutDownSound = noteSrc.PutDownSound is { } mpd ? new FormLinkNullable<ISoundDescriptorGetter>(mpd.FormKey) : null,
+    InventoryArt = noteSrc.InventoryArt is { } mia ? new FormLinkNullable<IStaticGetter>(mia.FormKey) : null,
+    Flags = noteSrc.Flags, Type = noteSrc.Type, Value = 0, Weight = 0, Description = "", BookText = text,
+};
+mod.Books.Add(CardLike(0xCF7, "AG_MemberCard", "Guild Card",
+    "<p align=\"center\"><font size=\"30\">ADVENTURERS GUILD</font></p>" +
+    "<p align=\"center\">Member's Card</p><br>" +
+    "<p>The bearer is a registered adventurer of the Guild. Rank, standing and record are kept in the Guild's ledger " +
+    "and may be confirmed at the inn of any hold capital.</p><br>" +
+    "<p align=\"right\">- The Adventurers Guild</p>"));
+mod.Books.Add(CardLike(0xCF8, "AG_WornCard", "Worn Guild Card",
+    "<p>The remains of a card of the Adventurers Guild. The holder's name is no longer readable.</p>"));
+
 // ---------- Appraisal: a passive Guild skill (0x820-0x82F) ----------
 // One perk per tier; AdventurersGuild.dll keeps exactly the purchased tier's perk on the player. Each
 // carries a visible marker ability (so the skill shows in Active Effects) and, from II up, a

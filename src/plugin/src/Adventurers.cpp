@@ -27,6 +27,7 @@ namespace AG::Adventurers
 			float            value{ 0.0f };
 			int              rank{ -1 };  // the Guild rank they start at (they rise with their level once they have travelled with the player), or -1: from their level
 			std::string      note, retiredNote;
+			int              regYear{ -1 }, regMonth{ 0 }, regDay{ 1 };  // when they registered, if written down (month 0..11)
 			bool Retired() const
 			{
 				if (!where || !keyword) return false;
@@ -134,6 +135,14 @@ namespace AG::Adventurers
 		std::unordered_set<RE::FormID>          g_liaisons;  // base NPCs who keep a guild counter (dialogue.json)
 		std::unordered_map<RE::FormID, std::string> g_liaisonCity;
 		std::unordered_set<std::string>         g_recruited;  // StableKey of refs that joined on recruitment
+		std::unordered_map<std::string, float>  g_recruitedDay;  // ... and the game day they did (kept since 1.5.0, for their card)
+
+		// g_lock held. Someone joins: remembered, with the day.
+		void Recruit(const std::string& a_key)
+		{
+			if (!g_recruited.insert(a_key).second) return;
+			if (auto* cal = RE::Calendar::GetSingleton()) g_recruitedDay[a_key] = cal->GetDaysPassed();
+		}
 		std::unordered_set<RE::FormID>          g_heldS;      // refs that held rank S at the player's side
 		struct Seen { int rank{ -1 }; float day{ -1.0f }; };
 		std::unordered_map<std::string, Seen>   g_namedSeen;  // StableKey of a named member -> rank last seen, day it last rose
@@ -374,6 +383,12 @@ namespace AG::Adventurers
 				nm.note = n.value("note", "");
 				nm.retiredNote = n.value("retiredNote", "");
 				if (const auto r = n.value("rank", ""); !r.empty()) nm.rank = FromLetter(r[0]);
+				if (n.contains("registered")) {
+					auto& reg = n.at("registered");
+					nm.regYear = reg.value("year", -1);
+					nm.regMonth = std::clamp(reg.value("month", 1), 1, 12) - 1;
+					nm.regDay = std::clamp(reg.value("day", 1), 1, 31);
+				}
 				if (n.contains("retiredWhen")) {
 					auto& w = n.at("retiredWhen");
 					auto* loc = FormOfKey(w.value("location", ""));
@@ -443,7 +458,7 @@ namespace AG::Adventurers
 				kind = nm->second.Retired() ? Kind::kRetired : Kind::kMember;  // asked each time: the world can change it
 				pinned = nm->second.rank;
 				if (pinned >= 0) {
-					if (a_actor->IsPlayerTeammate()) g_recruited.insert(key);
+					if (a_actor->IsPlayerTeammate()) Recruit(key);
 					travelled = g_recruited.contains(key);   // with the player now, or once: from then on they rise with their level
 				}
 			} else if (g_recruited.contains(key)) {
@@ -454,7 +469,7 @@ namespace AG::Adventurers
 				auto it = g_cache.find(a_actor->GetFormID());
 				const Kind before = it != g_cache.end() ? it->second : Decide(a_actor, nullptr);
 				joined = before != Kind::kMember;
-				g_recruited.insert(key);
+				Recruit(key);
 				g_cache.erase(a_actor->GetFormID());
 				kind = Kind::kMember;
 			} else if (auto it = g_cache.find(a_actor->GetFormID()); it != g_cache.end()) {
@@ -493,7 +508,7 @@ namespace AG::Adventurers
 		if (const auto why = JoinStatus(a_actor); why != "can_join") return "refused: " + why;
 		{
 			std::lock_guard l(g_lock);
-			g_recruited.insert(StableKey(a_actor));
+			Recruit(StableKey(a_actor));
 			g_cache.erase(a_actor->GetFormID());
 		}
 		const std::string name = a_actor->GetDisplayFullName();
@@ -546,6 +561,40 @@ namespace AG::Adventurers
 	{
 		std::lock_guard l(g_lock);
 		return g_liaisons.contains(a_base) || std::ranges::any_of(g_successors, [&](const Successor& su) { return su.npc == a_base; });
+	}
+
+	bool NamedRegistered(RE::Actor* a_actor, int& a_year, int& a_month, int& a_day)
+	{
+		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		std::lock_guard l(g_lock);
+		const auto it = base ? g_named.find(base->GetFormID()) : g_named.end();
+		if (it == g_named.end() || it->second.regYear < 0) return false;
+		a_year = it->second.regYear;
+		a_month = it->second.regMonth;
+		a_day = it->second.regDay;
+		return true;
+	}
+
+	float RecruitedDay(const std::string& a_key)
+	{
+		std::lock_guard l(g_lock);
+		const auto it = g_recruitedDay.find(a_key);
+		return it == g_recruitedDay.end() ? -1.0f : it->second;
+	}
+
+	nlohmann::json SaveRecruitedDays()
+	{
+		std::lock_guard l(g_lock);
+		return nlohmann::json(g_recruitedDay);
+	}
+
+	void LoadRecruitedDays(const nlohmann::json& a_j)
+	{
+		std::lock_guard l(g_lock);
+		g_recruitedDay.clear();
+		if (a_j.is_object())
+			for (auto& [k, v] : a_j.items())
+				if (v.is_number()) g_recruitedDay[k] = v.get<float>();
 	}
 
 	std::string StampKeeperCity(RE::TESObjectREFR* a_ref)
@@ -640,6 +689,7 @@ namespace AG::Adventurers
 	{
 		std::lock_guard l(g_lock);
 		g_recruited.clear();
+		g_recruitedDay.clear();
 		g_cache.clear();
 		if (a_j.is_array()) {
 			for (auto& k : a_j) g_recruited.insert(CanonicalKey(k.get<std::string>()));  // keys from before 1.1.0 are corrected

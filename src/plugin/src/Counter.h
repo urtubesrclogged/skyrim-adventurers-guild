@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 // The guild counter: an interactive PrismaUI window opened from the innkeeper topic "I have guild
 // business." (Guild Card, Reports to claim, Merit services, Records). Built on the Deeds of Skyrim menu
 // pattern (Show + Focus, JS listeners), which is proven for VR clicks. A safe no-op without PrismaUI.
@@ -16,6 +18,9 @@ namespace AG::Counter
 	// Hold stamps: the card was stamped during this visit; she says so as the counter closes (GuildCard tells us).
 	void Stamped(bool a_first);  // a_first: the first time this hold has stamped a card of the player's
 	// the representative of the last counter opened through her, has her say a topic of ours (0 = the stamp line)
+	// Another adventurer's card (MemberCards::CardFor): the card page alone, in its member view. Works whether or not
+	// the player is a member.
+	void OpenMemberCard(const nlohmann::json& a_member);
 	std::string SayStampLine(std::uint32_t a_topic = 0, int a_attempt = 0, bool a_first = false);
 	void StampLineStarted();  // she has begun it: the lock on the line closes again
 	std::string Branch();                           // city of the counter currently open ("" = none / debug)

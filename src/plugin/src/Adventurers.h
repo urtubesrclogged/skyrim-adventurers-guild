@@ -64,6 +64,14 @@ namespace AG::Adventurers
 	// Hold stamps: whoever inherited an inn whose counter closed with its liaison keeps the liaison's stamp.
 	// The city whose stamp this actor keeps, once that liaison has died; "" for anyone else, or while the liaison lives.
 	std::string StampKeeperCity(RE::TESObjectREFR* a_ref);
+	// Member cards: the date a named member registered, where one is written down (adventurers.json "registered";
+	// a_month 0..11). False for anyone else.
+	bool NamedRegistered(RE::Actor* a_actor, int& a_year, int& a_month, int& a_day);
+	// ... and the game day someone joined during this playthrough (recruited, or signed up themselves); -1 when that is
+	// not known (they joined before 1.5.0 kept it, or were a member all along).
+	float          RecruitedDay(const std::string& a_key);
+	nlohmann::json SaveRecruitedDays();
+	void           LoadRecruitedDays(const nlohmann::json& a_j);
 	// The keeper's name for a city whose liaison has died ("" when the counter is open, or the city has no keeper).
 	std::string StampKeeperName(const std::string& a_city);
 

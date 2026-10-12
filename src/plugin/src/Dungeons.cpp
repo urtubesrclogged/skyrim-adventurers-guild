@@ -467,6 +467,8 @@ namespace AG::Dungeons
 		return CountIn(hold, false);
 	}
 
+	std::string CityOf(RE::BGSLocation* a_loc) { return CounterCityOf(a_loc); }
+
 	std::string CityHere()
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();

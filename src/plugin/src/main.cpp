@@ -9,6 +9,7 @@
 #include "SteamVRAim.h"
 #include "ChoiceSwap.h"
 #include "Diag.h"
+#include "MemberCards.h"
 #include "Dungeons.h"
 #include "GuildCard.h"
 #include "Guild.h"
@@ -79,6 +80,7 @@ namespace
 			AG::PrismaToast::Install();
 			AG::LoadRaceRules();
 			AG::Counter::Install();
+			AG::MemberCards::Install();  // the other adventurers' guild cards
 			AG::ChoiceSwap::Install();  // Show Guild Card: our choice in place of a vanilla one, with no vanilla record
 			AG::SteamVRAim::Install();  // native SteamVR: Prisma UI 1.5.1's lasers need aim poses nobody else gives it
 			AG::GuildCard::Install();

@@ -29,6 +29,7 @@ namespace AG::Dungeons
 	// ones still waiting to be reported. A save from before 1.5.0 has no waiting list, so all it cleared counts.
 	// -1 for a city that has no counter.
 	int            ClearedIn(const std::string& a_city);
+	std::string    CityOf(RE::BGSLocation* a_loc);  // the counter city of the hold a place is in ("" when it is in none)
 	std::string    CityHere();  // the counter city of the hold the player is in ("" outside every hold)
 	int            WaitingIn(const std::string& a_city);  // cleared in that hold, report not handed in yet
 	// The reports of these dungeons (their keys) have been handed in. Returns the counter cities whose stamp that

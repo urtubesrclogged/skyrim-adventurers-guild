@@ -10,6 +10,7 @@
 
 #include "Adventurers.h"
 #include "Dungeons.h"
+#include "MemberCards.h"
 #include "Party.h"
 #include "Counter.h"
 #include "Loc.h"
@@ -499,6 +500,8 @@ namespace AG::Guild
 			j["namedRanks"] = Adventurers::SaveNamedRanks();
 			j["sLevel"] = GetSLevel();
 			j["dungeons"] = Dungeons::Save();
+			j["memberCards"] = MemberCards::Save();
+			j["recruitedDays"] = Adventurers::SaveRecruitedDays();
 			j["parties"] = Party::Save();
 			const auto s = j.dump();
 			a->WriteRecord(kRec, 2, s.data(), static_cast<std::uint32_t>(s.size()));
@@ -539,6 +542,7 @@ namespace AG::Guild
 			Reset();
 			Adventurers::Revert();
 			Dungeons::Revert();
+			MemberCards::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
 			g_saveData = SaveData::kNone;
@@ -610,6 +614,8 @@ namespace AG::Guild
 					// a save from before 1.4.0 keeps the levels it always had; the MCM (which holds the setting) agrees
 					SetSLevel(j.value("sLevel", kSLevelBefore140));
 					Dungeons::Load(j.value("dungeons", nlohmann::json::object()));
+					MemberCards::Load(j.value("memberCards", nlohmann::json::object()));
+					Adventurers::LoadRecruitedDays(j.value("recruitedDays", nlohmann::json::object()));  // after "recruited", which clears them
 					Party::Load(j.value("parties", nlohmann::json::array()));
 					g_saveData = SaveData::kClean;
 				} catch (const std::exception& e) {
@@ -628,6 +634,7 @@ namespace AG::Guild
 			Reset();
 			Adventurers::Revert();
 			Dungeons::Revert();
+			MemberCards::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());
 			g_saveData = SaveData::kNone;

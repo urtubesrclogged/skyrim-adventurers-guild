@@ -41,6 +41,7 @@ namespace AG::Counter
 		std::string                 g_branch;
 		RE::ObjectRefHandle         g_keeper;            // the representative this counter was opened through (g_branchLock)
 		std::atomic<bool>           g_stamped{ false };  // the card was stamped while the counter was open
+		nlohmann::json              g_member;            // another adventurer's card being shown (null: the player's own page); game thread
 		std::atomic<bool>           g_stampedFirst{ false };  // ... and for the first time by this hold
 
 		bool Valid() { return g_api && g_view && g_api->IsValid(g_view); }
@@ -406,7 +407,7 @@ namespace AG::Counter
 
 	void Open()
 	{
-		if (!Guild::Registered() || Guild::Dormant()) return;  // prepared for uninstall: the counter stays shut
+		if (g_member.is_null() && (!Guild::Registered() || Guild::Dormant())) return;  // prepared for uninstall: the counter stays shut
 		if (!Valid()) {
 			RE::SendHUDMessage::ShowHUDMessage(Loc::F("$AG_Hud_NoPrisma", "Adventurers Guild: Rank {}, {} Merit (install PrismaUI for the counter window)",
 				LetterStr(Guild::Rank()), Guild::Merit()).c_str());
@@ -450,9 +451,28 @@ namespace AG::Counter
 		if (!g_open.load()) g_cardOnly = false;  // could not open (not registered, no PrismaUI)
 	}
 
+	void OpenMemberCard(const nlohmann::json& a_member)
+	{
+		if (g_open.load() || a_member.is_null()) return;
+		{
+			std::lock_guard l(g_branchLock);
+			g_branch.clear();
+		}
+		g_member = a_member;
+		g_cardOnly = true;
+		Open();
+		if (!g_open.load()) {
+			g_cardOnly = false;
+			g_member = nullptr;
+		} else {
+			SKSE::log::info("Counter: opened as {}'s guild card", a_member.value("name", "?"));
+		}
+	}
+
 	void Close()
 	{
 		if (!g_open.exchange(false) || !Valid()) return;
+		g_member = nullptr;
 		g_api->Unfocus(g_view);
 		g_api->Hide(g_view);
 		g_cardOnly = false;
@@ -550,6 +570,7 @@ namespace AG::Counter
 				data["region"] = morrowind ? "Morrowind" : "Skyrim";
 			}
 			data["cardOnly"] = g_cardOnly.load();
+			if (!g_member.is_null()) data["member"] = g_member;  // someone else's card: the page draws that and nothing of the player's
 			// a member without their card: the Guild Card page shows it masked, with a replacement for sale
 			data["hasCard"] = GuildCard::Has();
 			data["cardFee"] = Guild::CardFee();

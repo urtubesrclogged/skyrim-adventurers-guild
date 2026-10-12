@@ -123,6 +123,25 @@ Function PostNotices(FormList akQuests) Global
 	EndWhile
 EndFunction
 
+; Another adventurer's guild card (MemberCards.cpp): one copy of the card item, carrying its own name, put in their
+; inventory. A reference is made (never seen: it starts disabled), renamed as a player renames an item, and moved in;
+; the name stays with the item wherever it goes after that.
+Function GiveMemberCard(Actor akOwner, Form akCard, String asName) Global
+	If !akOwner || !akCard
+		Return
+	EndIf
+	ObjectReference card = akOwner.PlaceAtMe(akCard, 1, False, True)
+	If !card
+		Debug.Trace("AG_QuestHelper.GiveMemberCard: no card could be made for " + akOwner)
+		Return
+	EndIf
+	If asName != ""
+		card.SetDisplayName(asName, True)
+	EndIf
+	akOwner.AddItem(card, 1, True)
+	AG_Native.MemberCardGiven(akOwner)
+EndFunction
+
 ; Hold stamps: the representative says her line for having stamped the card (no menu: she just says it).
 Function SayLine(ObjectReference akSpeaker, Topic akTopic) Global
 	If akSpeaker && akTopic

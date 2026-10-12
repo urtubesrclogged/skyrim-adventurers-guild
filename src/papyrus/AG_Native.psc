@@ -85,6 +85,8 @@ String Function DebugPartyDisband() Global Native
 Function DebugPartyBond(Actor akActor, Float afAmount) Global Native
 String Function DebugDungeon() Global Native                ; current location / zone / threat rank / visited+reported
 String Function DebugStampSay(Int aiTopic) Global Native     ; the last counter's representative says test line 1-3 (hold stamps)
+Function MemberCardGiven(Actor akOwner) Global Native       ; the named card is in their inventory: an open menu shows it
+String Function DebugMemberCards() Global Native           ; the other adventurers' cards this save knows of
 String Function DebugClearDungeon() Global Native           ; run the clear path for the current dungeon
 Function DebugRegister() Global Native
 Function DebugPromote() Global Native
