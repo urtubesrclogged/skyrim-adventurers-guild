@@ -1642,6 +1642,9 @@ var missivesPath = args.Length > 2 ? args[2] : Environment.GetEnvironmentVariabl
     ?? throw new ArgumentException("pass Missives.esp (2.03) as the third argument, or set MISSIVES_ESP");
 var nextMissivesId = MissivesPatch.Apply(mod, missivesPath, outDir, gRank.FormKey, 0x900);
 MissivesPatch.ApplyAddons(configDir, gRank.FormKey, addonGlobals.ToDictionary(kv => kv.Key, kv => kv.Value.FormKey));
+// optional: refresh the manifest of "Missives - Voice and Quest Expansion" (the checked-in file is used otherwise)
+if (Environment.GetEnvironmentVariable("MISSIVES_EXPANSION_ESP") is { Length: > 0 } expansionPath && File.Exists(expansionPath))
+    MissivesPatch.Expansion(expansionPath, configDir);
 
 // ---------- write ----------
 mod.ModHeader.Stats.NextFormID = Math.Max(0x900u, nextMissivesId);

@@ -263,6 +263,74 @@ namespace AG::MissiveWatch
 			return n;
 		}
 
+		// The alias a quest cannot start without: non-Optional, the richest existing filter. The rank condition goes
+		// first on it. False if the quest has none (it is then shown to every rank).
+		bool GateQuest(RE::TESQuest* a_quest, RE::TESGlobal* a_rank, int a_min)
+		{
+			RE::BGSRefAlias* best = nullptr;
+			for (auto* base : a_quest->aliases) {
+				if (!base || base->GetVMTypeID() != RE::BGSRefAlias::VMTYPEID) continue;
+				auto* alias = static_cast<RE::BGSRefAlias*>(base);
+				if (alias->flags.any(RE::BGSBaseAlias::FLAGS::kOptional) || !alias->conditions || !alias->conditions->head) continue;
+				if (!best || Count(alias->conditions) > Count(best->conditions)) best = alias;
+			}
+			if (best) Gate(best->conditions, a_rank, a_min);
+			return best != nullptr;
+		}
+
+		// "Plugin.esp|0x00ABCD" -> the form, or nullptr
+		RE::TESForm* KeyForm(RE::TESDataHandler* a_dh, const std::string& a_key)
+		{
+			const auto bar = a_key.find('|');
+			if (bar == std::string::npos) return nullptr;
+			return a_dh->LookupForm(static_cast<RE::FormID>(std::stoul(a_key.substr(bar + 1), nullptr, 16)), a_key.substr(0, bar));
+		}
+
+		// "Missives - Voice and Quest Expansion" (MissivesExpansion.esp), when it is loaded: its missives are Guild
+		// missives like any other. missives_expansion.json (tools/EspGen) names each with its rank; one quest serves
+		// every hold, so it has no hold of its own here (the board its note is on says where it is posted).
+		// g_lock held. Returns how many were taken in.
+		std::atomic<int> g_expansion{ 0 };  // 0 not loaded, 1 loaded but nothing taken in, 2 active (MCM Debug page)
+
+		int IntegrateExpansion(RE::TESDataHandler* a_dh, RE::TESGlobal* a_rankGlobal)
+		{
+			g_expansion = 0;
+			std::ifstream f("Data/SKSE/Plugins/AdventurersGuild/missives_expansion.json");
+			if (!f) return 0;
+			auto j = nlohmann::json::parse(f, nullptr, true, true);
+			const auto plugin = j.value("plugin", "");
+			if (plugin.empty() || (!a_dh->LookupLoadedModByName(plugin) && !a_dh->LookupLoadedLightModByName(plugin))) return 0;
+			g_expansion = 1;
+			int taken = 0, gated = 0, missing = 0, labeled = 0;
+			for (auto& e : j.value("quests", nlohmann::json::array())) {
+				auto* form = KeyForm(a_dh, e.value("form", ""));
+				auto* quest = form ? form->As<RE::TESQuest>() : nullptr;
+				const auto tier = e.value("tier", "");
+				if (!quest || tier.empty()) {
+					++missing;
+					continue;
+				}
+				g_watch[quest->GetFormID()] = tier[0];
+				g_hold[quest->GetFormID()] = "";  // any hold
+				Label(quest, tier[0]);
+				if (a_rankGlobal && GateQuest(quest, a_rankGlobal, FromLetter(tier[0]))) ++gated;
+				++taken;
+			}
+			for (auto& b : j.value("books", nlohmann::json::array())) {
+				auto* form = KeyForm(a_dh, b.value("form", ""));
+				auto* book = form ? form->As<RE::TESObjectBOOK>() : nullptr;
+				const auto tier = b.value("tier", "");
+				if (book && !tier.empty()) {
+					Label(book, tier[0]);
+					++labeled;
+				}
+			}
+			SKSE::log::info("MissiveWatch: {} - {} missives taken in ({} rank-gated, {} notes labeled, {} not found: a different version of the expansion?)",
+				plugin, taken, gated, labeled, missing);
+			if (taken > 0) g_expansion = 2;
+			return taken;
+		}
+
 		// The Missives integration, in memory, on top of whichever version of each quest won the load order (see
 		// tools/EspGen/MissivesPatch.cs for why nothing is overridden in the plugin). Data-load time, once.
 		// a_plugin: whose quests and notes these are (Missives.esp, or an add-on of it)
@@ -410,6 +478,12 @@ namespace AG::MissiveWatch
 			g_hold.clear();
 			LoadManifest(j, dh, "Missives.esp");
 			LoadAddons(dh);
+			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
+			try {
+				IntegrateExpansion(dh, dh->LookupForm<RE::TESGlobal>(Hex(j.at("rankGlobal")), "AdventurersGuild.esp"));
+			} catch (const std::exception& e) {
+				SKSE::log::error("MissiveWatch: missives_expansion.json error: {} - the expansion's missives are not ranked", e.what());
+			}
 		} catch (const std::exception& e) {
 			SKSE::log::error("MissiveWatch: missives.json error: {}", e.what());
 			return;
@@ -423,6 +497,7 @@ namespace AG::MissiveWatch
 	}
 
 	bool Active() { return g_active; }
+	int  ExpansionState() { return g_active ? g_expansion.load() : 0; }
 
 	// After a load: which missives the player is carrying (running, past the board, not finished)
 	void OnGameLoaded()
@@ -489,7 +564,7 @@ namespace AG::MissiveWatch
 			for (auto& [id, tier] : g_watch) {
 				if (FromLetter(tier) > rank) continue;
 				auto h = g_hold.find(id);
-				if (h == g_hold.end() || h->second != hold) continue;
+				if (h == g_hold.end() || (!h->second.empty() && h->second != hold)) continue;  // "" = a quest that serves every hold
 				auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
 				if (q && PostedHere(q, area)) posted.emplace_back(q, tier);
 			}

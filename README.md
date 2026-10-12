@@ -34,7 +34,9 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   you have earned it:
   - Local Missives, with [Missives](https://www.nexusmods.com/skyrimspecialedition/mods/17576) installed. With
     [Missives - Worldspace Additions](https://www.nexusmods.com/skyrimspecialedition/mods/26788) as well, the board in
-    Raven Rock is a Guild board too.
+    Raven Rock is a Guild board too. With
+    [Missives - Voice and Quest Expansion](https://www.nexusmods.com/skyrimspecialedition/mods/166094), its twenty new kinds of missive are Guild
+    missives as well.
   - Provincial Notices, with [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218) installed.
 - **Reports**: hand in finished quests and cleared dungeons at any counter for gold, Merit and Reputation.
 - **Trophies**: sell proof of your hunts to the Guild for Merit.
@@ -68,6 +70,9 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 - [Missives - Worldspace Additions](https://www.nexusmods.com/skyrimspecialedition/mods/26788) (with Missives): its
   Solstheim board in Raven Rock becomes a Guild board, with ranked jobs that pay Merit and Reputation. Its boards in
   other lands are not Guild boards yet.
+- [Missives - Voice and Quest Expansion](https://www.nexusmods.com/skyrimspecialedition/mods/166094) by jayserpa (with Missives): its missives
+  are Guild missives, each with a rank, the rank gate, a place on the counter's Quests tab and a report when done.
+  Supported with its author's permission; nothing of it is included or overridden.
 - [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218): more guild quests, shared across the
   province.
 - SkyUI: the mod's settings menu (MCM), including the uninstall button.
@@ -120,7 +125,8 @@ Requirements: Visual Studio 2022 Build Tools (C++), CMake, Ninja, vcpkg, a
 (`Missives.esp`: EspGen reads it to write `missives.json`; the plugin does not override any Missives record, the DLL
 applies the rank gating in memory, so it works alongside other Missives patches). Optionally, `Missives - Solstheim.esp`
 from Missives - Worldspace Additions (`MISSIVES_ADDONS` in `local.env`): EspGen reads it to write `missives.addons.json`,
-which is included, so it is only needed to regenerate that file.
+which is included, so it is only needed to regenerate that file. Likewise `MissivesExpansion.esp` from Missives - Voice
+and Quest Expansion (`MISSIVES_EXPANSION_ESP`), for `missives_expansion.json`.
 
 1. Copy `local.env.example` to `local.env` and set the paths.
 2. `powershell -File build.ps1` builds the plugin file, the scripts and the DLL (or `-Only esp|papyrus|dll`).

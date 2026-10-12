@@ -127,6 +127,8 @@ namespace AG::Diag
 		std::vector<std::pair<std::string, std::string>> out;
 		// optional: what this mod acted on, not only what is in the load order
 		out.emplace_back("Missives", !plugin("Missives.esp") ? none : MissiveWatch::Active() ? active : inactive);
+		// only with Missives itself: it adds to Missives' boards
+		out.emplace_back("Missives - Voice and Quest Expansion", MissiveWatch::ExpansionState() == 2 ? active : MissiveWatch::ExpansionState() == 1 ? inactive : none);
 		out.emplace_back("The Notice Board", !plugin("notice board.esp") ? none : NoticeWatch::Active() ? active : inactive);
 		out.emplace_back("SkyrimNet", !GetModuleHandleW(L"SkyrimNet.dll") ? none : g_skyrimNet.load() ? active : inactive);
 		return out;
