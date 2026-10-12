@@ -62,14 +62,53 @@ namespace AG::ChoiceSwap
 			return it->second;
 		}
 
+		// What the game would have to work with for a topic of ours: per reply, whether its conditions pass and how many
+		// of its spoken parts have words (the game drops a choice whose reply has none). Only for the log.
+		std::string Describe(RE::TESTopic* a_ours, RE::TESObjectREFR* a_speaker)
+		{
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			std::string out = std::format("text \"{}\", quest {:08X}{}, {} replies", a_ours->GetFullName() ? a_ours->GetFullName() : "",
+				a_ours->ownerQuest ? a_ours->ownerQuest->GetFormID() : 0, a_ours->ownerQuest && a_ours->ownerQuest->IsRunning() ? " (running)" : " (NOT running)", a_ours->numTopicInfos);
+			for (std::uint32_t i = 0; i < a_ours->numTopicInfos && a_ours->topicInfos; ++i) {
+				auto* line = a_ours->topicInfos[i];
+				if (!line) continue;
+				RE::TESTopicInfo::TESResponseList list{ nullptr };
+				line->GetResponseList(&list);
+				int parts = 0, worded = 0;
+				for (auto* r = list.head; r; r = r->next) {
+					++parts;
+					if (!r->responseText.empty()) ++worded;
+				}
+				out += std::format("; {:08X}: conditions {}, {} part(s), {} with words, flags {:04X}, said once {}", line->GetFormID(),
+					a_speaker && pc && line->objConditions.IsTrue(a_speaker, pc) ? "pass" : "fail", parts, worded,
+					static_cast<unsigned>(line->data.flags.underlying()), line->saidOnce);
+			}
+			return out;
+		}
+
+		// Our topic is offered; if the game will not have it (it answers 0: nothing was added), the vanilla choice is
+		// offered as it would have been, so a choice is never lost, and the log says what the game was given.
+		// (Seen at the Riften gate, 2026-10-12: "(Persuade)" gone and nothing in its place.)
+		std::int64_t Offered(int a_site, RE::MenuTopicManager* a_menu, RE::TESTopic* a_topic, RE::TESTopic* a_after, std::uint64_t a_more)
+		{
+			auto* ours = Choose(a_menu, a_topic);
+			const auto added = g_game[a_site](a_menu, ours, a_after, a_more);
+			if (ours == a_topic || added) return added;
+			static std::atomic<int> said{ 0 };
+			if (said.fetch_add(1) < 6)
+				SKSE::log::warn("ChoiceSwap: the game would not list {} in place of {:08X} - the vanilla choice is offered instead. What it was given: {}",
+					ours->GetFormEditorID() ? ours->GetFormEditorID() : "our topic", a_topic->GetFormID(), Describe(ours, a_menu ? a_menu->speaker.get().get() : nullptr));
+			return g_game[a_site](a_menu, a_topic, a_after, a_more);
+		}
+
 		std::int64_t First(RE::MenuTopicManager* a_menu, RE::TESTopic* a_topic, RE::TESTopic* a_after, std::uint64_t a_more)
 		{
-			return g_game[0](a_menu, Choose(a_menu, a_topic), a_after, a_more);
+			return Offered(0, a_menu, a_topic, a_after, a_more);
 		}
 
 		std::int64_t Second(RE::MenuTopicManager* a_menu, RE::TESTopic* a_topic, RE::TESTopic* a_after, std::uint64_t a_more)
 		{
-			return g_game[1](a_menu, Choose(a_menu, a_topic), a_after, a_more);
+			return Offered(1, a_menu, a_topic, a_after, a_more);
 		}
 
 		// where a 5-byte call at a_site goes, or 0 when what is there is not such a call
