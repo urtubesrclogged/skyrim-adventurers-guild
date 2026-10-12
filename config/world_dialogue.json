@@ -375,7 +375,7 @@
 		{"id": "stamp_sayma", "who": "Sayma", "stamp": "here", "chance": 35, "text": "Oh, is that the wolf stamp? Then you get the good price. Don't tell the others."},
 		{"id": "stamp_oengul", "who": "Oengul", "stamp": "here", "chance": 35, "text": "That's Eastmarch's bear on your card. Earned, I'd wager. I charge less for those who earn."},
 		{"id": "stamp_niranye", "who": "Niranye", "stamp": "here", "chance": 35, "text": "A stamped card. How official. I do give a better price to people the hold trusts."},
-		{"id": "stamp_balimund", "who": "Balimund", "stamp": "here", "chance": 35, "text": "Riften's stamp, eh? Good. I like knowing who I'm selling to. Prices are a little lower for you."},
+		{"id": "stamp_balimund", "who": "Balimund", "stamp": "here", "chance": 35, "text": "Riften's stamp. Good. I like knowing who I'm selling to. Prices are a little lower for you."},
 		{"id": "stamp_grelka", "who": "Grelka", "stamp": "here", "chance": 35, "text": "You've got the stamp. Fine. That gets you a better price. It doesn't get you conversation."},
 		{"id": "stamp_ghorza", "who": "GhorzaGraBagol", "stamp": "here", "chance": 35, "text": "Markarth's stamp on your card. You've bled for this hold. My prices bend a little for that."},
 		{"id": "stamp_lisbet", "who": "Lisbet", "stamp": "here", "chance": 35, "text": "You carry the hold's stamp? Then I can do a bit better on price. Arnleif and Sons looks after its friends."},

@@ -22,7 +22,7 @@
     "A": "The caravans ask for you by name before they'll take the north road. I tell them an adventurer like that doesn't come cheap, and they pay it.",
     "S": "An S-rank at the Bannered Mare. Whiterun will talk about this for a year. What can I do for you?"
    },
-   "stampedFirst": "There you are, love. Whiterun's horse, right on your card. Show it around the shops. Some of them go easier on an adventurer the hold knows.",
+   "stampedFirst": "There you are, love. Whiterun's horse, right on your card. Show it around the shops. Some of them go easier on an adventurer whom the hold knows.",
    "stamped": "There you are, love. Whiterun's horse, right on your card. You earned that one out there.",
    "replaceStamped": "Lost it already? Here, a fresh one, and I've put Whiterun's horse back on it. The other holds you'll have to ask yourself.",
    "replace": "Lost it already? Happens to the best of them. Here, a fresh one. Try to keep this one out of the mead."
@@ -562,7 +562,7 @@
  "generic": "The Adventurers Guild keeps its counters in the hold capitals, near the missive boards. You won't find one out here.",
  "_stampKeepers": "Hold stamps (1.5.0). 'stamped' on a liaison: what she says, unasked, as her counter closes after she has stamped the card (an Idle line the DLL has her say, locked by AG_StampSayGlobal). 'replaceStamped': her reply to the replacement request when her hold's stamp is earned (the new card is stamped at once). stampKeepers: whoever takes over an inn whose counter closed with its liaison keeps the liaison's stamp and puts it on a card on request, nothing else; 'of' is the dead liaison. The DLL marks the keeper (AG_StampDueFaction) while the stamp is earned, not on the card, and the card is in hand.",
  "stampKeepers": [
-  { "npc": "Frabbi", "of": "Kleppr", "city": "Markarth", "lineFirst": "Kleppr's stamp? Under the bar, with the rest of his clutter. There. Markarth's ram. Show it at the stalls, someone might charge you less. That's all I do for the Adventurers Guild, mind.", "line": "Kleppr's stamp? Under the bar, with the rest of his clutter. There. Markarth's ram. That's all I do for the Adventurers Guild, mind." },
+  { "npc": "Frabbi", "of": "Kleppr", "city": "Markarth", "lineFirst": "Kleppr's stamp? Under the bar, with the rest of his clutter. There. Markarth's ram. Show it at the stalls, someone might charge you less. That's all I do for the Adventurers Guild, mind.", "line": "Kleppr's stamp? It's under the bar. There. Markarth's ram, on your card. That is all I do for the Adventurers Guild." },
   { "npc": "Karita", "of": "Thoring", "city": "Dawnstar", "lineFirst": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star. Show it at the shops. Father said it was worth more than the ink.", "line": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star." },
   { "npc": "Haran", "of": "Dagur", "city": "Winterhold", "lineFirst": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card. Show it to the merchants. They might ask a little less of you.", "line": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card." },
   { "npc": "Lurbuk", "of": "Jonna", "city": "Morthal", "lineFirst": "Jonna left me the inn, and the stamp. There! Morthal's mark! Show it to the merchants. Sometimes they give a better price. I asked. Many times.", "line": "Jonna left me the inn, and the stamp. Some say I am better with the stamp than the lute. There! Morthal's mark!" },
@@ -580,7 +580,7 @@
   "orcs": "That card says you have bled for your rank, outlander. Malacath honors strength that is proven. You are no Orc, but you have earned a place at our fire. Enter.",
   "orcVoices": ["MaleOrc", "FemaleOrc"],
   "_added": "riften: the north gate guard, in place of '(Persuade)' for a member whose Speech would not pass it. whiterun: the gate guard, in the place of the Riverwood line for a member Riverwood did not send. robber: the roadside thief, in place of '(Intimidate)' by Guild rank alone, B backs off, A and S beg; 'voices' are the voice types the encounter can use.",
-  "riften": ["The Adventurers Guild? Show me your card.", "Huh. That's the real thing. Sorry, sorry. Forget I said anything about a tax, adventurer. Let me get that gate unlocked."],
+  "riften": ["The Adventurers Guild? Show me your card.", "Huh. That's the real thing. Sorry. Forget I said anything about a tax, adventurer. Let me get that gate unlocked."],
   "whiterun": ["Adventurers Guild? Let's see your card, then.", "Stamped and sealed. Beg your pardon, adventurer. My orders are to keep strangers out, not the Adventurers Guild. Go on in."],
   "robber": {
    "prompt": "You're robbing a ranked adventurer of the Adventurers Guild. Walk away.",
