@@ -112,12 +112,11 @@
   .paper { flex: 1; background: url(tex/parchment.png), #d8c9a2; color: var(--paper-ink); padding: 22px 30px;
            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(110, 80, 40, 0.45); position: relative; }
   .paper h2 { font-size: 30px; font-weight: 400; }
-  /* the card's face: the rank, inked in a ring beside the name (every card has it; the stone medallion is the counter's) */
+  /* the card's face: the rank's seal beside the name, on every card */
   .paper .face { display: flex; gap: 18px; align-items: flex-start; }
-  .paper .rankmark { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 2px; }
-  .paper .rankmark .ring { width: 66px; height: 66px; border: 4px double rgba(96, 30, 22, 0.72); border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; font-size: 42px; line-height: 1; color: rgba(96, 30, 22, 0.86); transform: rotate(-4deg); mix-blend-mode: multiply; }
-  .paper .rankmark .m { font-size: 15px; font-variant: small-caps; letter-spacing: 0.06em; color: var(--paper-muted); }
+  .paper .rankseal { flex: none; width: 92px; height: 92px; margin: -4px 0 0 -6px; }
+  .card.member { justify-content: center; }
+  .card.member > .paper { flex: 0 1 860px; }
   .paper .who { min-width: 0; }
   .paper .line { font-size: 17px; color: var(--paper-muted); margin-top: 2px; font-style: italic; }
   .paper .partyline { font-size: 18px; margin-top: 6px; color: var(--paper-ink); }
@@ -529,29 +528,16 @@ function cardStamps(list) {
 }
 /* ---- the guild card ----
    One design for every card. The FACE is the same on the player's and on anyone else's: the rank inked beside the name,
-   when they registered and how long ago that is, which counter issued it, their party; then Merit, Reputation and the
+   when they registered, their party; then Merit, Reputation and the
    way to the next rank. The player's card carries on below that with what the Guild tracks about them (training, the
    member stats). On another adventurer's card the figures are worked out by the plugin from who they are. */
-function tenure(days) {
-  if (days == null || days < 0) return "";
-  if (days >= 730) return t("$AG_UI_YearsInGuild", "{0} years in the Guild", Math.floor(days / 365));
-  return days === 1 ? t("$AG_UI_DayInGuild", "1 day in the Guild") : t("$AG_UI_DaysInGuild", "{0} days in the Guild", Math.floor(days));
-}
-// days from a calendar date to today's (the member view is given a date, not a count of days)
-function daysSince(d) {
-  const c = data.date;
-  if (!c || !d || d.year == null) return null;
-  const ord = (y, m, dd) => y * 365 + MONTH_DAYS.slice(0, m).reduce((x, n) => x + n, 0) + dd;
-  return Math.max(0, ord(c.year, c.month, c.day) - ord(d.year, d.month, d.day));
-}
 function cardFace(c) {
-  const second = [c.issuedAt ? t("$AG_UI_IssuedAt", "Issued at {0}", c.issuedAt) : "", tenure(c.days)].filter(Boolean).join(" · ");
   return `<div class="face">
-      ${c.letter ? `<div class="rankmark"><div class="ring">${esc(c.letter)}</div><div class="m">${esc(metal(c.letter))}</div></div>` : ""}
+      ${c.letter ? `<img class="rankseal" src="tex/rank_${esc(c.letter)}.png" alt=""/>` : ""}
       <div class="who">
         <h2>${esc(c.name || t("$AG_UI_Adventurer", "Adventurer"))}</h2>
-        <div class="line">${esc(c.letter ? t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", c.letter) : t("$AG_UI_NotRegistered", "Not registered with the Adventurers Guild"))}${c.registered ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", c.registered)) : ""}</div>
-        ${second ? `<div class="line">${esc(second)}</div>` : ""}
+        <div class="line">${esc(c.letter ? t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", c.letter) : t("$AG_UI_NotRegistered", "Not registered with the Adventurers Guild"))}</div>
+        ${c.registered ? `<div class="line">${esc(t("$AG_UI_RegisteredLine", "Registered {0}", c.registered))}</div>` : ""}
         ${c.letter ? `<div class="partyline"><span class="lead">${esc(t("$AG_UI_CardParty", "Party"))}</span> ${c.party ? `<b>${esc(c.party)}</b>${c.partyMeta ? ` <span class="meta">· ${esc(c.partyMeta)}</span>` : ""}` : "—"}</div>` : ""}
       </div></div>`;
 }
@@ -581,11 +567,9 @@ function cardFigures(c) {
 }
 function renderMemberCard() {
   const mb = data.member, d = mb.date || {};
-  const c = { name: mb.name, letter: mb.letter, registered: d.year != null ? calDate(d.year, d.month, d.day) : "", days: daysSince(d), issuedAt: mb.issuedAt,
+  const c = { name: mb.name, letter: mb.letter, registered: d.year != null ? calDate(d.year, d.month, d.day) : "",
     party: mb.party, merit: mb.merit, reputation: mb.reputation, goldEarned: mb.goldEarned, level: mb.level, next: mb.next };
-  return `<div class="card">
-    <div class="medallion"><img class="plaque" src="tex/rank_${esc(mb.letter)}.png" alt=""/>
-      <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", mb.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(mb.letter)))}</div></div>
+  return `<div class="card member">
     <div class="paper">
       ${cardFace(c)}
       ${cardFigures(c)}
@@ -599,7 +583,6 @@ function renderCard() {
   if (data.member) return renderMemberCard();
   const tr = data.training || [], act = (data.party || {}).active, pn = act ? (act.members || []).length : 0;
   const c = { name: data.name, letter: data.registered ? data.letter : "", registered: data.registered && data.registeredDay >= 0 ? gameDate(data.registeredDay) : "",
-    days: data.registered && data.registeredDay >= 0 ? (data.career || {}).days : null, issuedAt: data.registered ? data.issuedAt : "",
     party: act ? act.name : "", partyMeta: act ? (pn === 1 ? t("$AG_UI_NMember", "{0} member", 1) : t("$AG_UI_NMembers", "{0} members", pn)) : "",
     merit: data.merit, reputation: data.reputation, goldEarned: data.goldEarned, level: data.level, next: data.next, ready: data.ready, blocked: data.promotionBlocked };
   const app = [t("$AG_UI_None", "None"), "I", "II", "III"][data.appraisal || 0];
