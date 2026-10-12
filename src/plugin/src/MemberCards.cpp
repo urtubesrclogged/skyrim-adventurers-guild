@@ -181,6 +181,7 @@ namespace AG::MemberCards
 		// ---- bringing cards back ----
 		RE::TESGlobal*  g_gCarried = nullptr;      // AG_CardsCarriedGlobal: cards the player carries that can be brought back
 		RE::TESTopic*   g_handInTopic = nullptr;   // AG_TopicCardHandIn: the player's line, worded for one card or several
+		RE::TESFaction* g_checked = nullptr;       // AG_CardCheckedFaction: a dead body that has been asked for a lost card
 		RE::TESGlobal*  g_gCase = nullptr;         // AG_CardCaseGlobal: the weightiest of them (1 alive, 2 dead, 3 fallen party member, 4 worn only)
 		RE::TESBoundObject* g_mead = nullptr;
 		RE::TESBoundObject* g_sujamma = nullptr;
@@ -323,12 +324,29 @@ namespace AG::MemberCards
 			return {};
 		}
 
+		// A lost card: someone found dead who was no member may still have one on them (adventurers.json "lostCards":
+		// the bodies the game leaves in dungeons, a hunter, a bandit who robbed an adventurer). Asked once per body. The
+		// answer is kept by the game, not by this mod: the body joins AG_CardCheckedFaction, which is saved with it and
+		// goes when the body does.
+		void Lost(RE::Actor* a_actor)
+		{
+			if (!g_checked || !a_actor->IsDead() || a_actor->IsInFaction(g_checked) || !a_actor->HasKeywordString("ActorTypeNPC")) return;
+			a_actor->AddToFaction(g_checked, 0);
+			std::string group;
+			if (!Adventurers::HasLostCard(a_actor, &group)) return;
+			a_actor->AddObjectToContainer(g_worn, nullptr, 1, nullptr);
+			SKSE::log::info("MemberCards: a lost guild card on {} ({:08X}, '{}')", a_actor->GetDisplayFullName(), a_actor->GetFormID(), group);
+		}
+
 		// A member is given their card: the first time, and again once theirs has been gone for a few days.
 		void Ensure(RE::Actor* a_actor)
 		{
 			if (!a_actor || a_actor->IsPlayerRef() || !g_personal || !g_worn) return;
 			const auto info = Adventurers::Of(a_actor);
-			if (info.kind == Adventurers::Kind::kNone) return;
+			if (info.kind == Adventurers::Kind::kNone) {
+				Lost(a_actor);
+				return;
+			}
 			const auto key = Adventurers::StableKey(a_actor);
 			bool       issued = false;
 			{
@@ -382,9 +400,10 @@ namespace AG::MemberCards
 				r.month + 1, r.year, solstheim ? "Morrowind" : "Skyrim", r.stamps.size(), r.retired ? ", retired" : "");
 		}
 
-		// The two moments someone looks: activating them (looting, picking a pocket), and their inventory opening by any
-		// other road (a follower's, through dialogue).
-		class Sinks : public RE::BSTEventSink<RE::TESActivateEvent>, public RE::BSTEventSink<RE::MenuOpenCloseEvent>
+		// The moments someone looks: activating them (looting, picking a pocket), their inventory opening by any other
+		// road (a follower's, through dialogue), and the crosshair resting on a body (a quick-loot mod lists what is on
+		// it without opening anything).
+		class Sinks : public RE::BSTEventSink<RE::TESActivateEvent>, public RE::BSTEventSink<RE::MenuOpenCloseEvent>, public RE::BSTEventSink<SKSE::CrosshairRefEvent>
 		{
 		public:
 			static Sinks* Get()
@@ -400,6 +419,18 @@ namespace AG::MemberCards
 				if (!actor) return RE::BSEventNotifyControl::kContinue;
 				const Diag::Timed timed("giving an adventurer their guild card as they are activated");
 				Ensure(actor);
+				return RE::BSEventNotifyControl::kContinue;
+			}
+
+			RE::BSEventNotifyControl ProcessEvent(const SKSE::CrosshairRefEvent* a_e, RE::BSTEventSource<SKSE::CrosshairRefEvent>*) override
+			{
+				auto* actor = a_e && a_e->crosshairRef ? a_e->crosshairRef->As<RE::Actor>() : nullptr;
+				if (!actor || !actor->IsDead()) return RE::BSEventNotifyControl::kContinue;  // the living are asked when they are activated
+				const auto handle = actor->GetHandle();
+				SKSE::GetTaskInterface()->AddTask([handle] {
+					auto ref = handle.get();
+					if (auto* body = ref ? ref->As<RE::Actor>() : nullptr) Ensure(body);
+				});
 				return RE::BSEventNotifyControl::kContinue;
 			}
 
@@ -453,6 +484,7 @@ namespace AG::MemberCards
 		}
 		g_gCarried = dh->LookupForm<RE::TESGlobal>(0xCF9, kPlugin);
 		g_gCase = dh->LookupForm<RE::TESGlobal>(0xCFA, kPlugin);
+		g_checked = dh->LookupForm<RE::TESFaction>(0xCFB, kPlugin);
 		g_handInTopic = dh->LookupForm<RE::TESTopic>(0xCFF, kPlugin);
 		g_mead = Drink(dh->LookupForm(0x034C5D, "Skyrim.esm"));       // Nord Mead
 		g_sujamma = Drink(dh->LookupForm(0x0207E6, "Dragonborn.esm"));  // Sujamma, at Raven Rock
@@ -468,6 +500,7 @@ namespace AG::MemberCards
 		if (!g_gCarried || !g_gCase) SKSE::log::warn("MemberCards: the records for handing a card in are not in {} - cards cannot be handed in", kPlugin);
 		if (auto* src = RE::ScriptEventSourceHolder::GetSingleton()) src->AddEventSink<RE::TESActivateEvent>(Sinks::Get());
 		if (auto* ui = RE::UI::GetSingleton()) ui->AddEventSink<RE::MenuOpenCloseEvent>(Sinks::Get());
+		if (auto* cross = SKSE::GetCrosshairRefEventSource()) cross->AddEventSink(Sinks::Get());
 		SKSE::log::info("MemberCards: an adventurer is given their card the first time the player looks");
 	}
 

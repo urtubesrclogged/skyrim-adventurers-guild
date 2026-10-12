@@ -118,6 +118,17 @@ foreach (var name in new[] { "adventurers", "trophies", "shop", "traits" })
         wn["npcs"] = new JsonArray(found.Select(k => (JsonNode)JsonValue.Create(k)!).ToArray());
         Console.WriteLine($"wanderers: {found.Count} vanilla wandering adventurers");
     }
+    // "lostCards": every vanilla NPC whose editor ID matches one of a group's npcMatch, listed for the DLL
+    if (name == "adventurers" && parsed["lostCards"] is JsonArray lost)
+        foreach (var g in lost)
+            if (g is JsonObject go && go["npcMatch"] is JsonArray pats)
+            {
+                var res = pats.Select(x => new System.Text.RegularExpressions.Regex(x!.GetValue<string>(), System.Text.RegularExpressions.RegexOptions.IgnoreCase)).ToList();
+                var hit = idx["npcs"].Keys.Where(k => res.Any(r => r.IsMatch(k))).OrderBy(k => k).ToList();
+                go["npcs"] = new JsonArray(hit.Select(k => (JsonNode)JsonValue.Create(k)!).ToArray());
+                go.Remove("npcMatch");
+                Console.WriteLine($"lost cards: group '{go["id"]}' - {hit.Count} vanilla bodies");
+            }
     var resolved = ResolveNode(parsed, name + ".json");
     if (name == "shop" && resolved!["library"] is JsonObject lib)
     {
@@ -256,6 +267,8 @@ mod.Factions.Add(promotedFaction);
 var stampEarnedFaction = new Faction(FK(0xCEA), Rel) { EditorID = "AG_HoldStampEarnedFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 var stampDueFaction = new Faction(FK(0xCEB), Rel) { EditorID = "AG_HoldStampDueFaction", Name = "Adventurers Guild Stamp Keeper", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(stampEarnedFaction);
+// on a dead body the DLL has looked at for a lost guild card (MemberCards): asked once, whatever the answer was
+mod.Factions.Add(new Faction(FK(0xCFB), Rel) { EditorID = "AG_CardCheckedFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC });
 mod.Factions.Add(stampDueFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);

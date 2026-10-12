@@ -84,6 +84,13 @@
 		]
 	},
 
+	"_lostCards": "Lost guild cards (1.5.0, MemberCards.cpp): a DEAD person who is not a Guild member may still have a card on them, a worn one nobody can read: their own from a life before, or one taken off an adventurer they robbed or killed. percent = the chance, rolled once per body from its FormID (the body is then marked in AG_CardCheckedFaction, which the game saves with it; this mod keeps nothing per body). First matching group wins; anyone in no group has none, and so has anything that is not a person. npcMatch = regular expressions on vanilla NPC editor IDs (tools/EspGen lists the matches as npcs): the bodies the game leaves in dungeons for their loot, here the ones dressed as common folk. Hunters and sellswords who ARE members (the chance groups below) carry their own card already; this is for the rest.",
+	"lostCards": [
+		{ "id": "corpse", "percent": 50, "npcMatch": ["TreasCorpseCommoner", "^dunGeirmundsHallAdventurer$", "^dunKilkreathTreasCorpse(F)?$", "^dunPOIDeadHunter$"] },
+		{ "id": "hunter", "percent": 10, "factions": ["HunterFaction", "WEServicesHunterFaction", "DLC2HunterFaction", "WEBountyHunter", "CaravanGuard", "WERoad02BodyguardFaction"] },
+		{ "id": "robber", "percent": 5, "factions": ["BanditFaction", "ThalmorFaction"] }
+	],
+
 	"_chance": "Random world NPCs. The roll is a hash of the reference's FormID, so the same NPC always gets the same answer (no save data). kind: member = '(C)', retired = '(C, retired)', hidden = rank kept secret (only high Appraisal reveals it). First matching group wins.",
 	"chance": [
 		{ "id": "assassin",  "kind": "hidden",  "percent": 30, "factions": ["DarkBrotherhoodFaction", "DLC2MoragTongFaction"] },

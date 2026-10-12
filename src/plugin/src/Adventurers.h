@@ -53,6 +53,9 @@ namespace AG::Adventurers
 
 	// The innkeepers who keep a guild counter: one per hold capital (dialogue.json "liaisons").
 	bool IsLiaison(RE::Actor* a_actor);
+	// Lost guild cards (adventurers.json "lostCards"): whether this dead person, who is no member, has a card on them.
+	// The same body always gets the same answer (a roll from its FormID). a_group, if given, names the group they fell in.
+	bool HasLostCard(RE::Actor* a_actor, std::string* a_group = nullptr);
 	bool IsWanderer(RE::Actor* a_actor);  // an adventurer met on the road (adventurers.json "wanderers"), alive
 	// Successors (dialogue.json "successor": Ysolda after Hulda) whose liaison is dead, wherever they are standing.
 	// Game thread. Guild adds them to AG_GuildLiaisonFaction. IsLiaison() is true for them only at their inn.

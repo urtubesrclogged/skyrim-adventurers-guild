@@ -132,6 +132,14 @@ namespace AG::Adventurers
 		std::vector<RE::TESFaction*>            g_members;
 		std::vector<RE::TESFaction*>            g_joinOnRecruit;
 		std::vector<ChanceGroup>                g_chance;
+		struct LostGroup
+		{
+			std::string                    id;
+			std::uint32_t                  percent{ 0 };
+			std::vector<RE::TESFaction*>   factions;
+			std::unordered_set<RE::FormID> bases;  // NPC records (the bodies the game leaves in dungeons)
+		};
+		std::vector<LostGroup>                  g_lost;      // lost guild cards: who may have one on them when found dead
 		std::unordered_set<RE::FormID>          g_liaisons;  // base NPCs who keep a guild counter (dialogue.json)
 		std::unordered_map<RE::FormID, std::string> g_liaisonCity;
 		std::unordered_set<std::string>         g_recruited;  // StableKey of refs that joined on recruitment
@@ -299,6 +307,7 @@ namespace AG::Adventurers
 		g_members.clear();
 		g_joinOnRecruit.clear();
 		g_chance.clear();
+		g_lost.clear();
 		g_cache.clear();
 		try {
 			std::ifstream f("Data/SKSE/Plugins/AdventurersGuild/adventurers.resolved.json");
@@ -420,6 +429,15 @@ namespace AG::Adventurers
 				g.factions = Factions(c, g.id.c_str());
 				g_chance.push_back(std::move(g));
 			}
+			for (auto& c : j.value("lostCards", nlohmann::json::array())) {
+				LostGroup g;
+				g.id = c.value("id", std::string("?"));
+				g.percent = std::clamp(c.value("percent", 0), 0, 100);
+				if (c.contains("factions")) g.factions = Factions(c, g.id.c_str());
+				for (auto& k : c.value("npcs", nlohmann::json::array()))
+					if (auto* f = FormOfKey(k.get<std::string>())) g.bases.insert(f->GetFormID());
+				g_lost.push_back(std::move(g));
+			}
 			SKSE::log::info("Adventurers: {} member factions, {} join-on-recruit factions, {} chance groups, {} named members",
 				g_members.size(), g_joinOnRecruit.size(), g_chance.size(), g_named.size());
 		} catch (const std::exception& e) {
@@ -519,6 +537,22 @@ namespace AG::Adventurers
 		});
 		Guild::Notify("AG_AdventurerJoined", name, static_cast<float>(rank));
 		return "joined";
+	}
+
+	bool HasLostCard(RE::Actor* a_actor, std::string* a_group)
+	{
+		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		if (!base) return false;
+		// a levelled body's base is made at run time: the record it was made from says who it is
+		auto* root = base->GetRootFaceNPC();
+		std::lock_guard l(g_lock);
+		for (auto& g : g_lost) {
+			if (!g.bases.contains(base->GetFormID()) && !(root && g.bases.contains(root->GetFormID())) && !InAny(a_actor, g.factions)) continue;
+			if (a_group) *a_group = g.id;
+			// not the roll that decides who is a member: the two answers must not go together
+			return Roll(a_actor->GetFormID() * 2654435761u + 0x51ED270Bu) < g.percent;
+		}
+		return false;
 	}
 
 	bool IsWanderer(RE::Actor* a_actor)
