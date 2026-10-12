@@ -9,7 +9,9 @@
 #include "Diag.h"
 #include "Dungeons.h"
 #include "GuildCard.h"
+#include "Guild.h"
 #include "Loc.h"
+#include "Party.h"
 #include "RankCore.h"
 
 #include <algorithm>
@@ -34,6 +36,8 @@ namespace AG::MemberCards
 			std::vector<std::string> stamps;  // stamp file names, in order
 			bool        retired{ false };
 			int         number{ 0 };  // the Guild's ledger number, on the card for flavour
+			std::string city;         // the counter that issued it: their hold's (where they were first met)
+			int         level{ 1 };   // as last seen (their rank follows from it, and so do the figures below)
 		};
 
 		RE::TESObjectBOOK* g_personal = nullptr;
@@ -166,6 +170,8 @@ namespace AG::MemberCards
 			r.number = 1000 + static_cast<int>(Seed(key) % 9000u);
 			const bool solstheim = OnSolstheim(a_actor);
 			r.seal = solstheim ? "morrowind" : "";
+			r.city = solstheim ? std::string("Raven Rock") : Dungeons::CityOf(a_actor->GetCurrentLocation());
+			r.level = a_actor->GetLevel();
 			Registered(a_actor, key, r.rank, r);
 			r.stamps = Stamps(a_actor, key, r.rank, solstheim);
 			auto item = Loc::F("$AG_MemberCard_Name", "Guild Card: {}", name);
@@ -277,6 +283,7 @@ namespace AG::MemberCards
 	nlohmann::json CardFor(const std::string& a_itemName)
 	{
 		Record r;
+		bool   inParty = false;
 		{
 			std::lock_guard l(g_lock);
 			const auto it = g_records.find(Lower(a_itemName));
@@ -290,15 +297,39 @@ namespace AG::MemberCards
 				if (info.kind != Adventurers::Kind::kNone && info.rank >= 0) {
 					r.rank = std::clamp(info.rank, 0, 5);
 					r.retired = info.kind == Adventurers::Kind::kRetired;
+					r.level = actor->GetLevel();
+					inParty = Party::IsActiveMember(actor);
 					std::lock_guard l(g_lock);
 					if (auto it = g_records.find(Lower(a_itemName)); it != g_records.end()) {
 						it->second.rank = r.rank;
 						it->second.retired = r.retired;
+						it->second.level = r.level;
 					}
 				}
 			}
-		return { { "name", r.name }, { "letter", LetterStr(r.rank) }, { "date", { { "year", r.year }, { "month", r.month }, { "day", r.day } } },
-			{ "seal", r.seal }, { "stamps", r.stamps }, { "retired", r.retired }, { "number", r.number } };
+		// Merit, Reputation and the way to the next rank, as the Guild would have them on its books. Nothing of this is
+		// kept: an NPC's rank follows from their level, so their Reputation is placed between what their rank asked
+		// for and what the next one asks, as far along as their level is, a little to either side per person. Never
+		// enough for the next rank (they would hold it). The level on the card is their own.
+		const auto seed = Seed(r.key);
+		const int  repHere = Guild::ReputationFor(r.rank);
+		nlohmann::json out = { { "name", r.name }, { "letter", LetterStr(r.rank) }, { "date", { { "year", r.year }, { "month", r.month }, { "day", r.day } } },
+			{ "seal", r.seal }, { "stamps", r.stamps }, { "retired", r.retired }, { "number", r.number }, { "level", r.level },
+			{ "issuedAt", r.city.empty() ? std::string() : Guild::CityName(r.city) }, { "party", inParty ? Party::Name() : std::string() } };
+		int reputation;
+		if (r.rank < 5) {
+			const int   next = r.rank + 1, repNext = Guild::ReputationFor(next), lvlHere = MinLevel(r.rank), lvlNext = MinLevel(next);
+			const float along = lvlNext > lvlHere ? static_cast<float>(r.level - lvlHere) / static_cast<float>(lvlNext - lvlHere) : 0.5f;
+			const float nudge = (static_cast<float>((seed >> 3) % 21u) - 10.0f) / 100.0f;
+			reputation = repHere + static_cast<int>(static_cast<float>(repNext - repHere) * std::clamp(along + nudge, 0.03f, 0.96f));
+			out["next"] = { { "letter", LetterStr(next) }, { "reputation", repNext }, { "level", lvlNext } };
+		} else {
+			reputation = repHere + static_cast<int>((seed >> 3) % 2000u);
+		}
+		out["reputation"] = reputation;
+		out["merit"] = static_cast<int>((seed >> 5) % static_cast<std::uint32_t>(20 + 25 * r.rank));
+		out["goldEarned"] = (reputation * 9 + static_cast<int>((seed >> 7) % 400u)) / 5 * 5;
+		return out;
 	}
 
 	nlohmann::json Save()
@@ -307,7 +338,7 @@ namespace AG::MemberCards
 		auto cards = nlohmann::json::object();
 		for (auto& [item, r] : g_records)
 			cards[item] = { { "key", r.key }, { "name", r.name }, { "rank", r.rank }, { "y", r.year }, { "m", r.month }, { "d", r.day }, { "seal", r.seal },
-				{ "stamps", r.stamps }, { "retired", r.retired }, { "no", r.number } };
+				{ "stamps", r.stamps }, { "retired", r.retired }, { "no", r.number }, { "city", r.city }, { "level", r.level } };
 		return { { "cards", cards }, { "issued", std::vector<std::string>(g_issued.begin(), g_issued.end()) } };
 	}
 
@@ -329,6 +360,8 @@ namespace AG::MemberCards
 				r.stamps = c.value("stamps", std::vector<std::string>{});
 				r.retired = c.value("retired", false);
 				r.number = c.value("no", 0);
+				r.city = c.value("city", "");
+				r.level = c.value("level", 1);
 				g_records[item] = std::move(r);
 			}
 			for (auto& k : a_j.value("issued", nlohmann::json::array())) g_issued.insert(k.get<std::string>());

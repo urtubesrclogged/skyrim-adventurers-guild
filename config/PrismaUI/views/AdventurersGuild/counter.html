@@ -112,6 +112,13 @@
   .paper { flex: 1; background: url(tex/parchment.png), #d8c9a2; color: var(--paper-ink); padding: 22px 30px;
            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(110, 80, 40, 0.45); position: relative; }
   .paper h2 { font-size: 30px; font-weight: 400; }
+  /* the card's face: the rank, inked in a ring beside the name (every card has it; the stone medallion is the counter's) */
+  .paper .face { display: flex; gap: 18px; align-items: flex-start; }
+  .paper .rankmark { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 2px; }
+  .paper .rankmark .ring { width: 66px; height: 66px; border: 4px double rgba(96, 30, 22, 0.72); border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 42px; line-height: 1; color: rgba(96, 30, 22, 0.86); transform: rotate(-4deg); mix-blend-mode: multiply; }
+  .paper .rankmark .m { font-size: 15px; font-variant: small-caps; letter-spacing: 0.06em; color: var(--paper-muted); }
+  .paper .who { min-width: 0; }
   .paper .line { font-size: 17px; color: var(--paper-muted); margin-top: 2px; font-style: italic; }
   .paper .partyline { font-size: 18px; margin-top: 6px; color: var(--paper-ink); }
   .paper .partyline .lead { font-variant: small-caps; letter-spacing: 0.06em; color: var(--paper-muted); }
@@ -520,16 +527,69 @@ function cardStamps(list) {
     return `<img class="stamp" src="tex/skin/stamp_${esc(name)}.png" style="right:${r}px;top:${top}px;width:${size}px;height:${size}px;transform:rotate(${tilt}deg)" alt=""/>`;
   }).join("");
 }
+/* ---- the guild card ----
+   One design for every card. The FACE is the same on the player's and on anyone else's: the rank inked beside the name,
+   when they registered and how long ago that is, which counter issued it, their party; then Merit, Reputation and the
+   way to the next rank. The player's card carries on below that with what the Guild tracks about them (training, the
+   member stats). On another adventurer's card the figures are worked out by the plugin from who they are. */
+function tenure(days) {
+  if (days == null || days < 0) return "";
+  if (days >= 730) return t("$AG_UI_YearsInGuild", "{0} years in the Guild", Math.floor(days / 365));
+  return days === 1 ? t("$AG_UI_DayInGuild", "1 day in the Guild") : t("$AG_UI_DaysInGuild", "{0} days in the Guild", Math.floor(days));
+}
+// days from a calendar date to today's (the member view is given a date, not a count of days)
+function daysSince(d) {
+  const c = data.date;
+  if (!c || !d || d.year == null) return null;
+  const ord = (y, m, dd) => y * 365 + MONTH_DAYS.slice(0, m).reduce((x, n) => x + n, 0) + dd;
+  return Math.max(0, ord(c.year, c.month, c.day) - ord(d.year, d.month, d.day));
+}
+function cardFace(c) {
+  const second = [c.issuedAt ? t("$AG_UI_IssuedAt", "Issued at {0}", c.issuedAt) : "", tenure(c.days)].filter(Boolean).join(" · ");
+  return `<div class="face">
+      ${c.letter ? `<div class="rankmark"><div class="ring">${esc(c.letter)}</div><div class="m">${esc(metal(c.letter))}</div></div>` : ""}
+      <div class="who">
+        <h2>${esc(c.name || t("$AG_UI_Adventurer", "Adventurer"))}</h2>
+        <div class="line">${esc(c.letter ? t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", c.letter) : t("$AG_UI_NotRegistered", "Not registered with the Adventurers Guild"))}${c.registered ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", c.registered)) : ""}</div>
+        ${second ? `<div class="line">${esc(second)}</div>` : ""}
+        ${c.letter ? `<div class="partyline"><span class="lead">${esc(t("$AG_UI_CardParty", "Party"))}</span> ${c.party ? `<b>${esc(c.party)}</b>${c.partyMeta ? ` <span class="meta">· ${esc(c.partyMeta)}</span>` : ""}` : "—"}</div>` : ""}
+      </div></div>`;
+}
+function cardFigures(c) {
+  let next = `<div class="note-ok">${esc(t("$AG_UI_TopRank", "Rank S — the highest honour the Guild bestows."))}</div>`;
+  const n = c.next;
+  if (n) {
+    const repOk = c.reputation >= n.reputation, lvlOk = c.level >= n.level;
+    next = `<div class="line caps" style="font-style:normal">${esc(t("$AG_UI_TowardRank", "Toward Rank {0}", n.letter))}</div>
+      <div class="req ${repOk ? "ok" : ""}"><span class="lbl">${esc(t("$AG_UI_Reputation", "Reputation"))}</span>
+        <div class="bar"><div class="fill" style="width:${pct(c.reputation, 0, n.reputation)}%"></div></div>
+        <span class="num">${c.reputation} / ${n.reputation}</span></div>
+      <div class="req ${lvlOk ? "ok" : ""}"><span class="lbl">${esc(t("$AG_UI_MinLevel", "Min Level"))}</span>
+        <div class="bar"><div class="fill" style="width:${pct(c.level, 1, n.level)}%"></div></div>
+        <span class="num">${c.level} / ${n.level}</span></div>
+      ${c.ready ? `<div class="note-ok">${esc(t("$AG_UI_Eligible", "Eligible for promotion — speak to the innkeeper."))}</div>` : ""}
+      ${c.blocked ? `<div class="note-hold">${esc(t("$AG_UI_PromoHold", "Promotion on hold — clear your bounty first."))}</div>` : ""}`;
+  }
+  return `<hr/>
+      <div class="facts">
+        <div><div class="k">${esc(t("$AG_UI_Merit", "Merit"))}</div><div class="v">${c.merit}</div></div>
+        <div><div class="k">${esc(t("$AG_UI_Reputation", "Reputation"))}</div><div class="v">${c.reputation}</div></div>
+        <div><div class="k">${esc(t("$AG_UI_GoldPaid", "Gold paid out"))}</div><div class="v">${c.goldEarned || 0}</div></div>
+      </div>
+      <hr/>
+      ${next}`;
+}
 function renderMemberCard() {
   const mb = data.member, d = mb.date || {};
+  const c = { name: mb.name, letter: mb.letter, registered: d.year != null ? calDate(d.year, d.month, d.day) : "", days: daysSince(d), issuedAt: mb.issuedAt,
+    party: mb.party, merit: mb.merit, reputation: mb.reputation, goldEarned: mb.goldEarned, level: mb.level, next: mb.next };
   return `<div class="card">
     <div class="medallion"><img class="plaque" src="tex/rank_${esc(mb.letter)}.png" alt=""/>
       <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", mb.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(mb.letter)))}</div></div>
     <div class="paper">
-      <h2>${esc(mb.name)}</h2>
-      <div class="line">${esc(t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", mb.letter))}${d.year != null ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", calDate(d.year, d.month, d.day))) : ""}</div>
-      <hr/>
-      <div class="line">${esc(t("$AG_UI_LedgerNo", "Ledger No. {0}", mb.number))}</div>
+      ${cardFace(c)}
+      ${cardFigures(c)}
+      <div class="cardrec"><div class="line">${esc(t("$AG_UI_LedgerNo", "Ledger No. {0}", mb.number))}</div></div>
       ${mb.retired ? `<div class="retired caps">${esc(t("$AG_UI_Retired", "Retired"))}</div>` : ""}
       ${cardStamps(mb.stamps || [])}
       <img class="seal-wax" src="tex/seal${mb.seal === "morrowind" ? "_morrowind" : ""}.png" alt=""/>
@@ -537,20 +597,11 @@ function renderMemberCard() {
 }
 function renderCard() {
   if (data.member) return renderMemberCard();
-  const n = data.next, m = data.missives || [], tr = data.training || [];
-  let next = `<div class="note-ok">${esc(t("$AG_UI_TopRank", "Rank S — the highest honour the Guild bestows."))}</div>`;
-  if (n) {
-    const repOk = data.reputation >= n.reputation, lvlOk = data.level >= n.level;
-    next = `<div class="line caps" style="font-style:normal">${esc(t("$AG_UI_TowardRank", "Toward Rank {0}", n.letter))}</div>
-      <div class="req ${repOk ? "ok" : ""}"><span class="lbl">${esc(t("$AG_UI_Reputation", "Reputation"))}</span>
-        <div class="bar"><div class="fill" style="width:${pct(data.reputation, 0, n.reputation)}%"></div></div>
-        <span class="num">${data.reputation} / ${n.reputation}</span></div>
-      <div class="req ${lvlOk ? "ok" : ""}"><span class="lbl">${esc(t("$AG_UI_MinLevel", "Min Level"))}</span>
-        <div class="bar"><div class="fill" style="width:${pct(data.level, 1, n.level)}%"></div></div>
-        <span class="num">${data.level} / ${n.level}</span></div>
-      ${data.ready ? `<div class="note-ok">${esc(t("$AG_UI_Eligible", "Eligible for promotion — speak to the innkeeper."))}</div>` : ""}
-      ${data.promotionBlocked ? `<div class="note-hold">${esc(t("$AG_UI_PromoHold", "Promotion on hold — clear your bounty first."))}</div>` : ""}`;
-  }
+  const tr = data.training || [], act = (data.party || {}).active, pn = act ? (act.members || []).length : 0;
+  const c = { name: data.name, letter: data.registered ? data.letter : "", registered: data.registered && data.registeredDay >= 0 ? gameDate(data.registeredDay) : "",
+    days: data.registered && data.registeredDay >= 0 ? (data.career || {}).days : null, issuedAt: data.registered ? data.issuedAt : "",
+    party: act ? act.name : "", partyMeta: act ? (pn === 1 ? t("$AG_UI_NMember", "{0} member", 1) : t("$AG_UI_NMembers", "{0} members", pn)) : "",
+    merit: data.merit, reputation: data.reputation, goldEarned: data.goldEarned, level: data.level, next: data.next, ready: data.ready, blocked: data.promotionBlocked };
   const app = [t("$AG_UI_None", "None"), "I", "II", "III"][data.appraisal || 0];
   const lost = data.registered && data.hasCard === false && !data.cardOnly;
   const veil = !lost ? "" : `<div class="lostveil">
@@ -562,17 +613,8 @@ function renderCard() {
     <div class="medallion">${data.registered ? `<img class="plaque" src="tex/rank_${esc(data.letter)}.png" alt=""/>` : ""}
       <div class="cap caps">${esc(t("$AG_UI_RankX", "Rank {0}", data.letter))}</div><div class="mat">${esc(t("$AG_UI_MetalAdventurer", "{0} Adventurer", metal(data.letter)))}</div>${cardTodo()}${data.stampProgress && !data.cardOnly ? `<div class="stampline">${esc(t("$AG_UI_StampProgress", "{0} stamp · {1} of {2} dungeons reported", data.stampProgress.city, Math.min(data.stampProgress.have, data.stampProgress.need), data.stampProgress.need))}${data.stampProgress.waiting > 0 ? esc(" · " + t("$AG_UI_StampWaiting", "{0} to report", data.stampProgress.waiting)) : ""}</div>` : ""}</div>
     <div class="paper">
-      <h2>${esc(data.name || t("$AG_UI_Adventurer", "Adventurer"))}</h2>
-      <div class="line">${esc(data.registered ? t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", data.letter) : t("$AG_UI_NotRegistered", "Not registered with the Adventurers Guild"))}${data.registeredDay >= 0 ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", gameDate(data.registeredDay))) : ""}</div>
-      ${cardParty()}
-      <hr/>
-      <div class="facts">
-        <div><div class="k">${esc(t("$AG_UI_Merit", "Merit"))}</div><div class="v">${data.merit}</div></div>
-        <div><div class="k">${esc(t("$AG_UI_Reputation", "Reputation"))}</div><div class="v">${data.reputation}</div></div>
-        <div><div class="k">${esc(t("$AG_UI_GoldPaid", "Gold paid out"))}</div><div class="v">${data.goldEarned || 0}</div></div>
-      </div>
-      <hr/>
-      ${next}
+      ${cardFace(c)}
+      ${cardFigures(c)}
       <hr/>
       <div class="chips"><span>${esc(t("$AG_UI_ChipAppraisal", "Appraisal {0}", app))}</span><span>${esc(t("$AG_UI_ChipVitality", "Vitality +{0}", (tr[0] || 0) * 10))}</span>
         <span>${esc(t("$AG_UI_ChipEndurance", "Endurance +{0}", (tr[1] || 0) * 10))}</span><span>${esc(t("$AG_UI_ChipArcana", "Arcana +{0}", (tr[2] || 0) * 10))}</span>

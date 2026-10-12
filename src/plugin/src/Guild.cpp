@@ -485,6 +485,7 @@ namespace AG::Guild
 				j["cardIssued"] = GuildCard::Issued();
 				j["cardSeal"] = GuildCard::Seal();
 				j["cardStamps"] = GuildCard::HoldStamps();
+				j["cardIssuedAt"] = GuildCard::IssuedAt();
 				j["cardStampsEver"] = GuildCard::EverStampedList();
 				j["bounties"] = g_bountySeen;
 				j["bountyKnown"] = g_bountyKnown;
@@ -581,6 +582,7 @@ namespace AG::Guild
 						GuildCard::SetIssued(j.value("cardIssued", false));
 						GuildCard::SetSeal(j.value("cardSeal", std::string()));
 						GuildCard::SetHoldStamps(j.value("cardStamps", std::vector<std::string>{}));
+						GuildCard::SetIssuedAt(j.value("cardIssuedAt", std::string()));
 						// a save from before this was kept: what is on the card now has been stamped before
 						GuildCard::SetEverStamped(j.value("cardStampsEver", j.value("cardStamps", std::vector<std::string>{})));
 						g_bountySeen = j.value("bounties", std::map<std::string, int>{});
@@ -1227,6 +1229,7 @@ namespace AG::Guild
 			j["date"] = { { "year", cal->GetYear() }, { "month", cal->GetMonth() }, { "day", static_cast<int>(cal->GetDay()) }, { "hour", cal->GetHour() } };
 		j["registeredDay"] = g_registeredDay;
 		j["seal"] = GuildCard::Seal();   // which region's wax seal the card carries ("" = Skyrim's)
+		j["issuedAt"] = GuildCard::IssuedAt().empty() ? std::string() : CityName(GuildCard::IssuedAt());  // the counter that issued the card in hand
 		j["missives"] = g_missives;
 		j["goldEarned"] = g_goldEarned;
 		{
@@ -1531,6 +1534,7 @@ namespace AG::Guild
 
 	int CardFee() { return g_cfg.cardFee; }
 	int StampDungeons() { return g_cfg.stampDungeons; }
+	int ReputationFor(int a_rank) { return g_cfg.reputation[std::clamp(a_rank, 0, kRankCount - 1)]; }
 
 	std::string CityName(const std::string& a_city)
 	{

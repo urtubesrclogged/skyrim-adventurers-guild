@@ -26,6 +26,8 @@ namespace AG::GuildCard
 	// The seal a card carries is the region's that issued it: Stamp() at registration and at a replacement, with the
 	// liaison's city ("Raven Rock" is Morrowind's; anywhere else, and every card from before 1.4.0, Skyrim's).
 	void        Stamp(const std::string& a_city);
+	std::string IssuedAt();                         // the counter city that issued the card in hand ("" on a save from before 1.5.0)
+	void        SetIssuedAt(const std::string& a_city);  // co-save
 	std::string Seal();                           // "" (Skyrim) or "morrowind": the page's tex/seal_<name>.png
 	void        SetSeal(const std::string& a_seal);  // co-save
 	std::string Replace(const std::string& a_city = {});  // a liaison hands over a new card for Guild::CardFee() gold; the line for the HUD

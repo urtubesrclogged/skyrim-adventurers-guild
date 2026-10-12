@@ -121,6 +121,7 @@ namespace AG::Guild
 	// Hold stamps: the two marks dialogue conditions read, set again for the liaisons and stamp keepers that are loaded.
 	// Cheap; run on the five-second beat and whenever what it depends on has just changed.
 	void  SyncStampMarks();
+	int   ReputationFor(int a_rank);            // the Reputation a rank asks for (guild.json), for the other adventurers' cards
 	int   StampDungeons();                      // dungeons to clear in a hold for its stamp on the Guild Card (guild.json)
 	std::string CityName(const std::string& a_city);  // a counter's city in the player's language ($AG_City_<Name>)
 	// The player's page of the Guild ledger, compact JSON for SkyrimNet (liaisons read it; see ag_player()).

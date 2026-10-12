@@ -29,6 +29,7 @@ namespace AG::GuildCard
 		std::atomic<bool>     g_issued{ false };  // the free first card has been handed over (co-save)
 		std::mutex            g_sealLock;
 		std::string           g_seal;             // which region's seal the card carries (co-save): "" = Skyrim's
+		std::string g_issuedAt;  // the counter city that issued the card in hand; guarded by g_sealLock
 		RE::TESGlobal*        g_gMissing{ nullptr };  // AG_CardMissingGlobal: 1 while a member carries no card (SkyrimNet eligibility)
 		std::atomic<int>      g_hotkey{ -1 };     // SkyUI key code (DirectInput scan code; mouse 256+, gamepad 266+), <= 0 none
 
@@ -293,7 +294,20 @@ namespace AG::GuildCard
 	{
 		std::lock_guard l(g_sealLock);
 		g_seal = a_city == "Raven Rock" ? "morrowind" : "";
+		g_issuedAt = a_city;
 		SKSE::log::info("GuildCard: issued at {} - {} seal", a_city.empty() ? "an unnamed counter" : a_city, g_seal.empty() ? "Skyrim's" : "Morrowind's");
+	}
+
+	std::string IssuedAt()
+	{
+		std::lock_guard l(g_sealLock);
+		return g_issuedAt;
+	}
+
+	void SetIssuedAt(const std::string& a_city)
+	{
+		std::lock_guard l(g_sealLock);
+		g_issuedAt = a_city;
 	}
 
 	std::string Seal()
