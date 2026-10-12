@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.3
+
+**Fixes/Bugs**
+- The MCM opened on an empty panel until you clicked System or Debug. It now opens on the System page.
+
 ## 1.4.2
 
 **Fixes/Bugs**

@@ -103,7 +103,9 @@ EndFunction
 
 Event OnPageReset(String a_page)
 	SetCursorFillMode(TOP_TO_BOTTOM)
-	If a_page == Pages[0]
+	; "" is what SkyUI asks for when the mod is first selected, before a page is clicked: the System page is shown
+	; then, so the menu does not open on an empty panel (it looked broken to a player; 1.4.3)
+	If a_page == "" || a_page == Pages[0]
 		AddHeaderOption("$AG_MCM_System_Labels_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Labels", "$AG_MCM_System_bShowLabels_Text", bShowLabels, OPTION_FLAG_NONE)
 		AddEmptyOption()
