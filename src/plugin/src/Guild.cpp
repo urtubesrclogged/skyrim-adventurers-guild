@@ -128,7 +128,7 @@ namespace AG::Guild
 		// happened. The same file on another 1.6.1170 game found them all: the cause is in that install, unknown and not
 		// ours to find. So nothing here depends on that moment any more: the line's own ID is taken apart when the game
 		// reports it (RoleOfLine), and a line that is not at our IDs is recognised by its topic and kind.
-		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace, kStamp, kCardBack, kCardHandIn };
+		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace, kStamp, kCardHandIn };
 		RE::TESFaction*                         g_stampEarnedFaction = nullptr;  // on a liaison whose hold's stamp is earned
 		RE::TESFaction*                         g_stampDueFaction = nullptr;     // on a stamp keeper who owes the player a stamp
 		RE::BGSPerk*                            g_stampPerk = nullptr;           // buy prices x0.85 while g_gStampDiscount is 1
@@ -337,8 +337,7 @@ namespace AG::Guild
 			}
 			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"
 			if (edid == "AG_TopicStampAsk") return toPlayer ? Role::kStamp : Role::kNone;  // the line's own conditions say she owes one
-			if (edid == "AG_TopicCardReturn") return toPlayer ? Role::kCardBack : Role::kNone;    // likewise: the player carries their card
-			if (edid == "AG_TopicCardHandIn") return toPlayer ? Role::kCardHandIn : Role::kNone;
+			if (edid == "AG_TopicCardHandIn") return toPlayer ? Role::kCardHandIn : Role::kNone;  // likewise: the player carries one
 			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusiness" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
 			if (acting < 0) return Role::kNone;
 			Role        role = Role::kNone;
@@ -434,17 +433,13 @@ namespace AG::Guild
 					});
 					return RE::BSEventNotifyControl::kContinue;
 				}
-				if ((role == Role::kCardBack || role == Role::kCardHandIn) && !a_e->speakerRef) return RE::BSEventNotifyControl::kContinue;
-				if (role == Role::kCardBack || role == Role::kCardHandIn) {
-					// another adventurer's guild card: given back to the one speaking, or handed in at this counter
+				if (role == Role::kCardHandIn) {
+					// other adventurers' guild cards, handed in at this counter
+					if (!a_e->speakerRef) return RE::BSEventNotifyControl::kContinue;
 					const auto who = a_e->speakerRef->GetHandle();
-					const bool back = role == Role::kCardBack;
-					SKSE::GetTaskInterface()->AddTask([who, back] {
+					SKSE::GetTaskInterface()->AddTask([who] {
 						auto  ref = who.get();
-						auto* actor = ref ? ref->As<RE::Actor>() : nullptr;
-						if (!actor) return;
-						if (back) MemberCards::ReturnTo(actor);
-						else MemberCards::HandIn(actor);
+						if (auto* actor = ref ? ref->As<RE::Actor>() : nullptr) MemberCards::HandIn(actor);
 					});
 					return RE::BSEventNotifyControl::kContinue;
 				}
@@ -789,7 +784,6 @@ namespace AG::Guild
 			load("business", Role::kBusiness);
 			load("replace", Role::kReplace);
 			load("stamp", Role::kStamp);
-			load("cardback", Role::kCardBack);
 			load("cardhandin", Role::kCardHandIn);
 		} catch (const std::exception& e) {
 			SKSE::log::error("Guild: dialogue.resolved.json error: {} - guild dialogue will do nothing", e.what());

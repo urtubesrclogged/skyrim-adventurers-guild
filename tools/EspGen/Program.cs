@@ -256,9 +256,6 @@ mod.Factions.Add(promotedFaction);
 var stampEarnedFaction = new Faction(FK(0xCEA), Rel) { EditorID = "AG_HoldStampEarnedFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 var stampDueFaction = new Faction(FK(0xCEB), Rel) { EditorID = "AG_HoldStampDueFaction", Name = "Adventurers Guild Stamp Keeper", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(stampEarnedFaction);
-// on a member, by the DLL, while the player carries that member's own guild card: they can be given it back
-var cardReturnFaction = new Faction(FK(0xCFB), Rel) { EditorID = "AG_CardReturnFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC };
-mod.Factions.Add(cardReturnFaction);
 mod.Factions.Add(stampDueFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);
@@ -359,7 +356,7 @@ ConditionFloat IsNpc(FormKey npc, bool or)
     if (or) c.Flags |= Condition.Flag.OR;
     return c;
 }
-var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new(), ["cardback"] = new(), ["cardhandin"] = new() };
+var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new(), ["cardhandin"] = new() };
 var liaisonKeys = new List<string>();
 var prompts = dlg["prompts"]!;
 
@@ -1023,12 +1020,12 @@ mod.DialogTopics.Add(hello);
         mod.DialogBranches.Add(b);
         mod.DialogTopics.Add(t);
     }
-    // Other adventurers' guild cards, brought back (1.5.0; MemberCards.cpp keeps the two globals and the faction).
-    // To the owner: a choice of its own on the person whose card the player carries (AG_CardReturnFaction). The six
-    // named members answer in their own words; anyone else says the same thanks, voiced for the wanderers' voice types
-    // and silent in any other voice. To a representative at her counter: one choice while any such card is carried
-    // (AG_CardsCarriedGlobal), and she answers for the weightiest of them (AG_CardCaseGlobal: 1 the owner lives,
-    // 2 is dead, 3 fell as one of the player's party, 4 nothing but worn cards). The DLL acts as the reply starts.
+    // Other adventurers' guild cards, handed in (1.5.0; MemberCards.cpp keeps the two globals). A representative at her
+    // counter has one choice for it while any such card is carried (AG_CardsCarriedGlobal), and she answers for the
+    // weightiest of them (AG_CardCaseGlobal: 1 the owner lives, 2 is dead, 3 fell as one of the player's party,
+    // 4 nothing but worn cards). The DLL acts as the reply starts.
+    // (A conversation with the owner, to give a card straight back, was built and cut the same day: a living member's
+    // card is only ever stolen or taken in trade, and a follower's goes back through the trade menu.)
     {
         DialogTopic Own(uint branchId, uint topicId, string stem, string prompt)
         {
@@ -1057,12 +1054,6 @@ mod.DialogTopics.Add(hello);
             t.Responses.Add(info);
             roles[role].Add(ids[key]);
         }
-        var cr = dlg["cardReturn"]!;
-        var back = Own(0xCFC, 0xCFD, "CardReturn", "cardReturn");
-        foreach (var (npc, line) in cr["named"]!.AsObject())
-            Reply(back, "cardback", "cardback:" + npc, line!.GetValue<string>(), new Condition[] { IsNpc(Npc(npc), false), InFaction(cardReturnFaction.FormKey) });
-        Reply(back, "cardback", "cardback:generic", cr["generic"]!.GetValue<string>(), new Condition[] { InFaction(cardReturnFaction.FormKey) });
-
         var handIn = Own(0xCFE, 0xCFF, "CardHandIn", "cardHandIn");
         var cases = new[] { ("fallen", 3), ("dead", 2), ("alive", 1), ("worn", 4) };
         foreach (var l in dlg["liaisons"]!.AsArray())

@@ -148,11 +148,9 @@ namespace AG::MemberCards
 		// ---- bringing cards back ----
 		RE::TESGlobal*  g_gCarried = nullptr;      // AG_CardsCarriedGlobal: cards the player carries that can be brought back
 		RE::TESGlobal*  g_gCase = nullptr;         // AG_CardCaseGlobal: the weightiest of them (1 alive, 2 dead, 3 fallen party member, 4 worn only)
-		RE::TESFaction* g_ownerFaction = nullptr;  // AG_CardReturnFaction: on a member whose card the player carries
 		RE::TESBoundObject* g_mead = nullptr;
 		RE::TESBoundObject* g_sujamma = nullptr;
 		std::unordered_set<RE::FormID>  g_noDrinks;  // representatives (by base) who stand nobody a round
-		std::unordered_set<std::string> g_marked;    // keys of everyone in g_ownerFaction; guarded by g_lock, kept in the co-save
 
 		// one stack of cards in the player's inventory
 		struct Carried
@@ -416,7 +414,6 @@ namespace AG::MemberCards
 		}
 		g_gCarried = dh->LookupForm<RE::TESGlobal>(0xCF9, kPlugin);
 		g_gCase = dh->LookupForm<RE::TESGlobal>(0xCFA, kPlugin);
-		g_ownerFaction = dh->LookupForm<RE::TESFaction>(0xCFB, kPlugin);
 		g_mead = dh->LookupForm<RE::TESBoundObject>(0x034C5D, "Skyrim.esm");       // Nord Mead
 		g_sujamma = dh->LookupForm<RE::TESBoundObject>(0x0207E6, "Dragonborn.esm");  // Sujamma, at Raven Rock
 		g_noDrinks.clear();
@@ -428,7 +425,7 @@ namespace AG::MemberCards
 		} catch (const std::exception& e) {
 			SKSE::log::warn("MemberCards: dialogue.resolved.json: {} - every representative stands a round for a fallen party member", e.what());
 		}
-		if (!g_gCarried || !g_gCase || !g_ownerFaction) SKSE::log::warn("MemberCards: the records for bringing a card back are not in {} - cards cannot be returned", kPlugin);
+		if (!g_gCarried || !g_gCase) SKSE::log::warn("MemberCards: the records for handing a card in are not in {} - cards cannot be handed in", kPlugin);
 		if (auto* src = RE::ScriptEventSourceHolder::GetSingleton()) src->AddEventSink<RE::TESActivateEvent>(Sinks::Get());
 		if (auto* ui = RE::UI::GetSingleton()) ui->AddEventSink<RE::MenuOpenCloseEvent>(Sinks::Get());
 		SKSE::log::info("MemberCards: an adventurer is given their card the first time the player looks");
@@ -508,88 +505,39 @@ namespace AG::MemberCards
 	{
 		if (!g_personal || !g_gCarried || !g_gCase) return;
 		int total = 0, weight = 0;
-		std::unordered_set<std::string> want;  // living owners, here, whose card the player carries
 		for (auto& c : Scan()) {
 			total += c.count;
 			if (c.worn) continue;
 			RE::Actor* owner = nullptr;
 			const auto fate = FateOf(c, owner);
 			weight = std::max(weight, fate == Fate::kFallen ? 3 : fate == Fate::kDead ? 2 : 1);
-			if (fate != Fate::kAlive || !owner) continue;
-			Replace(owner, c.item, true);
-			if (owner->Is3DLoaded()) want.insert(c.key);
+			if (fate == Fate::kAlive && owner) Replace(owner, c.item, true);
 		}
 		g_gCarried->value = static_cast<float>(total);
 		g_gCase->value = static_cast<float>(total == 0 ? 0 : weight == 0 ? 4 : weight);
-		if (!g_ownerFaction) return;
-		std::vector<std::string> add, drop;
-		{
-			std::lock_guard l(g_lock);
-			for (auto& k : want)
-				if (!g_marked.contains(k)) add.push_back(k);
-			for (auto& k : g_marked)
-				if (!want.contains(k)) drop.push_back(k);
-		}
-		const auto set = [](const std::string& a_key, bool a_in) {
-			auto* form = Adventurers::FormOfKey(a_key);
-			auto* actor = form ? form->As<RE::Actor>() : nullptr;
-			if (actor) actor->AddToFaction(g_ownerFaction, a_in ? 0 : -1);
-			std::lock_guard l(g_lock);
-			if (a_in) g_marked.insert(a_key);
-			else g_marked.erase(a_key);
-		};
-		for (auto& k : add) set(k, true);
-		for (auto& k : drop) set(k, false);
-	}
-
-	void ReturnTo(RE::Actor* a_owner)
-	{
-		auto* pc = RE::PlayerCharacter::GetSingleton();
-		if (!pc || !a_owner || !g_personal) return;
-		const auto key = Adventurers::StableKey(a_owner);
-		bool        placed = HasCard(a_owner);  // they have a replacement by now: the old card is taken and thrown away
-		const bool  spare = placed;
-		int         cards = 0, rep = 0;
-		std::string name, item;
-		for (auto& c : Scan()) {
-			if (c.worn || c.key != key) continue;
-			name = c.name;
-			item = c.item;
-			cards += c.count;
-			if (!c.stolen) rep += Guild::CardReturnReputation() * c.count;
-			pc->RemoveItem(c.object, c.count, placed ? RE::ITEM_REMOVE_REASON::kRemove : RE::ITEM_REMOVE_REASON::kStoreInContainer, c.extra, placed ? nullptr : a_owner);
-			placed = true;
-		}
-		if (cards == 0) {
-			SKSE::log::warn("MemberCards: {} thanked the player for a guild card, and the player carries none of theirs", a_owner->GetDisplayFullName());
-			Sync();
-			return;
-		}
-		SetMissing(item, -1.0f);
-		Guild::Record(Loc::F("$AG_Log_CardReturned", "Returned {}'s guild card to them.", name));
-		if (rep > 0) Guild::AddReward(0, rep, Loc::T("$AG_Why_CardReturned", "guild card returned"));
-		SKSE::log::info("MemberCards: \"{}\" given back to its owner ({}){}{}", item, key, spare ? " - they had a replacement, the old one is thrown away" : "",
-			rep > 0 ? "" : " - no Reputation: the game holds that copy to be stolen");
-		Sync();
 	}
 
 	void HandIn(RE::Actor* a_rep)
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!pc || !a_rep || !g_personal) return;
-		int  rep = 0, worn = 0, cards = 0, stolen = 0;
+		int  rep = 0, worn = 0, cards = 0, paid = 0;
 		bool fallen = false;
 		for (auto& c : Scan()) {
 			cards += c.count;
-			if (c.stolen) stolen += c.count;
-			else rep += Guild::CardReturnReputation() * c.count;
 			if (c.worn) {
+				// nobody's card: it pays unless it was lifted from a living adventurer's pocket
+				if (!c.stolen) rep += Guild::CardReturnReputation() * c.count, paid += c.count;
 				worn += c.count;
 				pc->RemoveItem(c.object, c.count, RE::ITEM_REMOVE_REASON::kRemove, c.extra, nullptr);
 				continue;
 			}
 			RE::Actor* owner = nullptr;
 			const auto fate = FateOf(c, owner);
+			// Only a card of the dead pays. A living member's card is in the player's hands because it was stolen or
+			// taken in trade: the Guild sees it home and owes nothing for that.
+			const bool pays = fate != Fate::kAlive && !c.stolen;
+			if (pays) rep += Guild::CardReturnReputation() * c.count, paid += c.count;
 			// a living owner has it back from the Guild (unless they have a replacement already)
 			const bool back = fate == Fate::kAlive && owner && !HasCard(owner);
 			pc->RemoveItem(c.object, c.count, back ? RE::ITEM_REMOVE_REASON::kStoreInContainer : RE::ITEM_REMOVE_REASON::kRemove, c.extra, back ? owner : nullptr);
@@ -600,7 +548,7 @@ namespace AG::MemberCards
 				: Loc::F("$AG_Log_CardDead", "Handed in the guild card of {}, who is dead.", c.name));
 			SKSE::log::info("MemberCards: \"{}\" handed in to {} - its owner {}{}", c.item, a_rep->GetDisplayFullName(),
 				fate == Fate::kAlive ? (back ? "lives and has it back" : "lives (the card is kept: they have another, or cannot be found)") : fate == Fate::kFallen ? "fell in the player's party" : "is dead",
-				c.stolen ? "; no Reputation: the game holds that copy to be stolen" : "");
+				pays ? "" : "; no Reputation");
 		}
 		if (cards == 0) {
 			Sync();
@@ -609,7 +557,7 @@ namespace AG::MemberCards
 		if (worn == 1) Guild::Record(Loc::T("$AG_Log_CardWorn", "Handed in a worn guild card."));
 		else if (worn > 1) Guild::Record(Loc::F("$AG_Log_CardsWorn", "Handed in {} worn guild cards.", worn));
 		if (worn > 0) SKSE::log::info("MemberCards: {} worn card(s) handed in to {}", worn, a_rep->GetDisplayFullName());
-		if (rep > 0) Guild::AddReward(0, rep, cards - stolen == 1 ? Loc::T("$AG_Why_CardHandedIn", "guild card handed in") : Loc::T("$AG_Why_CardsHandedIn", "guild cards handed in"));
+		if (rep > 0) Guild::AddReward(0, rep, paid == 1 ? Loc::T("$AG_Why_CardHandedIn", "guild card handed in") : Loc::T("$AG_Why_CardsHandedIn", "guild cards handed in"));
 		// a fallen party member: most representatives stand the party a round, one each for those still standing
 		auto* base = a_rep->GetActorBase();
 		if (fallen && !(base && g_noDrinks.contains(base->GetFormID()))) {
@@ -631,8 +579,7 @@ namespace AG::MemberCards
 		for (auto& [item, r] : g_records)
 			cards[item] = { { "key", r.key }, { "name", r.name }, { "rank", r.rank }, { "y", r.year }, { "m", r.month }, { "d", r.day }, { "seal", r.seal },
 				{ "stamps", r.stamps }, { "retired", r.retired }, { "no", r.number }, { "city", r.city }, { "level", r.level }, { "dead", r.dead }, { "miss", r.missingSince } };
-		return { { "cards", cards }, { "issued", std::vector<std::string>(g_issued.begin(), g_issued.end()) },
-			{ "marked", std::vector<std::string>(g_marked.begin(), g_marked.end()) } };
+		return { { "cards", cards }, { "issued", std::vector<std::string>(g_issued.begin(), g_issued.end()) } };
 	}
 
 	void Load(const nlohmann::json& a_j)
@@ -640,7 +587,6 @@ namespace AG::MemberCards
 		std::lock_guard l(g_lock);
 		g_records.clear();
 		g_issued.clear();
-		g_marked.clear();
 		try {
 			for (auto& [item, c] : a_j.value("cards", nlohmann::json::object()).items()) {
 				Record r;
@@ -661,7 +607,6 @@ namespace AG::MemberCards
 				g_records[item] = std::move(r);
 			}
 			for (auto& k : a_j.value("issued", nlohmann::json::array())) g_issued.insert(k.get<std::string>());
-			for (auto& k : a_j.value("marked", nlohmann::json::array())) g_marked.insert(k.get<std::string>());
 		} catch (const std::exception& e) {
 			SKSE::log::error("MemberCards: co-save parse error: {}", e.what());
 		}
@@ -672,14 +617,13 @@ namespace AG::MemberCards
 		std::lock_guard l(g_lock);
 		g_records.clear();
 		g_issued.clear();
-		g_marked.clear();
 	}
 
 	std::string Debug()
 	{
 		std::lock_guard l(g_lock);
-		std::string out = std::format("{} personal card(s), {} adventurer(s) given a card of either kind; carried {} (case {}), {} owner(s) marked, {} representative(s) who pour nothing", g_records.size(), g_issued.size(),
-			g_gCarried ? static_cast<int>(g_gCarried->value) : -1, g_gCase ? static_cast<int>(g_gCase->value) : -1, g_marked.size(), g_noDrinks.size());
+		std::string out = std::format("{} personal card(s), {} adventurer(s) given a card of either kind; carried {} (case {}), {} representative(s) who pour nothing", g_records.size(), g_issued.size(),
+			g_gCarried ? static_cast<int>(g_gCarried->value) : -1, g_gCase ? static_cast<int>(g_gCase->value) : -1, g_noDrinks.size());
 		int n = 0;
 		for (auto& [item, r] : g_records) {
 			if (++n > 12) break;

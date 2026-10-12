@@ -20,17 +20,15 @@
 // A card is made when someone looks: the first time the player activates a member or opens their inventory. To the
 // player they always had one; the save only holds records for cards that were seen.
 //
-// Bringing a card back. To its owner: while the player carries a living member's card, that member is in
-// AG_CardReturnFaction and has a choice for it; the card goes back into their keeping. To a representative: every
-// card carried is handed in at once; a living owner's goes back to them, the others are kept by the Guild. Each
-// card earns Reputation (guild.json) unless the game marks that copy as stolen. A fallen party member's card has
-// most representatives stand the party a round. A living member whose card is gone has a replacement after a few
-// days, as the player can buy one; an old card brought back after that is taken and thrown away.
+// Handing cards in. A representative takes every card carried at once: a living owner's goes back to them, the
+// others are kept by the Guild. Only a card of the dead, or a worn one, earns Reputation (guild.json), and not a
+// copy the game marks as stolen: a living member's card is only ever stolen or taken in trade. A fallen party
+// member's card has most representatives stand the party a round. A living member whose card is gone has a
+// replacement after a few days, as the player can buy one; an old card handed in after that is kept by the Guild.
 namespace AG::MemberCards
 {
 	void Install();  // at kDataLoaded
-	void Sync();     // game thread, every few seconds and as a container closes: the two globals and the faction dialogue reads
-	void ReturnTo(RE::Actor* a_owner);  // their reply to "I have your guild card" has started
+	void Sync();     // game thread, every few seconds and as a container closes: the two globals dialogue reads
 	void HandIn(RE::Actor* a_rep);      // a representative's reply to "I found a guild card" has started
 
 	void Given(RE::Actor* a_owner);  // from Papyrus, once the named copy is in their inventory: an open menu is refreshed

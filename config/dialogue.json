@@ -582,18 +582,7 @@
   { "npc": "Lurbuk", "of": "Jonna", "city": "Morthal", "lineFirst": "Jonna left me the inn, and the stamp. There! Morthal's mark! Show it to the merchants. Sometimes they give a better price. I asked. Many times.", "line": "Jonna left me the inn, and the stamp. Some say I am better with the stamp than the lute. There! Morthal's mark!" },
   { "npc": "Narri", "of": "ValgaVinicia", "city": "Falkreath", "lineFirst": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag. Show it around the shops. A merchant might be sweeter to you for it.", "line": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag, and it suits you." }
  ],
- "_cardReturn": "Other adventurers' guild cards (1.5.0, MemberCards.cpp). cardReturn: what a member says when the player hands them their own card back (a choice the DLL shows on that person only: AG_CardReturnFaction); named = by editor ID, generic = everyone else, voiced in world_dialogue.json's wandererVoices and unvoiced for any other voice. On a liaison, cardHandIn: her reply when cards are handed in at the counter, by the weightiest of them (AG_CardCaseGlobal: 1 the owner lives, 2 is dead, 3 fell as one of the player's party, 4 only worn cards); drinks = whether she stands the party a round for the third.",
- "cardReturn": {
-  "generic": "My guild card. I thought that was gone for good. You have my thanks, adventurer.",
-  "named": {
-   "Sinmir": "My guild card. Hm. I wondered who had the nerve. Good that it was someone who brought it back.",
-   "Uthgerd": "That's my guild card. I earned every letter on it. You did right, bringing it back. I won't forget it.",
-   "Mjoll": "My guild card! I thought it gone for good. Thank you, friend. Honesty like yours is rare in Riften.",
-   "Annekke": "Oh, my old guild card! Verner says I should have put it away years ago. Thank you. It's good to see it again.",
-   "DLC2RRTeldrynSero": "My guild card. I'd say you were after a reward, but you handed it over first. Unusual. My thanks, outlander.",
-   "DLC1Gunmar": "That's mine. I've carried that card longer than this axe. Thank you. It's good to have it back in my hand."
-  }
- },
+ "_cardHandIn": "Other adventurers' guild cards (1.5.0, MemberCards.cpp). On a liaison, cardHandIn: her reply when cards are handed in at the counter, by the weightiest of them (AG_CardCaseGlobal: 1 the owner lives, 2 is dead, 3 fell as one of the player's party, 4 only worn cards); drinks = whether she stands the party a round for the third.",
  "_prompts": "What the player says.",
  "_showCard": "Show Guild Card (1.5.0): a member carrying the card can show it where vanilla asks the player to talk their way in. No vanilla line is overridden: each reply is ADDED to a vanilla choice, which it takes over when vanilla's own replies before it do not apply (tools/EspGen/Program.cs has the detail). college: Faralda, in place of '(Persuade)', any rank ('E' for a rank E member, 'other' for the rest), and she goes on into her own vanilla welcome. treasury: Rhiada, in place of '(Persuade)', rank C and up. orcs: a stronghold's gate guard, rank A and up, in each voice of 'orcVoices': in place of 'I go where I please, Orc.' at the first meeting, and as a topic of our own in his menu after it.",
  "showCard": {
@@ -624,7 +613,6 @@
   "promotePay": "Here's the fee. (<Global=AG_PromotionFee> gold)",
   "later": "Not now.",
   "stampAsk": "I've earned this hold's stamp for my guild card. (Show Guild Card)",
-  "cardReturn": "I have your guild card. (Return Guild Card)",
   "cardHandIn": "I found a guild card. (Hand in)",
   "replace": "I've lost my guild card. I need a replacement."
  },

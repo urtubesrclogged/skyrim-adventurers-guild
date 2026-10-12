@@ -10,7 +10,7 @@
 	"_stampDungeons": "Hold stamps on the Guild Card (1.5.0): how many dungeons a member must clear in a hold before that hold's counter stamps their card with the hold's crest. Counted from the record of cleared dungeons, so a save from before 1.5.0 is credited for what it has already cleared. The stamp is put on the card at that hold's counter only; a replacement card is stamped again there. Raven Rock's counter counts all of Solstheim. The smallest holds (Haafingar, Hjaalmarch) have 15 clearable dungeons in the unmodded game.",
 	"stampDungeons": 8,
 
-	"_memberCards": "Other adventurers' guild cards (1.5.0). memberCardReputation: Reputation for each card the player gives back to its owner or hands in at a counter (none for a copy the game marks as stolen). memberCardReplaceDays: game days after which a living member whose card is gone has a replacement from the Guild.",
+	"_memberCards": "Other adventurers' guild cards (1.5.0). memberCardReputation: Reputation for each card of a dead adventurer, or worn card, the player hands in at a counter (none for a living member's card, nor for a copy the game marks as stolen). memberCardReplaceDays: game days after which a living member whose card is gone has a replacement from the Guild.",
 	"memberCardReputation": 5,
 	"memberCardReplaceDays": 3,
 
