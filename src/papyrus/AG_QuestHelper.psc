@@ -124,8 +124,12 @@ Function PostNotices(FormList akQuests) Global
 EndFunction
 
 ; Another adventurer's guild card (MemberCards.cpp): one copy of the card item, carrying its own name, put in their
-; inventory. A reference is made (never seen: it starts disabled), renamed as a player renames an item, and moved in;
-; the name stays with the item wherever it goes after that.
+; inventory. A reference is made, renamed as a player renames an item, and moved in; the name stays with the item
+; wherever it goes after that.
+; The game keeps that same reference for the item, and puts it back in the world when the item is dropped - in the
+; state it had when it went in. One that went in disabled comes back disabled: the dropped card could not be seen
+; (found 2026-10-12). So it is made disabled (nothing appears at their feet), sent far below the ground, switched on
+; there, and only then moved into the inventory.
 Function GiveMemberCard(Actor akOwner, Form akCard, String asName) Global
 	If !akOwner || !akCard
 		Return
@@ -138,6 +142,8 @@ Function GiveMemberCard(Actor akOwner, Form akCard, String asName) Global
 	If asName != ""
 		card.SetDisplayName(asName, True)
 	EndIf
+	card.MoveTo(akOwner, 0.0, 0.0, -6000.0, False)
+	card.Enable(False)
 	akOwner.AddItem(card, 1, True)
 	AG_Native.MemberCardGiven(akOwner)
 EndFunction

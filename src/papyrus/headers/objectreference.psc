@@ -9,3 +9,5 @@ Function AddToMap(Bool abAllowFastTravel = False) native
 Function Say(Topic akTopicToSay, Actor akActorToSpeakAs = None, Bool abSpeakInPlayersHead = False) native
 ObjectReference Function PlaceAtMe(Form akFormToPlace, Int aiCount = 1, Bool abForcePersist = False, Bool abInitiallyDisabled = False) native
 Bool Function SetDisplayName(String asName, Bool abForce = False) native
+Function MoveTo(ObjectReference akTarget, Float afXOffset = 0.0, Float afYOffset = 0.0, Float afZOffset = 0.0, Bool abMatchRotation = True) native
+Function Enable(Bool abFadeIn = False) native
