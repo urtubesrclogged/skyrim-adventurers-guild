@@ -539,7 +539,7 @@ function cardFace(c) {
       <div class="who">
         <h2>${esc(c.name || t("$AG_UI_Adventurer", "Adventurer"))}</h2>
         <div class="line">${esc(c.letter ? t("$AG_UI_CardRankAdventurer", "{0} Rank Adventurer", c.letter) : t("$AG_UI_NotRegistered", "Not registered with the Adventurers Guild"))}${c.registered ? esc(t("$AG_UI_RegisteredOn", " · registered {0}", c.registered)) : ""}</div>
-        ${c.letter ? `<div class="partyline"><span class="lead">${esc(t("$AG_UI_CardParty", "Party"))}</span> ${c.party ? `<b>${esc(c.party)}</b>${c.partyMeta ? ` <span class="meta">· ${esc(c.partyMeta)}</span>` : ""}` : "—"}</div>` : ""}
+        ${c.letter ? `<div class="partyline"><span class="lead">${esc(c.partyLead || t("$AG_UI_CardParty", "Party"))}</span> ${c.party ? `<b>${esc(c.party)}</b>${c.partyMeta ? ` <span class="meta">· ${esc(c.partyMeta)}</span>` : ""}` : "—"}</div>` : ""}
       </div></div>`;
 }
 function cardFigures(c) {
@@ -583,6 +583,7 @@ function renderCard() {
   if (data.member) return renderMemberCard();
   const tr = data.training || [], act = (data.party || {}).active, pn = act ? (act.members || []).length : 0;
   const c = { name: data.name, letter: data.registered ? data.letter : "", registered: data.registered && data.registeredDay >= 0 ? gameDate(data.registeredDay) : "",
+    partyLead: act ? t("$AG_UI_CardLeader", "Leader of") : "",  // the player leads theirs, said as 1.4 said it; "Party —" without one
     party: act ? act.name : "", partyMeta: act ? (pn === 1 ? t("$AG_UI_NMember", "{0} member", 1) : t("$AG_UI_NMembers", "{0} members", pn)) : "",
     merit: data.merit, reputation: data.reputation, goldEarned: data.goldEarned, level: data.level, next: data.next, ready: data.ready, blocked: data.promotionBlocked };
   const app = [t("$AG_UI_None", "None"), "I", "II", "III"][data.appraisal || 0];
