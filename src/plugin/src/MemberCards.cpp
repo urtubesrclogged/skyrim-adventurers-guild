@@ -405,6 +405,8 @@ namespace AG::MemberCards
 
 	void Install()
 	{
+		// (asked for by its kind, a drink is not found: "an object" is no kind of record the game can look up)
+		const auto Drink = [](RE::TESForm* a_form) { return a_form ? a_form->As<RE::TESBoundObject>() : nullptr; };
 		auto* dh = RE::TESDataHandler::GetSingleton();
 		g_personal = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCF7, kPlugin) : nullptr;
 		g_worn = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCF8, kPlugin) : nullptr;
@@ -414,8 +416,8 @@ namespace AG::MemberCards
 		}
 		g_gCarried = dh->LookupForm<RE::TESGlobal>(0xCF9, kPlugin);
 		g_gCase = dh->LookupForm<RE::TESGlobal>(0xCFA, kPlugin);
-		g_mead = dh->LookupForm<RE::TESBoundObject>(0x034C5D, "Skyrim.esm");       // Nord Mead
-		g_sujamma = dh->LookupForm<RE::TESBoundObject>(0x0207E6, "Dragonborn.esm");  // Sujamma, at Raven Rock
+		g_mead = Drink(dh->LookupForm(0x034C5D, "Skyrim.esm"));       // Nord Mead
+		g_sujamma = Drink(dh->LookupForm(0x0207E6, "Dragonborn.esm"));  // Sujamma, at Raven Rock
 		g_noDrinks.clear();
 		try {
 			std::ifstream df("Data/SKSE/Plugins/AdventurersGuild/dialogue.resolved.json");
@@ -570,6 +572,7 @@ namespace AG::MemberCards
 		if (fallen && !(base && g_noDrinks.contains(base->GetFormID()))) {
 			auto* drink = Adventurers::LiaisonCity(a_rep) == "Raven Rock" && g_sujamma ? g_sujamma : g_mead;
 			const int n = 1 + Party::LivingActiveCount();
+			if (!drink) SKSE::log::warn("MemberCards: {} would stand the party a round, and the drink is not in this game", a_rep->GetDisplayFullName());
 			if (drink) {
 				pc->AddObjectToContainer(drink, nullptr, n, nullptr);
 				RE::SendHUDMessage::ShowHUDMessage(Loc::F("$AG_Hud_DrinksOnHouse", "{} ({}) on the house", drink->GetName(), n).c_str());
