@@ -180,6 +180,7 @@ namespace AG::MemberCards
 
 		// ---- bringing cards back ----
 		RE::TESGlobal*  g_gCarried = nullptr;      // AG_CardsCarriedGlobal: cards the player carries that can be brought back
+		RE::TESTopic*   g_handInTopic = nullptr;   // AG_TopicCardHandIn: the player's line, worded for one card or several
 		RE::TESGlobal*  g_gCase = nullptr;         // AG_CardCaseGlobal: the weightiest of them (1 alive, 2 dead, 3 fallen party member, 4 worn only)
 		RE::TESBoundObject* g_mead = nullptr;
 		RE::TESBoundObject* g_sujamma = nullptr;
@@ -452,6 +453,7 @@ namespace AG::MemberCards
 		}
 		g_gCarried = dh->LookupForm<RE::TESGlobal>(0xCF9, kPlugin);
 		g_gCase = dh->LookupForm<RE::TESGlobal>(0xCFA, kPlugin);
+		g_handInTopic = dh->LookupForm<RE::TESTopic>(0xCFF, kPlugin);
 		g_mead = Drink(dh->LookupForm(0x034C5D, "Skyrim.esm"));       // Nord Mead
 		g_sujamma = Drink(dh->LookupForm(0x0207E6, "Dragonborn.esm"));  // Sujamma, at Raven Rock
 		g_noDrinks.clear();
@@ -557,6 +559,11 @@ namespace AG::MemberCards
 			if (fate == Fate::kAlive && owner) Replace(owner, c.item, true);
 		}
 		g_gCarried->value = static_cast<float>(total);
+		// the player's line says what they hold: one card, or several (however they came by them)
+		if (g_handInTopic && total > 0) {
+			const auto line = total == 1 ? Loc::T("$AG_Dlg_CardHandIn", "I have a guild card to hand in.") : Loc::T("$AG_Dlg_CardsHandIn", "I have guild cards to hand in.");
+			if (line != g_handInTopic->fullName.c_str()) g_handInTopic->fullName = line;
+		}
 		g_gCase->value = static_cast<float>(total == 0 ? 0 : weight == 0 ? 4 : weight);
 	}
 

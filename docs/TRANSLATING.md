@@ -112,7 +112,8 @@ New text in the plugin (section 2) for the other adventurers' guild cards:
 * Two items: `AG_MemberCard` (`Adventurers Guild Card (NPC)`) and `AG_WornCard` (`Adventurers Guild Card (NPC) -
   Unreadable`, with its one line of text). All three kinds of card start with the same words, `Adventurers Guild Card`,
   so an inventory lists them together: keep the three names alike in your language too.
-* The player's line `I found a guild card. (Hand in)` (topic `AG_TopicCardHandIn`) and four replies from each of the
+* The player's line `I have a guild card to hand in.` (topic `AG_TopicCardHandIn`; the plugin words it for one card
+  or several from the interface file: `$AG_Dlg_CardHandIn`, `$AG_Dlg_CardsHandIn`) and four replies from each of the
   fourteen representatives, `AG_Info_cardhandin_<NPC>_alive`, `_dead`, `_fallen` (the card of a fallen member of the
   player's party) and `_worn` (a card nobody can read). In `_fallen` twelve of them stand the party a round; Ysolda
   and Elda do not, and their lines say so: keep that difference.

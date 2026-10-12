@@ -613,7 +613,7 @@
   "promotePay": "Here's the fee. (<Global=AG_PromotionFee> gold)",
   "later": "Not now.",
   "stampAsk": "I've earned this hold's stamp for my guild card. (Show Guild Card)",
-  "cardHandIn": "I found a guild card. (Hand in)",
+  "cardHandIn": "I have a guild card to hand in.",
   "replace": "I've lost my guild card. I need a replacement."
  },
  "_nofee": "What a guild liaison says when the player picks register/promote without the fee in hand (no Goodbye; voiced per liaison voice type).",
