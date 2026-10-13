@@ -425,7 +425,6 @@
       <button data-tab="services">Services</button>
       <button data-tab="party">Party</button>
       <button data-tab="records">Records</button>
-      <button data-tab="test">Sound test</button><!-- TEMPORARY (2026-10-13): out before release -->
     </nav>
     <main id="main"></main>
     <footer id="status"></footer>
@@ -462,7 +461,7 @@ const metal = (l) => METAL_EN[l] ? t("$AG_UI_Metal" + l, METAL_EN[l]) : "";
 let data = { registered: false, letter: "-", merit: 0, reputation: 0, reports: [], services: [], history: [],
              missives: [0,0,0,0,0,0], trophies: { items: [], total: 0, bonus: 0 }, appraisal: 0, training: [0,0,0] };
 let tab = "card", section = null, qsec = null, note = null, isec = "dungeon";
-const page = { quests: 0, board: 0, notices: 0, trophies: 0, records: 0, services: 0, party: 0, recruit: 0, ledger: 0, founders: 0, traits: 0, test: 0 };
+const page = { quests: 0, board: 0, notices: 0, trophies: 0, records: 0, services: 0, party: 0, recruit: 0, ledger: 0, founders: 0, traits: 0 };
 
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function day(d) {
@@ -737,18 +736,6 @@ function renderQuests() {
     items.map((x) => `<div class="row"><div class="body"><div class="title">${esc(x.title)}</div><div class="detail">${esc(x.detail)}</div></div>
       <div class="pay wide">${x.gold ? `<div class="gold">${esc(t("$AG_UI_NGold", "{0} gold", x.gold))}</div>` : ""}<div><span class="merit">${esc(t("$AG_UI_NMerit", "{0} merit", x.merit))}</span> · <span class="rep">${esc(t("$AG_UI_NRep", "{0} rep", x.rep || 0))}</span></div></div></div>`).join("") +
     pager("quests", pages);
-}
-
-/* TEMPORARY (2026-10-13): a row for each notice's sound, to hear them at leisure. Out before release. Plain English. */
-function renderTest() {
-  const cues = [[1, "Promoted"], [3, "Guild registration"], [4, "Promotion ready"], [2, "Dungeon entered (first visit)"],
-    [5, "Missive, notice or bounty complete"], [6, "Guild card stamped"], [7, "Reputation lost"]];
-  const replaced = data.cuesReplaced || [];
-  const { items, pages } = paged("test", cues, ROWS);
-  return `<div class="bar-top"><span class="sum caps">Temporary test · press Play to hear a notice's sound</span></div>` +
-    items.map(([n, name]) => `<div class="row"><div class="body"><div class="title">${esc(name)}</div>
-      <div class="detail">${replaced[n] ? "Replaced by another mod: the notice itself stays silent. Play gives that mod's version." : "The game's own sound: the notice plays this."}</div></div>
-      <button class="btn" data-action="cue:${n}">Play</button></div>`).join("") + pager("test", pages);
 }
 
 function renderTrophies() {
@@ -1107,11 +1094,11 @@ function render() {
     const tb = b.dataset.tab;
     b.classList.toggle("on", tb === tab);
     const label = { card: t("$AG_UI_TabCard", "Guild Card"), quests: t("$AG_UI_TabQuests", "Quests"), trophies: t("$AG_UI_TabTrophies", "Trophies"),
-                    services: t("$AG_UI_TabServices", "Services"), party: t("$AG_UI_TabParty", "Party"), records: t("$AG_UI_TabRecords", "Records"), test: "Sound test" }[tb];
+                    services: t("$AG_UI_TabServices", "Services"), party: t("$AG_UI_TabParty", "Party"), records: t("$AG_UI_TabRecords", "Records") }[tb];
     b.innerHTML = esc(label) + (counts[tb] ? `<span class="badge">${counts[tb]}</span>` : "");
   }
   const typing = document.activeElement && document.activeElement.id === "pname";
-  $("main").innerHTML = { card: renderCard, quests: renderQuests, trophies: renderTrophies, services: renderServices, party: renderParty, records: renderRecords, test: renderTest }[tab]();
+  $("main").innerHTML = { card: renderCard, quests: renderQuests, trophies: renderTrophies, services: renderServices, party: renderParty, records: renderRecords }[tab]();
   if (typing && !vrCommitted && $("pname")) { const f = $("pname"); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
   paint();
   fitPanel();

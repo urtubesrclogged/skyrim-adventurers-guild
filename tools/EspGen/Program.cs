@@ -1417,19 +1417,12 @@ mod.Books.Add(note);
 // (2026-10-13) where the game's record picks one of several at random (its stingers, its reward music, the smithing
 // sound). Every one is a copy of a game interface sound, with the file changed where one was chosen: they play once,
 // flat, at the effects volume.
-// Two of the files are MUSIC (dungeon entered, registered). They were first played through the music system, as
-// one-track music types of ours: the game played the track over and over until the save was loaded again (in game,
-// 2026-10-13), so they are plain sounds like the rest, which cannot loop. The library that writes this plugin
-// refuses a sound path outside Data\Sound, so each is written as Data\Sound\... and the five letters are put right
-// in the finished file (MusicPaths, below, used where the plugin is written).
-var musicPaths = new List<(string written, string real)>();
-string MusicPath(string real)
-{
-    var written = real.Replace(@"Data\Music\", @"Data\Sound\");
-    if (written == real || written.Length != real.Length) { Console.Error.WriteLine($"ERROR: '{real}' is not a Data\\Music path"); errors++; }
-    musicPaths.Add((written, real));
-    return written;
-}
+// Two of the files are MUSIC (dungeon entered, registered), and a sound record cannot name a music file: written with
+// its real path, Data\Music\..., the record loads and plays nothing (in game, 2026-10-13). Played through the music
+// system, as music types of ours, the track played over and over until the save was loaded again. So those two
+// records are written with the level-up sound as a stand-in, and the DLL gives each the game's own reference to the
+// music file, taken from the game's own track record, once the game has loaded (PrismaToast.cpp, BorrowTracks). A
+// record still holding its stand-in is never played.
 void Cue(uint id, string edid, string like, string? file)
 {
     var src = masters.SelectMany(m => m.SoundDescriptors).Last(s => s.EditorID == like);
@@ -1437,11 +1430,14 @@ void Cue(uint id, string edid, string like, string? file)
     sd.DeepCopyIn(src);
     sd.EditorID = edid;
     if (file != null) { sd.SoundFiles.Clear(); sd.SoundFiles.Add(new Mutagen.Bethesda.Plugins.Assets.AssetLink<Mutagen.Bethesda.Skyrim.Assets.SkyrimSoundAssetType>(file)); }
+    // Played once, whatever the record it was copied from says: the skill-increase sound has no such setting of its
+    // own, and played from here it went on and on (in game, 2026-10-13). The level-up sound's, which is "no loop".
+    sd.LoopAndRumble = masters.SelectMany(m => m.SoundDescriptors).Last(s => s.EditorID == "UILevelUpSD").LoopAndRumble?.DeepCopy();
     mod.SoundDescriptors.Add(sd);
 }
 Cue(0xC81, "AG_CuePromoted", "UILevelUpSD", null);
-Cue(0xC82, "AG_CueDungeonEntered", "UILevelUpSD", MusicPath(@"Data\Music\Stinger\MUS_Stinger_02.wav"));
-Cue(0xC83, "AG_CueRegistered", "UILevelUpSD", MusicPath(@"Data\Music\Reward\MUS_Reward_01.wav"));
+Cue(0xC82, "AG_CueDungeonEntered", "UILevelUpSD", null);   // MUSStinger02's file, given by the DLL
+Cue(0xC83, "AG_CueRegistered", "UILevelUpSD", null);       // MUSReward01's file, given by the DLL
 Cue(0xC84, "AG_CuePromotionReady", "UISkillIncreaseSD", null);
 Cue(0xC85, "AG_CueComplete", "UIQuestComplete", null);
 Cue(0xC86, "AG_CueStamped", "UISmithingCreateGeneric", @"Data\Sound\FX\UI\Smithing\UI_Smithing_CreateGeneric_01.wav");
@@ -1811,22 +1807,6 @@ mod.WriteToBinary(path, new BinaryWriteParameters
     // masters in load order (Skyrim.esm first), not in the order records happen to reference them
     MastersListOrdering = new MastersListOrderingByLoadOrder(Probe.Masters.Select(m => ModKey.FromFileName(m)).Append(MissivesPatch.Missives).ToList()),
 });
-// the notices' two music files: their real folder, in place of the one the library would accept (same length, so
-// nothing else in the file moves). Each must be there exactly once, or the build stops.
-{
-    var bytes = File.ReadAllBytes(path);
-    foreach (var (written, real) in musicPaths)
-    {
-        var from = System.Text.Encoding.ASCII.GetBytes(written + "\0");
-        var to = System.Text.Encoding.ASCII.GetBytes(real + "\0");
-        var hits = new List<int>();
-        for (var i = 0; i + from.Length <= bytes.Length; i++)
-            if (bytes.AsSpan(i, from.Length).SequenceEqual(from)) hits.Add(i);
-        if (hits.Count != 1) { Console.Error.WriteLine($"ERROR: the sound path '{written}' is in the plugin {hits.Count} times, not once"); Environment.Exit(1); }
-        to.CopyTo(bytes, hits[0]);
-    }
-    File.WriteAllBytes(path, bytes);
-}
 Console.WriteLine($"wrote {path}: {mod.Globals.Count} globals, {mod.Quests.Count} quests, {mod.DialogTopics.Count} topics, {mod.Books.Count} books");
 
 // ---------- SEQ ----------

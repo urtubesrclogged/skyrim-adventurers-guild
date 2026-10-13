@@ -37,6 +37,33 @@ namespace AG::PrismaToast
 			"Sound\\FX\\UI\\UI_LevelUp", "Music\\Stinger\\MUS_Stinger_02", "Music\\Reward\\MUS_Reward_01", "Sound\\fx\\ui\\ui_skill_increase",
 			"Sound\\fx\\ui\\ui_quest_update", "Sound\\FX\\UI\\Smithing\\UI_Smithing_CreateGeneric_01", "Sound\\FX\\mgk\\firebolt\\mag_firebolt_fail" };
 
+		std::atomic<std::uint32_t> g_unready{ (1u << 2) | (1u << 3) };  // bit per Cue: a music cue whose file has not been given yet
+
+		// The two music cues (dungeon entered, registered). A sound record cannot name a music file, so each of ours is
+		// written with a stand-in and is given here the game's own reference to the file, read from the game's own
+		// track record (Skyrim.esm MUSStinger02 0x08DC79, MUSReward01 0x02482C). It then plays as any sound does: once.
+		void BorrowTracks()
+		{
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			if (!dh) return;
+			const std::pair<std::uint32_t, RE::FormID> kTracks[] = { { 2, 0x08DC79 }, { 3, 0x02482C } };
+			for (const auto& [cue, trackId] : kTracks) {
+				auto* form = dh->LookupForm(0xC80 + cue, "AdventurersGuild.esp");
+				auto* sd = form ? form->As<RE::BGSSoundDescriptorForm>() : nullptr;
+				auto* def = sd && sd->soundDescriptor ? skyrim_cast<RE::BGSStandardSoundDef*>(sd->soundDescriptor) : nullptr;
+				auto* wrap = dh->LookupForm<RE::BGSMusicTrackFormWrapper>(trackId, "Skyrim.esm");
+				auto* track = wrap && wrap->track && wrap->track->GetType() == RE::BSIMusicTrack::TrackType::kSingleTrack
+					? static_cast<RE::BGSMusicSingleTrack*>(wrap->track) : nullptr;
+				if (!def || def->soundFiles.empty() || !track) {
+					SKSE::log::warn("PrismaToast: the music of a notice could not be set up (cue {}: record {}, track {:06X} {}) - that notice is silent",
+						cue, def ? "found" : "missing", trackId, track ? "found" : "missing or not a single track");
+					continue;
+				}
+				def->soundFiles[0] = track->trackID;
+				g_unready.fetch_and(~(1u << cue));
+			}
+		}
+
 		void FindReplaced()
 		{
 			std::uint32_t bits = 0;
@@ -94,6 +121,7 @@ namespace AG::PrismaToast
 			}
 		}
 		FindReplaced();
+		BorrowTracks();
 		g_api = PRISMA_UI_API::RequestPluginAPI<PRISMA_UI_API::IVPrismaUI1>();
 		if (!g_api) {
 			SKSE::log::info("PrismaToast: PrismaUI not loaded - rank-up toast disabled");
@@ -129,6 +157,7 @@ namespace AG::PrismaToast
 	bool Play(Cue a_cue, bool a_evenIfReplaced)
 	{
 		if (!a_evenIfReplaced && Replaced(a_cue)) return false;
+		if ((g_unready.load() >> static_cast<std::uint32_t>(a_cue)) & 1u) return false;  // still its stand-in: never played
 		// AdventurersGuild.esp 0xC81.. in the order of the enum (tools/EspGen/Program.cs, Cue)
 		if (a_cue == Cue::kNone) return false;
 		auto* dh = RE::TESDataHandler::GetSingleton();

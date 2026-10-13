@@ -6,7 +6,6 @@
 #include "Counter.h"
 
 #include "BountyWatch.h"
-#include "PrismaToast.h"
 
 #include "ControlsGuard.h"
 #include "Dungeons.h"
@@ -212,14 +211,6 @@ namespace AG::Counter
 					const auto id = arg.substr(8);  // a missive or a notice: each watch knows its own quests
 					const auto details = BountyWatch::Owns(id) ? BountyWatch::Details(id) : NoticeWatch::Owns(id) ? NoticeWatch::Details(id) : MissiveWatch::Details(id);
 					if (Valid()) g_api->Invoke(g_view, ("window.agDetails(" + details.dump() + ")").c_str());
-					return;
-				}
-				// TEMPORARY (2026-10-13, the Sound test tab): play one notice's sound, whatever replaces it. Out before release.
-				if (arg.starts_with("cue:")) {
-					int n = 0;
-					try { n = std::stoi(arg.substr(4)); } catch (...) {}
-					const bool ok = PrismaToast::Play(static_cast<PrismaToast::Cue>(n), true);
-					SKSE::log::info("Counter: sound test, cue {} -> {}", n, ok ? "played" : "NOT played");
 					return;
 				}
 				std::string msg;
@@ -585,11 +576,6 @@ namespace AG::Counter
 				data["region"] = morrowind ? "Morrowind" : "Skyrim";
 			}
 			data["cardOnly"] = g_cardOnly.load();
-			{  // TEMPORARY (the Sound test tab): which notice sounds another mod replaces, by cue number
-				auto r = nlohmann::json::array();
-				for (int c = 0; c <= 7; ++c) r.push_back(c > 0 && PrismaToast::Replaced(static_cast<PrismaToast::Cue>(c)));
-				data["cuesReplaced"] = std::move(r);
-			}
 			if (!g_member.is_null()) data["member"] = g_member;  // someone else's card: the page draws that and nothing of the player's
 			// a member without their card: the Guild Card page shows it masked, with a replacement for sale
 			data["hasCard"] = GuildCard::Has();
