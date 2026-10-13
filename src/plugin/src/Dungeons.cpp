@@ -797,6 +797,51 @@ namespace AG::Dungeons
 		return Loc::F("$AG_Intel_Bought", "{} is marked on your map (Threat Rank {}). {} Merit spent.", name, Letter(rank), cost);
 	}
 
+	std::string DebugHold()
+	{
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		auto* hold = HoldOf(pc ? pc->GetCurrentLocation() : nullptr);
+		if (!hold || !dh) return "not in a hold";
+		BuildZones();
+		std::vector<RE::BGSLocationRefType*> bossTypes;
+		if (auto* b = dh->LookupForm<RE::BGSLocationRefType>(0x0130F7, "Skyrim.esm")) bossTypes.push_back(b);
+		if (auto* b = dh->LookupForm<RE::BGSLocationRefType>(0x0206B5, "Dragonborn.esm")) bossTypes.push_back(b);
+		// the bosses of each dungeon: tagged on the dungeon itself or on a place inside it (Bleak Falls Sanctum)
+		std::map<const RE::BGSLocation*, std::vector<RE::FormID>> bosses;
+		for (auto* l : dh->GetFormArray<RE::BGSLocation>()) {
+			auto* d = l ? DungeonOf(l) : nullptr;
+			if (!d || !Under(d, hold)) continue;
+			bosses[d];
+			for (auto& sr : l->specialRefs)
+				if (std::ranges::find(bossTypes, sr.type) != bossTypes.end()) bosses[d].push_back(sr.refData.refID);
+		}
+		std::string out = std::format("{} ({} dungeons), player level {}\ndungeon\tzone level\tzone rank\tcleared\tbosses (name, level, threat rank, state)\n",
+			Name(hold), bosses.size(), pc->GetLevel());
+		std::vector<std::string> rows;
+		for (auto& [d, ids] : bosses) {
+			const auto z = g_zoneOf.find(d);
+			const bool zone = z != g_zoneOf.end() && z->second;
+			const int  level = LevelFor(zone ? z->second : nullptr);
+			std::string who;
+			for (const auto id : ids) {
+				auto* a = RE::TESForm::LookupByID<RE::Actor>(id);
+				if (!who.empty()) who += "; ";
+				if (!a) { who += std::format("{:08X} not in memory", id); continue; }
+				auto* base = a->GetActorBase();
+				const char* n = a->GetDisplayFullName();
+				who += std::format("{} [{:08X}, base {:08X}] level {} rank {} ({}{})", n && *n ? n : "(no name)", id, base ? base->GetFormID() : 0, a->GetLevel(),
+					Letter(ThreatRank(a)), a->Is3DLoaded() ? "loaded" : "not loaded", a->IsDead() ? ", dead" : "");
+			}
+			rows.push_back(std::format("{}\t{}{}\t{}\t{}\t{}", Name(d), level, zone ? "" : " (no zone)", Letter(FromLevel(level)), d->IsCleared() ? "yes" : "no",
+				who.empty() ? "no boss tagged" : who));
+		}
+		std::sort(rows.begin(), rows.end());
+		for (auto& r : rows) out += r + "\n";
+		SKSE::log::info("Dungeons: hold listing\n{}", out);
+		return out;
+	}
+
 	std::string DebugInfo()
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();

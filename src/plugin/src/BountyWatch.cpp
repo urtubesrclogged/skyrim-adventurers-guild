@@ -88,13 +88,18 @@ namespace AG::BountyWatch
 			int   rank = -1;
 			auto* ref = QuestBoard::AliasRef(a_q, "Bounty");
 			auto* target = ref ? ref->As<RE::Actor>() : nullptr;
-			if (target) rank = ThreatRank(target);
-			rank = std::max(rank, Dungeons::RankOf(LocationOf(a_q, "BountyLocation")));
+			const int byTarget = target ? ThreatRank(target) : -1;
+			const int byPlace = Dungeons::RankOf(LocationOf(a_q, "BountyLocation"));
+			rank = std::max(byTarget, byPlace);
 			if (rank < 0) return 0;  // nothing to go on: not remembered, so it is worked out again when there is
 			rank = std::min(rank, kRankCount - 1);
 			if (a_q->GetCurrentStageID() < kSlain && target && !target->IsDead()) {
 				std::lock_guard l(g_lock);
-				g_rank[key] = rank;
+				// once for each bounty, as it is first ranked: which of the two set the rank, and on what
+				if (g_rank.emplace(key, rank).second)
+					SKSE::log::info("BountyWatch: {:08X} ranked {} (target {} level {}{}: {}; place: {})", a_q->GetFormID(), Letter(rank),
+						target->GetDisplayFullName() ? target->GetDisplayFullName() : "?", target->GetLevel(), target->Is3DLoaded() ? "" : ", not loaded",
+						byTarget < 0 ? '-' : Letter(byTarget), byPlace < 0 ? '-' : Letter(byPlace));
 			}
 			return rank;
 		}

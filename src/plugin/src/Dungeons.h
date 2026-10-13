@@ -53,5 +53,8 @@ namespace AG::Dungeons
 
 	// dev/test (DevBench)
 	std::string DebugInfo();   // current location, zone, level, rank, visited/reported state
+	// every dungeon of the player's hold: the rank the Guild gives it (its zone) beside its bosses as they can be read
+	// from here, before going in (one line each, tab-separated; also written to the log)
+	std::string DebugHold();
 	std::string DebugClear();  // run the clear path for the current dungeon (as if the stat fired)
 }

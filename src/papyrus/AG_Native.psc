@@ -93,6 +93,7 @@ Function DebugPromote() Global Native
 Function DebugSetRank(Int aiRank) Global Native            ; -1 = unregister
 Function DebugAddMerit(Int aiAmount) Global Native  ; Merit and Reputation
 Function DebugAddRep(Int aiAmount) Global Native    ; Reputation only (as kills pay)
+String Function DebugHoldDungeons() Global Native   ; every dungeon of this hold: zone rank beside its bosses as read from here (also logged)
 String Function DebugThreat() Global Native         ; threat-rank breakdown of actors near the player (also logged)
 String Function DebugKill(Int aiFormId) Global Native  ; kill credit as if the player killed that actor
 Function DebugReset() Global Native

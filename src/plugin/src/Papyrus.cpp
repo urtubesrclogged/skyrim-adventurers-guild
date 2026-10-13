@@ -157,6 +157,7 @@ namespace AG
 		std::string DebugPartyDisband(Tag*) { return Party::Disband(); }
 		void        DebugPartyBond(Tag*, RE::Actor* a_actor, float a_amount) { Party::AddBond(a_actor, a_amount); }
 		std::string  DebugDungeon(Tag*) { return Dungeons::DebugInfo(); }
+		std::string  DebugHoldDungeons(Tag*) { return Dungeons::DebugHold(); }
 		std::string  DebugClearDungeon(Tag*) { return Dungeons::DebugClear(); }
 		std::string  DebugMemberCards(Tag*) { return MemberCards::Debug(); }
 		void         MemberCardGiven(Tag*, RE::Actor* a_owner) { MemberCards::Given(a_owner); }
@@ -261,6 +262,7 @@ namespace AG
 		REG(DebugAddMerit);
 		REG(DebugAddRep);
 		REG(DebugThreat);
+		REG(DebugHoldDungeons);
 		REG(DebugKill);
 		REG(DebugReset);
 		REG(DebugBoard);
