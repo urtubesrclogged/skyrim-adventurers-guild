@@ -99,7 +99,7 @@ namespace AG::Dungeons
 			return lvl;
 		}
 
-		int LevelHere() { return LevelFor(ZoneHere()); }
+		int LevelHere();  // below: it needs the index of the dungeons' zones
 
 		// ---- intel: every dungeon's encounter zone (from its interior cells) and its map marker
 		std::unordered_map<const RE::BGSLocation*, RE::BGSEncounterZone*> g_zoneOf;
@@ -121,6 +121,23 @@ namespace AG::Dungeons
 				if (d && !g_zoneOf.contains(d)) g_zoneOf[d] = z;
 			}
 			SKSE::log::info("Dungeons: {} dungeon encounter zones indexed for intel", g_zoneOf.size());
+		}
+
+		// The level of the dungeon the player is in: the zone of the cell they stand in, and where that cell has none (an
+		// outdoor part of the place, a courtyard, the spot its map marker sits on) the zone of the dungeon's own interior,
+		// as Intel prices it. Only a dungeon with no zone anywhere falls back to the player's level. Without the second
+		// step Bashskull Retreat, a level-40 place, was announced as rank E to a level-4 player who came in through a
+		// cell with no zone (Librum, 2026-10-13).
+		int LevelHere()
+		{
+			if (auto* z = ZoneHere()) return LevelFor(z);
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			auto* d = DungeonOf(pc ? pc->GetCurrentLocation() : nullptr);
+			if (d) {
+				BuildZones();
+				if (const auto it = g_zoneOf.find(d); it != g_zoneOf.end() && it->second) return LevelFor(it->second);
+			}
+			return LevelFor(nullptr);
 		}
 
 		// The region a counter's intel covers: the hold, or all of Solstheim for the counter in Raven Rock (the island is
