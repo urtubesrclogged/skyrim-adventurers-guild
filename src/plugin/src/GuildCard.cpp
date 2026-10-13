@@ -77,10 +77,9 @@ namespace AG::GuildCard
 		std::mutex     g_memberLock;
 		nlohmann::json g_memberToShow;  // set when the book being read is another adventurer's card
 		// A card read where it lies is also taken (the Book Menu we close is where "Take" lives). It is taken once
-		// the Book Menu has gone, not while it is opening: the menu holds the card's 3D while it shows it. Taken in that
-		// moment, a named card (which keeps one reference for life) went into the pack with its 3D still in the menu's
-		// hands, and the next time it was dropped it appeared at the middle of the cell and fell through the world
-		// (Marcurio's card in the Bannered Mare, 2026-10-13: read on the floor, dropped again, found far under the floor).
+		// the Book Menu has gone, not while it is opening: the menu holds the card's 3D while it shows it.
+		// (Changed 2026-10-13 while looking for why a dropped card vanished. That turned out to be the new mesh's
+		// collision box, not this; taking it after the menu has let go is kept as the tidier order.)
 		RE::ObjectRefHandle g_takeWhenClear;  // guarded by g_memberLock
 
 		void TakeWhenClear(RE::TESObjectREFR* a_ref)
