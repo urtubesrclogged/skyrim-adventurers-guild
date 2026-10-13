@@ -29,6 +29,12 @@ Event OnPageReset(String a_page)
 EndEvent
 
 ; state-option events (the ...ST option functions route to these in the option's state)
+Event OnOptionSelect(Int a_option)
+EndEvent
+
+Event OnOptionHighlight(Int a_option)
+EndEvent
+
 Event OnSelectST()
 EndEvent
 

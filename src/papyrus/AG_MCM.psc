@@ -23,6 +23,8 @@ Bool bToastSoundOff = False
 Bool bGreetingsOff = False
 Bool bInteractionsOff = False
 Bool bRepLinesOff = False
+; TEMPORARY (testing the notice sounds, 2026-10-13): the options of the seven preview rows on the Audio page
+Int[] iCueOptions
 Bool bDetailedLog = False
 ; the key that opens the Guild Card: none until the player picks one (0 or less = none)
 Int iCardKey = -1
@@ -146,6 +148,17 @@ Event OnPageReset(String a_page)
 		AddToggleOptionST("Greetings", "$AG_MCM_Audio_bGreetings_Text", !bGreetingsOff, OPTION_FLAG_NONE)
 		AddToggleOptionST("Interactions", "$AG_MCM_Audio_bInteractions_Text", !bInteractionsOff, OPTION_FLAG_NONE)
 		AddToggleOptionST("RepLines", "$AG_MCM_Audio_bRepLines_Text", !bRepLinesOff, OPTION_FLAG_NONE)
+		; TEMPORARY TEST: a row for each notice's sound; selecting one plays it (plain text, not translated)
+		SetCursorPosition(1)
+		AddHeaderOption("Sound test (temporary)", OPTION_FLAG_NONE)
+		iCueOptions = new Int[8]
+		iCueOptions[1] = AddTextOption("Promoted", CueState(1), OPTION_FLAG_NONE)
+		iCueOptions[3] = AddTextOption("Guild registration", CueState(3), OPTION_FLAG_NONE)
+		iCueOptions[4] = AddTextOption("Promotion ready", CueState(4), OPTION_FLAG_NONE)
+		iCueOptions[2] = AddTextOption("Dungeon entered", CueState(2), OPTION_FLAG_NONE)
+		iCueOptions[5] = AddTextOption("Missive, notice or bounty complete", CueState(5), OPTION_FLAG_NONE)
+		iCueOptions[6] = AddTextOption("Guild card stamped", CueState(6), OPTION_FLAG_NONE)
+		iCueOptions[7] = AddTextOption("Reputation lost", CueState(7), OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[2]
 		AddHeaderOption("$AG_MCM_Debug_Log_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("DetailedLog", "$AG_MCM_Debug_bDetailedLog_Text", bDetailedLog, OPTION_FLAG_NONE)
@@ -185,6 +198,29 @@ State Labels
 		SetInfoText("$AG_MCM_System_bShowLabels_Help")
 	EndEvent
 EndState
+
+; TEMPORARY TEST: the preview rows of the Audio page
+String Function CueState(Int aiCue)
+	If AG_Native.DebugCueReplaced(aiCue)
+		Return "replaced by a mod"
+	EndIf
+	Return "play"
+EndFunction
+
+Event OnOptionSelect(Int a_option)
+	Int i = 1
+	While iCueOptions && i < 8
+		If iCueOptions[i] == a_option
+			AG_Native.DebugCue(i)
+			Return
+		EndIf
+		i += 1
+	EndWhile
+EndEvent
+
+Event OnOptionHighlight(Int a_option)
+	SetInfoText("Temporary test: select a row to hear that notice's sound. 'replaced by a mod' means another mod supplies its own file, so the notice itself stays silent; selecting the row plays that mod's version.")
+EndEvent
 
 State Greetings
 	Event OnSelectST()
