@@ -587,6 +587,8 @@
  "_showCard": "Show Guild Card (1.5.0): a member carrying the card can show it where vanilla asks the player to talk their way in. No vanilla line is overridden: each reply is ADDED to a vanilla choice, which it takes over when vanilla's own replies before it do not apply (tools/EspGen/Program.cs has the detail). college: Faralda, in place of '(Persuade)', any rank ('E' for a rank E member, 'other' for the rest), and she goes on into her own vanilla welcome. treasury: Rhiada, in place of '(Persuade)', rank C and up. orcs: a stronghold's gate guard, rank A and up, in each voice of 'orcVoices': in place of 'I go where I please, Orc.' at the first meeting, and as a topic of our own in his menu after it.",
  "showCard": {
   "prompt": "I'm with the Adventurers Guild. (Show Guild Card)",
+  "_orcsPrompt": "The player's line at an Orc stronghold, in both places it appears. Only rank A and up are offered it, so it says so: being 'with the Guild' is not what gets anyone past this gate.",
+  "orcsPrompt": "I'm a high-rank adventurer. (Show Guild Card)",
   "college": {
    "E": ["The Adventurers Guild? May I see your card?", "Newly stamped, I see. Forgive me, I took you for another sightseer. The Adventurers Guild vouches for its own, and that will serve in place of a test."],
    "other": ["The Adventurers Guild? May I see your card?", "A ranked adventurer. Forgive me. I should not ask you to prove yourself on a doorstep."]

@@ -895,7 +895,7 @@ mod.DialogTopics.Add(hello);
         var t = new DialogTopic(FK(topicId), Rel)
         {
             EditorID = "AG_TopicShowCard" + stem,
-            Name = sc["prompt"]!.GetValue<string>(),
+            Name = sc[stem == "Orcs" ? "orcsPrompt" : "prompt"]!.GetValue<string>(),
             Priority = 50,
             Branch = new FormLinkNullable<IDialogBranchGetter>(b.FormKey),
             Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
@@ -1119,7 +1119,7 @@ mod.DialogTopics.Add(hello);
         var swapOf = new Dictionary<uint, (uint id, string stem, string prompt)>
         {
             [0x0E66B4] = (0xCEE, "Riften", "prompt"), [0x0D1979] = (0xCEF, "Whiterun", "prompt"), [0x0B8106] = (0xCF0, "College", "prompt"),
-            [0x0D6630] = (0xCF1, "Treasury", "prompt"), [0x0BBA89] = (0xCF2, "OrcGate", "prompt"), [0x0B8155] = (0xCF3, "Robber", "robber"),
+            [0x0D6630] = (0xCF1, "Treasury", "prompt"), [0x0BBA89] = (0xCF2, "OrcGate", "orcs"), [0x0B8155] = (0xCF3, "Robber", "robber"),
         };
         DialogTopic Hang(uint topicId)
         {
@@ -1127,7 +1127,7 @@ mod.DialogTopics.Add(hello);
             var hang = new DialogTopic(FK(id), Rel)
             {
                 EditorID = "AG_TopicShowCard" + stem,
-                Name = prompt == "robber" ? sc["robber"]!["prompt"]!.GetValue<string>() : sc["prompt"]!.GetValue<string>(),
+                Name = prompt == "robber" ? sc["robber"]!["prompt"]!.GetValue<string>() : sc[prompt == "orcs" ? "orcsPrompt" : "prompt"]!.GetValue<string>(),
                 Priority = 50, Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
                 Category = DialogTopic.CategoryEnum.Topic, Subtype = DialogTopic.SubtypeEnum.Custom, SubtypeName = new RecordType("CUST"),
             };

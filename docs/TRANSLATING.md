@@ -120,8 +120,10 @@ New text in the plugin (section 2) for the other adventurers' guild cards:
 
 New text in the plugin (section 2), all of it for Show Guild Card:
 
-* The player's line `I'm with the Adventurers Guild. (Show Guild Card)`. It is the name of one topic of the mod's own
-  and the name of six topics (`AG_TopicShowCardOrcs`, `...Riften`, `...Whiterun`, `...College`, `...Treasury`, `...OrcGate`): keep them the same.
+* The player's line `I'm with the Adventurers Guild. (Show Guild Card)`: the name of four topics
+  (`AG_TopicShowCardRiften`, `...Whiterun`, `...College`, `...Treasury`): keep them the same.
+* The player's line `I'm a high-rank adventurer. (Show Guild Card)`: the name of the two stronghold topics
+  (`AG_TopicShowCardOrcs`, `AG_TopicShowCardOrcGate`): keep those two the same. Only rank A and up are offered it.
 * The player's line `You're robbing a ranked adventurer of the Adventurers Guild. Walk away.`: the name of the topic
   `AG_TopicShowCardRobber`.
 * Nine replies, by editor ID: `AG_Info_showcard_college_E`, `AG_Info_showcard_college` (Faralda),
