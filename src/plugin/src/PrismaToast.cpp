@@ -110,6 +110,21 @@ namespace AG::PrismaToast
 			if (!vm) return false;
 			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
 			vm->DispatchStaticCall("AG_QuestHelper", "PlayMusic", RE::MakeFunctionArguments(static_cast<RE::BGSMusicType*>(music)), cb);
+			// ... and it is taken off again when the track has played. Left on, a music type of one track plays it over and
+			// over (heard in game, 2026-10-13): the game's own scripts take theirs off too. The lengths are the two
+			// tracks' own (MUS_Stinger_02 7.0 s, MUS_Reward_01 9.2 s), with the fade the game gives a removal.
+			const auto id = music->GetFormID();
+			const int  ms = a_cue == Cue::kRegistered ? 9200 : 7000;
+			std::thread([id, ms] {
+				std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+				SKSE::GetTaskInterface()->AddTask([id] {
+					auto* m = RE::TESForm::LookupByID<RE::BGSMusicType>(id);
+					auto* v = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+					if (!m || !v) return;
+					RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> done;
+					v->DispatchStaticCall("AG_QuestHelper", "StopMusic", RE::MakeFunctionArguments(static_cast<RE::BGSMusicType*>(m)), done);
+				});
+			}).detach();
 			return true;
 		}
 		auto* sd = form ? form->As<RE::BGSSoundDescriptorForm>() : nullptr;
