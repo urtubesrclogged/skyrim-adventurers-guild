@@ -76,6 +76,31 @@ namespace AG::GuildCard
 		// few frames, and the VR inventory takes longer). If the menus never go, nothing opens.
 		std::mutex     g_memberLock;
 		nlohmann::json g_memberToShow;  // set when the book being read is another adventurer's card
+		// A card read where it lies is also taken (the Book Menu we close is where "Take" lives). It is taken once
+		// the Book Menu has gone, not while it is opening: the menu holds the card's 3D while it shows it. Taken in that
+		// moment, a named card (which keeps one reference for life) went into the pack with its 3D still in the menu's
+		// hands, and the next time it was dropped it appeared at the middle of the cell and fell through the world
+		// (Marcurio's card in the Bannered Mare, 2026-10-13: read on the floor, dropped again, found far under the floor).
+		RE::ObjectRefHandle g_takeWhenClear;  // guarded by g_memberLock
+
+		void TakeWhenClear(RE::TESObjectREFR* a_ref)
+		{
+			std::lock_guard l(g_memberLock);
+			g_takeWhenClear = a_ref ? a_ref->GetHandle() : RE::ObjectRefHandle();
+		}
+
+		void TakeNow()
+		{
+			RE::ObjectRefHandle h;
+			{
+				std::lock_guard l(g_memberLock);
+				h = g_takeWhenClear;
+				g_takeWhenClear = RE::ObjectRefHandle();
+			}
+			auto  ref = h.get();
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			if (ref && pc && !ref->IsDisabled() && !ref->IsDeleted()) pc->PickUpObject(ref.get(), 1, false, true);
+		}
 
 		void OpenWhenClear()
 		{
@@ -92,6 +117,7 @@ namespace AG::GuildCard
 					for (int w = 0; w < 50 && state.load() == 0; ++w) std::this_thread::sleep_for(std::chrono::milliseconds(10));
 					if (state.load() == 1) {
 						SKSE::GetTaskInterface()->AddTask([] {
+							TakeNow();   // the Book Menu has let go of it
 							nlohmann::json member;
 							{
 								std::lock_guard l(g_memberLock);
@@ -104,6 +130,7 @@ namespace AG::GuildCard
 						break;
 					}
 				}
+				SKSE::GetTaskInterface()->AddTask(TakeNow);   // (nothing to do if it was taken above; the menus never cleared otherwise)
 				g_opening = false;
 			}).detach();
 		}
@@ -131,8 +158,7 @@ namespace AG::GuildCard
 						auto        member = MemberCards::CardFor(item);
 						SKSE::log::info("GuildCard: \"{}\" is being read ({}) - {}", item, ref ? "where it lies" : "from a menu", member.is_null() ? "no record of it" : "shown");
 						if (member.is_null()) return;
-						if (ref)
-							if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->PickUpObject(ref.get(), 1, false, true);  // as the player's own: read is also how it is taken
+						if (ref) TakeWhenClear(ref.get());  // as the player's own: read is also how it is taken
 						{
 							std::lock_guard l(g_memberLock);
 							g_memberToShow = std::move(member);
@@ -142,8 +168,7 @@ namespace AG::GuildCard
 					}
 					// a worn card: the same page, as a sheet nothing can be read from
 					if (MemberCards::IsWorn(RE::BookMenu::GetTargetForm())) {
-						if (auto ref = RE::BookMenu::GetTargetReference(); ref)
-							if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->PickUpObject(ref.get(), 1, false, true);
+						if (auto ref = RE::BookMenu::GetTargetReference(); ref) TakeWhenClear(ref.get());
 						{
 							std::lock_guard l(g_memberLock);
 							g_memberToShow = nlohmann::json{ { "worn", true }, { "name", "nobody (a worn card)" } };
@@ -155,8 +180,7 @@ namespace AG::GuildCard
 					if (!Guild::Registered() || Guild::Dormant()) return;  // the note's own text is shown instead
 					// Read where it lies in the world: the Book Menu we are about to close is also where "Take" lives, so
 					// the card is picked up as it is read (a card on the floor could otherwise be read but never taken).
-					if (auto ref = RE::BookMenu::GetTargetReference(); ref)
-						if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->PickUpObject(ref.get(), 1, false, true);
+					if (auto ref = RE::BookMenu::GetTargetReference(); ref) TakeWhenClear(ref.get());
 					OpenWhenClear();
 				});
 				return RE::BSEventNotifyControl::kContinue;
