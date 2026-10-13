@@ -113,12 +113,23 @@ namespace AG::PrismaToast
 			return true;
 		}
 		auto* sd = form ? form->As<RE::BGSSoundDescriptorForm>() : nullptr;
-		if (!sd || !am) {
+		if (!sd || !sd->soundDescriptor || !am) {
 			static std::atomic<bool> said{ false };
 			if (!said.exchange(true)) SKSE::log::warn("PrismaToast: the sound record of a notice was not found (cue {}) - the notices are silent", static_cast<int>(a_cue));
 			return false;
 		}
-		return am->Play(sd->GetFormID());
+		// What the game plays is the descriptor INSIDE the record, not the record: handed the record itself
+		// (BSAudioManager::Play by FormID does that) the game reported success and played something else, a page turning
+		// (heard in game, 2026-10-13). And on the game's own thread: a notice is often raised from an event's.
+		const auto id = sd->GetFormID();
+		SKSE::GetTaskInterface()->AddTask([id] {
+			auto* f = RE::TESForm::LookupByID<RE::BGSSoundDescriptorForm>(id);
+			auto* m = RE::BSAudioManager::GetSingleton();
+			if (!f || !f->soundDescriptor || !m) return;
+			RE::BSSoundHandle h;
+			if (m->GetSoundHandle(h, f->soundDescriptor)) h.Play();
+		});
+		return true;
 	}
 
 	bool Sounds() { return g_sounds.load(std::memory_order_relaxed); }
