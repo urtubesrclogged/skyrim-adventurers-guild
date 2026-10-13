@@ -25,6 +25,7 @@ namespace AG::PrismaToast
 		PRISMA_UI_API::IVPrismaUI1* g_api{ nullptr };
 		PrismaView                  g_view{ 0 };
 		std::atomic<bool>           g_enabled{ true };
+		std::atomic<bool>           g_sounds{ true };  // MCM "Notice sounds"
 		std::atomic<bool>           g_shown{ false };  // the notice is up (ControlsGuard is told once per appearance)
 		std::atomic<std::uint32_t>  g_seq{ 0 };   // bumps per toast: a stale hide timer must not cut a newer toast short
 		std::atomic<int>            g_holdMs{ 5000 };  // MCM "Important notices"; the view adds 0.3 s in + 0.5 s out
@@ -61,6 +62,7 @@ namespace AG::PrismaToast
 			ini.SetUnicode();
 			if (ini.LoadFile("Data/SKSE/Plugins/AdventurersGuild.ini") >= 0) {
 				SetEnabled(ini.GetBoolValue("System", "ShowNotices", true));
+				SetSounds(ini.GetBoolValue("System", "NoticeSounds", true));
 				SetHoldSeconds(static_cast<float>(ini.GetDoubleValue("System", "NoticeSeconds", 5.0)));
 			}
 		}
@@ -94,9 +96,38 @@ namespace AG::PrismaToast
 		int HoldMs(Priority a_p) { return a_p == Priority::kMinor ? g_minorMs.load() : g_holdMs.load(); }
 	}
 
-	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal, Priority a_priority)
+	bool Play(Cue a_cue)
+	{
+		// AdventurersGuild.esp 0xC81.. in the order of the enum (tools/EspGen/Program.cs, Cue)
+		if (a_cue == Cue::kNone) return false;
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		auto* am = RE::BSAudioManager::GetSingleton();
+		auto* form = dh ? dh->LookupForm(0xC80 + static_cast<RE::FormID>(a_cue), "AdventurersGuild.esp") : nullptr;
+		// two are music (a stinger, the reward music): the game plays those through its music system, and so do we,
+		// the way its own quest scripts do (MusicType.Add(); a one-shot type leaves by itself when it has played)
+		if (auto* music = form ? form->As<RE::BGSMusicType>() : nullptr) {
+			auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+			if (!vm) return false;
+			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+			vm->DispatchStaticCall("AG_QuestHelper", "PlayMusic", RE::MakeFunctionArguments(static_cast<RE::BGSMusicType*>(music)), cb);
+			return true;
+		}
+		auto* sd = form ? form->As<RE::BGSSoundDescriptorForm>() : nullptr;
+		if (!sd || !am) {
+			static std::atomic<bool> said{ false };
+			if (!said.exchange(true)) SKSE::log::warn("PrismaToast: the sound record of a notice was not found (cue {}) - the notices are silent", static_cast<int>(a_cue));
+			return false;
+		}
+		return am->Play(sd->GetFormID());
+	}
+
+	bool Sounds() { return g_sounds.load(std::memory_order_relaxed); }
+	void SetSounds(bool a_on) { g_sounds.store(a_on, std::memory_order_relaxed); }
+
+	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal, Priority a_priority, Cue a_cue)
 	{
 		if (!Active() || !g_enabled.load(std::memory_order_relaxed)) return;
+		if (a_cue != Cue::kNone && Sounds()) Play(a_cue);  // only with a notice that is shown: a sound alone says nothing
 
 		std::string json = "{\"title\":\"" + Esc(a_title) + "\",\"subtitle\":\"" + Esc(a_subtitle) + "\",\"seal\":\"" + Esc(a_seal) + "\",\"hold\":" + std::to_string(HoldMs(a_priority) / 1000.0) + ",\"flat\":" + (REL::Module::IsVR() ? "false" : "true") + "}";
 		// A toast raised while the counter is open (e.g. intel bought) must draw above it, not behind it.

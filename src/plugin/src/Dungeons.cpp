@@ -277,9 +277,10 @@ namespace AG::Dungeons
 			return out;
 		}
 
-		void Toast(std::string_view a_title, std::string_view a_sub, int a_rank, PrismaToast::Priority a_p = PrismaToast::Priority::kImportant)
+		void Toast(std::string_view a_title, std::string_view a_sub, int a_rank, PrismaToast::Priority a_p = PrismaToast::Priority::kImportant,
+			PrismaToast::Cue a_cue = PrismaToast::Cue::kNone)
 		{
-			PrismaToast::Show(a_title, a_sub, a_rank >= 0 ? std::format("tex/rank_{}.png", Letter(a_rank)) : std::string{}, a_p);
+			PrismaToast::Show(a_title, a_sub, a_rank >= 0 ? std::format("tex/rank_{}.png", Letter(a_rank)) : std::string{}, a_p, a_cue);
 		}
 
 		void OnEntered(RE::BGSLocation* a_dungeon)
@@ -308,7 +309,8 @@ namespace AG::Dungeons
 			if (first) {
 				std::string sub = Loc::F("$AG_Toast_DungeonSub", "{} · Threat Rank {}", name, Letter(rank));
 				if (guild >= 0 && rank > guild) sub += Loc::T("$AG_Toast_BeyondRank", " · beyond your guild rank");
-				Toast(cleared ? Loc::T("$AG_Toast_DungeonCleared2", "DUNGEON (CLEARED)") : Loc::T("$AG_Toast_Dungeon", "DUNGEON"), sub, rank);
+				Toast(cleared ? Loc::T("$AG_Toast_DungeonCleared2", "DUNGEON (CLEARED)") : Loc::T("$AG_Toast_Dungeon", "DUNGEON"), sub, rank,
+					PrismaToast::Priority::kImportant, PrismaToast::Cue::kDungeonEntered);
 			} else {
 				RE::SendHUDMessage::ShowHUDMessage((cleared ? Loc::F("$AG_Hud_DungeonCleared", "{} - Threat Rank {} (cleared)", name, Letter(rank))
 				                                             : Loc::F("$AG_Hud_Dungeon", "{} - Threat Rank {}", name, Letter(rank))).c_str());

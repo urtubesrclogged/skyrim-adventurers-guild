@@ -13,6 +13,7 @@
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
+//   0xC81-0xC87  the notices' sounds (1.5.0): sound descriptors (and two music types, 0xC82/0xC83) of ours that play the game's own files
 //   0xC91-0xC92  AG_AdventurerRankFaction, AG_AdventurerPromotedFaction (a named member's rank, and "just promoted")
 //   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
@@ -1331,6 +1332,42 @@ mod.Books.Add(note);
 // The physical Guild Card (1.2.0): a note the DLL hands over at registration and renames at each promotion. Reading it
 // opens the counter's Guild Card page (GuildCard.cpp watches the Book Menu); this text is only seen if that cannot
 // happen (PrismaUI missing, or the card in the hands of someone the Guild does not know).
+// The notices' sounds (1.5.0, PrismaToast.cpp plays them by these IDs). Each is a sound descriptor of OURS that names a file
+// of the GAME's: no audio is shipped. Ours, and not the game's records, because the author chose single files by ear
+// (2026-10-13) where the game's record picks one of several at random (its stingers, its reward music, the smithing
+// sound). The five that are sounds are copies of a game interface sound, with the file changed where one was chosen:
+// they play flat, at the effects volume. The two that are MUSIC (dungeon entered, registered) are music types of ours
+// holding the one track chosen: a sound record cannot name a file outside Data\Sound (the library that writes this
+// plugin refuses the path), and the music system is how the game itself plays them. Those two follow the music volume.
+void Cue(uint id, string edid, string like, string? file)
+{
+    var src = masters.SelectMany(m => m.SoundDescriptors).Last(s => s.EditorID == like);
+    var sd = new SoundDescriptor(FK(id), Rel);
+    sd.DeepCopyIn(src);
+    sd.EditorID = edid;
+    if (file != null) { sd.SoundFiles.Clear(); sd.SoundFiles.Add(new Mutagen.Bethesda.Plugins.Assets.AssetLink<Mutagen.Bethesda.Skyrim.Assets.SkyrimSoundAssetType>(file)); }
+    mod.SoundDescriptors.Add(sd);
+}
+Cue(0xC81, "AG_CuePromoted", "UILevelUpSD", null);
+void MusicCue(uint id, string edid, string like, string track)
+{
+    var src = masters.SelectMany(m => m.MusicTypes).Last(s => s.EditorID == like);
+    var tr = masters.SelectMany(m => m.MusicTracks).Last(s => s.EditorID == track);
+    var mt = new MusicType(FK(id), Rel);
+    mt.DeepCopyIn(src);
+    mt.EditorID = edid;
+    mt.Tracks ??= new();
+    mt.Tracks.Clear();
+    mt.Tracks.Add(new FormLink<IMusicTrackGetter>(tr.FormKey));
+    mod.MusicTypes.Add(mt);
+}
+MusicCue(0xC82, "AG_CueDungeonEntered", "MUSStinger", "MUSStinger02");
+MusicCue(0xC83, "AG_CueRegistered", "MUSReward", "MUSReward01");
+Cue(0xC84, "AG_CuePromotionReady", "UISkillIncreaseSD", null);
+Cue(0xC85, "AG_CueComplete", "UIQuestComplete", null);
+Cue(0xC86, "AG_CueStamped", "UISmithingCreateGeneric", @"Data\Sound\FX\UI\Smithing\UI_Smithing_CreateGeneric_01.wav");
+Cue(0xC87, "AG_CueReputationLost", "UILevelUpSD", @"Data\Sound\FX\mgk\firebolt\mag_firebolt_fail.wav");
+
 // What the inventory shows for a card, and what the Book Menu opens (a book's "inventory art"): the game's own menu
 // note with its pages hidden and the card laid in it (tools/make_card_mesh.py, write_inventory, says why). 0xCE0-0xCE2,
 // which development builds of Show Guild Card used and no release ever did.

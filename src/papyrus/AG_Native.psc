@@ -67,6 +67,9 @@ Int Function GetDefaultSLevel() Global Native                ; a new game's: [Ra
 Function SetSLevel(Int aiLevel) Global Native
 Int Function GetRankLevel(Int aiRank) Global Native
 Function NoticeRankLevelsKept() Global Native                ; the one-time notice on a save from before 1.4.0
+Bool Function GetNoticeSounds() Global Native                ; MCM > System > Notice sounds
+Function SetNoticeSounds(Bool abOn) Global Native
+Bool Function DebugCue(Int aiCue) Global Native              ; dev/test: play a notice's sound alone (1 promoted, 2 dungeon entered, 3 registered, 4 promotion ready, 5 complete, 6 stamped, 7 Reputation lost)
 Float Function GetToastSeconds() Global Native               ; seconds a guild notice stays fully visible
 Function SetToastSeconds(Float afSeconds) Global Native
 Float Function GetMinorToastSeconds() Global Native          ; notices confirming something just done in a menu

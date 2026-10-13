@@ -244,7 +244,8 @@ namespace AG::Guild
 			SyncGlobals();
 			CallQuestFn("CompleteRegistrationQuest");
 			GuildCard::Sync(true);  // "Here's your guild card."
-			PrismaToast::Show(Loc::T("$AG_Toast_Registration", "GUILD REGISTRATION"), Loc::F("$AG_Toast_RankAdventurer", "Rank {} Adventurer", Letter(rank)), std::format("tex/rank_{}.png", Letter(rank)));
+			PrismaToast::Show(Loc::T("$AG_Toast_Registration", "GUILD REGISTRATION"), Loc::F("$AG_Toast_RankAdventurer", "Rank {} Adventurer", Letter(rank)), std::format("tex/rank_{}.png", Letter(rank)),
+				PrismaToast::Priority::kImportant, PrismaToast::Cue::kRegistered);
 			Hud(rank > 0 ? Loc::F("$AG_Reg_Assessed", "Your experience has been assessed: you are registered as a Rank {} adventurer.", Letter(rank))
 			             : Loc::T("$AG_Reg_RankE", "You are registered as a Rank E adventurer."));
 			SendModEvent("AG_Registered", LetterStr(rank), static_cast<float>(rank));
@@ -274,7 +275,8 @@ namespace AG::Guild
 				Hud(Loc::F("$AG_Hud_GoldRemoved", "{} gold removed.", fee));
 			}
 			SyncGlobals();
-			PrismaToast::Show(Loc::T("$AG_Toast_Promoted", "PROMOTED"), Loc::F("$AG_Toast_RankAdventurer", "Rank {} Adventurer", Letter(rank)), std::format("tex/rank_{}.png", Letter(rank)));
+			PrismaToast::Show(Loc::T("$AG_Toast_Promoted", "PROMOTED"), Loc::F("$AG_Toast_RankAdventurer", "Rank {} Adventurer", Letter(rank)), std::format("tex/rank_{}.png", Letter(rank)),
+				PrismaToast::Priority::kImportant, PrismaToast::Cue::kPromoted);
 			Hud(Loc::F("$AG_Promo_Done", "The Guild has promoted you to Rank {}.", Letter(rank)));
 			GuildCard::Sync(true);  // "I've updated your guild card."
 			SendModEvent("AG_RankChanged", LetterStr(rank), static_cast<float>(rank));
@@ -916,7 +918,8 @@ namespace AG::Guild
 		}
 		SKSE::log::info("Guild: -{} reputation ({})", lost, a_why);
 		if (lost > 0) {
-			PrismaToast::Show(Loc::T("$AG_Toast_RepLost", "REPUTATION LOST"), Loc::F("$AG_Toast_RepLostSub", "-{} Reputation · {}", lost, a_why));
+			PrismaToast::Show(Loc::T("$AG_Toast_RepLost", "REPUTATION LOST"), Loc::F("$AG_Toast_RepLostSub", "-{} Reputation · {}", lost, a_why), {},
+				PrismaToast::Priority::kImportant, PrismaToast::Cue::kReputationLost);
 			Hud(Loc::F("$AG_Hud_RepLost", "-{} Guild Reputation ({})", lost, a_why));
 		}
 		SyncGlobals();

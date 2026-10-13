@@ -17,6 +17,8 @@ Bool bShowLevel = True
 Bool bLabelsCarriedOver = False
 Bool bShowToast = True
 Float fToastSeconds = 5.0
+; Kept as "off" so that a game saved before 1.5.0, where this variable did not exist and so reads False, has the sounds ON.
+Bool bToastSoundOff = False
 Bool bDetailedLog = False
 ; the key that opens the Guild Card: none until the player picks one (0 or less = none)
 Int iCardKey = -1
@@ -36,6 +38,7 @@ Event OnConfigInit()
 	bLabelsCarriedOver = True  ; a first install has nothing older to carry over
 	bShowToast = AG_Native.GetShowRankUpToast()
 	fToastSeconds = AG_Native.GetToastSeconds()
+	bToastSoundOff = !AG_Native.GetNoticeSounds()
 	bDetailedLog = AG_Native.GetDetailedLog()
 	iSLevel = AG_Native.GetDefaultSLevel()
 	bSLevelSet = True
@@ -94,6 +97,7 @@ Function Apply()
 	AG_Native.SetShowLevelSuffix(bShowLabels)
 	AG_Native.SetShowRankUpToast(bShowToast)
 	AG_Native.SetToastSeconds(fToastSeconds)
+	AG_Native.SetNoticeSounds(!bToastSoundOff)
 	AG_Native.SetDetailedLog(bDetailedLog)
 	AG_Native.SetCardHotkey(iCardKey)
 	If bSLevelSet
@@ -112,6 +116,7 @@ Event OnPageReset(String a_page)
 		AddHeaderOption("$AG_MCM_System_Notices_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Toast", "$AG_MCM_System_bShowNotices_Text", bShowToast, OPTION_FLAG_NONE)
 		AddSliderOptionST("ToastSeconds", "$AG_MCM_System_fNoticeSeconds_Text", fToastSeconds, "{0} s", OPTION_FLAG_NONE)
+		AddToggleOptionST("ToastSound", "$AG_MCM_System_bNoticeSounds_Text", !bToastSoundOff, OPTION_FLAG_NONE)
 		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_System_Card_Header", OPTION_FLAG_NONE)
 		AddKeyMapOptionST("CardKey", "$AG_MCM_System_iCardKey_Text", CardKeyShown(), OPTION_FLAG_WITH_UNMAP)
@@ -163,6 +168,22 @@ State Labels
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText("$AG_MCM_System_bShowLabels_Help")
+	EndEvent
+EndState
+
+State ToastSound
+	Event OnSelectST()
+		bToastSoundOff = !bToastSoundOff
+		SetToggleOptionValueST(!bToastSoundOff, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bToastSoundOff = False
+		SetToggleOptionValueST(True, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_System_bNoticeSounds_Help")
 	EndEvent
 EndState
 

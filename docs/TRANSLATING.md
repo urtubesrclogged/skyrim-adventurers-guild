@@ -106,6 +106,9 @@ translate):
   `$AG_Toast_Bounty`, `$AG_Hud_BountyDone`, `$AG_Log_Bounty` and `$AG_Report_Bounty` (`{}` = the rank, then the bounty).
 * `$AG_UI_NoReports2` now names bounties as well.
 
+New keys for the notices' sounds: `$AG_MCM_System_bNoticeSounds_Text` and `$AG_MCM_System_bNoticeSounds_Help` (the MCM
+switch).
+
 New keys in the interface file, all optional, for the other adventurers' guild cards:
 
 * `$AG_Item_GuildCardOf`: the name of the player's own card (`{}` = the player's name). It replaces

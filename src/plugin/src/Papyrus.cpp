@@ -126,6 +126,9 @@ namespace AG
 		void SetDetailedLog(Tag*, bool a_on) { Diag::SetDetailedLog(a_on); }
 		bool GetShowRankUpToast(Tag*) { return PrismaToast::Enabled(); }
 		void SetShowRankUpToast(Tag*, bool a_on) { PrismaToast::SetEnabled(a_on); }
+		bool  GetNoticeSounds(Tag*) { return PrismaToast::Sounds(); }
+		void  SetNoticeSounds(Tag*, bool a_on) { PrismaToast::SetSounds(a_on); }
+		bool  DebugCue(Tag*, std::int32_t a_cue) { return PrismaToast::Play(static_cast<PrismaToast::Cue>(a_cue)); }
 		float GetToastSeconds(Tag*) { return PrismaToast::HoldSeconds(); }
 		void  SetToastSeconds(Tag*, float a_s) { PrismaToast::SetHoldSeconds(a_s); }
 		float GetMinorToastSeconds(Tag*) { return PrismaToast::MinorHoldSeconds(); }
@@ -230,6 +233,9 @@ namespace AG
 		REG(SetDetailedLog);
 		REG(GetShowRankUpToast);
 		REG(SetShowRankUpToast);
+		REG(GetNoticeSounds);
+		REG(SetNoticeSounds);
+		REG(DebugCue);
 		REG(GetToastSeconds);
 		REG(SetToastSeconds);
 		REG(GetMinorToastSeconds);

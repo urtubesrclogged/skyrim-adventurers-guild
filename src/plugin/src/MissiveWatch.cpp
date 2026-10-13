@@ -138,7 +138,8 @@ namespace AG::MissiveWatch
 				a_title = q->GetFullName();
 				a_title = QuestBoard::StripRank(std::move(a_title));
 			}
-			PrismaToast::Show(Loc::T("$AG_Toast_Missive", "MISSIVE COMPLETE"), Loc::T("$AG_Toast_MissiveSub", "Submit your report at any guild counter"));
+			PrismaToast::Show(Loc::T("$AG_Toast_Missive", "MISSIVE COMPLETE"), Loc::T("$AG_Toast_MissiveSub", "Submit your report at any guild counter"), {},
+				PrismaToast::Priority::kImportant, PrismaToast::Cue::kComplete);
 			Guild::OnMissiveCompleted(FromLetter(a_tier), a_title);
 			SKSE::log::info("MissiveWatch: quest complete (tier {})", a_tier);
 		}

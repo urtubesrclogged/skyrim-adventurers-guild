@@ -7,6 +7,8 @@
  "$AG_MCM_System_Notices_Header": "Guild notices",
  "$AG_MCM_System_bShowNotices_Text": "Show guild notices",
  "$AG_MCM_System_bShowNotices_Help": "The parchment notice for registration, promotion, promotion ready, a completed missive, and entering or clearing a dungeon. Default: on.",
+ "$AG_MCM_System_bNoticeSounds_Text": "Notice sounds",
+ "$AG_MCM_System_bNoticeSounds_Help": "A sound with the guild notices: promotion, registration, promotion ready, entering a dungeon for the first time, a completed missive, notice or bounty, a stamp on your card, Reputation lost. They are the game's own sounds and follow its effects volume (its music volume for the registration and dungeon ones). Default: on.",
  "$AG_MCM_System_fNoticeSeconds_Text": "Notice duration",
  "$AG_MCM_System_fNoticeSeconds_Help": "How many seconds a guild notice stays on screen, plus a brief fade in and out. Default: 5.",
  "$AG_MCM_System_Card_Header": "Guild Card",

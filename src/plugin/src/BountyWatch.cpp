@@ -186,7 +186,8 @@ namespace AG::BountyWatch
 						RE::SendHUDMessage::ShowHUDMessage(Loc::F("$AG_Hud_BountyTaken", "The Guild ranks this bounty {}.", Letter(rank)).c_str());
 						SKSE::log::info("BountyWatch: {:08X} taken (rank {}): {}", id, Letter(rank), title);
 					} else if (stage == kCollected) {
-						PrismaToast::Show(Loc::T("$AG_Toast_Bounty", "BOUNTY COLLECTED"), Loc::T("$AG_Toast_MissiveSub", "Submit your report at any guild counter"));
+						PrismaToast::Show(Loc::T("$AG_Toast_Bounty", "BOUNTY COLLECTED"), Loc::T("$AG_Toast_MissiveSub", "Submit your report at any guild counter"), {},
+							PrismaToast::Priority::kImportant, PrismaToast::Cue::kComplete);
 						Guild::OnBountyCompleted(rank, title);
 						SKSE::log::info("BountyWatch: {:08X} collected (rank {}): {}", id, Letter(rank), title);
 					}
