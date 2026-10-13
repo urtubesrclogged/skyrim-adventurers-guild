@@ -1295,12 +1295,18 @@ mod.Quests.Add(regQuest);
 
 // Shape copied from a vanilla note so the item looks, sounds and handles like one.
 var noteSrc = masters.SelectMany(m => m.Books).First(b => b.EditorID == "MS07JareeRaNote");
+// The size of a sheet of paper lying flat, written into every note and card of ours. It was copied from the note above,
+// which has none (all zeros, one of 21 vanilla notes like that), and an item with no size goes through the floor when
+// it is dropped: the cards did, and so did the game's own Ivarstead key and Balbus's fork, which have no size either,
+// while everything with a size landed (Bannered Mare, 2026-10-13, 32 drops measured from outside the game). The
+// collision in the mesh was never at fault. These are the figures other mods give the game's note.
+ObjectBounds PaperBounds() => new ObjectBounds { First = new Noggog.P3Int16(-8, -5, 0), Second = new Noggog.P3Int16(8, 5, 0) };
 var note = new Book(FK(0x811), Rel)
 {
     EditorID = "AG_RegistrationMissive",
     Name = "Missive: Register with the Adventurers Guild",
     Model = noteSrc.Model?.DeepCopy(),
-    ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
+    ObjectBounds = PaperBounds(),
     PickUpSound = noteSrc.PickUpSound is { } pu ? new FormLinkNullable<ISoundDescriptorGetter>(pu.FormKey) : null,
     PutDownSound = noteSrc.PutDownSound is { } pd ? new FormLinkNullable<ISoundDescriptorGetter>(pd.FormKey) : null,
     InventoryArt = noteSrc.InventoryArt is { } ia ? new FormLinkNullable<IStaticGetter>(ia.FormKey) : null,
@@ -1345,7 +1351,7 @@ var card = new Book(FK(0x81A), Rel)
     // its own mesh (tools/make_card_item.py): the sheet of the card page, the wax and the emblem standing proud of it.
     // A card issued at Raven Rock is given the mesh with Morrowind's wax by the DLL (GuildCard.cpp).
     Model = new Model { File = @"AdventurersGuild\guildcard.nif" },
-    ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
+    ObjectBounds = PaperBounds(),
     PickUpSound = noteSrc.PickUpSound is { } cpu ? new FormLinkNullable<ISoundDescriptorGetter>(cpu.FormKey) : null,
     PutDownSound = noteSrc.PutDownSound is { } cpd ? new FormLinkNullable<ISoundDescriptorGetter>(cpd.FormKey) : null,
     InventoryArt = cardArt["guildcard"],
@@ -1369,7 +1375,7 @@ mod.Books.Add(card);
 Book CardLike(uint id, string edid, string name, string mesh, string text) => new Book(FK(id), Rel)
 {
     EditorID = edid, Name = name,
-    Model = new Model { File = @"AdventurersGuild\" + mesh + ".nif" }, ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
+    Model = new Model { File = @"AdventurersGuild\" + mesh + ".nif" }, ObjectBounds = PaperBounds(),
     PickUpSound = noteSrc.PickUpSound is { } mpu ? new FormLinkNullable<ISoundDescriptorGetter>(mpu.FormKey) : null,
     PutDownSound = noteSrc.PutDownSound is { } mpd ? new FormLinkNullable<ISoundDescriptorGetter>(mpd.FormKey) : null,
     InventoryArt = cardArt[mesh],

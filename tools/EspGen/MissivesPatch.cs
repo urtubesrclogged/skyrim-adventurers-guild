@@ -218,7 +218,11 @@ static class MissivesPatch
                     Weight = source.Weight,
                     InventoryArt = source.InventoryArt is { } ia ? new FormLinkNullable<IStaticGetter>(ia.FormKey) : null,
                     Description = source.Description.DeepCopy(),
-                    ObjectBounds = source.ObjectBounds?.DeepCopy(),
+                    // Missives' own notes have no size (all zeros), and an item with no size goes through the floor when
+                    // dropped (Program.cs, PaperBounds): the copy is given a sheet of paper's unless the original has one
+                    ObjectBounds = source.ObjectBounds is { } ob && (ob.First.X != 0 || ob.First.Y != 0 || ob.First.Z != 0 || ob.Second.X != 0 || ob.Second.Y != 0 || ob.Second.Z != 0)
+                        ? ob.DeepCopy()
+                        : new ObjectBounds { First = new Noggog.P3Int16(-8, -5, 0), Second = new Noggog.P3Int16(8, 5, 0) },
                 };
                 foreach (var kw in source.Keywords ?? Enumerable.Empty<IFormLinkGetter<IKeywordGetter>>())
                 {
