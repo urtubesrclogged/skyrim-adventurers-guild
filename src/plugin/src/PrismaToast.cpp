@@ -26,6 +26,33 @@ namespace AG::PrismaToast
 		PrismaView                  g_view{ 0 };
 		std::atomic<bool>           g_enabled{ true };
 		std::atomic<bool>           g_sounds{ true };  // MCM "Notice sounds"
+		std::atomic<std::uint32_t>  g_replaced{ 0 };   // bit per Cue: another mod has put its own file where the game's is
+
+		// The game's file each cue plays (tools/EspGen/Program.cs, Cue), under Data. The game keeps every one of them in
+		// its archives, so a loose file at that path is another mod's. A list that restyles its interface sounds
+		// (Librum: "Paper UI Sounds", "No UI Sounds") gave a promotion a rustle of paper in place of the sound chosen
+		// for it (in game, 2026-10-13); the author would have no sound there over the wrong one. A replacement packed
+		// into a mod's own archive is not seen this way: only loose files, which is how such mods come.
+		constexpr const char* kCueFile[] = { nullptr,
+			"Sound\\FX\\UI\\UI_LevelUp", "Music\\Stinger\\MUS_Stinger_02", "Music\\Reward\\MUS_Reward_01", "Sound\\fx\\ui\\ui_skill_increase",
+			"Sound\\fx\\ui\\ui_quest_update", "Sound\\FX\\UI\\Smithing\\UI_Smithing_CreateGeneric_01", "Sound\\FX\\mgk\\firebolt\\mag_firebolt_fail" };
+
+		void FindReplaced()
+		{
+			std::uint32_t bits = 0;
+			std::string   names;
+			for (std::uint32_t c = 1; c < std::size(kCueFile); ++c) {
+				std::error_code ec;
+				for (const auto ext : { ".wav", ".xwm" })
+					if (std::filesystem::exists(std::string("Data\\") + kCueFile[c] + ext, ec)) {
+						bits |= 1u << c;
+						names += std::string(names.empty() ? "" : ", ") + kCueFile[c] + ext;
+						break;
+					}
+			}
+			g_replaced.store(bits);
+			if (bits) SKSE::log::info("PrismaToast: another mod replaces {} - the notices these belong to come without a sound", names);
+		}
 		std::atomic<bool>           g_shown{ false };  // the notice is up (ControlsGuard is told once per appearance)
 		std::atomic<std::uint32_t>  g_seq{ 0 };   // bumps per toast: a stale hide timer must not cut a newer toast short
 		std::atomic<int>            g_holdMs{ 5000 };  // MCM "Important notices"; the view adds 0.3 s in + 0.5 s out
@@ -66,6 +93,7 @@ namespace AG::PrismaToast
 				SetHoldSeconds(static_cast<float>(ini.GetDoubleValue("System", "NoticeSeconds", 5.0)));
 			}
 		}
+		FindReplaced();
 		g_api = PRISMA_UI_API::RequestPluginAPI<PRISMA_UI_API::IVPrismaUI1>();
 		if (!g_api) {
 			SKSE::log::info("PrismaToast: PrismaUI not loaded - rank-up toast disabled");
@@ -96,8 +124,11 @@ namespace AG::PrismaToast
 		int HoldMs(Priority a_p) { return a_p == Priority::kMinor ? g_minorMs.load() : g_holdMs.load(); }
 	}
 
-	bool Play(Cue a_cue)
+	bool Replaced(Cue a_cue) { return (g_replaced.load() >> static_cast<std::uint32_t>(a_cue)) & 1u; }
+
+	bool Play(Cue a_cue, bool a_evenIfReplaced)
 	{
+		if (!a_evenIfReplaced && Replaced(a_cue)) return false;
 		// AdventurersGuild.esp 0xC81.. in the order of the enum (tools/EspGen/Program.cs, Cue)
 		if (a_cue == Cue::kNone) return false;
 		auto* dh = RE::TESDataHandler::GetSingleton();

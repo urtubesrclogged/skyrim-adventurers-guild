@@ -36,7 +36,12 @@ namespace AG::PrismaToast
 	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal = {}, Priority a_priority = Priority::kImportant, Cue a_cue = Cue::kNone);
 	bool Sounds();              // MCM "Notice sounds" (AdventurersGuild.ini [System] NoticeSounds), on unless turned off
 	void SetSounds(bool a_on);
-	bool Play(Cue a_cue);       // the sound alone (dev/test); false when its record is not there
+	// The sound alone. False when its record is not there, or when another mod has replaced the game's file it plays
+	// (see Replaced) and a_evenIfReplaced is not set (dev/test sets it, to hear what the replacement is).
+	bool Play(Cue a_cue, bool a_evenIfReplaced = false);
+	// Another mod supplies its own file where the game's is: the sound heard would not be the one chosen for the notice,
+	// so the notice comes without it. Looked up once, at start-up.
+	bool Replaced(Cue a_cue);
 
 	// MCM: how long a notice stays fully visible (seconds, clamped 2..15; default 5). The whole notice is
 	// that plus a 0.3 s fade-in and a 0.5 s fade-out.
