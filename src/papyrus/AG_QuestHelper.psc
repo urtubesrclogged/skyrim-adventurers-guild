@@ -106,21 +106,6 @@ Function WithdrawNotice(Quest akQuest, String asNoteAlias, ObjectReference akBoa
 	akQuest.Stop()
 EndFunction
 
-; The music of a guild notice (1.5.0): a one-shot music type of ours holding one of the game's own tracks, played the
-; way the game's quest scripts play their stingers.
-Function PlayMusic(MusicType akMusic) Global
-	If akMusic
-		akMusic.Add()
-	EndIf
-EndFunction
-
-; ... and taken off again once its track has played (the plugin times it): left on, it plays over and over.
-Function StopMusic(MusicType akMusic) Global
-	If akMusic
-		akMusic.Remove()
-	EndIf
-EndFunction
-
 ; A Jarl's bounty (the game's own BQ01-BQ04) taken from the guild counter: exactly what the innkeeper's and the
 ; steward's line does (TIF__00095123: GetOwningQuest().SetStage(10)). The stage gives the letter and the map marker.
 Function AcceptBounty(Quest akQuest) Global

@@ -14,7 +14,7 @@
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
 //   0xC88-0xC8A  MCM > Audio (1.5.0): AG_GreetingsGlobal, AG_InteractionsGlobal, AG_RepLinesGlobal
-//   0xC81-0xC87  the notices' sounds (1.5.0): sound descriptors (and two music types, 0xC82/0xC83) of ours that play the game's own files
+//   0xC81-0xC87  the notices' sounds (1.5.0): sound descriptors of ours that play the game's own files
 //   0xC91-0xC92  AG_AdventurerRankFaction, AG_AdventurerPromotedFaction (a named member's rank, and "just promoted")
 //   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
@@ -1415,10 +1415,21 @@ mod.Books.Add(note);
 // The notices' sounds (1.5.0, PrismaToast.cpp plays them by these IDs). Each is a sound descriptor of OURS that names a file
 // of the GAME's: no audio is shipped. Ours, and not the game's records, because the author chose single files by ear
 // (2026-10-13) where the game's record picks one of several at random (its stingers, its reward music, the smithing
-// sound). The five that are sounds are copies of a game interface sound, with the file changed where one was chosen:
-// they play flat, at the effects volume. The two that are MUSIC (dungeon entered, registered) are music types of ours
-// holding the one track chosen: a sound record cannot name a file outside Data\Sound (the library that writes this
-// plugin refuses the path), and the music system is how the game itself plays them. Those two follow the music volume.
+// sound). Every one is a copy of a game interface sound, with the file changed where one was chosen: they play once,
+// flat, at the effects volume.
+// Two of the files are MUSIC (dungeon entered, registered). They were first played through the music system, as
+// one-track music types of ours: the game played the track over and over until the save was loaded again (in game,
+// 2026-10-13), so they are plain sounds like the rest, which cannot loop. The library that writes this plugin
+// refuses a sound path outside Data\Sound, so each is written as Data\Sound\... and the five letters are put right
+// in the finished file (MusicPaths, below, used where the plugin is written).
+var musicPaths = new List<(string written, string real)>();
+string MusicPath(string real)
+{
+    var written = real.Replace(@"Data\Music\", @"Data\Sound\");
+    if (written == real || written.Length != real.Length) { Console.Error.WriteLine($"ERROR: '{real}' is not a Data\\Music path"); errors++; }
+    musicPaths.Add((written, real));
+    return written;
+}
 void Cue(uint id, string edid, string like, string? file)
 {
     var src = masters.SelectMany(m => m.SoundDescriptors).Last(s => s.EditorID == like);
@@ -1429,20 +1440,8 @@ void Cue(uint id, string edid, string like, string? file)
     mod.SoundDescriptors.Add(sd);
 }
 Cue(0xC81, "AG_CuePromoted", "UILevelUpSD", null);
-void MusicCue(uint id, string edid, string like, string track)
-{
-    var src = masters.SelectMany(m => m.MusicTypes).Last(s => s.EditorID == like);
-    var tr = masters.SelectMany(m => m.MusicTracks).Last(s => s.EditorID == track);
-    var mt = new MusicType(FK(id), Rel);
-    mt.DeepCopyIn(src);
-    mt.EditorID = edid;
-    mt.Tracks ??= new();
-    mt.Tracks.Clear();
-    mt.Tracks.Add(new FormLink<IMusicTrackGetter>(tr.FormKey));
-    mod.MusicTypes.Add(mt);
-}
-MusicCue(0xC82, "AG_CueDungeonEntered", "MUSStinger", "MUSStinger02");
-MusicCue(0xC83, "AG_CueRegistered", "MUSReward", "MUSReward01");
+Cue(0xC82, "AG_CueDungeonEntered", "UILevelUpSD", MusicPath(@"Data\Music\Stinger\MUS_Stinger_02.wav"));
+Cue(0xC83, "AG_CueRegistered", "UILevelUpSD", MusicPath(@"Data\Music\Reward\MUS_Reward_01.wav"));
 Cue(0xC84, "AG_CuePromotionReady", "UISkillIncreaseSD", null);
 Cue(0xC85, "AG_CueComplete", "UIQuestComplete", null);
 Cue(0xC86, "AG_CueStamped", "UISmithingCreateGeneric", @"Data\Sound\FX\UI\Smithing\UI_Smithing_CreateGeneric_01.wav");
@@ -1812,6 +1811,22 @@ mod.WriteToBinary(path, new BinaryWriteParameters
     // masters in load order (Skyrim.esm first), not in the order records happen to reference them
     MastersListOrdering = new MastersListOrderingByLoadOrder(Probe.Masters.Select(m => ModKey.FromFileName(m)).Append(MissivesPatch.Missives).ToList()),
 });
+// the notices' two music files: their real folder, in place of the one the library would accept (same length, so
+// nothing else in the file moves). Each must be there exactly once, or the build stops.
+{
+    var bytes = File.ReadAllBytes(path);
+    foreach (var (written, real) in musicPaths)
+    {
+        var from = System.Text.Encoding.ASCII.GetBytes(written + "\0");
+        var to = System.Text.Encoding.ASCII.GetBytes(real + "\0");
+        var hits = new List<int>();
+        for (var i = 0; i + from.Length <= bytes.Length; i++)
+            if (bytes.AsSpan(i, from.Length).SequenceEqual(from)) hits.Add(i);
+        if (hits.Count != 1) { Console.Error.WriteLine($"ERROR: the sound path '{written}' is in the plugin {hits.Count} times, not once"); Environment.Exit(1); }
+        to.CopyTo(bytes, hits[0]);
+    }
+    File.WriteAllBytes(path, bytes);
+}
 Console.WriteLine($"wrote {path}: {mod.Globals.Count} globals, {mod.Quests.Count} quests, {mod.DialogTopics.Count} topics, {mod.Books.Count} books");
 
 // ---------- SEQ ----------
