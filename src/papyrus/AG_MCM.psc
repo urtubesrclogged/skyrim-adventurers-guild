@@ -19,6 +19,10 @@ Bool bShowToast = True
 Float fToastSeconds = 5.0
 ; Kept as "off" so that a game saved before 1.5.0, where this variable did not exist and so reads False, has the sounds ON.
 Bool bToastSoundOff = False
+; MCM > Audio (version 5), kept as "off" for the same reason: all three are ON in a game saved before they existed
+Bool bGreetingsOff = False
+Bool bInteractionsOff = False
+Bool bRepLinesOff = False
 Bool bDetailedLog = False
 ; the key that opens the Guild Card: none until the player picks one (0 or less = none)
 Int iCardKey = -1
@@ -29,7 +33,7 @@ Int iSLevel = 60
 Bool bSLevelSet = False
 
 Int Function GetVersion()
-	Return 4
+	Return 5
 EndFunction
 
 Event OnConfigInit()
@@ -85,9 +89,10 @@ Function OnOpenGuildCard(String asEvent, String asArg, Float afArg, Form akSende
 EndFunction
 
 Function SetPages()
-	Pages = new String[2]
+	Pages = new String[3]
 	Pages[0] = "$AG_MCM_System"
-	Pages[1] = "$AG_MCM_Debug"
+	Pages[1] = "$AG_MCM_Audio"
+	Pages[2] = "$AG_MCM_Debug"
 EndFunction
 
 ; Pushes every setting into the DLL. Cheap and idempotent.
@@ -98,6 +103,9 @@ Function Apply()
 	AG_Native.SetShowRankUpToast(bShowToast)
 	AG_Native.SetToastSeconds(fToastSeconds)
 	AG_Native.SetNoticeSounds(!bToastSoundOff)
+	AG_Native.SetAudioOption(1, !bGreetingsOff)
+	AG_Native.SetAudioOption(2, !bInteractionsOff)
+	AG_Native.SetAudioOption(3, !bRepLinesOff)
 	AG_Native.SetDetailedLog(bDetailedLog)
 	AG_Native.SetCardHotkey(iCardKey)
 	If bSLevelSet
@@ -116,7 +124,6 @@ Event OnPageReset(String a_page)
 		AddHeaderOption("$AG_MCM_System_Notices_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Toast", "$AG_MCM_System_bShowNotices_Text", bShowToast, OPTION_FLAG_NONE)
 		AddSliderOptionST("ToastSeconds", "$AG_MCM_System_fNoticeSeconds_Text", fToastSeconds, "{0} s", OPTION_FLAG_NONE)
-		AddToggleOptionST("ToastSound", "$AG_MCM_System_bNoticeSounds_Text", !bToastSoundOff, OPTION_FLAG_NONE)
 		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_System_Card_Header", OPTION_FLAG_NONE)
 		AddKeyMapOptionST("CardKey", "$AG_MCM_System_iCardKey_Text", CardKeyShown(), OPTION_FLAG_WITH_UNMAP)
@@ -132,6 +139,14 @@ Event OnPageReset(String a_page)
 		AddTextOption("$AG_MCM_System_RankA_Text", AG_Native.GetRankLevel(4), OPTION_FLAG_NONE)
 		AddTextOption("$AG_MCM_System_RankS_Text", AG_Native.GetRankLevel(5), OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[1]
+		AddHeaderOption("$AG_MCM_Audio_Sounds_Header", OPTION_FLAG_NONE)
+		AddToggleOptionST("ToastSound", "$AG_MCM_System_bNoticeSounds_Text", !bToastSoundOff, OPTION_FLAG_NONE)
+		AddEmptyOption()
+		AddHeaderOption("$AG_MCM_Audio_Voices_Header", OPTION_FLAG_NONE)
+		AddToggleOptionST("Greetings", "$AG_MCM_Audio_bGreetings_Text", !bGreetingsOff, OPTION_FLAG_NONE)
+		AddToggleOptionST("Interactions", "$AG_MCM_Audio_bInteractions_Text", !bInteractionsOff, OPTION_FLAG_NONE)
+		AddToggleOptionST("RepLines", "$AG_MCM_Audio_bRepLines_Text", !bRepLinesOff, OPTION_FLAG_NONE)
+	ElseIf a_page == Pages[2]
 		AddHeaderOption("$AG_MCM_Debug_Log_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("DetailedLog", "$AG_MCM_Debug_bDetailedLog_Text", bDetailedLog, OPTION_FLAG_NONE)
 		AddEmptyOption()
@@ -168,6 +183,54 @@ State Labels
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText("$AG_MCM_System_bShowLabels_Help")
+	EndEvent
+EndState
+
+State Greetings
+	Event OnSelectST()
+		bGreetingsOff = !bGreetingsOff
+		SetToggleOptionValueST(!bGreetingsOff, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bGreetingsOff = False
+		SetToggleOptionValueST(True, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_Audio_bGreetings_Help")
+	EndEvent
+EndState
+
+State Interactions
+	Event OnSelectST()
+		bInteractionsOff = !bInteractionsOff
+		SetToggleOptionValueST(!bInteractionsOff, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bInteractionsOff = False
+		SetToggleOptionValueST(True, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_Audio_bInteractions_Help")
+	EndEvent
+EndState
+
+State RepLines
+	Event OnSelectST()
+		bRepLinesOff = !bRepLinesOff
+		SetToggleOptionValueST(!bRepLinesOff, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bRepLinesOff = False
+		SetToggleOptionValueST(True, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_Audio_bRepLines_Help")
 	EndEvent
 EndState
 

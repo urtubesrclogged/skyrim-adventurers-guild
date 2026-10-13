@@ -126,6 +126,30 @@ namespace AG
 		void SetDetailedLog(Tag*, bool a_on) { Diag::SetDetailedLog(a_on); }
 		bool GetShowRankUpToast(Tag*) { return PrismaToast::Enabled(); }
 		void SetShowRankUpToast(Tag*, bool a_on) { PrismaToast::SetEnabled(a_on); }
+		// MCM > Audio: 1 NPC greetings, 2 NPC interactions, 3 the representatives' own lines. Each is a global of
+		// AdventurersGuild.esp (0xC88-0xC8A) that the lines themselves ask about, so the game does the switching.
+		RE::TESGlobal* AudioGlobal(std::int32_t a_which)
+		{
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			return dh && a_which >= 1 && a_which <= 3 ? dh->LookupForm<RE::TESGlobal>(0xC87 + static_cast<RE::FormID>(a_which), "AdventurersGuild.esp") : nullptr;
+		}
+		bool GetAudioOption(Tag*, std::int32_t a_which)
+		{
+			auto* g = AudioGlobal(a_which);
+			return !g || g->value != 0.0f;
+		}
+		void SetAudioOption(Tag*, std::int32_t a_which, bool a_on)
+		{
+			auto* g = AudioGlobal(a_which);
+			if (!g) {
+				SKSE::log::warn("Papyrus: audio option {} has no global (AdventurersGuild.esp 0xC88-0xC8A) - the MCM switch does nothing", a_which);
+				return;
+			}
+			const float v = a_on ? 1.0f : 0.0f;
+			if (g->value == v) return;
+			g->value = v;
+			SKSE::log::info("Papyrus: audio option {} ({}) {}", a_which, a_which == 1 ? "NPC greetings" : a_which == 2 ? "NPC interactions" : "representatives' lines", a_on ? "on" : "off");
+		}
 		bool  GetNoticeSounds(Tag*) { return PrismaToast::Sounds(); }
 		void  SetNoticeSounds(Tag*, bool a_on) { PrismaToast::SetSounds(a_on); }
 		bool  DebugCue(Tag*, std::int32_t a_cue) { return PrismaToast::Play(static_cast<PrismaToast::Cue>(a_cue)); }
@@ -233,6 +257,8 @@ namespace AG
 		REG(SetDetailedLog);
 		REG(GetShowRankUpToast);
 		REG(SetShowRankUpToast);
+		REG(GetAudioOption);
+		REG(SetAudioOption);
 		REG(GetNoticeSounds);
 		REG(SetNoticeSounds);
 		REG(DebugCue);

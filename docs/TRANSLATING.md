@@ -106,8 +106,11 @@ translate):
   `$AG_Toast_Bounty`, `$AG_Hud_BountyDone`, `$AG_Log_Bounty` and `$AG_Report_Bounty` (`{}` = the rank, then the bounty).
 * `$AG_UI_NoReports2` now names bounties as well.
 
-New keys for the notices' sounds: `$AG_MCM_System_bNoticeSounds_Text` and `$AG_MCM_System_bNoticeSounds_Help` (the MCM
-switch).
+New keys for the MCM's Audio page: `$AG_MCM_Audio`, `$AG_MCM_Audio_Sounds_Header`, `$AG_MCM_Audio_Voices_Header`, the
+notices' sounds `$AG_MCM_System_bNoticeSounds_Text` / `_Help`, and three switches for the voiced lines, each with its
+`_Text` and `_Help`: `$AG_MCM_Audio_bGreetings`, `$AG_MCM_Audio_bInteractions`, `$AG_MCM_Audio_bRepLines`.
+With the representatives' lines switched off they answer with the game's own "Of course.", which is the game's to
+translate, not ours: nothing new in the plugin's text.
 
 New keys in the interface file, all optional, for the other adventurers' guild cards:
 

@@ -13,6 +13,7 @@
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
+//   0xC88-0xC8A  MCM > Audio (1.5.0): AG_GreetingsGlobal, AG_InteractionsGlobal, AG_RepLinesGlobal
 //   0xC81-0xC87  the notices' sounds (1.5.0): sound descriptors (and two music types, 0xC82/0xC83) of ours that play the game's own files
 //   0xC91-0xC92  AG_AdventurerRankFaction, AG_AdventurerPromotedFaction (a named member's rank, and "just promoted")
 //   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
@@ -188,6 +189,13 @@ var gPromoFee = Global(0x815, "AG_PromotionFee", 50);
 // less, and some say so); 1 for a member in a hold whose stamp is NOT on the card (some people hint that it is worth earning).
 var gStampDiscount = Global(0xCF4, "AG_StampDiscountGlobal", 0);
 var gStampWanted = Global(0xCF6, "AG_StampWantedGlobal", 0);
+// MCM > Audio (1.5.0), each 1 unless the player turns it off there (the DLL sets them: Papyrus.cpp, SetAudioOption):
+//   greetings     every unprompted line (guards, townsfolk, wanderers, named members, merchants on the stamp)
+//   interactions  what can be asked of people who are no representative, and Show Guild Card
+//   rep lines     the representatives' own replies; at 0 each answers "Of course.", the game's line, in her own voice
+var gGreetings = Global(0xC88, "AG_GreetingsGlobal", 1);
+var gInteractions = Global(0xC89, "AG_InteractionsGlobal", 1);
+var gRepLines = Global(0xC8A, "AG_RepLinesGlobal", 1);
 // Other adventurers' guild cards (1.5.0), kept by the DLL: how many the player carries that can be brought back, and the
 // weightiest case among them (what a representative says when they are handed in).
 var gCardsCarried = Global(0xCF9, "AG_CardsCarriedGlobal", 0);
@@ -370,6 +378,34 @@ ConditionFloat IsNpc(FormKey npc, bool or)
     if (or) c.Flags |= Condition.Flag.OR;
     return c;
 }
+// The representatives' lines switched off (MCM > Audio, AG_RepLinesGlobal 0): she still has to answer, because the plugin
+// acts as her reply starts and a choice with no worded reply is not offered at all. So every reply that does something
+// has a twin that says the game's own "Of course." (Skyrim.esm 0x0DBA22, a line of DialogueGenericSharedInfo: made to
+// be borrowed, the way vanilla's bounty quests borrow their lines, and recorded in 42 voices, every representative's
+// and successor's among them). The twin has no words of its own: it names that line as its response data, so the
+// words, the subtitle and the recording are the game's. Lines that only inform ("you cannot afford it", a referral
+// to the hold's counter, the answer to "what is the Guild?") have no twin: with the lines off, those choices are gone.
+var ofCourse = new FormKey(Skyrim.ModKey, 0x0DBA22);
+DialogResponses ShortReply(string key, bool goodbye, IEnumerable<Condition> conds)
+{
+    var info = new DialogResponses(FK(InfoId(key)), Rel)
+    {
+        EditorID = "AG_Info_" + key.Replace(":", "_"),
+        Flags = new DialogResponseFlags { Flags = goodbye ? DialogResponses.Flag.Goodbye : 0 },
+        ResponseData = new FormLinkNullable<IDialogResponsesGetter>(ofCourse),
+    };
+    info.Conditions.Add(GlobalIs(gRepLines, 0));
+    foreach (var c in conds) info.Conditions.Add(c);
+    return info;
+}
+// the twins go before every line of the topic (the first reply whose conditions pass is the one said), in order
+void PutFirst(DialogTopic t, List<DialogResponses> shorts)
+{
+    if (shorts.Count == 0) return;
+    t.Responses.InsertRange(0, shorts);
+    for (var i = 0; i < t.Responses.Count; i++)
+        t.Responses[i].PreviousDialog = i == 0 ? new FormLinkNullable<IDialogResponsesGetter>() : new FormLinkNullable<IDialogResponsesGetter>(t.Responses[i - 1].FormKey);
+}
 var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new(), ["cardhandin"] = new() };
 var liaisonKeys = new List<string>();
 var prompts = dlg["prompts"]!;
@@ -409,6 +445,15 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     };
     var topic = NewTopic(topicId, $"AG_Topic{stem}", prompts[role]!.GetValue<string>());
     var prevOf = new Dictionary<DialogTopic, DialogResponses>();
+    var shorts = new Dictionary<DialogTopic, List<DialogResponses>>();
+    DialogResponses Short(DialogTopic t, string key, bool goodbye, IEnumerable<Condition> who, bool acts)
+    {
+        var info = ShortReply(key, goodbye, who.Concat(state));
+        if (!shorts.TryGetValue(t, out var list)) shorts[t] = list = new();
+        list.Add(info);
+        if (acts && roles.ContainsKey(role)) roles[role].Add(ids[key]);
+        return info;
+    }
     // conditions that make a successor (Ysolda after Hulda) this liaison: in the DLL's faction, and at her inn
     List<Condition> Succeeded(JsonNode l)
     {
@@ -427,6 +472,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         };
         byte n = 1;
         foreach (var line in lines) info.Responses.Add(new DialogResponse { Text = line, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = n++ });
+        info.Conditions.Add(GlobalIs(gRepLines, 1));  // first, so it is ANDed with everything after it, OR groups included
         foreach (var c in who) info.Conditions.Add(c);
         foreach (var c in state) info.Conditions.Add(c);
         if (prevOf.TryGetValue(t, out var prev)) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(prev.FormKey);
@@ -467,6 +513,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             asks.Add(Info(topic, $"{role}:ask:{npc}", new[] { own.GetValue<string>() }, false, askWho));
         }
         asks.Add(Info(topic, $"{role}:ask", new[] { Line("ask") }, false, AnyLiaison()));
+        asks.Add(Short(topic, $"{role}:ask:short", false, AnyLiaison(), false));
         foreach (var ask in asks)
         {
             ask.LinkTo.Add(new FormLink<IDialogTopicGetter>(pay.FormKey));
@@ -549,6 +596,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         if (role == "replace" && l["replaceStamped"] is JsonNode rs)
             Add($"{key}:stamped", new[] { rs.GetValue<string>() }, new Condition[] { InFaction(stampEarnedFaction.FormKey) });
         var last = Add(key, lines, role == "business" ? basePlain : Array.Empty<Condition>());
+        if (role != "about") Short(liaisonTopic, $"{key}:short", goodbyeForLiaison, Who(), true);
         if (role == "business") last.Flags!.Flags |= DialogResponses.Flag.RandomEnd;   // the next rep's lines are their own group
     }
     if (fee is not null)
@@ -556,7 +604,11 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         var poor = AnyLiaison();
         poor.Add(Gold(fee, false));
         Info(pay ?? topic, $"{role}:nofee", new[] { Line("nofee") }, false, poor);
-        if (later is not null) Info(later, $"{role}:later", new[] { Line("later") }, false, AnyLiaison());
+        if (later is not null)
+        {
+            Info(later, $"{role}:later", new[] { Line("later") }, false, AnyLiaison());
+            Short(later, $"{role}:later:short", false, AnyLiaison(), false);
+        }
     }
     if (referrals)
     {
@@ -588,6 +640,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = new GetPlayerTeammateConditionData() },
             notFollowing });
     }
+    foreach (var (t, list) in shorts) PutFirst(t, list);
     mod.DialogTopics.Add(topic);
     if (pay is not null) mod.DialogTopics.Add(pay);
     if (later is not null) mod.DialogTopics.Add(later);
@@ -785,6 +838,7 @@ foreach (var ln in world["lines"]!.AsArray())
 
     if (ln["topic"] is JsonNode prompt)  // a player topic (Ysolda's), not a greeting
     {
+        conds.Insert(0, GlobalIs(gInteractions, 1));  // MCM > Audio > NPC interactions
         // one player topic per NPC: branch and topic FormIDs are fixed here (append only)
         var whoId = ln["who"]!.GetValue<string>();
         var (branchId, topicId) = whoId switch { "Ysolda" => (0x8C2u, 0x8C3u), "Sinmir" => (0x8C8u, 0x8C9u), "Uthgerd" => (0x8CAu, 0x8CBu),
@@ -831,6 +885,7 @@ foreach (var ln in world["lines"]!.AsArray())
         worldCount++;
         continue;
     }
+    conds.Insert(0, GlobalIs(gGreetings, 1));  // MCM > Audio > NPC greetings
     conds.Add(Chance(ln["chance"]?.GetValue<int>() ?? chance[kind]!.GetValue<int>()));
     conds.AddRange(voices);  // the OR group last, so it stands alone
     var info = new DialogResponses(FK(InfoId("world:" + id)), Rel)
@@ -915,6 +970,7 @@ mod.DialogTopics.Add(hello);
         foreach (var c in conds) info.Conditions.Add(c);
         info.Conditions.Add(HasCard());
         info.Conditions.Add(GlobalIs(gRegistered, 1));
+        info.Conditions.Add(GlobalIs(gInteractions, 1));  // MCM > Audio > NPC interactions: off, the game's own choice is all there is
         if (t.Responses.Count > 0) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
         t.Responses.Add(info);
         return info;
@@ -973,6 +1029,7 @@ mod.DialogTopics.Add(hello);
             info.Responses.Add(new DialogResponse { Text = said.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
             info.Conditions.Add(IsNpc(Npc(npc), false));
             info.Conditions.Add(GlobalIs(gStampSay, 1));
+            info.Conditions.Add(GlobalIs(gRepLines, 1));  // MCM > Audio: with her lines off the stamp goes on in silence
             t.Responses.Add(info);
             // the first time: the same, with a word that the merchants here might think the better of a stamped card
             if (l["stampedFirst"] is JsonNode firstSaid)
@@ -985,6 +1042,7 @@ mod.DialogTopics.Add(hello);
                 first.Responses.Add(new DialogResponse { Text = firstSaid.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
                 first.Conditions.Add(IsNpc(Npc(npc), false));
                 first.Conditions.Add(GlobalIs(gStampSay, 2));
+                first.Conditions.Add(GlobalIs(gRepLines, 1));
                 t.Responses.Add(first);
             }
         }
@@ -1005,9 +1063,12 @@ mod.DialogTopics.Add(hello);
             Branch = new FormLinkNullable<IDialogBranchGetter>(b.FormKey), Quest = new FormLinkNullable<IQuestGetter>(worldQuest.FormKey),
             Category = DialogTopic.CategoryEnum.Topic, Subtype = DialogTopic.SubtypeEnum.Custom, SubtypeName = new RecordType("CUST"),
         };
+        var keeperShorts = new List<DialogResponses>();
         foreach (var k in dlg["stampKeepers"]!.AsArray())
         {
             var npc = k!["npc"]!.GetValue<string>();
+            keeperShorts.Add(ShortReply("stampask:" + npc + ":short", false, new Condition[] { IsNpc(Npc(npc), false), InFaction(stampDueFaction.FormKey) }));
+            roles["stamp"].Add(ids["stampask:" + npc + ":short"]);
             if (k["lineFirst"] is JsonNode lf)
             {
                 var fkey = "stampask:" + npc + ":first";
@@ -1017,6 +1078,7 @@ mod.DialogTopics.Add(hello);
                 var rank = new GetFactionRankConditionData();
                 rank.Faction.Link.SetTo(stampDueFaction.FormKey);
                 first.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = rank });
+                first.Conditions.Add(GlobalIs(gRepLines, 1));
                 if (t.Responses.Count > 0) first.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
                 t.Responses.Add(first);
                 roles["stamp"].Add(ids[fkey]);
@@ -1026,11 +1088,13 @@ mod.DialogTopics.Add(hello);
             info.Responses.Add(new DialogResponse { Text = k["line"]!.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
             info.Conditions.Add(IsNpc(Npc(npc), false));
             info.Conditions.Add(InFaction(stampDueFaction.FormKey));
+            info.Conditions.Add(GlobalIs(gRepLines, 1));
             if (t.Responses.Count > 0) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
             t.Responses.Add(info);
             roles["stamp"].Add(ids[key]);
             stampKeepers.Add(new { npc = Key(Npc(npc)), of = Key(Npc(k["of"]!.GetValue<string>())), city = k["city"]!.GetValue<string>() });
         }
+        PutFirst(t, keeperShorts);
         mod.DialogBranches.Add(b);
         mod.DialogTopics.Add(t);
     }
@@ -1070,6 +1134,7 @@ mod.DialogTopics.Add(hello);
         }
         var handIn = Own(0xCFE, 0xCFF, "CardHandIn", "cardHandIn");
         var cases = new[] { ("fallen", 3), ("dead", 2), ("alive", 1), ("worn", 4) };
+        var handInShorts = new List<DialogResponses>();
         foreach (var l in dlg["liaisons"]!.AsArray())
         {
             if (l!["cardHandIn"] is not JsonNode hi) continue;
@@ -1085,10 +1150,24 @@ mod.DialogTopics.Add(hello);
                 who.Add(GlobalIs(gRegistered, 1));
                 who.Add(GlobalCmp(gCardsCarried, CompareOperator.GreaterThanOrEqualTo, 1));
                 who.Add(GlobalIs(gCardCase, n));
+                who.Add(GlobalIs(gRepLines, 1));
                 Reply(handIn, "cardhandin", $"cardhandin:{npc}:{name}", hi[name]!.GetValue<string>(), who);
+            }
+            {
+                var who = new List<Condition> { IsNpc(Npc(npc), false) };
+                if (l["successor"] is JsonNode su)
+                {
+                    who.Add(InFaction(liaisonFaction.FormKey));
+                    if (su["cell"] is JsonNode cell) who.Add(InCell(KeyFk(cell.GetValue<string>()), true));
+                }
+                who.Add(GlobalIs(gRegistered, 1));
+                who.Add(GlobalCmp(gCardsCarried, CompareOperator.GreaterThanOrEqualTo, 1));
+                handInShorts.Add(ShortReply($"cardhandin:{npc}:short", false, who));
+                roles["cardhandin"].Add(ids[$"cardhandin:{npc}:short"]);
             }
             if (!(hi["drinks"]?.GetValue<bool>() ?? true)) cardNoDrinks.Add(Key(Npc(npc)));
         }
+        PutFirst(handIn, handInShorts);
     }
     var orcs = Topic(0xCE4, 0xCE5, "Orcs");
     var orcRace = new GetIsRaceConditionData { RunOnType = Condition.RunOnType.Target };
@@ -1169,7 +1248,8 @@ mod.DialogTopics.Add(hello);
             hang.Responses.Add(info);
             return info;
         }
-        IEnumerable<Condition> Member() => new Condition[] { HasCard(), GlobalIs(gRegistered, 1) };
+        // ... and Show Guild Card is on (MCM > Audio > NPC interactions): off, none of ours passes and the game's own choice is offered
+        IEnumerable<Condition> Member() => new Condition[] { HasCard(), GlobalIs(gRegistered, 1), GlobalIs(gInteractions, 1) };
         var cardPrompt = sc["prompt"]!.GetValue<string>();
         // a reply in parts (a json list): the speaker asks for the card, looks, then answers. One response each, as
         // vanilla splits a longer reply; they play one after the other with the game's own short gap between them
@@ -1223,9 +1303,9 @@ mod.DialogTopics.Add(hello);
         var robber = Hang(robberIntimidate);
         var rankPrompt = sc["robber"]!["prompt"]!.GetValue<string>();
         prev = Added(robber, "robber:AS", sc["robber"]!["AS"]!.GetValue<string>(), rankPrompt, Vanilla(0x0B8164),
-            RankConds("A+"), "WERJ02", 100).FormKey;
+            RankConds("A+").Append(GlobalIs(gInteractions, 1)), "WERJ02", 100).FormKey;
         Added(robber, "robber:B", sc["robber"]!["B"]!.GetValue<string>(), rankPrompt, prev,
-            RankConds("B"), "WERJ02", 100);
+            RankConds("B").Append(GlobalIs(gInteractions, 1)), "WERJ02", 100);
         Console.WriteLine("show guild card: 8 replies added to 6 vanilla choices (the College, the Treasury House, the strongholds, Riften, Whiterun, the robber)");
     }
     Console.WriteLine("show guild card: 1 topic of its own (the strongholds)");
