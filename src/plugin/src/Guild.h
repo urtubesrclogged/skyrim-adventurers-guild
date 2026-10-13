@@ -50,6 +50,7 @@ namespace AG::Guild
 	int  IntelMerit(int a_rank);    // guild.json intelMerit: price of a dungeon's location, by its threat rank
 	void OnMissiveCompleted(int a_rank, std::string_view a_title);  // tally + record + a report to hand in
 	void OnNoticeCompleted(int a_rank, std::string_view a_title);   // the same for a Notice Board quest (NoticeWatch)
+	void OnBountyCompleted(int a_rank, std::string_view a_title);   // ... and for a Jarl's bounty the hold has paid (BountyWatch)
 
 	// Reports: rewards earned in the field (missives, dungeon clears) that wait to be claimed at a counter.
 	// a_key: for a cleared dungeon, the dungeon (Adventurers::StableKey), so that handing the report in counts toward its hold's stamp

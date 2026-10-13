@@ -469,6 +469,14 @@ namespace AG::Dungeons
 
 	std::string CityOf(RE::BGSLocation* a_loc) { return CounterCityOf(a_loc); }
 
+	int RankOf(const RE::BGSLocation* a_loc)
+	{
+		if (!a_loc) return -1;
+		BuildZones();
+		const auto z = g_zoneOf.find(a_loc);
+		return z != g_zoneOf.end() && z->second ? FromLevel(LevelFor(z->second)) : -1;
+	}
+
 	std::string CityHere()
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();

@@ -1153,6 +1153,23 @@ namespace AG::Guild
 		Hud(Loc::T("$AG_Hud_NoticeDone", "Notice complete. Submit your report at any guild counter."));
 	}
 
+	// A Jarl's bounty (the game's own radiant bounty quests), once the hold has paid its gold: worth what a missive of
+	// its rank is, and counted with them. The hold pays the gold; the Guild pays Merit and Reputation and no gold.
+	void OnBountyCompleted(int a_rank, std::string_view a_title)
+	{
+		const int merit = MissiveMerit(a_rank), rep = MissiveRep(a_rank);
+		{
+			std::lock_guard l(g_lock);
+			if (!g_registered) return;
+			if (a_rank >= 0 && a_rank < kRankCount) ++g_missives[a_rank];
+			LogLocked(Loc::F("$AG_Log_Bounty", "Collected a Rank {} bounty: {}.", Letter(a_rank), a_title));
+		}
+		Party::OnMissiveCompleted(a_rank);
+		AddReport("bounty", std::string(a_title), Loc::F("$AG_Report_Bounty", "Rank {} Jarl's Bounty, collected", Letter(a_rank)), 0, merit, rep);
+		SendModEvent("AG_MissiveCompleted", std::string(a_title), static_cast<float>(a_rank));
+		Hud(Loc::T("$AG_Hud_BountyDone", "Bounty collected. Submit your report at any guild counter."));
+	}
+
 	void AddReport(std::string a_kind, std::string a_title, std::string a_detail, int a_gold, int a_merit, int a_rep, std::string a_key)
 	{
 		{

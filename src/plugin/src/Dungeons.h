@@ -31,6 +31,9 @@ namespace AG::Dungeons
 	int            ClearedIn(const std::string& a_city);
 	std::string    CityOf(RE::BGSLocation* a_loc);  // the counter city of the hold a place is in ("" when it is in none)
 	std::string    CityHere();  // the counter city of the hold the player is in ("" outside every hold)
+	// The threat rank of a dungeon the player is not in, from its encounter zone (as Intel prices it). -1 when the place
+	// has no zone the Guild knows, or is null.
+	int            RankOf(const RE::BGSLocation* a_loc);
 	int            WaitingIn(const std::string& a_city);  // cleared in that hold, report not handed in yet
 	// The reports of these dungeons (their keys) have been handed in. Returns the counter cities whose stamp that
 	// earned: the count was short before and is enough now.

@@ -106,6 +106,14 @@ Function WithdrawNotice(Quest akQuest, String asNoteAlias, ObjectReference akBoa
 	akQuest.Stop()
 EndFunction
 
+; A Jarl's bounty (the game's own BQ01-BQ04) taken from the guild counter: exactly what the innkeeper's and the
+; steward's line does (TIF__00095123: GetOwningQuest().SetStage(10)). The stage gives the letter and the map marker.
+Function AcceptBounty(Quest akQuest) Global
+	If akQuest && akQuest.IsRunning() && akQuest.GetStage() < 10
+		akQuest.SetStage(10)
+	EndIf
+EndFunction
+
 ; The Notice Board SE: what its board script does when a board's cell loads (manny_up_noticeboardScript.OnCellAttach),
 ; run when the guild counter opens, so a notice the player has just become eligible for is posted without a walk to
 ; a board first. A quest that cannot start (its own conditions, or the rank gate) simply stays stopped.

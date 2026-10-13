@@ -91,6 +91,21 @@ New text in the plugin (section 2) for the hold stamps:
   price. Ten greetings `AG_Info_world_stampwant_<name>`: someone tells an adventurer the hold's stamp is worth earning.
 * The hidden perk `AG_Perk_HoldStampStanding` is named `Hold Stamp`; the game does not show it.
 
+New keys in the interface file, all optional, for the Jarls' bounties (the game's own bounty quests, now ranked and
+listed at the counter; their letters and the innkeepers' and stewards' lines are the game's and are not ours to
+translate):
+
+* `$AG_UI_Bounties`: the new first sub-tab of Quests. `$AG_UI_BountyDetail`, `$AG_UI_BountyMeta`: `{0}` = the rank,
+  `{1}` = the counter's city. `$AG_UI_AboveRank` is added to the row of a bounty ranked above the player.
+* `$AG_UI_BountyEmpty`, `$AG_UI_BountyEmpty2`: no bounty in this hold (`{0}` = the city). `$AG_UI_BountyTaken`,
+  `$AG_UI_BountyTaken2`: the player already has it (`{0}` = the bounty, then the city). `$AG_UI_BountySlain`,
+  `$AG_UI_BountySlain2`, `$AG_UI_BountySlain3`: the target is dead and the gold is still to collect (`{0}` = the
+  bounty, then who pays; the third is used when nobody is named).
+* `$AG_UI_BountyHint`, `$AG_UI_JarlsBounty`, `$AG_UI_ReadingBounty`, `$AG_Title_Bounty`.
+* `$AG_Hud_BountyTaken` (`{}` = the rank letter), `$AG_Bounty_Taken` (`{}` = the bounty), `$AG_Bounty_Gone`,
+  `$AG_Toast_Bounty`, `$AG_Hud_BountyDone`, `$AG_Log_Bounty` and `$AG_Report_Bounty` (`{}` = the rank, then the bounty).
+* `$AG_UI_NoReports2` now names bounties as well.
+
 New keys in the interface file, all optional, for the other adventurers' guild cards:
 
 * `$AG_Item_GuildCardOf`: the name of the player's own card (`{}` = the player's name). It replaces

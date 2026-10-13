@@ -5,6 +5,8 @@
 
 #include "Counter.h"
 
+#include "BountyWatch.h"
+
 #include "ControlsGuard.h"
 #include "Dungeons.h"
 #include "GuildCard.h"
@@ -207,7 +209,8 @@ namespace AG::Counter
 				if (arg.starts_with("details:")) {   // read-only: send the note's text to the view
 					SKSE::log::debug("Counter: action '{}'", arg);
 					const auto id = arg.substr(8);  // a missive or a notice: each watch knows its own quests
-					if (Valid()) g_api->Invoke(g_view, ("window.agDetails(" + (NoticeWatch::Owns(id) ? NoticeWatch::Details(id) : MissiveWatch::Details(id)).dump() + ")").c_str());
+					const auto details = BountyWatch::Owns(id) ? BountyWatch::Details(id) : NoticeWatch::Owns(id) ? NoticeWatch::Details(id) : MissiveWatch::Details(id);
+					if (Valid()) g_api->Invoke(g_view, ("window.agDetails(" + details.dump() + ")").c_str());
 					return;
 				}
 				std::string msg;
@@ -217,7 +220,10 @@ namespace AG::Counter
 				else if (arg == "replacecard") { if (g_cardOnly.load()) return; msg = GuildCard::Replace(Branch()); }
 				else if (arg.starts_with("service:")) msg = Guild::BuyService(arg.substr(8));
 				else if (arg.starts_with("turnin:")) msg = Shop::TurnIn(arg.substr(7));
-				else if (arg.starts_with("accept:")) msg = NoticeWatch::Owns(arg.substr(7)) ? NoticeWatch::Accept(arg.substr(7)) : MissiveWatch::Accept(arg.substr(7));
+				else if (arg.starts_with("accept:")) {
+					const auto id = arg.substr(7);
+					msg = BountyWatch::Owns(id) ? BountyWatch::Accept(id) : NoticeWatch::Owns(id) ? NoticeWatch::Accept(id) : MissiveWatch::Accept(id);
+				}
 				else if (arg.starts_with("party:")) { msg = PartyAction(arg.substr(6)); Party::AtCounter(); }  // the blessing follows at once; choices the roster no longer fits go
 				else {
 					SKSE::log::debug("Counter: action '{}' is not one the DLL knows", arg);
@@ -586,10 +592,11 @@ namespace AG::Counter
 				if (const int cleared = here.empty() ? -1 : Dungeons::ClearedIn(here); cleared >= 0 && std::find(have.begin(), have.end(), here) == have.end())
 					data["stampProgress"] = { { "city", Guild::CityName(here) }, { "have", cleared }, { "need", Guild::StampDungeons() }, { "waiting", Dungeons::WaitingIn(here) } };
 			}
-			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress();  // the card's "to do" note
+			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress() + BountyWatch::InProgress();  // the card's "to do" note
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());
 			data["notices"] = NoticeWatch::Postings();
+			data["bounty"] = g_cardOnly.load() ? nlohmann::json(nullptr) : BountyWatch::Posting(Branch());  // this hold's one bounty, or null
 			data["boards"] = { { "missives", MissiveWatch::Active() }, { "notices", NoticeWatch::Active() } };  // which sub-tabs the Quests tab has
 			data["party"] = Party::CounterData();
 			for (auto& row : Dungeons::IntelServices(Guild::Merit(), Guild::Registered())) data["services"].push_back(row);

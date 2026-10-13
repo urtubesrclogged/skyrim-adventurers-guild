@@ -5,6 +5,7 @@
 
 #include "ControlsGuard.h"
 #include "Adventurers.h"
+#include "BountyWatch.h"
 #include "Counter.h"
 #include "SteamVRAim.h"
 #include "ChoiceSwap.h"
@@ -86,6 +87,7 @@ namespace
 			AG::GuildCard::Install();
 			AG::MissiveWatch::Register();
 			AG::NoticeWatch::Register();
+			AG::BountyWatch::Register();
 			AG::Dungeons::Install();
 			AG::Kills::Register();
 			AG::Party::Register();

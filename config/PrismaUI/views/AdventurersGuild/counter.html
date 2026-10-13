@@ -667,25 +667,47 @@ function renderCard() {
 }
 
 function renderQuests() {
-  /* Up to three sub-tabs: Local Missives (Missives, this hold's board), Provincial Notices (The Notice Board, one board
-     for the whole province), Ready to Hand-in (both, and dungeon reports). A board whose mod is not installed has no tab. */
+  /* Up to four sub-tabs: Bounties (the game's own Jarls' bounties: one per hold at a time, so one row or a line saying
+     there is none; always there, it needs no other mod), Local Missives (Missives, this hold's board), Provincial
+     Notices (The Notice Board, one board for the whole province), Ready to Hand-in (all three, and dungeon reports).
+     A board whose mod is not installed has no tab. */
   const reports = data.reports || [], posts = data.postings || [], notices = data.notices || [];
+  const bounty = data.bounty || null, offered = bounty && bounty.state === "offer";
   const boards = data.boards || { missives: true, notices: false };
-  const has = { board: !!boards.missives, notices: !!boards.notices, reports: true };
-  if (!qsec || !has[qsec]) qsec = reports.length ? "reports" : has.board ? "board" : has.notices ? "notices" : "reports";
+  const has = { bounties: true, board: !!boards.missives, notices: !!boards.notices, reports: true };
+  if (!qsec || !has[qsec]) qsec = reports.length ? "reports" : offered ? "bounties" : has.board ? "board" : has.notices ? "notices" : "bounties";
   const where = data.branch || "local";
   const tabBtn = (id, label, n) => has[id] ? `<button data-qsec="${id}" class="${qsec === id ? "on" : ""}">${esc(label)}${n ? ` (${n})` : ""}</button>` : "";
-  const tabs = `<div class="qsec">${tabBtn("board", t("$AG_UI_LocalMissives", "Local Missives"), posts.length)}${tabBtn("notices", t("$AG_UI_ProvincialNotices", "Provincial Notices"), notices.length)}${tabBtn("reports", t("$AG_UI_ReadyHandIn", "Ready to Hand-in"), reports.length)}</div>`;
-  const isNotices = qsec === "notices";
-  if ((qsec === "board" || isNotices) && note) {
-    const n = note, still = (isNotices ? notices : posts).some((x) => x.id === n.id);
-    const meta = isNotices ? t("$AG_UI_NoticeMeta", "Guild Notice · Rank {0} · posted across the province", n.tier || "?")
+  const tabs = `<div class="qsec">${tabBtn("bounties", t("$AG_UI_Bounties", "Bounties"), offered ? 1 : 0)}${tabBtn("board", t("$AG_UI_LocalMissives", "Local Missives"), posts.length)}${tabBtn("notices", t("$AG_UI_ProvincialNotices", "Provincial Notices"), notices.length)}${tabBtn("reports", t("$AG_UI_ReadyHandIn", "Ready to Hand-in"), reports.length)}</div>`;
+  const isNotices = qsec === "notices", isBounties = qsec === "bounties";
+  if ((qsec === "board" || isNotices || isBounties) && note) {
+    const n = note, still = isBounties ? !!(offered && bounty.id === n.id) : (isNotices ? notices : posts).some((x) => x.id === n.id);
+    const meta = isBounties ? t("$AG_UI_BountyMeta", "Jarl's Bounty · Rank {0} · posted for {1}", n.tier || "?", where)
+      : isNotices ? t("$AG_UI_NoticeMeta", "Guild Notice · Rank {0} · posted across the province", n.tier || "?")
       : t("$AG_UI_NoteMeta", "Guild Missive · Rank {0} · {1} board", n.tier || "?", where);
-    return `<div class="notebox"><div class="note"><h3>${esc(n.title || (isNotices ? t("$AG_UI_GuildNotice", "Guild Notice") : t("$AG_UI_GuildMissive", "Guild Missive")))}</h3>
+    const heading = isBounties ? t("$AG_UI_JarlsBounty", "Jarl's Bounty") : isNotices ? t("$AG_UI_GuildNotice", "Guild Notice") : t("$AG_UI_GuildMissive", "Guild Missive");
+    const reading = isBounties ? t("$AG_UI_ReadingBounty", "Reading the Jarl's letter…") : isNotices ? t("$AG_UI_ReadingNotice", "Reading the notice…") : t("$AG_UI_Reading", "Reading the missive…");
+    return `<div class="notebox"><div class="note"><h3>${esc(n.title || heading)}</h3>
         <div class="meta">${esc(meta)}</div>
-        <div class="text">${n.text ? esc(n.text) : esc(isNotices ? t("$AG_UI_ReadingNotice", "Reading the notice…") : t("$AG_UI_Reading", "Reading the missive…"))}</div></div>
+        <div class="text">${n.text ? esc(n.text) : esc(reading)}</div></div>
       <div class="noteside"><button class="btn" data-back="1">${esc(t("$AG_UI_Back", "‹ Back"))}</button>
         ${still ? `<button class="btn" data-action="accept:${esc(n.id)}">${esc(t("$AG_UI_Take", "Take"))}</button>` : `<div class="empty" style="padding:10px 0;font-size:16px">${esc(t("$AG_UI_NoLonger", "No longer posted."))}</div>`}</div></div>`;
+  }
+  if (isBounties) {
+    // One bounty to a hold. Posted and untaken: a row to read and take. Taken already: who has it is the player, and
+    // the line says what is left to do. None: the line every counter shows, Raven Rock's included.
+    if (offered) {
+      const above = "EDCBAS".indexOf(bounty.tier) > "EDCBAS".indexOf(data.letter || "E");
+      return `<div class="bar-top">${tabs}<span class="sum caps"><b>1</b> ${esc(t("$AG_UI_Posted", "posted"))}</span></div>
+        <div class="row"><span class="tier">${esc(bounty.tier)}</span><div class="body"><div class="title">${esc(bounty.title)}</div>
+        <div class="detail">${esc(t("$AG_UI_BountyDetail", "Jarl's Bounty · Rank {0} · posted for {1}", bounty.tier, where))}${above ? esc(" · " + t("$AG_UI_AboveRank", "above your rank")) : ""}</div></div>
+        <button class="btn" data-note="${esc(bounty.id)}">${esc(t("$AG_UI_Details", "Details"))}</button><button class="btn" data-action="accept:${esc(bounty.id)}">${esc(t("$AG_UI_Take", "Take"))}</button></div>
+        <div class="boardhint">${esc(t("$AG_UI_BountyHint", "The hold pays the gold. Bring the Guild your report afterwards for Merit and Reputation."))}</div>`;
+    }
+    const line = !bounty ? [t("$AG_UI_BountyEmpty", "No bounty is posted for {0} right now.", where), t("$AG_UI_BountyEmpty2", "A hold posts one bounty at a time. Ask again when you are next in town.")]
+      : bounty.state === "slain" ? [t("$AG_UI_BountySlain", "Your bounty is done: {0}", bounty.title), bounty.payer ? t("$AG_UI_BountySlain2", "Collect the reward from {0}, then submit your report here.", bounty.payer) : t("$AG_UI_BountySlain3", "Collect the reward from the Jarl, then submit your report here.")]
+      : [t("$AG_UI_BountyTaken", "You have this hold's bounty: {0}", bounty.title), t("$AG_UI_BountyTaken2", "No other is posted for {0} until it is collected.", where)];
+    return `<div class="bar-top">${tabs}</div><div class="empty">${esc(line[0])}<br/>${esc(line[1])}</div>`;
   }
   if (qsec === "board") {
     if (!posts.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_BoardEmpty", "Nothing is posted on the {0} board for your rank right now.", where))}<br/>${esc(t("$AG_UI_BoardEmpty2", "New missives go up every few days, when the board is next refreshed."))}</div>`;
@@ -706,7 +728,7 @@ function renderQuests() {
         <button class="btn" data-note="${esc(x.id)}">${esc(t("$AG_UI_Details", "Details"))}</button><button class="btn" data-action="accept:${esc(x.id)}">${esc(t("$AG_UI_Take", "Take"))}</button></div>`).join("") +
       pager("notices", pages) + hint;
   }
-  if (!reports.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoReports", "No completed quests to report."))}<br/>${esc(t("$AG_UI_NoReports2", "Take a missive or a notice, finish it, then return here to submit your report."))}</div>`;
+  if (!reports.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoReports", "No completed quests to report."))}<br/>${esc(t("$AG_UI_NoReports2", "Take a bounty, a missive or a notice, finish it, then return here to submit your report."))}</div>`;
   const merit = reports.reduce((a, x) => a + x.merit, 0), gold = reports.reduce((a, x) => a + x.gold, 0), rep = reports.reduce((a, x) => a + (x.rep || 0), 0);
   const { items, pages } = paged("quests", reports, ROWS);
   return `<div class="bar-top">${tabs}<button class="btn" data-action="claim">${esc(t("$AG_UI_Submit", "Submit Reports"))}</button></div>
