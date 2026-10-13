@@ -1329,7 +1329,9 @@ var card = new Book(FK(0x81A), Rel)
 {
     EditorID = "AG_GuildCard",
     Name = "Adventurers Guild Card",
-    Model = noteSrc.Model?.DeepCopy(),
+    // its own mesh (tools/make_card_item.py): the sheet of the card page, the wax and the emblem standing proud of it.
+    // A card issued at Raven Rock is given the mesh with Morrowind's wax by the DLL (GuildCard.cpp).
+    Model = new Model { File = @"AdventurersGuild\guildcard.nif" },
     ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
     PickUpSound = noteSrc.PickUpSound is { } cpu ? new FormLinkNullable<ISoundDescriptorGetter>(cpu.FormKey) : null,
     PutDownSound = noteSrc.PutDownSound is { } cpd ? new FormLinkNullable<ISoundDescriptorGetter>(cpd.FormKey) : null,
@@ -1351,22 +1353,29 @@ mod.Books.Add(card);
 // The other adventurers' cards (1.5.0, MemberCards.cpp). AG_MemberCard: one person's card; each copy carries its own display
 // name ("Guild Card: Mjoll the Lioness") and reading it opens the card page in its member view. This text is only seen if
 // that cannot happen. AG_WornCard: what an adventurer with no name of their own carries; there is nothing to read.
-Book CardLike(uint id, string edid, string name, string text) => new Book(FK(id), Rel)
+Book CardLike(uint id, string edid, string name, string mesh, string text) => new Book(FK(id), Rel)
 {
     EditorID = edid, Name = name,
-    Model = noteSrc.Model?.DeepCopy(), ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
+    Model = new Model { File = @"AdventurersGuild\" + mesh + ".nif" }, ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
     PickUpSound = noteSrc.PickUpSound is { } mpu ? new FormLinkNullable<ISoundDescriptorGetter>(mpu.FormKey) : null,
     PutDownSound = noteSrc.PutDownSound is { } mpd ? new FormLinkNullable<ISoundDescriptorGetter>(mpd.FormKey) : null,
     InventoryArt = noteSrc.InventoryArt is { } mia ? new FormLinkNullable<IStaticGetter>(mia.FormKey) : null,
     Flags = noteSrc.Flags, Type = noteSrc.Type, Value = 0, Weight = 0, Description = "", BookText = text,
 };
-mod.Books.Add(CardLike(0xCF7, "AG_MemberCard", "Adventurers Guild Card (NPC)",
+mod.Books.Add(CardLike(0xCF7, "AG_MemberCard", "Adventurers Guild Card (NPC)", "guildcard",
     "<p align=\"center\"><font size=\"30\">ADVENTURERS GUILD</font></p>" +
     "<p align=\"center\">Member's Card</p><br>" +
     "<p>The bearer is a registered adventurer of the Guild. Rank, standing and record are kept in the Guild's ledger " +
     "and may be confirmed at the inn of any hold capital.</p><br>" +
     "<p align=\"right\">- The Adventurers Guild</p>"));
-mod.Books.Add(CardLike(0xCF8, "AG_WornCard", "Adventurers Guild Card (NPC) - Unreadable",
+// the same card for a member of Solstheim: an item of its own only because the wax on its mesh is Morrowind's (one item, one mesh)
+mod.Books.Add(CardLike(0xCFC, "AG_MemberCardMorrowind", "Adventurers Guild Card (NPC)", "guildcard_morrowind",
+    "<p align=\"center\"><font size=\"30\">ADVENTURERS GUILD</font></p>" +
+    "<p align=\"center\">Member's Card</p><br>" +
+    "<p>The bearer is a registered adventurer of the Guild. Rank, standing and record are kept in the Guild's ledger " +
+    "and may be confirmed at the inn of any hold capital.</p><br>" +
+    "<p align=\"right\">- The Adventurers Guild</p>"));
+mod.Books.Add(CardLike(0xCF8, "AG_WornCard", "Adventurers Guild Card (NPC) - Unreadable", "guildcard_worn",
     "<p>The remains of a card of the Adventurers Guild. The holder's name is no longer readable.</p>"));
 
 // ---------- Appraisal: a passive Guild skill (0x820-0x82F) ----------

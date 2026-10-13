@@ -25,3 +25,5 @@ BACKLOG.md
 docs/images/
 docs/SCREENSHOTS.md
 config/PrismaUI/views/AdventurersGuild/tex/skin/
+# the guild card's textures are made from the game's parchment (tools/make_card_item.py); the meshes are ours and are kept
+config/textures/

@@ -304,12 +304,29 @@ namespace AG::GuildCard
 		return g_card && pc && pc->GetItemCount(g_card) > 0;
 	}
 
+	// The card in the world wears the wax its page shows: Skyrim's red, or Morrowind's on a card issued at Raven Rock.
+	// One item has one mesh, so the mesh of the player's card is set from the seal (a card already lying in a loaded
+	// cell keeps the look it was drawn with until it is drawn again).
+	void SyncModel()
+	{
+		if (!g_card) return;
+		std::string seal;
+		{
+			std::lock_guard l(g_sealLock);
+			seal = g_seal;
+		}
+		g_card->SetModel(seal == "morrowind" ? "AdventurersGuild\\guildcard_morrowind.nif" : "AdventurersGuild\\guildcard.nif");
+	}
+
 	void Stamp(const std::string& a_city)
 	{
+		{
 		std::lock_guard l(g_sealLock);
 		g_seal = a_city == "Raven Rock" ? "morrowind" : "";
 		g_issuedAt = a_city;
 		SKSE::log::info("GuildCard: issued at {} - {} seal", a_city.empty() ? "an unnamed counter" : a_city, g_seal.empty() ? "Skyrim's" : "Morrowind's");
+		}
+		SyncModel();
 	}
 
 	std::string IssuedAt()
@@ -332,8 +349,11 @@ namespace AG::GuildCard
 
 	void SetSeal(const std::string& a_seal)
 	{
-		std::lock_guard l(g_sealLock);
-		g_seal = a_seal;
+		{
+			std::lock_guard l(g_sealLock);
+			g_seal = a_seal;
+		}
+		SyncModel();
 	}
 
 	std::string Replace(const std::string& a_city)

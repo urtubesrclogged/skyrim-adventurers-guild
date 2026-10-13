@@ -45,6 +45,8 @@ namespace AG::MemberCards
 		};
 
 		RE::TESObjectBOOK* g_personal = nullptr;
+		RE::TESObjectBOOK* g_personalMw = nullptr;  // the same card with Morrowind's wax (a member of Solstheim): an item of its own for its mesh
+		bool Card(const RE::TESForm* a_form) { return a_form && (a_form == g_personal || (g_personalMw && a_form == g_personalMw)); }
 		RE::TESObjectBOOK* g_worn = nullptr;
 		std::mutex         g_lock;
 		std::unordered_map<std::string, Record> g_records;  // by item name, lower case
@@ -82,7 +84,7 @@ namespace AG::MemberCards
 		void Rename(RE::TESObjectREFR* a_holder)
 		{
 			if (!a_holder || !g_personal) return;
-			for (auto& [object, data] : a_holder->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal; })) {
+			for (auto& [object, data] : a_holder->GetInventory([](RE::TESBoundObject& a_o) { return Card(&a_o); })) {
 				auto& entry = data.second;
 				if (!entry || !entry->extraLists) continue;
 				for (auto* xl : *entry->extraLists) {
@@ -205,7 +207,7 @@ namespace AG::MemberCards
 			if (!pc || !g_personal || !g_worn) return out;
 			auto* self = pc->GetActorBase();
 			Rename(pc);
-			auto  inv = pc->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal || &a_o == g_worn; });
+			auto  inv = pc->GetInventory([](RE::TESBoundObject& a_o) { return Card(&a_o) || &a_o == g_worn; });
 			for (auto& [object, data] : inv) {
 				auto& [count, entry] = data;
 				if (count <= 0 || !entry) continue;
@@ -267,7 +269,7 @@ namespace AG::MemberCards
 
 		bool HasCard(RE::Actor* a_actor)
 		{
-			for (auto& [object, data] : a_actor->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal; }))
+			for (auto& [object, data] : a_actor->GetInventory([](RE::TESBoundObject& a_o) { return Card(&a_o); }))
 				if (data.first > 0) return true;
 			return false;
 		}
@@ -275,10 +277,16 @@ namespace AG::MemberCards
 		// The named copy is made by the game (AG_QuestHelper.GiveMemberCard), a frame or two from now.
 		void Give(RE::Actor* a_actor, const std::string& a_item)
 		{
+			// which of the two items: the one whose wax is on their card
+			RE::TESObjectBOOK* form = g_personal;
+			{
+				std::lock_guard l(g_lock);
+				if (const auto it = g_records.find(Key(a_item)); it != g_records.end() && it->second.seal == "morrowind" && g_personalMw) form = g_personalMw;
+			}
 			if (auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
 				RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
 				vm->DispatchStaticCall("AG_QuestHelper", "GiveMemberCard",
-					RE::MakeFunctionArguments(static_cast<RE::Actor*>(a_actor), static_cast<RE::TESForm*>(g_personal), RE::BSFixedString(a_item)), cb);
+					RE::MakeFunctionArguments(static_cast<RE::Actor*>(a_actor), static_cast<RE::TESForm*>(form), RE::BSFixedString(a_item)), cb);
 			}
 		}
 
@@ -477,6 +485,7 @@ namespace AG::MemberCards
 		const auto Drink = [](RE::TESForm* a_form) { return a_form ? a_form->As<RE::TESBoundObject>() : nullptr; };
 		auto* dh = RE::TESDataHandler::GetSingleton();
 		g_personal = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCF7, kPlugin) : nullptr;
+		g_personalMw = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCFC, kPlugin) : nullptr;
 		g_worn = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCF8, kPlugin) : nullptr;
 		if (!g_personal || !g_worn) {
 			SKSE::log::warn("MemberCards: the two card items are not in {} - other adventurers carry no card", kPlugin);
@@ -504,7 +513,7 @@ namespace AG::MemberCards
 		SKSE::log::info("MemberCards: an adventurer is given their card the first time the player looks");
 	}
 
-	bool IsPersonal(const RE::TESForm* a_form) { return a_form && a_form == g_personal; }
+	bool IsPersonal(const RE::TESForm* a_form) { return Card(a_form); }
 	bool IsWorn(const RE::TESForm* a_form) { return a_form && a_form == g_worn; }
 
 	void Given(RE::Actor* a_owner)
