@@ -1325,6 +1325,19 @@ mod.Books.Add(note);
 // The physical Guild Card (1.2.0): a note the DLL hands over at registration and renames at each promotion. Reading it
 // opens the counter's Guild Card page (GuildCard.cpp watches the Book Menu); this text is only seen if that cannot
 // happen (PrismaUI missing, or the card in the hands of someone the Guild does not know).
+// What the inventory shows for a card, and what the Book Menu opens (a book's "inventory art"): the game's own menu
+// note with its pages hidden and the card laid in it (tools/make_card_mesh.py, write_inventory, says why). 0xCE0-0xCE2,
+// which development builds of Show Guild Card used and no release ever did.
+FormLinkNullable<IStaticGetter> CardArt(uint id, string stem)
+{
+    var st = new Static(FK(id), Rel) { EditorID = "AG_" + stem + "Art", Model = new Model { File = @"AdventurersGuild\" + stem.ToLowerInvariant() + "_inv.nif" } };
+    mod.Statics.Add(st);
+    return new FormLinkNullable<IStaticGetter>(st.FormKey);
+}
+var cardArt = new Dictionary<string, FormLinkNullable<IStaticGetter>>
+{
+    ["guildcard"] = CardArt(0xCE0, "GuildCard"), ["guildcard_morrowind"] = CardArt(0xCE1, "GuildCard_Morrowind"), ["guildcard_worn"] = CardArt(0xCE2, "GuildCard_Worn"),
+};
 var card = new Book(FK(0x81A), Rel)
 {
     EditorID = "AG_GuildCard",
@@ -1335,7 +1348,7 @@ var card = new Book(FK(0x81A), Rel)
     ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
     PickUpSound = noteSrc.PickUpSound is { } cpu ? new FormLinkNullable<ISoundDescriptorGetter>(cpu.FormKey) : null,
     PutDownSound = noteSrc.PutDownSound is { } cpd ? new FormLinkNullable<ISoundDescriptorGetter>(cpd.FormKey) : null,
-    InventoryArt = noteSrc.InventoryArt is { } cia ? new FormLinkNullable<IStaticGetter>(cia.FormKey) : null,
+    InventoryArt = cardArt["guildcard"],
     Flags = noteSrc.Flags,
     Type = noteSrc.Type,
     Value = 0,
@@ -1359,7 +1372,7 @@ Book CardLike(uint id, string edid, string name, string mesh, string text) => ne
     Model = new Model { File = @"AdventurersGuild\" + mesh + ".nif" }, ObjectBounds = noteSrc.ObjectBounds?.DeepCopy(),
     PickUpSound = noteSrc.PickUpSound is { } mpu ? new FormLinkNullable<ISoundDescriptorGetter>(mpu.FormKey) : null,
     PutDownSound = noteSrc.PutDownSound is { } mpd ? new FormLinkNullable<ISoundDescriptorGetter>(mpd.FormKey) : null,
-    InventoryArt = noteSrc.InventoryArt is { } mia ? new FormLinkNullable<IStaticGetter>(mia.FormKey) : null,
+    InventoryArt = cardArt[mesh],
     Flags = noteSrc.Flags, Type = noteSrc.Type, Value = 0, Weight = 0, Description = "", BookText = text,
 };
 mod.Books.Add(CardLike(0xCF7, "AG_MemberCard", "Adventurers Guild Card (NPC)", "guildcard",

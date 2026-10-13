@@ -315,7 +315,11 @@ namespace AG::GuildCard
 			std::lock_guard l(g_sealLock);
 			seal = g_seal;
 		}
-		g_card->SetModel(seal == "morrowind" ? "AdventurersGuild\\guildcard_morrowind.nif" : "AdventurersGuild\\guildcard.nif");
+		const bool mw = seal == "morrowind";
+		g_card->SetModel(mw ? "AdventurersGuild\\guildcard_morrowind.nif" : "AdventurersGuild\\guildcard.nif");
+		// ... and so does what the inventory shows (the card's "inventory art", 0xCE0 Skyrim's wax, 0xCE1 Morrowind's)
+		if (auto* dh = RE::TESDataHandler::GetSingleton())
+			if (auto* art = dh->LookupForm<RE::TESObjectSTAT>(mw ? 0xCE1 : 0xCE0, kPlugin)) g_card->inventoryModel = art;
 	}
 
 	void Stamp(const std::string& a_city)

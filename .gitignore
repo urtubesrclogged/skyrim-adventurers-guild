@@ -27,3 +27,5 @@ docs/SCREENSHOTS.md
 config/PrismaUI/views/AdventurersGuild/tex/skin/
 # the guild card's textures are made from the game's parchment (tools/make_card_item.py); the meshes are ours and are kept
 config/textures/
+# ... and what the inventory shows is the game's own menu note with the card laid in it: the game's mesh data, not published
+config/meshes/AdventurersGuild/*_inv.nif

@@ -40,7 +40,7 @@ mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex" && cp "$R"/config/PrismaUI/vie
 cp "$R"/build/papyrus/AG_*.pex                             "$M/Scripts/"
 # the guild card as an object (1.5.0): its meshes, and their textures, which are made from the game's parchment and are
 # not in the repository (tools/make_card_item.py makes both)
-[ -f "$R/config/textures/AdventurersGuild/guildcard.dds" ] || { echo "config/textures/ is empty - run: python tools/make_card_item.py" >&2; exit 1; }
+[ -f "$R/config/textures/AdventurersGuild/guildcard.dds" ] && [ -f "$R/config/meshes/AdventurersGuild/guildcard_inv.nif" ] || { echo "the card's textures or inventory meshes are missing - run: python tools/make_card_item.py" >&2; exit 1; }
 mkdir -p "$M/meshes/AdventurersGuild" "$M/textures/AdventurersGuild"
 cp "$R"/config/meshes/AdventurersGuild/*.nif "$M/meshes/AdventurersGuild/"
 cp "$R"/config/textures/AdventurersGuild/*.dds "$M/textures/AdventurersGuild/"
