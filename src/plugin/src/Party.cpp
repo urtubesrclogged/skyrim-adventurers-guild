@@ -490,6 +490,11 @@ namespace AG::Party
 				f.ids.insert("allies");
 				f.why["allies"] = Loc::F("$AG_Why_Allies", "Vampire: {}. Dawnguard: {}.", listOf(&Facts::vampire), listOf(&Facts::dawnguard));
 			}
+			// at least four followers, every one of them of the other sex to the player's (1.5.0)
+			if (n >= 5 && std::ranges::all_of(a_group.begin() + 1, a_group.end(), [&](auto& x) { return x.female != a_group[0].female; })) {
+				f.ids.insert("uhhuh");
+				f.why["uhhuh"] = Loc::F("$AG_Why_Opposite", "All of the opposite sex: {}", list([](auto&, std::size_t i) { return i > 0; }));
+			}
 			if (companions(&Facts::spouse, false)) { f.ids.insert("honeymoon"); f.why["honeymoon"] = Loc::F("$AG_Why_Spouse", "{}: your spouse", listOf(&Facts::spouse)); }
 			// from the party's own record: days in the field together, and its fallen
 			const auto  nobody = std::ranges::find(g_tcfg.traits, std::string("nobody"), &TraitDef::id);

@@ -1753,11 +1753,17 @@ for (int si = 0; si < 3; si++)
     for (int ti = 0; ti < traits.Count; ti++)
     {
         var tn = traits[ti];
-        if (ti == 8) { nextFx = 0xC10; fxEnd = 0xC7F; }
+        if (ti == 8) { nextFx = 0xC10; fxEnd = 0xC7B; }   // 0xC7C-0xC7F: the bloodied cards
         var id = tn!["id"]!.GetValue<string>();
         var nm = tn["name"]!.GetValue<string>();
         var on = GlobalIs(tGlobals[id], 1);
         var extra = new List<Condition>();
+        if (tn["playerOnly"]?.GetValue<bool>() == true)
+        {   // the player's alone: the members carry the same ability, and this effect is not for them
+            var d = new GetIsReferenceConditionData();
+            d.Target.Link.SetTo(FormKey.Factory("000014:Skyrim.esm"));
+            extra.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = d });
+        }
         if (tn["night"]?.GetValue<bool>() == true)
         {   // night: 20:00-06:00 (OR binds before AND: on AND (after 20 OR before 6))
             extra.Add(Or(new ConditionFloat { CompareOperator = CompareOperator.GreaterThanOrEqualTo, ComparisonValue = 20, Data = new GetCurrentTimeConditionData() }));
@@ -1799,6 +1805,7 @@ for (int si = 0; si < 3; si++)
         }
         if (tn["magickaRegen"] is JsonNode mg) Add($"AG_MGEF_Trait_{id}_MagickaRate", nm, ActorValue.MagickaRateMult, mg.GetValue<float>(), Conds());
         if (tn["health"] is JsonNode hp) Add($"AG_MGEF_Trait_{id}_Health", nm, ActorValue.Health, hp.GetValue<float>(), Conds());
+        if (tn["stamina"] is JsonNode stm) Add($"AG_MGEF_Trait_{id}_Stamina", nm, ActorValue.Stamina, stm.GetValue<float>(), Conds());
         if (tn["skillRate"] is JsonNode sr)
         {   // skills improve faster: vanilla's Well Rested pattern, an effect that applies a perk with Mod Skill Use x(1+rate).
             // The perk entry also checks the trait's global, so the bonus follows the switch even if the perk lingers.

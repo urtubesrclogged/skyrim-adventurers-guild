@@ -35,6 +35,7 @@
 		{ "id": "memory", "name": "In Their Memory", "unlock": "The party has lost one of its own", "effect": "+5% weapon damage", "damage": 5 },
 		{ "id": "study", "name": "Study Group", "unlock": "Two or more of you from the College of Winterhold", "effect": "+25% magicka regeneration", "magickaRegen": 25 },
 		{ "id": "allies", "name": "Unlikely Allies", "unlock": "A vampire and one of the Dawnguard travel together", "effect": "+10% weapon damage vs the undead", "damage": 10, "targets": { "keywords": ["ActorTypeUndead", "Vampire"] } },
-		{ "id": "honeymoon", "name": "Honeymoon Adventure", "unlock": "Your spouse travels with you", "effect": "+30 health", "health": 30 }
+		{ "id": "honeymoon", "name": "Honeymoon Adventure", "unlock": "Your spouse travels with you", "effect": "+30 health", "health": 30 },
+		{ "id": "uhhuh", "name": "Uh-huh...", "unlock": "At least 4 followers, all suspiciously of the opposite sex", "effect": "+50 stamina (you only)", "stamina": 50, "playerOnly": true }
 	]
 }
