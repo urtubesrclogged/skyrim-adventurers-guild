@@ -1573,12 +1573,6 @@ namespace AG::Guild
 
 	int CardFee() { return g_cfg.cardFee; }
 	int StampDungeons() { return g_cfg.stampDungeons; }
-	// dev/test: how many reported dungeons a hold's stamp needs, for this session only (0 = every hold's is earned)
-	void DebugSetStampDungeons(int a_n)
-	{
-		g_cfg.stampDungeons = std::max(0, a_n);
-		SKSE::log::info("Guild: [debug] a hold's stamp now needs {} dungeon report(s), until the game is closed", g_cfg.stampDungeons);
-	}
 	int CardReturnReputation() { return g_cfg.memberCardRep; }
 	float CardReplaceDays() { return g_cfg.memberCardDays; }
 	int ReputationFor(int a_rank) { return g_cfg.reputation[std::clamp(a_rank, 0, kRankCount - 1)]; }

@@ -106,10 +106,13 @@ translate):
   `$AG_Toast_Bounty`, `$AG_Hud_BountyDone`, `$AG_Log_Bounty` and `$AG_Report_Bounty` (`{}` = the rank, then the bounty).
 * `$AG_UI_NoReports2` now names bounties as well.
 
-New keys for the MCM's Audio page: `$AG_MCM_Audio`, `$AG_MCM_Audio_Sounds_Header`, `$AG_MCM_Audio_Voices_Header`, the
-notices' sounds `$AG_MCM_Audio_iSoundSet_Text` / `_Help` with its three choices `$AG_MCM_Audio_SoundSet_Drums`, `_Skyrim`
-and `_None`, and three switches for the voiced lines, each with its
-`_Text` and `_Help`: `$AG_MCM_Audio_iSoundVolume` (and its three `$AG_MCM_Audio_SoundVolume_*` values), `$AG_MCM_Audio_bGreetings`, `$AG_MCM_Audio_bFollowerComments`, `$AG_MCM_Audio_bInteractions`, `$AG_MCM_Audio_bRepLines`.
+New keys for the MCM's Audio page: `$AG_MCM_Audio`, `$AG_MCM_Audio_Sounds_Header`, `$AG_MCM_Audio_Voices_Header`;
+the notices' sounds `$AG_MCM_Audio_iSoundSet_Text` / `_Help` with its three choices `$AG_MCM_Audio_SoundSet_Drums`,
+`_Skyrim` and `_None`; their volume `$AG_MCM_Audio_iSoundVolume_Text` / `_Help` with its three choices
+`$AG_MCM_Audio_SoundVolume_Quieter`, `_Default` and `_Louder`; and four switches for the voiced lines, each with its
+`_Text` and `_Help`: `$AG_MCM_Audio_bGreetings`, `$AG_MCM_Audio_bFollowerComments`, `$AG_MCM_Audio_bInteractions`,
+`$AG_MCM_Audio_bRepLines`. The 1.4 switch `$AG_MCM_System_bNoticeSounds` (`_Text`, `_Help`) is gone: the sound set
+replaces it.
 With the representatives' lines switched off they answer with the game's own "Of course.", which is the game's to
 translate, not ours: nothing new in the plugin's text.
 
@@ -139,6 +142,18 @@ New text in the plugin (section 2) for the other adventurers' guild cards:
   fourteen representatives, `AG_Info_cardhandin_<NPC>_alive`, `_dead`, `_fallen` (the card of a fallen member of the
   player's party) and `_worn` (a card nobody can read). In `_fallen` twelve of them stand the party a round; Ysolda
   and Elda do not, and their lines say so: keep that difference.
+
+New text in the plugin (section 2) for a dead adventurer's card: two items, `AG_MemberCardBloody` and
+`AG_MemberCardMorrowindBloody`, both named `Adventurers Guild Card (NPC)` with the same text as `AG_MemberCard`: keep
+all of them alike. The game shows the name the plugin gives each copy (`$AG_MemberCard_Name`), so the record's own
+name is rarely seen.
+
+A new party affinity, `Obviously a Coincidence` (at least four followers, all of the other sex to the player's):
+
+* Its name, unlock line and effect are in `SKSE/Plugins/AdventurersGuild/traits.json` (`"id": "uhhuh"`), like every
+  other affinity's. The word "suspiciously" in its unlock line is the joke: keep its sense.
+* `$AG_Why_Opposite`: the line under it while it holds (`{}` = the followers' names). It says "suspiciously" too.
+* In the plugin (section 2), its effect `AG_MGEF_Trait_uhhuh_Stamina` carries the same name.
 
 New text in the plugin (section 2), all of it for Show Guild Card:
 

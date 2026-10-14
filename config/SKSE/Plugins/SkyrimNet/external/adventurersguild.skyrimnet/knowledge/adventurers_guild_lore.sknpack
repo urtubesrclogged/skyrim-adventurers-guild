@@ -3,7 +3,7 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "entries": [
       {
         "key": "ag_basics",
@@ -416,6 +416,36 @@
           "party",
           "fallen",
           "memorial"
+        ]
+      },
+      {
+        "key": "ag_dungeon_dead",
+        "display_name": "Adventurers who never came back",
+        "content": "The barrows, caves and ruins of Skyrim hold the bodies of adventurers who went in and never came out. Most were members of the Adventurers Guild, and a dead adventurer's guild card is usually still on them, stained with their blood. Whoever brings such a card to an Adventurers Guild counter lets the Guild close that page of its ledger and write to their kin, and the Guild remembers who did it.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "adventurers",
+          "dungeons",
+          "fallen",
+          "guild card"
+        ]
+      },
+      {
+        "key": "ag_party_coincidence",
+        "display_name": "Obviously a coincidence",
+        "content": "Adventurers Guild folk have a running joke about the adventurer who travels with four or more companions, every one of them of the other sex. 'Obviously a coincidence,' they say, with a look. Counter talk teases such a party gently; few say it to the adventurer's face unless they are drunk or brave.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.3,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "party",
+          "parties",
+          "adventurers",
+          "gossip"
         ]
       }
     ]
