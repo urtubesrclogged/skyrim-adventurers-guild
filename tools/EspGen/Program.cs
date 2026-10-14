@@ -22,7 +22,8 @@
 //   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
 //   0xCE0-0xCE5  Show Guild Card: the strongholds' branch and topic (0xCE4/5). 0xCE0-0xCE3 were the College's and the Treasury House's in
 //                development builds only (never released): free.
-//   0xC00-0xC7F  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
+//   0xC00-0xC7B  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
+//   0xC7C-0xC7F  a dead adventurer's card (1.5.0): AG_MemberCardBloody, AG_MemberCardMorrowindBloody, and their inventory art
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mutagen.Bethesda;
@@ -1478,6 +1479,7 @@ FormLinkNullable<IStaticGetter> CardArt(uint id, string stem)
 var cardArt = new Dictionary<string, FormLinkNullable<IStaticGetter>>
 {
     ["guildcard"] = CardArt(0xCE0, "GuildCard"), ["guildcard_morrowind"] = CardArt(0xCE1, "GuildCard_Morrowind"), ["guildcard_worn"] = CardArt(0xCE2, "GuildCard_Worn"),
+    ["guildcard_bloody"] = CardArt(0xC7E, "GuildCard_Bloody"), ["guildcard_morrowind_bloody"] = CardArt(0xC7F, "GuildCard_Morrowind_Bloody"),
 };
 var card = new Book(FK(0x81A), Rel)
 {
@@ -1529,6 +1531,15 @@ mod.Books.Add(CardLike(0xCFC, "AG_MemberCardMorrowind", "Adventurers Guild Card 
     "<p>The bearer is a registered adventurer of the Guild. Rank, standing and record are kept in the Guild's ledger " +
     "and may be confirmed at the inn of any hold capital.</p><br>" +
     "<p align=\"right\">- The Adventurers Guild</p>"));
+// A dead adventurer's card (1.5.0): the same card, bloodied and torn as the card page shows it for them. The DLL puts it in
+// place of the clean one, with the same name, once the owner is known to be dead (MemberCards.cpp, Bloody). Two, for the wax.
+foreach (var (id, edid, mesh) in new[] { (0xC7Cu, "AG_MemberCardBloody", "guildcard_bloody"), (0xC7Du, "AG_MemberCardMorrowindBloody", "guildcard_morrowind_bloody") })
+    mod.Books.Add(CardLike(id, edid, "Adventurers Guild Card (NPC)", mesh,
+        "<p align=\"center\"><font size=\"30\">ADVENTURERS GUILD</font></p>" +
+        "<p align=\"center\">Member's Card</p><br>" +
+        "<p>The bearer is a registered adventurer of the Guild. Rank, standing and record are kept in the Guild's ledger " +
+        "and may be confirmed at the inn of any hold capital.</p><br>" +
+        "<p align=\"right\">- The Adventurers Guild</p>"));
 mod.Books.Add(CardLike(0xCF8, "AG_WornCard", "Adventurers Guild Card (NPC) - Unreadable", "guildcard_worn",
     "<p>The remains of a card of the Adventurers Guild. The holder's name is no longer readable.</p>"));
 

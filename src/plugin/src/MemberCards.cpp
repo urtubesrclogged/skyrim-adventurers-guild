@@ -48,7 +48,12 @@ namespace AG::MemberCards
 
 		RE::TESObjectBOOK* g_personal = nullptr;
 		RE::TESObjectBOOK* g_personalMw = nullptr;  // the same card with Morrowind's wax (a member of Solstheim): an item of its own for its mesh
-		bool Card(const RE::TESForm* a_form) { return a_form && (a_form == g_personal || (g_personalMw && a_form == g_personalMw)); }
+		RE::TESObjectBOOK* g_bloody = nullptr;      // a dead adventurer's card, bloodied (and its Morrowind twin): items of their own for their meshes
+		RE::TESObjectBOOK* g_bloodyMw = nullptr;
+		bool Card(const RE::TESForm* a_form)
+		{
+			return a_form && (a_form == g_personal || (g_personalMw && a_form == g_personalMw) || (g_bloody && a_form == g_bloody) || (g_bloodyMw && a_form == g_bloodyMw));
+		}
 		RE::TESObjectBOOK* g_worn = nullptr;
 		std::mutex         g_lock;
 		std::unordered_map<std::string, Record> g_records;  // by item name, lower case
@@ -277,18 +282,53 @@ namespace AG::MemberCards
 		}
 
 		// The named copy is made by the game (AG_QuestHelper.GiveMemberCard), a frame or two from now.
-		void Give(RE::Actor* a_actor, const std::string& a_item)
+		void Give(RE::Actor* a_actor, const std::string& a_item, bool a_bloody = false)
 		{
-			// which of the two items: the one whose wax is on their card
+			// which item: the one whose wax is on their card, bloodied if its owner is dead
 			RE::TESObjectBOOK* form = g_personal;
 			{
 				std::lock_guard l(g_lock);
-				if (const auto it = g_records.find(Key(a_item)); it != g_records.end() && it->second.seal == "morrowind" && g_personalMw) form = g_personalMw;
+				const bool mw = [&] { const auto it = g_records.find(Key(a_item)); return it != g_records.end() && it->second.seal == "morrowind"; }();
+				if (a_bloody && g_bloody) form = mw && g_bloodyMw ? g_bloodyMw : g_bloody;
+				else if (mw && g_personalMw) form = g_personalMw;
 			}
 			if (auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
 				RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
 				vm->DispatchStaticCall("AG_QuestHelper", "GiveMemberCard",
 					RE::MakeFunctionArguments(static_cast<RE::Actor*>(a_actor), static_cast<RE::TESForm*>(form), RE::BSFixedString(a_item)), cb);
+			}
+		}
+
+		// A dead adventurer's card looks it (1.5.0): a clean copy whose owner the Guild knows to be dead is taken out of the
+		// holder's inventory and the bloodied one, with the same name, put in its place. The player's (on every sync) and a
+		// body's (when the crosshair finds it). On the game's thread.
+		void Bloody(RE::Actor* a_holder)
+		{
+			if (!a_holder || !g_bloody) return;
+			std::vector<std::pair<RE::TESBoundObject*, RE::ExtraDataList*>> swap;
+			std::vector<std::string>                                        names;
+			for (auto& [object, data] : a_holder->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal || (g_personalMw && &a_o == g_personalMw); })) {
+				auto& entry = data.second;
+				if (data.first <= 0 || !entry || !entry->extraLists) continue;
+				for (auto* xl : *entry->extraLists) {
+					const char* shown = xl ? xl->GetDisplayName(object) : nullptr;
+					if (!shown || !*shown) continue;
+					bool dead = false;
+					{
+						std::lock_guard l(g_lock);
+						const auto it = g_records.find(Key(shown));
+						dead = it != g_records.end() && it->second.dead;
+					}
+					if (dead) {
+						swap.emplace_back(object, xl);
+						names.emplace_back(shown);
+					}
+				}
+			}
+			for (std::size_t i = 0; i < swap.size(); ++i) {
+				a_holder->RemoveItem(swap[i].first, 1, RE::ITEM_REMOVE_REASON::kRemove, swap[i].second, nullptr);
+				Give(a_holder, names[i], true);
+				SKSE::log::info("MemberCards: \"{}\" is bloodied ({} holds it; its owner is dead)", names[i], a_holder->GetDisplayFullName());
 			}
 		}
 
@@ -439,7 +479,10 @@ namespace AG::MemberCards
 				const auto handle = actor->GetHandle();
 				SKSE::GetTaskInterface()->AddTask([handle] {
 					auto ref = handle.get();
-					if (auto* body = ref ? ref->As<RE::Actor>() : nullptr) Ensure(body);
+					if (auto* body = ref ? ref->As<RE::Actor>() : nullptr) {
+						Ensure(body);
+						Bloody(body);
+					}
 				});
 				return RE::BSEventNotifyControl::kContinue;
 			}
@@ -488,6 +531,8 @@ namespace AG::MemberCards
 		auto* dh = RE::TESDataHandler::GetSingleton();
 		g_personal = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCF7, kPlugin) : nullptr;
 		g_personalMw = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCFC, kPlugin) : nullptr;
+		g_bloody = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xC7C, kPlugin) : nullptr;
+		g_bloodyMw = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xC7D, kPlugin) : nullptr;
 		g_worn = dh ? dh->LookupForm<RE::TESObjectBOOK>(0xCF8, kPlugin) : nullptr;
 		if (!g_personal || !g_worn) {
 			SKSE::log::warn("MemberCards: the two card items are not in {} - other adventurers carry no card", kPlugin);
@@ -612,6 +657,7 @@ namespace AG::MemberCards
 	void Sync()
 	{
 		if (!g_personal || !g_gCarried || !g_gCase) return;
+		Bloody(RE::PlayerCharacter::GetSingleton());  // the cards of the dead the player carries look it
 		int total = 0, weight = 0;
 		for (auto& c : Scan()) {
 			total += c.count;
