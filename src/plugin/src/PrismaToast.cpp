@@ -121,6 +121,7 @@ namespace AG::PrismaToast
 				// 0 the Guild Drums, 1 the game's own, 2 none (an ini from before 1.5.0 only had the on/off NoticeSounds)
 				const int set = static_cast<int>(ini.GetLongValue("System", "NoticeSoundSet", ini.GetBoolValue("System", "NoticeSounds", true) ? 0 : 2));
 				SetSounds(static_cast<SoundSet>(std::clamp(set, 0, 2)));
+				SetVolume(static_cast<int>(ini.GetLongValue("System", "NoticeVolume", 0)));
 				SetHoldSeconds(static_cast<float>(ini.GetDoubleValue("System", "NoticeSeconds", 5.0)));
 			}
 		}
@@ -186,18 +187,35 @@ namespace AG::PrismaToast
 		// (BSAudioManager::Play by FormID does that) the game reported success and played something else, a page turning
 		// (heard in game, 2026-10-13). And on the game's own thread: a notice is often raised from an event's.
 		const auto id = sd->GetFormID();
-		SKSE::GetTaskInterface()->AddTask([id] {
+		// The level: each sound's own cut at the default step, 4 dB less or more a step, never above the file itself.
+		// The drums' default is 4 dB above where 1.5.0's first builds played them (the level-up record's 7.9 dB cut,
+		// barely heard in a modlist that keeps interface sounds low); the game's own sounds keep their records' cuts.
+		// Order of the enum: promoted, dungeon entered, registered, promotion ready, complete, stamped, Reputation lost.
+		constexpr float kCutSkyrim[] = { 0.0f, 7.93f, 7.93f, 7.93f, 3.96f, 5.73f, 5.73f, 7.93f };
+		const float     cut = (skyrim ? kCutSkyrim[static_cast<std::size_t>(a_cue)] : 3.93f) - 4.0f * static_cast<float>(Volume());
+		const float     gain = std::pow(10.0f, -std::max(cut, 0.0f) / 20.0f);
+		SKSE::GetTaskInterface()->AddTask([id, gain] {
 			auto* f = RE::TESForm::LookupByID<RE::BGSSoundDescriptorForm>(id);
 			auto* m = RE::BSAudioManager::GetSingleton();
 			if (!f || !f->soundDescriptor || !m) return;
 			RE::BSSoundHandle h;
-			if (m->GetSoundHandle(h, f->soundDescriptor)) h.Play();
+			if (m->GetSoundHandle(h, f->soundDescriptor)) {
+				h.SetVolume(gain);
+				h.Play();
+			}
 		});
 		return true;
 	}
 
 	SoundSet Sounds() { return static_cast<SoundSet>(g_sounds.load(std::memory_order_relaxed)); }
 	void     SetSounds(SoundSet a_set) { g_sounds.store(static_cast<int>(a_set), std::memory_order_relaxed); }
+
+	namespace
+	{
+		std::atomic<int> g_volume{ 0 };
+	}
+	int  Volume() { return g_volume.load(std::memory_order_relaxed); }
+	void SetVolume(int a_step) { g_volume.store(std::clamp(a_step, -1, 1), std::memory_order_relaxed); }
 
 	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal, Priority a_priority, Cue a_cue)
 	{

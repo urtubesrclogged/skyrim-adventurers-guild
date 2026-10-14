@@ -39,6 +39,9 @@ namespace AG::PrismaToast
 	enum class SoundSet { kDrums = 0, kSkyrim = 1, kNone = 2 };
 	SoundSet Sounds();
 	void     SetSounds(SoundSet a_set);
+	// MCM > Audio > Notification volume: -1 quieter, 0 default, 1 louder, 4 dB a step (AdventurersGuild.ini NoticeVolume)
+	int  Volume();
+	void SetVolume(int a_step);
 	// The sound alone. False when its record is not there, or when another mod has replaced the game's file it plays
 	// (see Replaced) and a_evenIfReplaced is not set (dev/test sets it, to hear what the replacement is).
 	bool Play(Cue a_cue, bool a_evenIfReplaced = false);

@@ -72,6 +72,8 @@ Bool Function GetAudioOption(Int aiWhich) Global Native      ; MCM > Audio: 1 NP
 Function SetAudioOption(Int aiWhich, Bool abOn) Global Native
 Int Function GetNoticeSoundSet() Global Native              ; MCM > Audio > Notification sounds: 0 Guild Drums, 1 Skyrim, 2 none
 Function SetNoticeSoundSet(Int aiSet) Global Native
+Int Function GetNoticeVolume() Global Native                ; MCM > Audio > Notification volume: -1 quieter, 0 default, 1 louder
+Function SetNoticeVolume(Int aiStep) Global Native
 Bool Function GetNoticeSounds() Global Native                ; MCM > System > Notice sounds
 Function SetNoticeSounds(Bool abOn) Global Native
 Bool Function DebugCue(Int aiCue) Global Native              ; dev/test: play a notice's sound alone (1 promoted, 2 dungeon entered, 3 registered, 4 promotion ready, 5 complete, 6 stamped, 7 Reputation lost)

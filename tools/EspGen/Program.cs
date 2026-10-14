@@ -1449,6 +1449,9 @@ void Cue(uint id, string edid, string like, string? file)
     // Played once, whatever the record it was copied from says: the skill-increase sound has no such setting of its
     // own, and played from here it went on and on (in game, 2026-10-13). The level-up sound's, which is "no loop".
     sd.LoopAndRumble = masters.SelectMany(m => m.SoundDescriptors).Last(s => s.EditorID == "UILevelUpSD").LoopAndRumble?.DeepCopy();
+    // No volume cut of its own (the vanilla records copied cut 4-8 dB): the DLL sets each notice's level as it plays,
+    // from MCM > Audio > Notification volume (PrismaToast.cpp, kCut). 1.5.0.
+    sd.StaticAttenuation = 0;
     mod.SoundDescriptors.Add(sd);
 }
 Cue(0xC81, "AG_CuePromoted", "UILevelUpSD", null);

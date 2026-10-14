@@ -22,6 +22,8 @@ Bool bToastSoundOff = False
 ; MCM > Audio > Notification sounds (version 6): 0 the Guild Drums, 1 Skyrim's own, 2 none. A game saved before it existed
 ; reads 0, the drums; one whose old switch was off is carried over to 2, once (bSoundSetCarried).
 Int iSoundSet = 0
+; MCM > Audio > Notification volume (1.5.0): -1 quieter, 0 default, 1 louder. A game saved before it existed reads 0.
+Int iSoundVolume = 0
 Bool bSoundSetCarried = False
 ; MCM > Audio (version 5), kept as "off" for the same reason: all three are ON in a game saved before they existed
 Bool bGreetingsOff = False
@@ -51,6 +53,7 @@ Event OnConfigInit()
 	fToastSeconds = AG_Native.GetToastSeconds()
 	iSoundSet = AG_Native.GetNoticeSoundSet()
 	bSoundSetCarried = True
+	iSoundVolume = AG_Native.GetNoticeVolume()
 	bDetailedLog = AG_Native.GetDetailedLog()
 	iSLevel = AG_Native.GetDefaultSLevel()
 	bSLevelSet = True
@@ -119,6 +122,7 @@ Function Apply()
 	AG_Native.SetShowRankUpToast(bShowToast)
 	AG_Native.SetToastSeconds(fToastSeconds)
 	AG_Native.SetNoticeSoundSet(iSoundSet)
+	AG_Native.SetNoticeVolume(iSoundVolume)
 	AG_Native.SetAudioOption(1, !bGreetingsOff)
 	AG_Native.SetAudioOption(2, !bInteractionsOff)
 	AG_Native.SetAudioOption(3, !bRepLinesOff)
@@ -158,6 +162,7 @@ Event OnPageReset(String a_page)
 	ElseIf a_page == Pages[1]
 		AddHeaderOption("$AG_MCM_Audio_Sounds_Header", OPTION_FLAG_NONE)
 		AddMenuOptionST("SoundSet", "$AG_MCM_Audio_iSoundSet_Text", SoundSetName(iSoundSet), OPTION_FLAG_NONE)
+		AddMenuOptionST("SoundVolume", "$AG_MCM_Audio_iSoundVolume_Text", SoundVolumeNames()[iSoundVolume + 1], OPTION_FLAG_NONE)
 		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_Audio_Voices_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Greetings", "$AG_MCM_Audio_bGreetings_Text", !bGreetingsOff, OPTION_FLAG_NONE)
@@ -315,6 +320,37 @@ EndFunction
 String Function SoundSetName(Int aiSet)
 	Return SoundSetNames()[aiSet]
 EndFunction
+
+String[] Function SoundVolumeNames()
+	String[] names = new String[3]
+	names[0] = "$AG_MCM_Audio_SoundVolume_Quieter"
+	names[1] = "$AG_MCM_Audio_SoundVolume_Default"
+	names[2] = "$AG_MCM_Audio_SoundVolume_Louder"
+	Return names
+EndFunction
+
+State SoundVolume
+	Event OnMenuOpenST()
+		SetMenuDialogOptions(SoundVolumeNames())
+		SetMenuDialogStartIndex(iSoundVolume + 1)
+		SetMenuDialogDefaultIndex(1)
+	EndEvent
+	Event OnMenuAcceptST(Int a_index)
+		If a_index >= 0 && a_index <= 2
+			iSoundVolume = a_index - 1
+			SetMenuOptionValueST(SoundVolumeNames()[a_index], False, "")
+			Apply()
+		EndIf
+	EndEvent
+	Event OnDefaultST()
+		iSoundVolume = 0
+		SetMenuOptionValueST(SoundVolumeNames()[1], False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_Audio_iSoundVolume_Help")
+	EndEvent
+EndState
 
 State SoundSet
 	Event OnMenuOpenST()

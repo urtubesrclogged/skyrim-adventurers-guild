@@ -154,6 +154,8 @@ namespace AG
 		// MCM > Audio > Notification sounds: 0 the Guild Drums, 1 the game's own, 2 none
 		std::int32_t GetNoticeSoundSet(Tag*) { return static_cast<std::int32_t>(PrismaToast::Sounds()); }
 		void         SetNoticeSoundSet(Tag*, std::int32_t a_set) { PrismaToast::SetSounds(static_cast<PrismaToast::SoundSet>(std::clamp(a_set, 0, 2))); }
+		std::int32_t GetNoticeVolume(Tag*) { return PrismaToast::Volume(); }
+		void         SetNoticeVolume(Tag*, std::int32_t a_step) { PrismaToast::SetVolume(a_step); }
 		// the on/off of the first 1.5.0 builds, kept for any script still asking it
 		bool  GetNoticeSounds(Tag*) { return PrismaToast::Sounds() != PrismaToast::SoundSet::kNone; }
 		void  SetNoticeSounds(Tag*, bool a_on) { PrismaToast::SetSounds(a_on ? PrismaToast::SoundSet::kDrums : PrismaToast::SoundSet::kNone); }
@@ -269,6 +271,8 @@ namespace AG
 		REG(SetAudioOption);
 		REG(GetNoticeSoundSet);
 		REG(SetNoticeSoundSet);
+		REG(GetNoticeVolume);
+		REG(SetNoticeVolume);
 		REG(GetNoticeSounds);
 		REG(SetNoticeSounds);
 		REG(DebugCue);
