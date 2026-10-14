@@ -78,6 +78,7 @@ namespace AG::Guild
 	void  ApplyAbilities();                     // perks/abilities to match Appraisal + training (idempotent)
 	// "Prepare to Uninstall" (MCM): take back every ability, perk and item of ours and stay dormant; Cancel undoes it
 	bool Dormant();
+	void DebugSetStampDungeons(int a_n);  // dev/test: the stamp threshold for this session only
 	// What this save said about the Guild. Taking a posted job down cannot be undone, so it is only done on the
 	// word of a save that was read whole: kNone (a new game, a save this mod was never in, or one whose SKSE
 	// co-save is gone) does not do it at load, and kBroken (the record was there and could not be read) never does.

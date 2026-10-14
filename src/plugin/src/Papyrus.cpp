@@ -189,6 +189,7 @@ namespace AG
 		std::string  DebugClearDungeon(Tag*) { return Dungeons::DebugClear(); }
 		std::string  DebugMemberCards(Tag*) { return MemberCards::Debug(); }
 		void         MemberCardGiven(Tag*, RE::Actor* a_owner) { MemberCards::Given(a_owner); }
+		void         DebugStampNeed(Tag*, std::int32_t a_n) { Guild::DebugSetStampDungeons(a_n); }
 		std::string  DebugStampSay(Tag*, std::int32_t a_n) { return Counter::SayStampLine(0, 0, a_n == 2); }
 		void         DebugRegister(Tag*) { Guild::DebugRegister(); }
 		void         DebugPromote(Tag*) { Guild::DebugPromote(); }
@@ -288,6 +289,7 @@ namespace AG
 		REG(DebugDungeon);
 		REG(DebugClearDungeon);
 		REG(DebugStampSay);
+		REG(DebugStampNeed);
 		REG(DebugMemberCards);
 		REG(MemberCardGiven);
 		REG(DebugRegister);
