@@ -316,6 +316,13 @@ namespace AG::MemberCards
 		void Bloody(RE::Actor* a_holder)
 		{
 			if (!a_holder || !g_bloody) return;
+			// Never while an item list is open: the menu keeps the entries it shows, and a card taken out from under it
+			// leaves the menu holding freed memory - reading that card from the list crashed the game (MGO, 2026-10-14).
+			// The swap waits for the next look or sync.
+			if (auto* ui = RE::UI::GetSingleton(); ui && (ui->IsMenuOpen(RE::ContainerMenu::MENU_NAME) || ui->IsMenuOpen(RE::InventoryMenu::MENU_NAME) ||
+			                                              ui->IsMenuOpen(RE::BarterMenu::MENU_NAME) || ui->IsMenuOpen(RE::GiftMenu::MENU_NAME) ||
+			                                              ui->IsMenuOpen(RE::BookMenu::MENU_NAME)))
+				return;
 			std::vector<std::pair<RE::TESBoundObject*, RE::ExtraDataList*>> swap;
 			std::vector<std::string>                                        names;
 			for (auto& [object, data] : a_holder->GetInventory([](RE::TESBoundObject& a_o) { return &a_o == g_personal || (g_personalMw && &a_o == g_personalMw); })) {
@@ -457,7 +464,7 @@ namespace AG::MemberCards
 			// The copy is named as a renamed item is: its own display name, kept by the game with the item wherever it
 			// goes. The game makes it (AG_QuestHelper.GiveMemberCard: a reference of the card, renamed, moved into their
 			// inventory), a frame or two from now; AG_Native.MemberCardGiven then has an open inventory show it.
-			Give(a_actor, item);
+			Give(a_actor, item, r.dead);  // found dead: the bloodied card from the start, nothing to swap later
 			SKSE::log::info("MemberCards: \"{}\" made for {} - rank {}, registered {}/{}/4E {}, {} seal, {} stamp(s){}", item, key, Letter(r.rank), r.day,
 				r.month + 1, r.year, solstheim ? "Morrowind" : "Skyrim", r.stamps.size(), r.retired ? ", retired" : "");
 		}
