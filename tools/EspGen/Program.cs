@@ -118,7 +118,9 @@ foreach (var name in new[] { "adventurers", "trophies", "shop", "traits" })
     if (name == "adventurers" && parsed["wanderers"] is JsonObject wn && wn["npcPrefix"] is JsonArray pf)
     {
         var prefixes = pf.Select(x => x!.GetValue<string>()).ToList();
-        var found = idx["npcs"].Keys.Where(k => prefixes.Any(p => k.StartsWith(p, StringComparison.OrdinalIgnoreCase))).OrderBy(k => k).ToList();
+        var matches = (wn["npcMatch"] as JsonArray ?? new JsonArray()).Select(x => new System.Text.RegularExpressions.Regex(x!.GetValue<string>(), System.Text.RegularExpressions.RegexOptions.IgnoreCase)).ToList();
+        var found = idx["npcs"].Keys.Where(k => prefixes.Any(p => k.StartsWith(p, StringComparison.OrdinalIgnoreCase)) || matches.Any(r => r.IsMatch(k))).OrderBy(k => k).ToList();
+        wn.Remove("npcMatch");
         wn["npcs"] = new JsonArray(found.Select(k => (JsonNode)JsonValue.Create(k)!).ToArray());
         Console.WriteLine($"wanderers: {found.Count} vanilla wandering adventurers");
     }

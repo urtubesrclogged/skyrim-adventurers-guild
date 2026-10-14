@@ -63,10 +63,11 @@
 		{ "npcs": ["Narri"], "whenDead": { "npcs": ["ValgaVinicia"] }, "note": "Valga kept Falkreath's Adventurers Guild counter at Dead Man's Drink, and it closed when she died. Falkreath has no Guild counter now; she sends adventurers to another hold capital. The counter's stamp is still behind the bar, though: she will put Falkreath's crest on the guild card of an adventurer who has earned it, and that is all she does for the Adventurers Guild." }
 	],
 
-	"_wanderers": "Adventurers met on the road. They are Guild members with a rank from their level. npcPrefix: the game's own wandering adventurers, every NPC whose editor ID starts so (tools/EspGen lists them). names: any other mod's generic (not unique) person whose name has one of these words is one too (Immersive Encounters, Extended Encounters, Wyrmstooth ...), unless it also has one of notNames or they are in one of the 'not' factions. note: the line every wandering adventurer gets in their SkyrimNet bio. Mercenaries, sellswords and hired thugs are deliberately not here: Skyrim has those too.",
+	"_wanderers": "Adventurers met on the road. They are Guild members with a rank from their level. npcPrefix: the game's own wandering adventurers, every NPC whose editor ID starts so (tools/EspGen lists them). npcMatch (1.5.0): regular expressions on editor IDs, for the adventurers the game leaves dead in its dungeons (dunRebelsCairnAdventurer and the like): fallen members, whose bodies carry their card. names: any other mod's generic (not unique) person whose name has one of these words is one too (Immersive Encounters, Extended Encounters, Wyrmstooth ...), unless it also has one of notNames or they are in one of the 'not' factions. note: the line every wandering adventurer gets in their SkyrimNet bio. Mercenaries, sellswords and hired thugs are deliberately not here: Skyrim has those too.",
 	"wanderers": {
 		"note": "On the road between jobs, as a working adventurer of the Guild: takes Guild Missives from the hold boards, hands in reports and sells trophies at the inn counters, and carries a guild card. Talks shop readily with other adventurers (ranks, jobs, roads, what is paying) and measures them by rank: easy with an equal, respectful toward a higher rank, a little superior toward a lower one.",
 		"npcPrefix": ["WEAdventurer"],
+		"npcMatch": ["^(DLC\\d)?dun.*Adventurer\\d*$", "^DLC1ArkngthamzAdventurer$"],
 		"names": ["Adventurer"],
 		"notNames": ["Ghost", "Fallen", "Dead", "Spirit"],
 		"not": { "factions": ["BanditFaction"] }
@@ -86,7 +87,7 @@
 
 	"_lostCards": "Lost guild cards (1.5.0, MemberCards.cpp): a DEAD person who is not a Guild member may still have a card on them, a worn one nobody can read: their own from a life before, or one taken off an adventurer they robbed or killed. percent = the chance, rolled once per body from its FormID (the body is then marked in AG_CardCheckedFaction, which the game saves with it; this mod keeps nothing per body). First matching group wins; anyone in no group has none, and so has anything that is not a person. npcMatch = regular expressions on vanilla NPC editor IDs (tools/EspGen lists the matches as npcs): the bodies the game leaves in dungeons for their loot, here the ones dressed as common folk. Hunters and sellswords who ARE members (the chance groups below) carry their own card already; this is for the rest.",
 	"lostCards": [
-		{ "id": "corpse", "percent": 50, "npcMatch": ["TreasCorpseCommoner", "^dunGeirmundsHallAdventurer$", "^dunKilkreathTreasCorpse(F)?$", "^dunPOIDeadHunter$"] },
+		{ "id": "corpse", "percent": 50, "npcMatch": ["TreasCorpseCommoner", "^dunKilkreathTreasCorpse(F)?$", "^dunPOIDeadHunter$"] },
 		{ "id": "hunter", "percent": 10, "factions": ["HunterFaction", "WEServicesHunterFaction", "DLC2HunterFaction", "WEBountyHunter", "CaravanGuard", "WERoad02BodyguardFaction"] },
 		{ "id": "robber", "percent": 5, "factions": ["BanditFaction", "ThalmorFaction"] }
 	],
