@@ -3,35 +3,29 @@
 ## 1.5.0
 
 **Guild Cards**
-- Your Guild Card is a real object now, with its own model: drop it, pick it up, read it where it lies.
-- Hold stamps! Clear and report dungeons in a hold to earn its crest stamp on your card. Merchants of a stamped hold
-  might just think the better of you.
-- Show Guild Card: flash your card at the Whiterun and Riften gates, the College, the Treasury House, Orc strongholds
-  (rank A and up)... and to the roadside robber who picked the wrong adventurer.
-- Every other adventurer carries a card of their own. Bring one back to a Guild counter and the Guild sees it home.
-- The adventurers who never made it out of Skyrim's dungeons are Guild members too, and their bloodied cards are still
-  on them. Hand one in and the Guild closes their page (and remembers who brought it).
+- Guild Cards now have thier own in-game model.
+- Stamps! Clear and report enough dungeons in a hold to earn its crest stamp on your card. Merchants of a stamped hold
+  might offer you a discount.
+- Show Guild Card: flash your card to certain NPCs such as the Whiterun and Riften gates to get in (just like in a real Ikesai).
+- Every other adventurer now carries a card of their own.  Return the guild card of a fallen adventurer for additional rep.  Cards taken/stolen can be returned as well.  You may even find the occational lost & worn guild card out in the wild now too.
 
 **New Guild Stuff**
 - Jarls' bounties are Guild work now: ranked, listed at the counter under the new Bounties tab, and worth Merit and
-  Reputation when you report them. The steward still pays the gold.
+  Reputation when you report them. The steward still pays the gold.  More Guild quests!
+- Missives - Voice and Quest Expansion: its missives are Guild missives too (optional).  Even more Guild quests!!  
+- One new party affinity added
+- SkyrimNet: adventurers can show you their guild card, and NPCs know about the dungeon dead 
+
+**Audio**
 - Guild notices come with sound: the Guild Drums (new, made for the mod), Skyrim's own sounds, or none. Volume is
   adjustable.
-- A new party affinity: Obviously a Coincidence. At least four followers, all suspiciously of the opposite sex...
-- SkyrimNet: adventurers can show you their guild card, and NPCs know about the dungeon dead and the Guild's newest
-  running joke.
-- Missives - Voice and Quest Expansion: its missives are Guild missives too (optional).
-
-**MCM**
 - New Audio page: notification sounds and volume, plus switches for NPC greetings, follower comments, NPC
-  interactions and the Guild reps' voiced lines.
-
-**Balance Changes**
-- Fewer hunters are Guild members: one in five instead of three in five.
+  interactions and the Guild reps' voiced lines.  
 
 **Fixes/Bugs**
 - A dungeon entered through a cell with no zone of its own is ranked by the dungeon, not by your level.
-- Guild Cards and dropped notes no longer fall through floors.
+- Guild Cards dropped no longer fall through floors.
+- Fewer hunters are Guild members: one in five instead of three in five.
 
 ## 1.4.3
 
