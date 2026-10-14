@@ -372,7 +372,7 @@ namespace AG::Party
 			if (!a_actor || !g_blessing) return;
 			const bool has = a_actor->HasSpell(g_blessing);
 			// An ability someone already has keeps the effects it had when it was given: an effect a later version adds
-			// ("Obviously Just a Coincidence", 1.5.0) never reached a save's player (MGO, 2026-10-14). So, once a session,
+			// ("Obviously a Coincidence", 1.5.0) never reached a save's player (MGO, 2026-10-14). So, once a session,
 			// it is taken off and given again. The damage someone has taken stays as it was.
 			if (a_on && has) {
 				bool first;

@@ -84,7 +84,7 @@ sub-tab until the Affinity page is viewed, a "New" tag on its card, and the Part
 | Study Group | 2+ present from the College of Winterhold (the player counts) | + 25% magicka regeneration |
 | Unlikely Allies | a vampire and a Dawnguard member present (either may be the player) | + 10% damage against the undead and vampires |
 | Honeymoon Adventure | your spouse (PlayerMarriedFaction) is present | + 30 health |
-| Obviously Just a Coincidence | at least 4 followers present, all of the other sex to yours | + 50 stamina (you only) |
+| Obviously a Coincidence | at least 4 followers present, all of the other sex to yours | + 50 stamina (you only) |
 
 The Affinity sub-tab shows 8 traits per page (discovered first); traits 9+ live at FormIDs 0xC00+ (EspGen header).
 
