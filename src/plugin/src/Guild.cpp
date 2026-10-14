@@ -1329,7 +1329,7 @@ namespace AG::Guild
 		if (announce) {
 			Hud(Loc::F("$AG_Hud_Ready", "You are eligible for promotion to Rank {}. Any innkeeper can hear your case.", Letter(next)));
 			PrismaToast::Show(Loc::T("$AG_Toast_Ready", "PROMOTION READY"), Loc::F("$AG_Toast_ReadySub", "Rank {} awaits · a guild liaison can hear your case", Letter(next)),
-				std::format("tex/rank_{}.png", Letter(next)));
+				std::format("tex/rank_{}.png", Letter(next)), PrismaToast::Priority::kImportant, PrismaToast::Cue::kPromotionReady);
 		}
 	}
 
