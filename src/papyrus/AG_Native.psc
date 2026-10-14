@@ -29,6 +29,7 @@ String Function ActionReports(Actor akLiaison) Global Native
 String Function ActionReplaceCard(Actor akLiaison) Global Native
 ; an NPC signing themselves up (AG_JoinAdventurersGuild): refused for members, retired adventurers, children, Guild reps
 String Function ActionJoinGuild(Actor akActor) Global Native
+String Function ActionShowCard(Actor akActor) Global Native     ; SkyrimNet: an adventurer shows the player their guild card
 String Function GetJoinStatus(Actor akActor) Global Native
 ; SkyrimNet ag_party(actor): the player's party (name, members, Bond, renown) and this actor's own tie to a party (JSON)
 String Function GetPartyInfo(Actor akActor) Global Native

@@ -39,6 +39,9 @@ namespace AG::MemberCards
 	std::string SelectedItemName();
 	// What the card page shows for the copy with this item name; null when the name is not one of ours.
 	nlohmann::json CardFor(const std::string& a_itemName);
+	// SkyrimNet's "show your guild card" (AG_ShowGuildCard.yaml): the card this adventurer carries, opened for the player
+	// to read as if they had read it themselves. A status line, for the log.
+	std::string ShowCardOf(RE::Actor* a_actor);
 
 	nlohmann::json Save();
 	void           Load(const nlohmann::json& a_j);

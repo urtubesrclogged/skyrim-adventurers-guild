@@ -1,0 +1,35 @@
+# Adventurers Guild: SkyrimNet custom action (AG_SkyrimNetActions on AG_GuildDialogueQuest), 1.5.0. An adventurer of the
+# Guild shows the player their guild card: the card page opens for the player to read, as if they had read the card
+# themselves. AdventurersGuild.dll looks for the card in the speaker's inventory and does nothing if there is none (or
+# none the Guild has a record of). Do NOT add "tags:" or "customCategory:" (see AG_HearPromotionCase.yaml).
+name: "AG_ShowGuildCard"
+description: "Show {{ player.name }} your Adventurers Guild card, so they can read it. Use ONLY when {{ player.name }} asks to see your guild card (or proof that you are an adventurer) and you agree to show it, or you choose to show it yourself to prove who you are. Do NOT use it when you only talk about the Guild or your rank."
+
+questEditorId: "AG_GuildDialogueQuest"
+scriptName: "AG_SkyrimNetActions"
+executionFunctionName: "ShowCard_Execute"
+
+parameterMapping:
+  - type: "speaker"
+    name: "akSpeaker"
+    description: "the adventurer showing their guild card"
+
+eligibilityRules:
+  # a member of the Guild: a named adventurer (their Guild rank is their rank in this faction) or one met on the road
+  - conditions:
+      - decoratorName: "get_faction_rank"
+        arguments: ["currentActor", "AG_AdventurerRankFaction"]
+        comparisonOperator: ">="
+        expectedValue: 0
+      - decoratorName: "get_faction_rank"
+        arguments: ["currentActor", "AG_WanderingAdventurerFaction"]
+        comparisonOperator: ">="
+        expectedValue: 0
+    logicalOperator: "OR"
+    required: true
+
+eventString: "{{ actor.name }} showed {{ player.name }} their Adventurers Guild card"
+isShortLived: true
+
+enabled: true
+defaultPriority: 5

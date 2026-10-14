@@ -5,6 +5,8 @@
 
 #include "MemberCards.h"
 
+#include "Counter.h"
+
 #include "Adventurers.h"
 #include "Diag.h"
 #include "Dungeons.h"
@@ -530,6 +532,25 @@ namespace AG::MemberCards
 		for (auto name : { SelectedIn<RE::InventoryMenu>(), SelectedIn<RE::ContainerMenu>(), SelectedIn<RE::BarterMenu>() })
 			if (!name.empty()) return name;
 		return {};
+	}
+
+	std::string ShowCardOf(RE::Actor* a_actor)
+	{
+		if (!a_actor) return "no one";
+		for (auto& [object, data] : a_actor->GetInventory([](RE::TESBoundObject& a_o) { return Card(&a_o); })) {
+			auto& entry = data.second;
+			if (data.first <= 0 || !entry || !entry->extraLists) continue;
+			for (auto* xl : *entry->extraLists) {
+				const char* shown = xl ? xl->GetDisplayName(object) : nullptr;
+				if (!shown || !*shown) continue;
+				auto member = CardFor(shown);
+				if (member.is_null()) continue;  // a copy this save has no record of: try the next
+				SKSE::log::info("MemberCards: {} shows the player their card (\"{}\")", a_actor->GetDisplayFullName(), shown);
+				Counter::OpenMemberCard(member);
+				return std::string("shown: ") + shown;
+			}
+		}
+		return std::string(a_actor->GetDisplayFullName()) + " carries no guild card the Guild has a record of";
 	}
 
 	nlohmann::json CardFor(const std::string& a_itemName)

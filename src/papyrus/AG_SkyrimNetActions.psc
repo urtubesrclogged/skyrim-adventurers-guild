@@ -27,6 +27,11 @@ Function ReplaceCard_Execute(Actor akSpeaker)
 	Debug.Trace("[AdventurersGuild] SkyrimNet action ReplaceCard: " + AG_Native.ActionReplaceCard(akSpeaker))
 EndFunction
 
+; an adventurer showing the player their guild card: the card page opens for the player to read (1.5.0)
+Function ShowCard_Execute(Actor akSpeaker)
+	Debug.Trace("[AdventurersGuild] SkyrimNet action ShowCard: " + AG_Native.ActionShowCard(akSpeaker))
+EndFunction
+
 ; any NPC (not a rep) deciding to become an adventurer
 Function Join_Execute(Actor akSpeaker)
 	Debug.Trace("[AdventurersGuild] SkyrimNet action Join: " + AG_Native.ActionJoinGuild(akSpeaker))
