@@ -363,10 +363,29 @@ namespace AG::Party
 			if (a_g) a_g->value = a_v;
 		}
 
+		// who has had the blessing given afresh this session (see Give)
+		std::mutex                     g_freshLock;
+		std::unordered_set<RE::FormID> g_fresh;
+
 		void Give(RE::Actor* a_actor, bool a_on)
 		{
 			if (!a_actor || !g_blessing) return;
 			const bool has = a_actor->HasSpell(g_blessing);
+			// An ability someone already has keeps the effects it had when it was given: an effect a later version adds
+			// ("Obviously Just a Coincidence", 1.5.0) never reached a save's player (MGO, 2026-10-14). So, once a session,
+			// it is taken off and given again. The damage someone has taken stays as it was.
+			if (a_on && has) {
+				bool first;
+				{
+					std::lock_guard l(g_freshLock);
+					first = g_fresh.insert(a_actor->GetFormID()).second;
+				}
+				if (first) {
+					a_actor->RemoveSpell(g_blessing);
+					a_actor->AddSpell(g_blessing);
+				}
+				return;
+			}
 			if (a_on && !has) a_actor->AddSpell(g_blessing);
 			else if (!a_on && has) a_actor->RemoveSpell(g_blessing);
 		}
@@ -493,7 +512,7 @@ namespace AG::Party
 			// at least four followers, every one of them of the other sex to the player's (1.5.0)
 			if (n >= 5 && std::ranges::all_of(a_group.begin() + 1, a_group.end(), [&](auto& x) { return x.female != a_group[0].female; })) {
 				f.ids.insert("uhhuh");
-				f.why["uhhuh"] = Loc::F("$AG_Why_Opposite", "All of the opposite sex: {}", list([](auto&, std::size_t i) { return i > 0; }));
+				f.why["uhhuh"] = Loc::F("$AG_Why_Opposite", "All suspiciously of the opposite sex: {}", list([](auto&, std::size_t i) { return i > 0; }));
 			}
 			if (companions(&Facts::spouse, false)) { f.ids.insert("honeymoon"); f.why["honeymoon"] = Loc::F("$AG_Why_Spouse", "{}: your spouse", listOf(&Facts::spouse)); }
 			// from the party's own record: days in the field together, and its fallen
@@ -1371,6 +1390,10 @@ namespace AG::Party
 
 	void Revert()
 	{
+		{
+			std::lock_guard f(g_freshLock);
+			g_fresh.clear();
+		}
 		std::lock_guard l(g_lock);
 		g_parties.clear();
 		g_bonds.clear();
