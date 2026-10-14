@@ -1459,7 +1459,7 @@ Cue(0xC87, "AG_CueReputationLost", "UILevelUpSD", @"Data\Sound\FX\mgk\firebolt\m
 // The Guild Drums (MCM > Audio > Notification sounds, the default): the mod's own drums, made from arithmetic alone by
 // tools/make_drums.py and chosen by ear by the author (2026-10-13). Under names of ours, so no sound mod replaces them.
 // Same order as above (PrismaToast.cpp, kDrumId); several notices share a file, as the author chose.
-Cue(0xC8B, "AG_DrumPromoted", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_stamp.wav");
+Cue(0xC8B, "AG_DrumPromoted", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_promoted.wav");
 Cue(0xC8C, "AG_DrumDungeonEntered", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_dungeon_entered.wav");
 Cue(0xC8D, "AG_DrumRegistered", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_registered.wav");
 Cue(0xC8E, "AG_DrumPromotionReady", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_promotion_ready.wav");
