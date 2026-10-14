@@ -299,6 +299,17 @@ namespace AG::MemberCards
 			}
 		}
 
+		// Their blood is on the card of someone who is dead: seen dead, fell in the player's party, or lying dead now. The ONE
+		// test, for the card page (CardFor) and for the object (Bloody) alike: the object followed only the first of the
+		// three and stayed clean on Uthgerd's body while her page showed blood (Librum, 2026-10-14).
+		bool OwnerDead(const Record& a_r)
+		{
+			if (a_r.dead || Party::IsFallen(a_r.key)) return true;
+			auto* form = Adventurers::FormOfKey(a_r.key);
+			auto* actor = form ? form->As<RE::Actor>() : nullptr;
+			return actor && actor->IsDead();
+		}
+
 		// A dead adventurer's card looks it (1.5.0): a clean copy whose owner the Guild knows to be dead is taken out of the
 		// holder's inventory and the bloodied one, with the same name, put in its place. The player's (on every sync) and a
 		// body's (when the crosshair finds it). On the game's thread.
@@ -313,13 +324,14 @@ namespace AG::MemberCards
 				for (auto* xl : *entry->extraLists) {
 					const char* shown = xl ? xl->GetDisplayName(object) : nullptr;
 					if (!shown || !*shown) continue;
-					bool dead = false;
+					Record r;
 					{
 						std::lock_guard l(g_lock);
 						const auto it = g_records.find(Key(shown));
-						dead = it != g_records.end() && it->second.dead;
+						if (it == g_records.end()) continue;
+						r = it->second;
 					}
-					if (dead) {
+					if (OwnerDead(r)) {
 						swap.emplace_back(object, xl);
 						names.emplace_back(shown);
 					}
@@ -608,10 +620,7 @@ namespace AG::MemberCards
 			if (it == g_records.end()) return nullptr;
 			r = it->second;
 		}
-		// their blood is on the card of someone who is dead (seen dead, fell in the player's party, or lying dead now)
-		bool dead = r.dead || Party::IsFallen(r.key);
-		if (auto* form = Adventurers::FormOfKey(r.key))
-			if (auto* actor = form->As<RE::Actor>(); actor && actor->IsDead()) dead = true;
+		const bool dead = OwnerDead(r);  // their blood is on it
 		// the rank is the one they show now, while they can be found; otherwise the one last seen
 		if (auto* form = Adventurers::FormOfKey(r.key))
 			if (auto* actor = form->As<RE::Actor>(); actor && actor->Is3DLoaded()) {
