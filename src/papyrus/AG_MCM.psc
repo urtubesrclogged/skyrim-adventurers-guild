@@ -27,6 +27,7 @@ Bool bSoundSetCarried = False
 Bool bGreetingsOff = False
 Bool bInteractionsOff = False
 Bool bRepLinesOff = False
+Bool bFollowerCommentsOff = False
 ; TEMPORARY (testing the notice sounds, 2026-10-13): the options of the seven preview rows on the Audio page
 Int[] iCueOptions
 Bool bDetailedLog = False
@@ -121,6 +122,7 @@ Function Apply()
 	AG_Native.SetAudioOption(1, !bGreetingsOff)
 	AG_Native.SetAudioOption(2, !bInteractionsOff)
 	AG_Native.SetAudioOption(3, !bRepLinesOff)
+	AG_Native.SetAudioOption(4, !bFollowerCommentsOff)
 	AG_Native.SetDetailedLog(bDetailedLog)
 	AG_Native.SetCardHotkey(iCardKey)
 	If bSLevelSet
@@ -159,6 +161,7 @@ Event OnPageReset(String a_page)
 		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_Audio_Voices_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Greetings", "$AG_MCM_Audio_bGreetings_Text", !bGreetingsOff, OPTION_FLAG_NONE)
+		AddToggleOptionST("FollowerComments", "$AG_MCM_Audio_bFollowerComments_Text", !bFollowerCommentsOff, OPTION_FLAG_NONE)
 		AddToggleOptionST("Interactions", "$AG_MCM_Audio_bInteractions_Text", !bInteractionsOff, OPTION_FLAG_NONE)
 		AddToggleOptionST("RepLines", "$AG_MCM_Audio_bRepLines_Text", !bRepLinesOff, OPTION_FLAG_NONE)
 		; TEMPORARY TEST: a row for each notice's sound; selecting one plays it (plain text, not translated)
@@ -250,6 +253,22 @@ State Greetings
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText("$AG_MCM_Audio_bGreetings_Help")
+	EndEvent
+EndState
+
+State FollowerComments
+	Event OnSelectST()
+		bFollowerCommentsOff = !bFollowerCommentsOff
+		SetToggleOptionValueST(!bFollowerCommentsOff, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bFollowerCommentsOff = False
+		SetToggleOptionValueST(True, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_Audio_bFollowerComments_Help")
 	EndEvent
 EndState
 

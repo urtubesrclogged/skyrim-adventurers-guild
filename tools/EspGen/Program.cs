@@ -13,7 +13,7 @@
 //   0x8D0-0x8FF  party blessing: ability 0x8D0, Bond tier / members-present globals 0x8D1-0x8D2, one global per
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
-//   0xC88-0xC8A  MCM > Audio (1.5.0): AG_GreetingsGlobal, AG_InteractionsGlobal, AG_RepLinesGlobal
+//   0xC88-0xC8A  MCM > Audio (1.5.0): AG_GreetingsGlobal, AG_InteractionsGlobal, AG_RepLinesGlobal; 0xCE3 AG_FollowerCommentsGlobal
 //   0xC81-0xC87  the notices' sounds (1.5.0), the "Skyrim" set: sound descriptors of ours that play the game's own files
 //   0xC8B-0xC8F, 0xCE7-0xCE8  the "Guild Drums" set: the same seven notices, playing the mod's own drums (Sound\FX\AdventurersGuild)
 //   0xC91-0xC92  AG_AdventurerRankFaction, AG_AdventurerPromotedFaction (a named member's rank, and "just promoted")
@@ -197,6 +197,10 @@ var gStampWanted = Global(0xCF6, "AG_StampWantedGlobal", 0);
 var gGreetings = Global(0xC88, "AG_GreetingsGlobal", 1);
 var gInteractions = Global(0xC89, "AG_InteractionsGlobal", 1);
 var gRepLines = Global(0xC8A, "AG_RepLinesGlobal", 1);
+//   follower comments  the same unprompted lines, from someone who is following the player (asked of a player on Nexus,
+//                      2026-10-14: a guild line now and then from Serana jars with Serana Dialogue Add-On's). 0xCE3: the
+//                      College's development topic once, never released.
+var gFollowerComments = Global(0xCE3, "AG_FollowerCommentsGlobal", 1);
 // Other adventurers' guild cards (1.5.0), kept by the DLL: how many the player carries that can be brought back, and the
 // weightiest case among them (what a representative says when they are handed in).
 var gCardsCarried = Global(0xCF9, "AG_CardsCarriedGlobal", 0);
@@ -887,6 +891,14 @@ foreach (var ln in world["lines"]!.AsArray())
         continue;
     }
     conds.Insert(0, GlobalIs(gGreetings, 1));  // MCM > Audio > NPC greetings
+    // MCM > Audio > Follower comments: on, OR the speaker is not following the player. Whoever it is - a housecarl, Serana,
+    // another mod's follower - goes by whether they follow now, not by name. Two items ORed, between ANDed ones.
+    {
+        var on = GlobalIs(gFollowerComments, 1);
+        on.Flags |= Condition.Flag.OR;
+        conds.Insert(1, on);
+        conds.Insert(2, new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = new GetPlayerTeammateConditionData() });
+    }
     conds.Add(Chance(ln["chance"]?.GetValue<int>() ?? chance[kind]!.GetValue<int>()));
     conds.AddRange(voices);  // the OR group last, so it stands alone
     var info = new DialogResponses(FK(InfoId("world:" + id)), Rel)

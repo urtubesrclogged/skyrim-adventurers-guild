@@ -12,6 +12,8 @@
  "$AG_MCM_Audio_Voices_Header": "Voiced lines",
  "$AG_MCM_Audio_bGreetings_Text": "NPC greetings",
  "$AG_MCM_Audio_bGreetings_Help": "What people say to you unasked about the Guild and your rank: guards, townsfolk, adventurers on the road, named members, and merchants who notice a hold's stamp on your card. Off: none of it is said. A stamp still earns its better prices. Default: on.",
+ "$AG_MCM_Audio_bFollowerComments_Text": "Follower comments",
+ "$AG_MCM_Audio_bFollowerComments_Help": "What your followers say unasked about the Guild while they travel with you: a housecarl, Serana, any follower, including other mods' followers. Off: they say none of it while following you; what they say when you meet them elsewhere is left to NPC greetings. Default: on.",
  "$AG_MCM_Audio_bInteractions_Text": "NPC interactions",
  "$AG_MCM_Audio_bInteractions_Help": "The Guild questions you can put to people who are not a Guild representative, and Show Guild Card (the card shown in place of a persuasion at a gate, the College, the Treasury House, an Orc stronghold, or to a robber). Off: those choices are gone and the game's own remain. Default: on.",
  "$AG_MCM_Audio_bRepLines_Text": "Guild representatives' lines",
