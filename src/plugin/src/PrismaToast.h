@@ -29,7 +29,8 @@ namespace AG::PrismaToast
 	//   kMinor     - confirmation of something the player just did in a menu (intel bought): "Minor notices".
 	enum class Priority { kImportant, kMinor };
 	// The sound a notice comes with (1.5.0): the game's own, played through sound records of ours (EspGen, Cue). Chosen by
-	// ear by the author. A dungeon cleared has none (the game plays its own then), nor has anything bought in a menu.
+	// ear by the author. A dungeon cleared has the "complete" one (it was left silent at first, on the belief that the
+	// game plays its own then: clearing one in game, 2026-10-13, nothing was heard). Nothing bought in a menu has any.
 	enum class Cue { kNone, kPromoted, kDungeonEntered, kRegistered, kPromotionReady, kComplete, kStamped, kReputationLost };
 
 	// a_seal: image in the view's folder shown in place of the guild emblem, e.g. "tex/rank_C.png" ("" = emblem).

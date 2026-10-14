@@ -342,9 +342,9 @@ namespace AG::Dungeons
 				Guild::AddReport("dungeon", Loc::F("$AG_Report_Cleared", "Cleared {}", name), Loc::F("$AG_Report_DungeonDetail", "Threat Rank {} dungeon", Letter(rank)), gold, merit, rep, key);
 				// a member is always told to report it; the rank (and its badge) only with Appraisal
 				if (Guild::AppraisalLevel() >= 1)
-					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReport", "{} · Rank {} · report to the Guild for your reward", name, Letter(rank)), rank);
+					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReport", "{} · Rank {} · report to the Guild for your reward", name, Letter(rank)), rank, PrismaToast::Priority::kImportant, PrismaToast::Cue::kComplete);
 				else
-					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReportPlain", "{} · report to the Guild for your reward", name), -1);
+					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReportPlain", "{} · report to the Guild for your reward", name), -1, PrismaToast::Priority::kImportant, PrismaToast::Cue::kComplete);
 				Guild::Notify("AG_DungeonCleared", name, static_cast<float>(rank));
 				Party::OnDungeonCleared(rank);
 				if (Counter::IsOpen()) Counter::Refresh();
