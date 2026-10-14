@@ -591,11 +591,38 @@ namespace AG::MemberCards
 		});
 	}
 
-	std::string SelectedItemName()
+	std::string SelectedItemName(const RE::TESForm* a_book)
 	{
-		for (auto name : { SelectedIn<RE::InventoryMenu>(), SelectedIn<RE::ContainerMenu>(), SelectedIn<RE::BarterMenu>() })
-			if (!name.empty()) return name;
-		return {};
+		// SE/AE: the selected row of whichever item list is open
+		if (!REL::Module::IsVR()) {
+			for (auto name : { SelectedIn<RE::InventoryMenu>(), SelectedIn<RE::ContainerMenu>(), SelectedIn<RE::BarterMenu>() })
+				if (!name.empty()) return name;
+			return {};
+		}
+		// VR: the item lists' runtime data is not where CommonLib puts it (reading it crashed the game, MGO 2026-10-14), so
+		// the copy is found by whose items are open - the container's (a body, a chest) or else the player's - and which
+		// copies of this card they hold. One copy, as is usual: that one. Several: the first, with the others in the log.
+		auto* ui = RE::UI::GetSingleton();
+		RE::TESObjectREFR* holder = RE::PlayerCharacter::GetSingleton();
+		RE::NiPointer<RE::TESObjectREFR> container;
+		if (ui && ui->IsMenuOpen(RE::ContainerMenu::MENU_NAME) && RE::LookupReferenceByHandle(RE::ContainerMenu::GetTargetRefHandle(), container) && container)
+			holder = container.get();
+		const auto copies = [a_book](RE::TESObjectREFR* a_holder) {
+			std::vector<std::string> out;
+			if (!a_holder || !a_book) return out;
+			for (auto& [object, data] : a_holder->GetInventory([a_book](RE::TESBoundObject& a_o) { return &a_o == a_book; })) {
+				auto& entry = data.second;
+				if (data.first <= 0 || !entry || !entry->extraLists) continue;
+				for (auto* xl : *entry->extraLists)
+					if (const char* shown = xl ? xl->GetDisplayName(object) : nullptr; shown && *shown) out.emplace_back(shown);
+			}
+			return out;
+		};
+		auto names = copies(holder);
+		// none in the container: the card is on the player's side of the list
+		if (names.empty() && holder != RE::PlayerCharacter::GetSingleton()) names = copies(RE::PlayerCharacter::GetSingleton());
+		if (names.size() > 1) SKSE::log::info("MemberCards: {} copies of this card are open to read; showing \"{}\"", names.size(), names.front());
+		return names.empty() ? std::string() : names.front();
 	}
 
 	std::string ShowCardOf(RE::Actor* a_actor)

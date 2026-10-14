@@ -153,7 +153,7 @@ namespace AG::GuildCard
 					if (MemberCards::IsPersonal(RE::BookMenu::GetTargetForm())) {
 						auto        ref = RE::BookMenu::GetTargetReference();
 						const char* shown = ref ? ref->GetDisplayFullName() : nullptr;
-						const auto  item = ref ? std::string(shown ? shown : "") : MemberCards::SelectedItemName();
+						const auto  item = ref ? std::string(shown ? shown : "") : MemberCards::SelectedItemName(RE::BookMenu::GetTargetForm());
 						auto        member = MemberCards::CardFor(item);
 						SKSE::log::info("GuildCard: \"{}\" is being read ({}) - {}", item, ref ? "where it lies" : "from a menu", member.is_null() ? "no record of it" : "shown");
 						if (member.is_null()) return;

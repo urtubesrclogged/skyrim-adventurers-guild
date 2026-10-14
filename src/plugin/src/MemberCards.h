@@ -36,7 +36,7 @@ namespace AG::MemberCards
 	bool IsWorn(const RE::TESForm* a_form);      // AG_WornCard: opens the card page as a sheet nothing can be read from
 	bool IsPersonal(const RE::TESForm* a_form);  // AG_MemberCard: opens the card page, in its member view
 	// The item name of the copy selected in the open inventory or container menu ("" when none is).
-	std::string SelectedItemName();
+	std::string SelectedItemName(const RE::TESForm* a_book);
 	// What the card page shows for the copy with this item name; null when the name is not one of ours.
 	nlohmann::json CardFor(const std::string& a_itemName);
 	// SkyrimNet's "show your guild card" (AG_ShowGuildCard.yaml): the card this adventurer carries, opened for the player
