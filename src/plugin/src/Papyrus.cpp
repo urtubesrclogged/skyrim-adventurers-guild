@@ -150,8 +150,12 @@ namespace AG
 			g->value = v;
 			SKSE::log::info("Papyrus: audio option {} ({}) {}", a_which, a_which == 1 ? "NPC greetings" : a_which == 2 ? "NPC interactions" : "representatives' lines", a_on ? "on" : "off");
 		}
-		bool  GetNoticeSounds(Tag*) { return PrismaToast::Sounds(); }
-		void  SetNoticeSounds(Tag*, bool a_on) { PrismaToast::SetSounds(a_on); }
+		// MCM > Audio > Notification sounds: 0 the Guild Drums, 1 the game's own, 2 none
+		std::int32_t GetNoticeSoundSet(Tag*) { return static_cast<std::int32_t>(PrismaToast::Sounds()); }
+		void         SetNoticeSoundSet(Tag*, std::int32_t a_set) { PrismaToast::SetSounds(static_cast<PrismaToast::SoundSet>(std::clamp(a_set, 0, 2))); }
+		// the on/off of the first 1.5.0 builds, kept for any script still asking it
+		bool  GetNoticeSounds(Tag*) { return PrismaToast::Sounds() != PrismaToast::SoundSet::kNone; }
+		void  SetNoticeSounds(Tag*, bool a_on) { PrismaToast::SetSounds(a_on ? PrismaToast::SoundSet::kDrums : PrismaToast::SoundSet::kNone); }
 		bool  DebugCue(Tag*, std::int32_t a_cue) { return PrismaToast::Play(static_cast<PrismaToast::Cue>(a_cue), true); }
 		bool  DebugCueReplaced(Tag*, std::int32_t a_cue) { return PrismaToast::Replaced(static_cast<PrismaToast::Cue>(a_cue)); }
 		float GetToastSeconds(Tag*) { return PrismaToast::HoldSeconds(); }
@@ -261,6 +265,8 @@ namespace AG
 		REG(SetShowRankUpToast);
 		REG(GetAudioOption);
 		REG(SetAudioOption);
+		REG(GetNoticeSoundSet);
+		REG(SetNoticeSoundSet);
 		REG(GetNoticeSounds);
 		REG(SetNoticeSounds);
 		REG(DebugCue);

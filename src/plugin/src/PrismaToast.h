@@ -35,8 +35,10 @@ namespace AG::PrismaToast
 
 	// a_seal: image in the view's folder shown in place of the guild emblem, e.g. "tex/rank_C.png" ("" = emblem).
 	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal = {}, Priority a_priority = Priority::kImportant, Cue a_cue = Cue::kNone);
-	bool Sounds();              // MCM "Notice sounds" (AdventurersGuild.ini [System] NoticeSounds), on unless turned off
-	void SetSounds(bool a_on);
+	// MCM > Audio > Notification sounds: which sounds the notices play (AdventurersGuild.ini [System] NoticeSoundSet)
+	enum class SoundSet { kDrums = 0, kSkyrim = 1, kNone = 2 };
+	SoundSet Sounds();
+	void     SetSounds(SoundSet a_set);
 	// The sound alone. False when its record is not there, or when another mod has replaced the game's file it plays
 	// (see Replaced) and a_evenIfReplaced is not set (dev/test sets it, to hear what the replacement is).
 	bool Play(Cue a_cue, bool a_evenIfReplaced = false);

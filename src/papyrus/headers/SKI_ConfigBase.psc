@@ -32,6 +32,27 @@ EndEvent
 Event OnOptionSelect(Int a_option)
 EndEvent
 
+Event OnMenuOpenST()
+EndEvent
+
+Event OnMenuAcceptST(Int a_index)
+EndEvent
+
+Function AddMenuOptionST(String a_stateName, String a_text, String a_value, Int a_flags = 0)
+EndFunction
+
+Function SetMenuDialogOptions(String[] a_options)
+EndFunction
+
+Function SetMenuDialogStartIndex(Int a_value)
+EndFunction
+
+Function SetMenuDialogDefaultIndex(Int a_value)
+EndFunction
+
+Function SetMenuOptionValueST(String a_value, Bool a_noUpdate = False, String a_stateName = "")
+EndFunction
+
 Event OnOptionHighlight(Int a_option)
 EndEvent
 

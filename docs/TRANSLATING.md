@@ -107,7 +107,8 @@ translate):
 * `$AG_UI_NoReports2` now names bounties as well.
 
 New keys for the MCM's Audio page: `$AG_MCM_Audio`, `$AG_MCM_Audio_Sounds_Header`, `$AG_MCM_Audio_Voices_Header`, the
-notices' sounds `$AG_MCM_System_bNoticeSounds_Text` / `_Help`, and three switches for the voiced lines, each with its
+notices' sounds `$AG_MCM_Audio_iSoundSet_Text` / `_Help` with its three choices `$AG_MCM_Audio_SoundSet_Drums`, `_Skyrim`
+and `_None`, and three switches for the voiced lines, each with its
 `_Text` and `_Help`: `$AG_MCM_Audio_bGreetings`, `$AG_MCM_Audio_bInteractions`, `$AG_MCM_Audio_bRepLines`.
 With the representatives' lines switched off they answer with the game's own "Of course.", which is the game's to
 translate, not ours: nothing new in the plugin's text.

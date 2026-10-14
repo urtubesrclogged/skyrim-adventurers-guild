@@ -19,6 +19,10 @@ Bool bShowToast = True
 Float fToastSeconds = 5.0
 ; Kept as "off" so that a game saved before 1.5.0, where this variable did not exist and so reads False, has the sounds ON.
 Bool bToastSoundOff = False
+; MCM > Audio > Notification sounds (version 6): 0 the Guild Drums, 1 Skyrim's own, 2 none. A game saved before it existed
+; reads 0, the drums; one whose old switch was off is carried over to 2, once (bSoundSetCarried).
+Int iSoundSet = 0
+Bool bSoundSetCarried = False
 ; MCM > Audio (version 5), kept as "off" for the same reason: all three are ON in a game saved before they existed
 Bool bGreetingsOff = False
 Bool bInteractionsOff = False
@@ -35,7 +39,7 @@ Int iSLevel = 60
 Bool bSLevelSet = False
 
 Int Function GetVersion()
-	Return 5
+	Return 6
 EndFunction
 
 Event OnConfigInit()
@@ -44,7 +48,8 @@ Event OnConfigInit()
 	bLabelsCarriedOver = True  ; a first install has nothing older to carry over
 	bShowToast = AG_Native.GetShowRankUpToast()
 	fToastSeconds = AG_Native.GetToastSeconds()
-	bToastSoundOff = !AG_Native.GetNoticeSounds()
+	iSoundSet = AG_Native.GetNoticeSoundSet()
+	bSoundSetCarried = True
 	bDetailedLog = AG_Native.GetDetailedLog()
 	iSLevel = AG_Native.GetDefaultSLevel()
 	bSLevelSet = True
@@ -54,6 +59,14 @@ EndEvent
 
 Event OnVersionUpdate(Int a_version)
 	SetPages()
+	; version 6: the notices' sounds are a choice of three. Sounds that had been turned off stay off. Once only.
+	If !bSoundSetCarried
+		bSoundSetCarried = True
+		If bToastSoundOff
+			iSoundSet = 2
+		EndIf
+		Apply()
+	EndIf
 	; version 2: one switch for all three labels - on if any of the old three was. Once only: a later version update
 	; must not overwrite the player's choice with the old switches again.
 	If !bLabelsCarriedOver
@@ -104,7 +117,7 @@ Function Apply()
 	AG_Native.SetShowLevelSuffix(bShowLabels)
 	AG_Native.SetShowRankUpToast(bShowToast)
 	AG_Native.SetToastSeconds(fToastSeconds)
-	AG_Native.SetNoticeSounds(!bToastSoundOff)
+	AG_Native.SetNoticeSoundSet(iSoundSet)
 	AG_Native.SetAudioOption(1, !bGreetingsOff)
 	AG_Native.SetAudioOption(2, !bInteractionsOff)
 	AG_Native.SetAudioOption(3, !bRepLinesOff)
@@ -142,7 +155,7 @@ Event OnPageReset(String a_page)
 		AddTextOption("$AG_MCM_System_RankS_Text", AG_Native.GetRankLevel(5), OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[1]
 		AddHeaderOption("$AG_MCM_Audio_Sounds_Header", OPTION_FLAG_NONE)
-		AddToggleOptionST("ToastSound", "$AG_MCM_System_bNoticeSounds_Text", !bToastSoundOff, OPTION_FLAG_NONE)
+		AddMenuOptionST("SoundSet", "$AG_MCM_Audio_iSoundSet_Text", SoundSetName(iSoundSet), OPTION_FLAG_NONE)
 		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_Audio_Voices_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Greetings", "$AG_MCM_Audio_bGreetings_Text", !bGreetingsOff, OPTION_FLAG_NONE)
@@ -156,7 +169,7 @@ Event OnPageReset(String a_page)
 		iCueOptions[3] = AddTextOption("Guild registration", CueState(3), OPTION_FLAG_NONE)
 		iCueOptions[4] = AddTextOption("Promotion ready", CueState(4), OPTION_FLAG_NONE)
 		iCueOptions[2] = AddTextOption("Dungeon entered", CueState(2), OPTION_FLAG_NONE)
-		iCueOptions[5] = AddTextOption("Missive, notice or bounty complete", CueState(5), OPTION_FLAG_NONE)
+		iCueOptions[5] = AddTextOption("Dungeon cleared, missive, notice or bounty complete", CueState(5), OPTION_FLAG_NONE)
 		iCueOptions[6] = AddTextOption("Guild card stamped", CueState(6), OPTION_FLAG_NONE)
 		iCueOptions[7] = AddTextOption("Reputation lost", CueState(7), OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[2]
@@ -201,7 +214,9 @@ EndState
 
 ; TEMPORARY TEST: the preview rows of the Audio page
 String Function CueState(Int aiCue)
-	If AG_Native.DebugCueReplaced(aiCue)
+	If iSoundSet == 2
+		Return "play (drums; notices silent)"
+	ElseIf AG_Native.DebugCueReplaced(aiCue)
 		Return "replaced by a mod"
 	EndIf
 	Return "play"
@@ -270,19 +285,39 @@ State RepLines
 	EndEvent
 EndState
 
-State ToastSound
-	Event OnSelectST()
-		bToastSoundOff = !bToastSoundOff
-		SetToggleOptionValueST(!bToastSoundOff, False, "")
-		Apply()
+String[] Function SoundSetNames()
+	String[] names = new String[3]
+	names[0] = "$AG_MCM_Audio_SoundSet_Drums"
+	names[1] = "$AG_MCM_Audio_SoundSet_Skyrim"
+	names[2] = "$AG_MCM_Audio_SoundSet_None"
+	Return names
+EndFunction
+
+String Function SoundSetName(Int aiSet)
+	Return SoundSetNames()[aiSet]
+EndFunction
+
+State SoundSet
+	Event OnMenuOpenST()
+		SetMenuDialogOptions(SoundSetNames())
+		SetMenuDialogStartIndex(iSoundSet)
+		SetMenuDialogDefaultIndex(0)
+	EndEvent
+	Event OnMenuAcceptST(Int a_index)
+		If a_index >= 0 && a_index <= 2
+			iSoundSet = a_index
+			SetMenuOptionValueST(SoundSetName(iSoundSet), False, "")
+			Apply()
+			ForcePageReset()  ; the test rows say what the chosen set does
+		EndIf
 	EndEvent
 	Event OnDefaultST()
-		bToastSoundOff = False
-		SetToggleOptionValueST(True, False, "")
+		iSoundSet = 0
+		SetMenuOptionValueST(SoundSetName(iSoundSet), False, "")
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_System_bNoticeSounds_Help")
+		SetInfoText("$AG_MCM_Audio_iSoundSet_Help")
 	EndEvent
 EndState
 

@@ -25,7 +25,9 @@ namespace AG::PrismaToast
 		PRISMA_UI_API::IVPrismaUI1* g_api{ nullptr };
 		PrismaView                  g_view{ 0 };
 		std::atomic<bool>           g_enabled{ true };
-		std::atomic<bool>           g_sounds{ true };  // MCM "Notice sounds"
+		std::atomic<int>            g_sounds{ 0 };     // MCM "Notification sounds": SoundSet
+		// The Guild Drums: the same notices, in the same order as the game's set (0xC81..0xC87); EspGen, Cue
+		constexpr RE::FormID kDrumId[] = { 0, 0xC8B, 0xC8C, 0xC8D, 0xC8E, 0xC8F, 0xCE7, 0xCE8 };
 		std::atomic<std::uint32_t>  g_replaced{ 0 };   // bit per Cue: another mod has put its own file where the game's is
 
 		// The game's file each cue plays (tools/EspGen/Program.cs, Cue), under Data. The game keeps every one of them in
@@ -116,7 +118,9 @@ namespace AG::PrismaToast
 			ini.SetUnicode();
 			if (ini.LoadFile("Data/SKSE/Plugins/AdventurersGuild.ini") >= 0) {
 				SetEnabled(ini.GetBoolValue("System", "ShowNotices", true));
-				SetSounds(ini.GetBoolValue("System", "NoticeSounds", true));
+				// 0 the Guild Drums, 1 the game's own, 2 none (an ini from before 1.5.0 only had the on/off NoticeSounds)
+				const int set = static_cast<int>(ini.GetLongValue("System", "NoticeSoundSet", ini.GetBoolValue("System", "NoticeSounds", true) ? 0 : 2));
+				SetSounds(static_cast<SoundSet>(std::clamp(set, 0, 2)));
 				SetHoldSeconds(static_cast<float>(ini.GetDoubleValue("System", "NoticeSeconds", 5.0)));
 			}
 		}
@@ -152,17 +156,26 @@ namespace AG::PrismaToast
 		int HoldMs(Priority a_p) { return a_p == Priority::kMinor ? g_minorMs.load() : g_holdMs.load(); }
 	}
 
-	bool Replaced(Cue a_cue) { return (g_replaced.load() >> static_cast<std::uint32_t>(a_cue)) & 1u; }
+	// another mod replaces it: only the game's set can be (the drums are under names of the mod's own)
+	bool Replaced(Cue a_cue) { return Sounds() == SoundSet::kSkyrim && ((g_replaced.load() >> static_cast<std::uint32_t>(a_cue)) & 1u); }
 
 	bool Play(Cue a_cue, bool a_evenIfReplaced)
 	{
-		if (!a_evenIfReplaced && Replaced(a_cue)) return false;
-		if ((g_unready.load() >> static_cast<std::uint32_t>(a_cue)) & 1u) return false;  // still its stand-in: never played
+		// the set chosen; none chosen, a test still plays the drums (it asked for a sound)
+		auto set = Sounds();
+		if (set == SoundSet::kNone) {
+			if (!a_evenIfReplaced) return false;
+			set = SoundSet::kDrums;
+		}
+		const bool skyrim = set == SoundSet::kSkyrim;
+		if (skyrim && !a_evenIfReplaced && Replaced(a_cue)) return false;
+		if (skyrim && ((g_unready.load() >> static_cast<std::uint32_t>(a_cue)) & 1u)) return false;  // still its stand-in: never played
 		// AdventurersGuild.esp 0xC81.. in the order of the enum (tools/EspGen/Program.cs, Cue)
 		if (a_cue == Cue::kNone) return false;
 		auto* dh = RE::TESDataHandler::GetSingleton();
 		auto* am = RE::BSAudioManager::GetSingleton();
-		auto* form = dh ? dh->LookupForm(0xC80 + static_cast<RE::FormID>(a_cue), "AdventurersGuild.esp") : nullptr;
+		const auto local = skyrim ? 0xC80 + static_cast<RE::FormID>(a_cue) : kDrumId[static_cast<std::size_t>(a_cue)];
+		auto*      form = dh ? dh->LookupForm(local, "AdventurersGuild.esp") : nullptr;
 		auto* sd = form ? form->As<RE::BGSSoundDescriptorForm>() : nullptr;
 		if (!sd || !sd->soundDescriptor || !am) {
 			static std::atomic<bool> said{ false };
@@ -183,13 +196,13 @@ namespace AG::PrismaToast
 		return true;
 	}
 
-	bool Sounds() { return g_sounds.load(std::memory_order_relaxed); }
-	void SetSounds(bool a_on) { g_sounds.store(a_on, std::memory_order_relaxed); }
+	SoundSet Sounds() { return static_cast<SoundSet>(g_sounds.load(std::memory_order_relaxed)); }
+	void     SetSounds(SoundSet a_set) { g_sounds.store(static_cast<int>(a_set), std::memory_order_relaxed); }
 
 	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal, Priority a_priority, Cue a_cue)
 	{
 		if (!Active() || !g_enabled.load(std::memory_order_relaxed)) return;
-		if (a_cue != Cue::kNone && Sounds()) Play(a_cue);  // only with a notice that is shown: a sound alone says nothing
+		if (a_cue != Cue::kNone && Sounds() != SoundSet::kNone) Play(a_cue);  // only with a notice that is shown: a sound alone says nothing
 
 		std::string json = "{\"title\":\"" + Esc(a_title) + "\",\"subtitle\":\"" + Esc(a_subtitle) + "\",\"seal\":\"" + Esc(a_seal) + "\",\"hold\":" + std::to_string(HoldMs(a_priority) / 1000.0) + ",\"flat\":" + (REL::Module::IsVR() ? "false" : "true") + "}";
 		// A toast raised while the counter is open (e.g. intel bought) must draw above it, not behind it.

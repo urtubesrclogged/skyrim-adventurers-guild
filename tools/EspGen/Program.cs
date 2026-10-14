@@ -14,7 +14,8 @@
 //                trait from 0x8D3 (traits.json order, append only), then the effects of the first 8 traits
 //   0xC80        the wandering-adventurer faction
 //   0xC88-0xC8A  MCM > Audio (1.5.0): AG_GreetingsGlobal, AG_InteractionsGlobal, AG_RepLinesGlobal
-//   0xC81-0xC87  the notices' sounds (1.5.0): sound descriptors of ours that play the game's own files
+//   0xC81-0xC87  the notices' sounds (1.5.0), the "Skyrim" set: sound descriptors of ours that play the game's own files
+//   0xC8B-0xC8F, 0xCE7-0xCE8  the "Guild Drums" set: the same seven notices, playing the mod's own drums (Sound\FX\AdventurersGuild)
 //   0xC91-0xC92  AG_AdventurerRankFaction, AG_AdventurerPromotedFaction (a named member's rank, and "just promoted")
 //   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
@@ -1442,6 +1443,16 @@ Cue(0xC84, "AG_CuePromotionReady", "UISkillIncreaseSD", null);
 Cue(0xC85, "AG_CueComplete", "UIQuestComplete", null);
 Cue(0xC86, "AG_CueStamped", "UISmithingCreateGeneric", @"Data\Sound\FX\UI\Smithing\UI_Smithing_CreateGeneric_01.wav");
 Cue(0xC87, "AG_CueReputationLost", "UILevelUpSD", @"Data\Sound\FX\mgk\firebolt\mag_firebolt_fail.wav");
+// The Guild Drums (MCM > Audio > Notification sounds, the default): the mod's own drums, made from arithmetic alone by
+// tools/make_drums.py and chosen by ear by the author (2026-10-13). Under names of ours, so no sound mod replaces them.
+// Same order as above (PrismaToast.cpp, kDrumId); several notices share a file, as the author chose.
+Cue(0xC8B, "AG_DrumPromoted", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_stamp.wav");
+Cue(0xC8C, "AG_DrumDungeonEntered", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_dungeon_entered.wav");
+Cue(0xC8D, "AG_DrumRegistered", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_registered.wav");
+Cue(0xC8E, "AG_DrumPromotionReady", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_promotion_ready.wav");
+Cue(0xC8F, "AG_DrumComplete", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_cleared.wav");
+Cue(0xCE7, "AG_DrumStamped", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_stamp.wav");
+Cue(0xCE8, "AG_DrumReputationLost", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_reputation_lost.wav");
 
 // What the inventory shows for a card, and what the Book Menu opens (a book's "inventory art"): the game's own menu
 // note with its pages hidden and the card laid in it (tools/make_card_mesh.py, write_inventory, says why). 0xCE0-0xCE2,
