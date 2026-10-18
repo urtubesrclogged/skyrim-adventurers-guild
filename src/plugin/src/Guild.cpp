@@ -223,6 +223,19 @@ namespace AG::Guild
 			return std::min(FromLevel(level), std::clamp(g_cfg.cap, 0, kRankCount - 1));
 		}
 
+		// The "Join the Guild" missive's note has done its job once the player is registered: it goes from their pack
+		// (it used to stay, unlike a finished missive's note - Nexus, 2026-10-16). 1.5.0.
+		void DropRegistrationNote()
+		{
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			if (!pc || !g_regMissive) return;
+			const auto counts = pc->GetInventoryCounts([](RE::TESBoundObject& a_o) { return &a_o == g_regMissive; });
+			const auto it = counts.find(g_regMissive);
+			if (it == counts.end() || it->second <= 0) return;
+			pc->RemoveItem(g_regMissive, it->second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+			SKSE::log::info("Guild: the registration missive's note is taken from the player's pack (registered)");
+		}
+
 		void DoRegister()
 		{
 			const int fee = g_cfg.fee;
@@ -245,6 +258,7 @@ namespace AG::Guild
 			}
 			SyncGlobals();
 			CallQuestFn("CompleteRegistrationQuest");
+			DropRegistrationNote();
 			GuildCard::Sync(true);  // "Here's your guild card."
 			PrismaToast::Show(Loc::T("$AG_Toast_Registration", "GUILD REGISTRATION"), Loc::F("$AG_Toast_RankAdventurer", "Rank {} Adventurer", Letter(rank)), std::format("tex/rank_{}.png", Letter(rank)),
 				PrismaToast::Priority::kImportant, PrismaToast::Cue::kRegistered);
@@ -873,6 +887,7 @@ namespace AG::Guild
 		}
 		SyncGlobals();
 		ApplyAbilities();
+		if (Registered()) DropRegistrationNote();  // a game registered with a 1.5.0 beta still carries it
 		// Once: the count of lines found by their IDs, taken again now that a game is loaded. Said only when it differs
 		// from start-up - which would mean the answer depends on when it is asked (a timing fault, not a renumbering).
 		static std::atomic<bool> counted{ false };
