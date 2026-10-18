@@ -135,8 +135,10 @@
   .req .num { width: 110px; text-align: right; }
   .note-ok { margin-top: 10px; color: var(--wax); font-style: italic; font-size: 17px; }
   .note-hold { color: var(--wax); font-style: italic; margin-top: 6px; }
-  .boardstate { font-size: 17px; font-style: italic; color: var(--dim); margin: 2px 0 6px; }
-  .boardstate.due { color: var(--wax); }
+  /* the local board's refresh line: a strip of parchment, so it reads on the stone (due: the wax red, bold) */
+  .boardstate { font-size: 19px; color: #3a2a18; margin: 4px 0 8px; padding: 6px 14px; border-radius: 3px;
+    background: linear-gradient(rgba(250, 240, 215, 0.88), rgba(232, 216, 180, 0.88)); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); }
+  .boardstate.due { color: #7a1e14; font-weight: bold; border-left: 4px solid var(--wax); }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
   .chips span { border: 1px solid rgba(80, 60, 30, 0.45); padding: 3px 10px; font-size: 15px; }
   .seal-wax { position: absolute; right: 16px; top: 10px; width: 96px; height: 96px; transform: rotate(-9deg); }  /* the Guild's wax seal (tools/make_seal.py): the issuing region's - a card from Raven Rock carries Morrowind's */

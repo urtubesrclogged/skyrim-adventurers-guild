@@ -586,17 +586,35 @@ namespace AG::MissiveWatch
 		{
 			auto obj = TriggerScript(a_trigger);
 			if (!obj) return false;
-			auto* last = obj->GetVariable("LastUpdate");
-			auto* boardVar = obj->GetProperty("MissiveBoard");
-			auto* rateVar = obj->GetProperty("RefreshRate");
+			// by name, through the script's own table of variables (a property's value is in "::<Name>_var")
+			const auto var = [&](std::string_view a_name) -> RE::BSScript::Variable* {
+				auto* type = obj->GetTypeInfo();
+				if (!type) return nullptr;
+				const auto* it = type->GetVariableIter();
+				for (std::uint32_t i = 0; i < type->GetNumVariables(); ++i)
+					if (_stricmp(it[i].name.c_str(), std::string(a_name).c_str()) == 0) return &obj->variables[i];
+				return nullptr;
+			};
+			auto* last = var("LastUpdate");
+			auto* boardVar = var("::MissiveBoard_var");
+			auto* rateVar = var("::RefreshRate_var");
 			auto* board = boardVar ? boardVar->Unpack<RE::TESObjectREFR*>() : nullptr;
 			auto* rate = rateVar ? rateVar->Unpack<RE::TESGlobal*>() : nullptr;
-			if (!last || !board) return true;  // not the script we know: nothing to do
+			if (!last || !board) {
+				std::string names;
+				if (auto* type = obj->GetTypeInfo())
+					for (std::uint32_t i = 0; i < type->GetNumVariables(); ++i) names += std::string(names.empty() ? "" : ", ") + type->GetVariableIter()[i].name.c_str();
+				SKSE::log::warn("MissiveWatch: a board's trigger {:08X} has no {} (its script's variables: {}) - its refresh timer was not read",
+					a_trigger->GetFormID(), !last ? "LastUpdate" : "MissiveBoard", names);
+				return true;
+			}
 			const auto key = Adventurers::StableKey(board);
 			std::lock_guard l(g_lock);
 			auto& t = g_timers[key];
 			t.last = last->GetFloat();
 			if (rate) t.rate = rate->value;
+			static int reads = 0;  // the first few in the log: the timer is being read at all
+			if (++reads <= 10) SKSE::log::info("MissiveWatch: board {} last refreshed on day {:.2f}, every {:.1f} days (today {:.2f})", key, t.last, t.rate, DaysPassed());
 			if (g_dueSince >= 0.0f && t.last >= 0.0f && t.last < g_dueSince) {
 				last->SetFloat(-100.0f);  // as Missives starts every board: refreshed long ago
 				t.last = -100.0f;
@@ -653,9 +671,14 @@ namespace AG::MissiveWatch
 					known = true;
 				}
 			}
-			// Missives refreshes when GameDaysPassed > LastUpdate + RefreshRate. A board never seen is at its start.
-			const float left = known ? t.last + t.rate - DaysPassed() : -1.0f;
+			// Missives refreshes when GameDaysPassed > LastUpdate + RefreshRate. A board whose timer has not been read
+			// yet (not passed since this version): nothing to say.
 			const char* name = area->GetFullName();
+			if (!known) {
+				if (g_dueSince < 0.0f) return nullptr;
+				return { { "name", name && *name ? name : "" }, { "due", true }, { "hours", 0 } };  // the rank changed: every board is due
+			}
+			const float left = t.last + t.rate - DaysPassed();
 			return { { "name", name && *name ? name : "" }, { "due", left <= 0.0f }, { "hours", left > 0.0f ? static_cast<int>(std::ceil(left * 24.0f)) : 0 } };
 		}
 		return nullptr;
