@@ -17,7 +17,8 @@
 //   save, quest or not.
 namespace AG::Dungeons
 {
-	void Install();  // at kDataLoaded: player cell-change + tracked-stat sinks
+	void Install();  // at kDataLoaded: location-change + tracked-stat sinks
+	void OnGameLoaded();  // once a game is loaded: where the player is now (no location change says so)
 
 	void           SetNotDungeons(std::vector<std::string> a_keys);  // guild.json "notDungeons" ("Plugin|0xID")
 	void           SetPointsOfInterest(const nlohmann::json& a_cfg); // guild.json "pointsOfInterest"

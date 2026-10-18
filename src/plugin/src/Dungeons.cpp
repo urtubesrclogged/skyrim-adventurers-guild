@@ -365,8 +365,21 @@ namespace AG::Dungeons
 			return g_current;
 		}
 
+		// The player is somewhere new (or a game was just loaded): the hold may have changed, time-based globals catch up,
+		// and a dungeon entered is noted. On the game's thread.
+		void Arrived()
+		{
+			Guild::SyncStampMarks();
+			Guild::SyncGlobals();  // time-based globals (recent-promotion gossip)
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			auto* d = DungeonOf(pc ? pc->GetCurrentLocation() : nullptr);
+			if (d == g_current) return;
+			g_current = d;
+			if (d) OnEntered(d);
+		}
+
 		class Sink :
-			public RE::BSTEventSink<RE::BGSActorCellEvent>,
+			public RE::BSTEventSink<RE::TESActorLocationChangeEvent>,
 			public RE::BSTEventSink<RE::TESTrackedStatsEvent>
 		{
 		public:
@@ -376,20 +389,15 @@ namespace AG::Dungeons
 				return &s;
 			}
 
-			RE::BSEventNotifyControl ProcessEvent(const RE::BGSActorCellEvent* a_e, RE::BSTEventSource<RE::BGSActorCellEvent>*) override
+			// Any actor's change of location, from the game's script event source; only the player's is kept. Until
+			// 1.5.0 this listened to the player's own cell events (PlayerCharacter::AsBGSActorCellEventSource), whose
+			// place in memory CommonLib puts 8 bytes wrong on Anniversary Edition builds before 1.6.629: adding a sink
+			// there never returned and the game hung on its first loading screen (1.6.353, Nexus, 2026-10-16).
+			RE::BSEventNotifyControl ProcessEvent(const RE::TESActorLocationChangeEvent* a_e, RE::BSTEventSource<RE::TESActorLocationChangeEvent>*) override
 			{
-				const Diag::Timed timed("noting that the player changed cell");
-				if (a_e && a_e->flags.all(RE::BGSActorCellEvent::CellFlag::kEnter)) SKSE::GetTaskInterface()->AddTask(Guild::SyncStampMarks);  // the hold may have changed
-				if (a_e && a_e->flags.all(RE::BGSActorCellEvent::CellFlag::kEnter)) {
-					SKSE::GetTaskInterface()->AddTask([] {
-						Guild::SyncGlobals();  // time-based globals (recent-promotion gossip) catch up on every cell change
-						auto* pc = RE::PlayerCharacter::GetSingleton();
-						auto* d = DungeonOf(pc ? pc->GetCurrentLocation() : nullptr);
-						if (d == g_current) return;
-						g_current = d;
-						if (d) OnEntered(d);
-					});
-				}
+				if (!a_e || !a_e->actor || !a_e->actor->IsPlayerRef()) return RE::BSEventNotifyControl::kContinue;
+				const Diag::Timed timed("noting that the player changed location");
+				SKSE::GetTaskInterface()->AddTask(Arrived);
 				return RE::BSEventNotifyControl::kContinue;
 			}
 
@@ -403,9 +411,11 @@ namespace AG::Dungeons
 		};
 	}
 
+	void OnGameLoaded() { Arrived(); }
+
 	void Install()
 	{
-		if (auto* pc = RE::PlayerCharacter::GetSingleton()) pc->AsBGSActorCellEventSource()->AddEventSink(Sink::Get());
+		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESActorLocationChangeEvent>(Sink::Get());
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTrackedStatsEvent>(Sink::Get());
 		SKSE::log::info("Dungeons: watching location changes and Dungeons Cleared");
 		// which map markers start switched off, read now: after a save loads, a marker only says whether it is off today
