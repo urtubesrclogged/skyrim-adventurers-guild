@@ -58,6 +58,7 @@ namespace AG::Guild
 	// Pays every report; returns a status line. a_city: the counter they are handed in at ("" when not at one): a hold
 	// stamp these reports earn is put on the card at once if it is that counter's, and otherwise announced.
 	std::string ClaimAll(const std::string& a_city = {});
+	std::string PayBounties();  // the counter's Pay off all bounties (Services)
 	std::string BuyService(const std::string& a_id);  // returns a status line
 	nlohmann::json CounterData();                    // everything the counter window shows
 	void SyncGlobals();         // AG_PlayerRankGlobal / AG_RegisteredGlobal / AG_PromotionReadyGlobal

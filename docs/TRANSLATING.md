@@ -108,6 +108,10 @@ translate):
 * The Local Missives tab's line about this town's board: `$AG_UI_BoardDue` (it is due a refresh, `{0}` = the town),
   `$AG_UI_BoardNext` (`{0}` = the town, `{1}` = how long: `$AG_UI_InDays` with `{0}` days, `$AG_UI_InOneDay`,
   `$AG_UI_InHours` with `{0}` hours, `$AG_UI_InOneHour`). Missives itself refreshes a board when the player walks up to it.
+* Paying bounties at a counter (Services, a Bounties section shown only while there is one): `$AG_UI_SvcBounties`,
+  `$AG_UI_PayBounties`, `$AG_UI_PayBountiesDesc` (`{0}` = each hold with its gold, `{1}` = the fee in percent),
+  `$AG_UI_NGold`, `$AG_UI_Pay`, `$AG_UI_NotEnoughGold`; the replies `$AG_Bounty_NoneToPay`, `$AG_Bounty_NeedGold`,
+  `$AG_Bounty_Paid` (`{}` = gold) and the Records line `$AG_Log_BountiesPaid`.
 * `$AG_UI_PromoHoldWhere`: the counter's promotion-on-hold note, now saying where the bounty is (`{0}` = the hold or
   holds, each with its gold, e.g. "Whiterun (40 gold)"). `$AG_UI_PromoHold` stays for when it cannot say.
 

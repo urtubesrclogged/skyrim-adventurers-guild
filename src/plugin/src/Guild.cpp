@@ -45,6 +45,7 @@ namespace AG::Guild
 			float                        memberCardDays{ 3.0f };   // days until a member whose card is gone has a replacement
 			int                          stampDungeons{ 8 };  // dungeons cleared in a hold for its stamp on the card
 			float                        repPerBountyGold{ 0.1f };  // Reputation lost per gold of new bounty
+			int                          bountyFeePercent{ 5 };     // the Guild's fee for paying the player's bounties at a counter (1.5.0)
 			float                        abandonShare{ 0.5f };      // of a taken missive's Reputation, lost when it is given up
 			std::array<int, kRankCount>  reputation{ 0, 100, 300, 700, 1500, 3000 };
 			int                          cap{ 2 };  // C
@@ -268,6 +269,36 @@ namespace AG::Guild
 			MissiveWatch::MakeBoardsDue("registration");  // every board refreshes when the player next walks up to it (1.5.0)
 			SKSE::log::info("Guild: registered at rank {} (level {})", Letter(rank), RE::PlayerCharacter::GetSingleton()->GetLevel());
 		}
+
+		// The crime factions a bounty can be paid to: a jail and a chest for stolen goods, as the holds and Raven Rock
+		// have (1.5.0; see the sync below). Read once.
+		const std::vector<RE::TESFaction*>& PayableFactions()
+		{
+			static const std::vector<RE::TESFaction*> list = [] {
+				std::vector<RE::TESFaction*> out;
+				if (auto* dh = RE::TESDataHandler::GetSingleton())
+					for (auto* f : dh->GetFormArray<RE::TESFaction>())
+						if (f && f->TracksCrimes() && f->crimeData.factionJailMarker && f->crimeData.factionStolenContainer) out.push_back(f);
+				SKSE::log::info("Guild: {} crime factions with a jail and a stolen-goods chest (bounties are read from these)", out.size());
+				return out;
+			}();
+			return list;
+		}
+
+		// Every payable bounty the player has now: (faction, gold), and the total
+		std::vector<std::pair<RE::TESFaction*, int>> Bounties(int& a_total)
+		{
+			std::vector<std::pair<RE::TESFaction*, int>> out;
+			a_total = 0;
+			for (auto* f : PayableFactions())
+				if (const int g = f->GetCrimeGold(); g > 0) {
+					out.emplace_back(f, g);
+					a_total += g;
+				}
+			return out;
+		}
+
+		int BountyFee(int a_total) { return static_cast<int>(std::ceil(a_total * g_cfg.bountyFeePercent / 100.0)); }
 
 		void DoPromote()
 		{
@@ -704,6 +735,7 @@ namespace AG::Guild
 				c.memberCardDays = std::max(0.0f, j.value("memberCardReplaceDays", c.memberCardDays));
 				if (j.contains("conduct")) {
 					c.repPerBountyGold = std::max(0.0f, j.at("conduct").value("repPerBountyGold", c.repPerBountyGold));
+					c.bountyFeePercent = std::clamp(j.at("conduct").value("bountyFeePercent", c.bountyFeePercent), 0, 100);
 					c.abandonShare = std::clamp(j.at("conduct").value("abandonShare", c.abandonShare), 0.0f, 1.0f);
 				}
 				if (j.contains("promotion")) {
@@ -1050,19 +1082,7 @@ namespace AG::Guild
 			std::map<std::string, int> now;
 			// asked of the game itself, faction by faction (what a guard's dialogue and Papyrus read): the player's own
 			// bounty table read directly came back empty on SE 1.5.97
-			static const std::vector<RE::TESFaction*> crimeFactions = [] {
-				std::vector<RE::TESFaction*> out;
-				if (auto* dh = RE::TESDataHandler::GetSingleton())
-					for (auto* f : dh->GetFormArray<RE::TESFaction>())
-						// Only a bounty the player can pay: a faction with a jail and a chest for stolen goods, as the holds
-						// and Raven Rock have. The game also keeps a crime faction for each housecarl and hireling, Serana,
-						// the Companions, the caravans and others, so it can answer a crime against them; striking a
-						// follower by accident left a bounty there that no one can be paid, that no journal shows, and that
-						// held promotion and cost Reputation (Nexus, 2026-10-16). 1.5.0.
-						if (f && f->TracksCrimes() && f->crimeData.factionJailMarker && f->crimeData.factionStolenContainer) out.push_back(f);
-				SKSE::log::info("Guild: {} crime factions with a jail and a stolen-goods chest (bounties are read from these)", out.size());
-				return out;
-			}();
+			const auto& crimeFactions = PayableFactions();
 			std::string where;
 			for (auto* faction : crimeFactions) {
 				const int bounty = faction->GetCrimeGold();
@@ -1270,8 +1290,38 @@ namespace AG::Guild
 		                : std::format("Submitted {} report{}: {} Merit and {} Reputation.", n, plural, merit, rep);
 	}
 
+	// MCM-free and rank-free: any member settles every bounty they have at any counter, for the bounties and the Guild's
+	// fee, and keeps what they stole (a Nexus request, 2026-10-17). The game's own payment, as to a guard, without the
+	// jail and without taking stolen goods.
+	std::string PayBounties()
+	{
+		int        sum = 0;
+		const auto list = Bounties(sum);
+		if (list.empty()) return Loc::T("$AG_Bounty_NoneToPay", "You have no bounty to pay.");
+		const int fee = BountyFee(sum);
+		if (GoldCount() < sum + fee) return Loc::F("$AG_Bounty_NeedGold", "Paying off your bounties takes {} gold.", sum + fee);
+		auto* pc = RE::PlayerCharacter::GetSingleton();
+		if (fee > 0) pc->RemoveItem(g_gold, fee, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+		std::string where;
+		for (auto& [f, g] : list) {
+			f->PlayerPayCrimeGold(false, false);  // the bounty's own gold, paid as to a guard: no jail, stolen goods kept
+			const char* n = f->GetName();
+			where += std::format("{}{} ({})", where.empty() ? "" : ", ", n && *n ? n : "?", g);
+		}
+		SKSE::log::info("Guild: bounties paid at the counter - {} gold and a {} gold fee: {}", sum, fee, where);
+		Hud(Loc::F("$AG_Hud_GoldRemoved", "{} gold removed.", sum + fee));
+		{
+			std::lock_guard l(g_lock);
+			LogLocked(Loc::F("$AG_Log_BountiesPaid", "Paid off your bounties through the Guild: {} gold.", sum + fee));
+		}
+		ConductTick();  // promotion is no longer held
+		Counter::Refresh();
+		return Loc::F("$AG_Bounty_Paid", "Your bounties are paid: {} gold, the Guild's fee included.", sum + fee);
+	}
+
 	std::string BuyService(const std::string& a_id)
 	{
+		if (a_id == "bounties:pay") return PayBounties();
 		if (a_id.starts_with("intel:")) {
 			auto msg = Dungeons::BuyIntel(a_id);
 			Counter::Refresh();
@@ -1331,6 +1381,24 @@ namespace AG::Guild
 		j["appraisal"] = g_appraisal.load();
 		j["training"] = g_training;
 		auto services = Shop::ServicesData(g_rank, g_merit, g_appraisal.load(), g_training, g_augment, g_augment >= 0 ? (g_augmentUntil - Today()) * 24.0f : 0.0f);
+		// Pay off all bounties: one row, only while there is something to pay
+		{
+			int        sum = 0;
+			const auto list = Bounties(sum);
+			if (!list.empty()) {
+				const int   fee = BountyFee(sum);
+				std::string where;
+				for (auto& [f, g] : list) {
+					const char* n = f->GetName();
+					where += std::format("{}{} ({} gold)", where.empty() ? "" : ", ", n && *n ? n : "?", g);
+				}
+				const bool can = pc && pc->GetGoldAmount() >= sum + fee;
+				services.push_back({ { "id", "bounties:pay" }, { "section", Loc::T("$AG_UI_SvcBounties", "Bounties") }, { "sectionId", "bounties" },
+					{ "name", Loc::T("$AG_UI_PayBounties", "Pay off all bounties") },
+					{ "desc", Loc::F("$AG_UI_PayBountiesDesc", "{0}, and the Guild's {1}% fee. Settled with every hold; no jail, and you keep what you carry.", where, g_cfg.bountyFeePercent) },
+					{ "gold", sum + fee }, { "available", can }, { "note", can ? "" : Loc::T("$AG_UI_NotEnoughGold", "Not enough gold") } });
+			}
+		}
 		j["services"] = std::move(services);
 		// what was bought at the counter and is running out, for the Guild Card: name and whole hours left
 		j["passives"] = nlohmann::json::array();
