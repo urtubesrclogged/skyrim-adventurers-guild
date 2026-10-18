@@ -317,6 +317,15 @@ namespace AG::MissiveWatch
 				if (alias->flags.any(RE::BGSBaseAlias::FLAGS::kOptional) || !alias->conditions || !alias->conditions->head) continue;
 				if (!best || Count(alias->conditions) > Count(best->conditions)) best = alias;
 			}
+			// None that is required: the board alias itself, optional or not, if it has conditions. Monster Hunt Missives
+			// marks every alias optional and keeps a contract only if its board alias filled (its floor controller stops
+			// it otherwise), so a contract above the player's rank is simply never posted.
+			if (!best)
+				for (auto* base : a_quest->aliases)
+					if (base && base->GetVMTypeID() == RE::BGSRefAlias::VMTYPEID && base->aliasName == "MissiveBoard") {
+						auto* alias = static_cast<RE::BGSRefAlias*>(base);
+						if (alias->conditions && alias->conditions->head) best = alias;
+					}
 			if (best) Gate(best->conditions, a_rank, a_min);
 			return best != nullptr;
 		}
