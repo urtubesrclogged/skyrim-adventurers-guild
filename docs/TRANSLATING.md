@@ -109,7 +109,8 @@ translate):
 New keys for the MCM's Audio page: `$AG_MCM_Audio`, `$AG_MCM_Audio_Sounds_Header`, `$AG_MCM_Audio_Voices_Header`;
 the notices' sounds `$AG_MCM_Audio_iSoundSet_Text` / `_Help` with its three choices `$AG_MCM_Audio_SoundSet_Drums`,
 `_Skyrim` and `_None`; their volume `$AG_MCM_Audio_iSoundVolume_Text` / `_Help` with its three choices
-`$AG_MCM_Audio_SoundVolume_Quieter`, `_Default` and `_Louder`; and four switches for the voiced lines, each with its
+`$AG_MCM_Audio_SoundVolume_Quieter`, `_Default` and `_Louder`; the warning shown under them when Skyrim is chosen and
+another mod replaces some of those sounds, `$AG_MCM_Audio_Replaced_Text` / `_Help`; and four switches for the voiced lines, each with its
 `_Text` and `_Help`: `$AG_MCM_Audio_bGreetings`, `$AG_MCM_Audio_bFollowerComments`, `$AG_MCM_Audio_bInteractions`,
 `$AG_MCM_Audio_bRepLines`. The 1.4 switch `$AG_MCM_System_bNoticeSounds` (`_Text`, `_Help`) is gone: the sound set
 replaces it.

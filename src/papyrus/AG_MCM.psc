@@ -161,6 +161,10 @@ Event OnPageReset(String a_page)
 		AddHeaderOption("$AG_MCM_Audio_Sounds_Header", OPTION_FLAG_NONE)
 		AddMenuOptionST("SoundSet", "$AG_MCM_Audio_iSoundSet_Text", SoundSetName(iSoundSet), OPTION_FLAG_NONE)
 		AddMenuOptionST("SoundVolume", "$AG_MCM_Audio_iSoundVolume_Text", SoundVolumeNames()[iSoundVolume + 1], OPTION_FLAG_NONE)
+		; the game's own sounds chosen, and another mod has replaced some of them: those notices are silent (one line for any number)
+		If iSoundSet == 1 && AG_Native.GetSkyrimSoundsReplaced()
+			AddTextOptionST("SoundsReplaced", "$AG_MCM_Audio_Replaced_Text", "", OPTION_FLAG_NONE)
+		EndIf
 		AddEmptyOption()
 		AddHeaderOption("$AG_MCM_Audio_Voices_Header", OPTION_FLAG_NONE)
 		AddToggleOptionST("Greetings", "$AG_MCM_Audio_bGreetings_Text", !bGreetingsOff, OPTION_FLAG_NONE)
@@ -291,6 +295,12 @@ String[] Function SoundVolumeNames()
 	Return names
 EndFunction
 
+State SoundsReplaced
+	Event OnHighlightST()
+		SetInfoText("$AG_MCM_Audio_Replaced_Help")
+	EndEvent
+EndState
+
 State SoundVolume
 	Event OnMenuOpenST()
 		SetMenuDialogOptions(SoundVolumeNames())
@@ -325,6 +335,7 @@ State SoundSet
 			iSoundSet = a_index
 			SetMenuOptionValueST(SoundSetName(iSoundSet), False, "")
 			Apply()
+			ForcePageReset()  ; the replaced-sounds warning shows for Skyrim only
 		EndIf
 	EndEvent
 	Event OnDefaultST()

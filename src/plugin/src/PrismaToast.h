@@ -48,6 +48,7 @@ namespace AG::PrismaToast
 	// Another mod supplies its own file where the game's is: the sound heard would not be the one chosen for the notice,
 	// so the notice comes without it. Looked up once, at start-up.
 	bool Replaced(Cue a_cue);
+	bool AnySkyrimReplaced();  // MCM > Audio's warning: another mod has put its own file where any of the game's sounds is
 
 	// MCM: how long a notice stays fully visible (seconds, clamped 2..15; default 5). The whole notice is
 	// that plus a 0.3 s fade-in and a 0.5 s fade-out.

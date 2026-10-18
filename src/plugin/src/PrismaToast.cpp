@@ -158,6 +158,8 @@ namespace AG::PrismaToast
 	}
 
 	// another mod replaces it: only the game's set can be (the drums are under names of the mod's own)
+	bool AnySkyrimReplaced() { return (g_replaced.load() & ~1u) != 0; }
+
 	bool Replaced(Cue a_cue) { return Sounds() == SoundSet::kSkyrim && ((g_replaced.load() >> static_cast<std::uint32_t>(a_cue)) & 1u); }
 
 	bool Play(Cue a_cue, bool a_evenIfReplaced)

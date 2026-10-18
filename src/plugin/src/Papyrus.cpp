@@ -161,6 +161,7 @@ namespace AG
 		void  SetNoticeSounds(Tag*, bool a_on) { PrismaToast::SetSounds(a_on ? PrismaToast::SoundSet::kDrums : PrismaToast::SoundSet::kNone); }
 		bool  DebugCue(Tag*, std::int32_t a_cue) { return PrismaToast::Play(static_cast<PrismaToast::Cue>(a_cue), true); }
 		bool  DebugCueReplaced(Tag*, std::int32_t a_cue) { return PrismaToast::Replaced(static_cast<PrismaToast::Cue>(a_cue)); }
+		bool  GetSkyrimSoundsReplaced(Tag*) { return PrismaToast::AnySkyrimReplaced(); }
 		float GetToastSeconds(Tag*) { return PrismaToast::HoldSeconds(); }
 		void  SetToastSeconds(Tag*, float a_s) { PrismaToast::SetHoldSeconds(a_s); }
 		float GetMinorToastSeconds(Tag*) { return PrismaToast::MinorHoldSeconds(); }
@@ -276,6 +277,7 @@ namespace AG
 		REG(SetNoticeSounds);
 		REG(DebugCue);
 		REG(DebugCueReplaced);
+		REG(GetSkyrimSoundsReplaced);
 		REG(GetToastSeconds);
 		REG(SetToastSeconds);
 		REG(GetMinorToastSeconds);
