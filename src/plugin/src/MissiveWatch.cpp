@@ -658,29 +658,28 @@ namespace AG::MissiveWatch
 					if (base && g_boardContainers.contains(base->GetFormID())) boards.push_back(id);
 				}
 		}
+		// A town may have more than one board (Whiterun: Missives' own, and one Missives - Worldspace Additions adds). The
+		// one due soonest of those whose timer has been read; none read yet: nothing to say, unless the rank has just
+		// changed, which made every board due.
+		const char* name = area->GetFullName();
+		bool        found = false, unread = false;
+		float       soonest = std::numeric_limits<float>::max();
 		for (const auto id : boards) {
 			auto* board = RE::TESForm::LookupByID<RE::TESObjectREFR>(id);
 			auto* loc = board ? board->GetCurrentLocation() : nullptr;
 			if (!loc || !Within(loc, area)) continue;
-			BoardTimer t;
-			bool       known = false;
-			{
-				std::lock_guard l(g_lock);
-				if (auto it = g_timers.find(Adventurers::StableKey(board)); it != g_timers.end()) {
-					t = it->second;
-					known = true;
-				}
+			std::lock_guard l(g_lock);
+			if (auto it = g_timers.find(Adventurers::StableKey(board)); it != g_timers.end()) {
+				// Missives refreshes when GameDaysPassed > LastUpdate + RefreshRate
+				soonest = std::min(soonest, it->second.last + it->second.rate - DaysPassed());
+				found = true;
+			} else {
+				unread = true;
 			}
-			// Missives refreshes when GameDaysPassed > LastUpdate + RefreshRate. A board whose timer has not been read
-			// yet (not passed since this version): nothing to say.
-			const char* name = area->GetFullName();
-			if (!known) {
-				if (g_dueSince < 0.0f) return nullptr;
-				return { { "name", name && *name ? name : "" }, { "due", true }, { "hours", 0 } };  // the rank changed: every board is due
-			}
-			const float left = t.last + t.rate - DaysPassed();
-			return { { "name", name && *name ? name : "" }, { "due", left <= 0.0f }, { "hours", left > 0.0f ? static_cast<int>(std::ceil(left * 24.0f)) : 0 } };
 		}
+		const auto status = [&](bool a_due, int a_hours) { return nlohmann::json{ { "name", name && *name ? name : "" }, { "due", a_due }, { "hours", a_hours } }; };
+		if (found) return status(soonest <= 0.0f, soonest > 0.0f ? static_cast<int>(std::ceil(soonest * 24.0f)) : 0);
+		if (unread && g_dueSince >= 0.0f) return status(true, 0);
 		return nullptr;
 	}
 
