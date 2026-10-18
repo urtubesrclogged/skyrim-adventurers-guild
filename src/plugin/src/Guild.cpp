@@ -13,6 +13,7 @@
 #include "MemberCards.h"
 #include "Party.h"
 #include "Counter.h"
+#include "MissiveWatch.h"
 #include "Loc.h"
 #include "PrismaToast.h"
 #include "RankCore.h"
@@ -250,6 +251,7 @@ namespace AG::Guild
 			Hud(rank > 0 ? Loc::F("$AG_Reg_Assessed", "Your experience has been assessed: you are registered as a Rank {} adventurer.", Letter(rank))
 			             : Loc::T("$AG_Reg_RankE", "You are registered as a Rank E adventurer."));
 			SendModEvent("AG_Registered", LetterStr(rank), static_cast<float>(rank));
+			MissiveWatch::RollBoards("registration");  // jobs of the new rank on every board at once (1.5.0)
 			SKSE::log::info("Guild: registered at rank {} (level {})", Letter(rank), RE::PlayerCharacter::GetSingleton()->GetLevel());
 		}
 
@@ -281,6 +283,7 @@ namespace AG::Guild
 			Hud(Loc::F("$AG_Promo_Done", "The Guild has promoted you to Rank {}.", Letter(rank)));
 			GuildCard::Sync(true);  // "I've updated your guild card."
 			SendModEvent("AG_RankChanged", LetterStr(rank), static_cast<float>(rank));
+			MissiveWatch::RollBoards("promotion");
 			SKSE::log::info("Guild: promoted to rank {}", Letter(rank));
 		}
 

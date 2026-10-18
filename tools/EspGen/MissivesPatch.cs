@@ -85,7 +85,9 @@ static class MissivesPatch
             var books = ownNotes.Select(kv => new { formId = $"0x{kv.Key.ID:X6}", tier = Letter(kv.Value.Min).ToString() }).ToList();
             var boards = addon.Containers.Where(c => (c.EditorID ?? "").StartsWith("_M_MissiveBoard")).Select(c => $"0x{c.FormKey.ID:X6}").ToList();
             var triggers = addon.Activators.Where(a => (a.EditorID ?? "").StartsWith("_M_ActivatorBoard")).Select(a => $"0x{a.FormKey.ID:X6}").ToList();
-            addons.Add(new { plugin, global = $"0x{globals[global].ID:X6}", rankGlobal = $"0x{rankGlobal.ID:X6}", quests, books, boardTriggers = triggers, boardContainers = boards });
+            var addonLists = addon.FormLists.Select(l => (l, m: listNameRe.Match(l.EditorID ?? ""))).Where(x => x.m.Success)
+                .Select(x => new { formId = $"0x{x.l.FormKey.ID:X6}", hold = x.m.Groups[1].Value, tier = x.m.Groups[2].Value }).ToList();
+            addons.Add(new { plugin, global = $"0x{globals[global].ID:X6}", rankGlobal = $"0x{rankGlobal.ID:X6}", quests, books, boardTriggers = triggers, boardContainers = boards, lists = addonLists });
             Console.WriteLine($"Missives add-on {plugin}: {quests.Count} quests ({gateable} gateable, {reused} of Missives' own reused), {books.Count} notes of its own, " +
                               $"{boards.Count} board container(s), {unlabeled} notes without a label");
         }
@@ -254,8 +256,21 @@ static class MissivesPatch
         // the board itself (a container): the player USING it is what hands out the Guild's notice
         var boardContainers = missives.Containers.Where(c => c.EditorID == "_M_MissiveBoard").Select(c => $"0x{c.FormKey.ID:X6}").ToList();
         if (boardContainers.Count == 0) Console.WriteLine("WARNING: no _M_MissiveBoard found - the registration missive will never be handed out");
+        // Every board's four quest lists, and the chance Missives rolls each tier at (its board script, UpdateQuests):
+        // the DLL rolls them all itself when the player registers or is promoted (MissiveWatch::RollBoards), so the new
+        // rank's jobs are posted without a walk past every board first. 1.5.0.
+        var lists = missives.FormLists.Select(l => (l, m: listNameRe.Match(l.EditorID ?? ""))).Where(x => x.m.Success)
+            .Select(x => new { formId = $"0x{x.l.FormKey.ID:X6}", hold = x.m.Groups[1].Value, tier = x.m.Groups[2].Value }).ToList();
+        var chances = new Dictionary<string, string>();
+        foreach (var t in new[] { "Low", "Med", "High", "VeryHigh" })
+        {
+            var g = missives.Globals.FirstOrDefault(x => x.EditorID == "_M_GlobalQuestChance" + t);
+            if (g is null) Console.WriteLine($"WARNING: no _M_GlobalQuestChance{t} - that tier is not rolled on a promotion");
+            else chances[t] = $"0x{g.FormKey.ID:X6}";
+        }
+        Console.WriteLine($"Missives boards: {lists.Count} quest lists, {chances.Count} chance globals");
         var manifestPath = Path.Combine(outDir, "missives.json");
-        File.WriteAllText(manifestPath, JsonSerializer.Serialize(new { rankGlobal = $"0x{rankGlobal.ID:X6}", quests = manifest, books = bookLabels, boardTriggers, boardContainers },
+        File.WriteAllText(manifestPath, JsonSerializer.Serialize(new { rankGlobal = $"0x{rankGlobal.ID:X6}", quests = manifest, books = bookLabels, boardTriggers, boardContainers, lists, chances },
             new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
         Console.WriteLine($"wrote {manifestPath} ({manifest.Count} quests, {boardTriggers.Count} board trigger bases)");
         return nextBookId;

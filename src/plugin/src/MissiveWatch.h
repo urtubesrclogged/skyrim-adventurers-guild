@@ -33,6 +33,7 @@ namespace AG::MissiveWatch
 	// rank. Postings made before the rank gate applied would otherwise linger until Missives' random
 	// refresh happens to reset them. Called on walking up to a board and on game load.
 	void WithdrawAboveRank();  // as if the player walked up to a Missives board
+	void RollBoards(std::string_view a_why);  // every board's lists rolled as Missives does (registration, promotion)
 
 	// The guild counter's view of the local board: missives currently posted (running, stage 0) in the
 	// hold whose capital is a_city, at or below the player's rank. [{id, tier, title}]

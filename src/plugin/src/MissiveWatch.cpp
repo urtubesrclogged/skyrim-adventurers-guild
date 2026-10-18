@@ -39,7 +39,10 @@ namespace AG::MissiveWatch
 		bool                                       g_active{ false };
 		std::unordered_set<RE::FormID>             g_boardBases;  // _M_ActivatorBoard trigger bases
 		std::unordered_set<RE::FormID>             g_boardContainers;  // _M_MissiveBoard: the board the player opens
-		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
+		// every board's quest lists, each with the global holding the chance its tier is rolled at (RollBoards)
+		std::vector<std::pair<RE::BGSListForm*, RE::TESGlobal*>> g_lists;
+		std::unordered_map<std::string, RE::TESGlobal*>          g_chances;  // tier name (Low, Med, High, VeryHigh) -> Missives' global
+		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
 		std::unordered_set<RE::FormID> g_taken;  // missives the player has taken and not finished (for "gave it up")
 		// one global per known Missives add-on, and whether that add-on is loaded: set on every load, because a save
 		// carries the value it had (dialogue reads these: Geldis Sadri and the Raven Rock board)
@@ -406,6 +409,14 @@ namespace AG::MissiveWatch
 				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
 				if (auto* c = a_dh->LookupForm(localId, a_plugin)) g_boardContainers.insert(c->GetFormID());
 			}
+			if (a_j.contains("chances"))
+				for (auto& [tier, id] : a_j.at("chances").items())
+					if (auto* g = a_dh->LookupForm<RE::TESGlobal>(static_cast<RE::FormID>(std::stoul(id.get<std::string>(), nullptr, 16)), a_plugin)) g_chances[tier] = g;
+			for (auto& l : a_j.value("lists", nlohmann::json::array())) {
+				auto*      list = a_dh->LookupForm<RE::BGSListForm>(static_cast<RE::FormID>(std::stoul(l.value("formId", std::string("0")), nullptr, 16)), a_plugin);
+				const auto it = g_chances.find(l.value("tier", std::string()));
+				if (list && it != g_chances.end()) g_lists.emplace_back(list, it->second);
+			}
 			for (auto& entry : a_j.value("quests", nlohmann::json::array())) {
 				const auto localId = static_cast<std::uint32_t>(std::stoul(entry.at("formId").get<std::string>(), nullptr, 16));
 				const auto tierStr = entry.at("tier").get<std::string>();
@@ -477,6 +488,8 @@ namespace AG::MissiveWatch
 			std::lock_guard l(g_lock);
 			g_watch.clear();
 			g_hold.clear();
+			g_lists.clear();
+			g_chances.clear();
 			LoadManifest(j, dh, "Missives.esp");
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
@@ -513,6 +526,22 @@ namespace AG::MissiveWatch
 		for (auto& [id, tier] : g_watch) {
 			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
 			if (q && Running(q) && q->GetCurrentStageID() > 0 && q->GetCurrentStageID() < 100) g_taken.insert(id);
+		}
+	}
+
+	void RollBoards(std::string_view a_why)
+	{
+		std::vector<std::pair<RE::BGSListForm*, float>> lists;
+		{
+			std::lock_guard l(g_lock);
+			for (auto& [list, chance] : g_lists) lists.emplace_back(list, chance ? chance->value : 0.0f);
+		}
+		auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+		if (lists.empty() || !vm) return;
+		SKSE::log::info("MissiveWatch: every board's {} quest lists rolled as Missives does ({})", lists.size(), a_why);
+		for (auto& [list, chance] : lists) {
+			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+			vm->DispatchStaticCall("AG_QuestHelper", "RollMissives", RE::MakeFunctionArguments(static_cast<RE::BGSListForm*>(list), static_cast<float>(chance)), cb);
 		}
 	}
 
