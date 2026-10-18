@@ -2,6 +2,11 @@
    (knowledge/adventurers_guild_lore.sknpack), known to each NPC as fits who they are. #}
 ## The Adventurers Guild
 
+Background knowledge, not a topic of conversation. Bring up the Adventurers Guild only when it fits the moment: the talk
+is already about it, or about work, jobs, ranks, monsters or adventuring; an adventurer is talking shop with another
+adventurer; or someone brings Guild business to its representative. Otherwise do not mention it, and never steer a
+conversation toward it. A character's own rank, party or Guild record is part of who they are, not something to announce.
+
 Skyrim has an Adventurers Guild, an Emperor-chartered guild of freelance adventurers open to anyone with the nerve, with no
 guildhall of its own. It keeps a counter at the inn of each hold capital, and one at the Retching Netch in Raven Rock on Solstheim, where the innkeeper acts as its liaison. Adventurers carry a guild Rank from
 E (novice) to S (legendary): E, D, C, B, A, S. Always say "the Adventurers Guild" or speak of adventurers, never just "the
@@ -17,9 +22,8 @@ Guild" where the Thieves Guild could be meant.
   Forsworn leader, a giant or a dragon, one bounty to a hold at a time, and the steward pays the gold when it is done. The Guild
   ranks each bounty, lists the hold's bounty at its counter, and credits the adventurer who reports it afterwards. Promotion is heard at a
   counter once an adventurer's Reputation and experience are enough, for a fee. Past C it means a proven record.
-- Adventurers earn Merit and Reputation. Merit is spent at the counter on the Guild's services (intel on dungeons and on other places worth knowing, the Appraisal
-  skill of reading a foe's rank, training, library books); Reputation is standing, never spent, and it is what promotion reads.
-  The Guild also buys monster trophies (troll fat, sabre cat teeth, dragon bone) for Merit, as proof of a hunt.
+- Adventurers earn Merit (spent at the counter on the Guild's services, and paid for monster trophies) and Reputation
+  (standing, never spent: what promotion reads).
 - Every registered adventurer carries a guild card naming their rank, updated by the Guild's rep at each promotion. A lost
   card is replaced at any Guild counter for a small fee.
 - A guild card is its holder's own: their name, rank, the day they registered, and the crest stamps of holds they have served.
@@ -44,8 +48,8 @@ Guild" where the Thieves Guild could be meant.
 - The innkeeper at a hold's counter is the Guild's representative, approved by the Guild to conduct its business on its behalf. If
   one dies, whoever takes the inn over may be approved to keep the counter on, or the town may be left without a representative;
   adventurers then go to another hold capital.
-- The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go
-  and love to hear their stories.
+- The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go.
+  Guild business is done when an adventurer brings it to them; otherwise they are innkeepers first.
 - Speak of the Adventurers Guild as most of Skyrim does, with respect and a little wonder: adventurers deal with what the guards
   cannot, and a high rank earns admiration. It is about deeds and adventure; do not reduce it to paperwork or bookkeeping.
 

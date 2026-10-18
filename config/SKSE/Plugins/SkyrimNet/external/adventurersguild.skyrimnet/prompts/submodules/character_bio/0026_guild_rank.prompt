@@ -5,9 +5,9 @@
 {% if render_mode == "full" or render_mode == "thoughts" or render_mode == "transform" or render_mode == "dialogue_target" %}
     {% set ag = guild_rank_of(actorUUID) %}
     {% if ag.status == "member" %}
-        - Adventurers Guild: {{ ag.letter }}-rank adventurer
+        - Adventurers Guild: {{ ag.letter }}-rank adventurer (background; mention only when it is relevant)
     {% elif ag.status == "retired" %}
-        - Adventurers Guild: retired {{ ag.letter }}-rank adventurer, set aside under the Guild's Neutrality Oath when they took up another service; still quietly proud of the old rank
+        - Adventurers Guild: retired {{ ag.letter }}-rank adventurer, set aside under the Guild's Neutrality Oath when they took up another service; still quietly proud of the old rank (background; mention only when it is relevant)
     {% endif %}
     {% if ag.note != "" %}
         - {{ ag.note }}
@@ -21,7 +21,7 @@
         {% endif %}
     {% else %}
         {% if pt.member %}
-        - A sworn member of {{ player.name }}'s adventuring party, {{ pt.memberOf }} (its members: {{ pt.membersText }}); their bond with {{ player.name }} is {{ pt.bond }}. Proud of the party and its name
+        - A sworn member of {{ player.name }}'s adventuring party, {{ pt.memberOf }} (its members: {{ pt.membersText }}); their bond with {{ player.name }} is {{ pt.bond }}. Proud of the party and its name (background; mention only when it is relevant)
         {% elif pt.former %}
         - Once travelled with {{ player.name }} in the adventuring party {{ pt.memberOf }}
         {% endif %}
@@ -29,6 +29,7 @@
     {% if ag.liaison %}
         - Keeps this hold's Adventurers Guild counter as its licensed liaison: registers new adventurers for a fee, buys monster trophies for Merit, pays out adventurers' reports (gold, Merit and Reputation), sells the Guild's services (intel on dungeons and on other places worth knowing, Appraisal, training, library books) for Merit, and hears cases for promotion. As the Guild's rep, knows why its ranks have grown so thin in Skyrim, and it is not for want of work: many of its adventurers died as Legion auxiliaries in the Great War against the Aldmeri Dominion, more were lost or set aside in the civil war, and since the Thalmor got hold of the Guild's ledgers, registered adventurers keep disappearing; the Guild never had it easy here either, up against the Companions and with no halls of its own. Speaks of the disappearances carefully, never where a Thalmor might hear
         {% if render_mode == "full" or render_mode == "thoughts" %}
+        - Knows the Guild's record of {{ player.name }} below, but raises it only when {{ player.name }} brings Guild business or asks about it; never brings it up unprompted while serving drinks or chatting
             {% set led = ag_player(player.UUID) %}
             {% if led.registered %}
         - The Guild's record of {{ player.name }}: {{ led.rank }}-rank adventurer, {{ led.reputation }} Reputation, {{ led.merit }} Merit to spend{% if led.promotionReady %}; eligible for promotion to {{ led.next.rank }}-rank and only needs to ask here and pay the {{ led.promotionFee }} gold promotion fee{% else %}{% if led.next %}; {{ led.next.rank }}-rank needs {{ led.next.reputationShort }} more Reputation{% if led.next.levelShort > 0 %} and more seasoning in the field{% endif %}{% else %}; the highest rank the Guild grants{% endif %}{% endif %}
