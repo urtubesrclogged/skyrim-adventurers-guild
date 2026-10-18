@@ -23,6 +23,7 @@ namespace AG::MissiveWatch
 	bool Active();    // Missives.esp is loaded and its quests resolved
 	void OnGameLoaded();  // after a load: note which missives the player is carrying
 	int  ExpansionState();  // Missives - Voice and Quest Expansion: 0 not loaded, 1 loaded but not taken in, 2 active
+	int  MonsterHuntState();  // Monster Hunt Missives (1.5.0): the same
 
 	// Dev/test hook (DevBench): synthesize the stage-100 event for one quest FormID
 	// (hex string, e.g. "0x0201A2B3"), bypassing a real Missives board turn-in.

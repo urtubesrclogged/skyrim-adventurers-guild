@@ -1,0 +1,113 @@
+{
+  "_comment": "Monster Hunt Missives (Nexus 186539, by sgtbham1, version 1.8): its hunt contracts with the Guild rank each needs (chosen by the author of this mod, 2026-10-18), and their notes. Read only when MissivesMonsterHunt.esp is loaded; nothing of it is mastered, copied or shipped. Its broker (Pepper) still pays the gold; the Guild credits the report. FormIDs from the plugin (light: local IDs); the editor IDs are for reading only.",
+  "plugin": "MissivesMonsterHunt.esp",
+  "quests": [
+    {
+      "form": "MissivesMonsterHunt.esp|0x000801",
+      "tier": "C",
+      "editorId": "MMH_QuestVampire"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000805",
+      "tier": "C",
+      "editorId": "MMH_QuestWerebeast"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000807",
+      "tier": "B",
+      "editorId": "MMH_QuestLich"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000827",
+      "tier": "C",
+      "editorId": "MMH_QuestBeastVampiric"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000828",
+      "tier": "C",
+      "editorId": "MMH_QuestBeastWild"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000829",
+      "tier": "C",
+      "editorId": "MMH_QuestBeastBandit"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x00082A",
+      "tier": "C",
+      "editorId": "MMH_QuestBeastArcane"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x00082B",
+      "tier": "C",
+      "editorId": "MMH_QuestBeastRuins"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x00082C",
+      "tier": "C",
+      "editorId": "MMH_QuestBeastAny"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x00082D",
+      "tier": "A",
+      "editorId": "MMH_QuestDragon"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000871",
+      "tier": "B",
+      "editorId": "MMH_QuestWilderHunt"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000879",
+      "tier": "B",
+      "editorId": "MMH_QuestDwemerHunt"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000869",
+      "tier": "C",
+      "editorId": "MMH_QuestWildsHunt"
+    }
+  ],
+  "books": [
+    {
+      "form": "MissivesMonsterHunt.esp|0x000853",
+      "tier": "C",
+      "editorId": "MMH_MissiveVampire"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000854",
+      "tier": "C",
+      "editorId": "MMH_MissiveWerebeast"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000855",
+      "tier": "B",
+      "editorId": "MMH_MissiveLich"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000808",
+      "tier": "C",
+      "editorId": "MMH_MissiveExotic (the six beast hunts)"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000856",
+      "tier": "A",
+      "editorId": "MMH_MissiveDragon"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000874",
+      "tier": "B",
+      "editorId": "MMH_MissiveWilder"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000878",
+      "tier": "B",
+      "editorId": "MMH_MissiveDwemer"
+    },
+    {
+      "form": "MissivesMonsterHunt.esp|0x000865",
+      "tier": "C",
+      "editorId": "MMH_MissiveWilds"
+    }
+  ]
+}

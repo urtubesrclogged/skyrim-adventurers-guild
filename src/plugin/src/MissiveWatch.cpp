@@ -333,17 +333,20 @@ namespace AG::MissiveWatch
 		// missives like any other. missives_expansion.json (tools/EspGen) names each with its rank; one quest serves
 		// every hold, so it has no hold of its own here (the board its note is on says where it is posted).
 		// g_lock held. Returns how many were taken in.
+		// The same, for any other mod that posts missives of its own on Missives' boards: Monster Hunt Missives (1.5.0,
+		// missives_monsterhunt.json - its hunt contracts; its broker still pays the gold, the Guild credits the report).
 		std::atomic<int> g_expansion{ 0 };  // 0 not loaded, 1 loaded but nothing taken in, 2 active (MCM Debug page)
+		std::atomic<int> g_monsterHunt{ 0 };
 
-		int IntegrateExpansion(RE::TESDataHandler* a_dh, RE::TESGlobal* a_rankGlobal)
+		int IntegrateExpansion(RE::TESDataHandler* a_dh, RE::TESGlobal* a_rankGlobal, const char* a_file, std::atomic<int>& a_state)
 		{
-			g_expansion = 0;
-			std::ifstream f("Data/SKSE/Plugins/AdventurersGuild/missives_expansion.json");
+			a_state = 0;
+			std::ifstream f(std::string("Data/SKSE/Plugins/AdventurersGuild/") + a_file);
 			if (!f) return 0;
 			auto j = nlohmann::json::parse(f, nullptr, true, true);
 			const auto plugin = j.value("plugin", "");
 			if (plugin.empty() || (!a_dh->LookupLoadedModByName(plugin) && !a_dh->LookupLoadedLightModByName(plugin))) return 0;
-			g_expansion = 1;
+			a_state = 1;
 			int taken = 0, gated = 0, missing = 0, labeled = 0;
 			for (auto& e : j.value("quests", nlohmann::json::array())) {
 				auto* form = KeyForm(a_dh, e.value("form", ""));
@@ -368,9 +371,9 @@ namespace AG::MissiveWatch
 					++labeled;
 				}
 			}
-			SKSE::log::info("MissiveWatch: {} - {} missives taken in ({} rank-gated, {} notes labeled, {} not found: a different version of the expansion?)",
+			SKSE::log::info("MissiveWatch: {} - {} missives taken in ({} rank-gated, {} notes labeled, {} not found: a different version of it?)",
 				plugin, taken, gated, labeled, missing);
-			if (taken > 0) g_expansion = 2;
+			if (taken > 0) a_state = 2;
 			return taken;
 		}
 
@@ -522,10 +525,13 @@ namespace AG::MissiveWatch
 			LoadManifest(j, dh, "Missives.esp");
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
-			try {
-				IntegrateExpansion(dh, dh->LookupForm<RE::TESGlobal>(Hex(j.at("rankGlobal")), "AdventurersGuild.esp"));
-			} catch (const std::exception& e) {
-				SKSE::log::error("MissiveWatch: missives_expansion.json error: {} - the expansion's missives are not ranked", e.what());
+			auto* rankGlobal = dh->LookupForm<RE::TESGlobal>(Hex(j.at("rankGlobal")), "AdventurersGuild.esp");
+			for (const auto& [file, state] : { std::pair{ "missives_expansion.json", &g_expansion }, std::pair{ "missives_monsterhunt.json", &g_monsterHunt } }) {
+				try {
+					IntegrateExpansion(dh, rankGlobal, file, *state);
+				} catch (const std::exception& e) {
+					SKSE::log::error("MissiveWatch: {} error: {} - its missives are not ranked", file, e.what());
+				}
 			}
 		} catch (const std::exception& e) {
 			SKSE::log::error("MissiveWatch: missives.json error: {}", e.what());
@@ -542,6 +548,7 @@ namespace AG::MissiveWatch
 
 	bool Active() { return g_active; }
 	int  ExpansionState() { return g_active ? g_expansion.load() : 0; }
+	int  MonsterHuntState() { return g_active ? g_monsterHunt.load() : 0; }
 
 	// After a load: which missives the player is carrying (running, past the board, not finished)
 	void OnGameLoaded()
