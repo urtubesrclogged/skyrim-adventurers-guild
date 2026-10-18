@@ -105,6 +105,8 @@ translate):
 * `$AG_Hud_BountyTaken` (`{}` = the rank letter), `$AG_Bounty_Taken` (`{}` = the bounty), `$AG_Bounty_Gone`,
   `$AG_Toast_Bounty`, `$AG_Hud_BountyDone`, `$AG_Log_Bounty` and `$AG_Report_Bounty` (`{}` = the rank, then the bounty).
 * `$AG_UI_NoReports2` now names bounties as well.
+* `$AG_UI_PromoHoldWhere`: the counter's promotion-on-hold note, now saying where the bounty is (`{0}` = the hold or
+  holds, each with its gold, e.g. "Whiterun (40 gold)"). `$AG_UI_PromoHold` stays for when it cannot say.
 
 New keys for the MCM's Audio page: `$AG_MCM_Audio`, `$AG_MCM_Audio_Sounds_Header`, `$AG_MCM_Audio_Voices_Header`;
 the notices' sounds `$AG_MCM_Audio_iSoundSet_Text` / `_Help` with its three choices `$AG_MCM_Audio_SoundSet_Drums`,

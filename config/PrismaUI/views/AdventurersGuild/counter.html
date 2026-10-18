@@ -582,7 +582,8 @@ function cardFigures(c) {
         <div class="bar"><div class="fill" style="width:${pct(c.level, 1, n.level)}%"></div></div>
         <span class="num">${c.level} / ${n.level}</span></div>
       ${c.ready ? `<div class="note-ok">${esc(t("$AG_UI_Eligible", "Eligible for promotion — speak to the innkeeper."))}</div>` : ""}
-      ${c.blocked ? `<div class="note-hold">${esc(t("$AG_UI_PromoHold", "Promotion on hold — clear your bounty first."))}</div>` : ""}`;
+      ${c.blocked ? `<div class="note-hold">${esc(c.bountyWhere ? t("$AG_UI_PromoHoldWhere", "Promotion on hold — clear your bounty first: {0}.", c.bountyWhere)
+                                                       : t("$AG_UI_PromoHold", "Promotion on hold — clear your bounty first."))}</div>` : ""}`;
   }
   return `<hr/>
       <div class="facts">
@@ -642,7 +643,7 @@ function renderCard() {
   const c = { name: data.name, letter: data.registered ? data.letter : "", registered: data.registered && data.registeredDay >= 0 ? gameDate(data.registeredDay) : "",
     partyLead: act ? t("$AG_UI_CardLeader", "Leader of") : "",  // the player leads theirs, said as 1.4 said it; "Party —" without one
     party: act ? act.name : "", partyMeta: act ? (pn === 1 ? t("$AG_UI_NMember", "{0} member", 1) : t("$AG_UI_NMembers", "{0} members", pn)) : "",
-    merit: data.merit, reputation: data.reputation, goldEarned: data.goldEarned, level: data.level, next: data.next, ready: data.ready, blocked: data.promotionBlocked };
+    merit: data.merit, reputation: data.reputation, goldEarned: data.goldEarned, level: data.level, next: data.next, ready: data.ready, blocked: data.promotionBlocked, bountyWhere: data.bountyWhere };
   const app = [t("$AG_UI_None", "None"), "I", "II", "III"][data.appraisal || 0];
   const lost = data.registered && data.hasCard === false && !data.cardOnly;
   const veil = !lost ? "" : `<div class="lostveil">

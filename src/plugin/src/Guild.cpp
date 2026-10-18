@@ -117,6 +117,7 @@ namespace AG::Guild
 		bool                       g_bountyKnown{ false };
 		double                     g_bountyCarry{ 0.0 };  // the fraction of a Reputation point small bounties have not yet cost
 		std::atomic<bool>          g_bountyActive{ false };
+		std::string                g_bountyWhere;         // where it is, for the counter: "Whiterun (40 gold)", more joined by commas
 		RE::TESTopic*  g_replaceTopic{ nullptr };  // the player's "I've lost my guild card" line: the DLL writes the fee into it
 		// Liaison dialogue lines by role (dialogue.resolved.json). Staff/referral lines are not listed,
 		// so choosing a topic at a non-guild inn only gets the innkeeper's pointer to the right city.
@@ -1031,14 +1032,24 @@ namespace AG::Guild
 				std::vector<RE::TESFaction*> out;
 				if (auto* dh = RE::TESDataHandler::GetSingleton())
 					for (auto* f : dh->GetFormArray<RE::TESFaction>())
-						if (f && f->TracksCrimes()) out.push_back(f);
-				SKSE::log::info("Guild: {} factions track crime (bounties are read from these)", out.size());
+						// Only a bounty the player can pay: a faction with a jail and a chest for stolen goods, as the holds
+						// and Raven Rock have. The game also keeps a crime faction for each housecarl and hireling, Serana,
+						// the Companions, the caravans and others, so it can answer a crime against them; striking a
+						// follower by accident left a bounty there that no one can be paid, that no journal shows, and that
+						// held promotion and cost Reputation (Nexus, 2026-10-16). 1.5.0.
+						if (f && f->TracksCrimes() && f->crimeData.factionJailMarker && f->crimeData.factionStolenContainer) out.push_back(f);
+				SKSE::log::info("Guild: {} crime factions with a jail and a stolen-goods chest (bounties are read from these)", out.size());
 				return out;
 			}();
+			std::string where;
 			for (auto* faction : crimeFactions) {
 				const int bounty = faction->GetCrimeGold();
 				if (bounty <= 0) continue;
 				any = true;
+				{
+					const char* n = faction->GetName();
+					where += std::format("{}{} ({} gold)", where.empty() ? "" : ", ", n && *n ? n : Adventurers::StableKey(faction), bounty);
+				}
 				const auto key = Adventurers::StableKey(faction);
 				now[key] = bounty;
 				const auto seen = g_bountySeen.find(key);
@@ -1051,6 +1062,7 @@ namespace AG::Guild
 			g_bountySeen = std::move(now);
 			g_bountyKnown = true;
 			was = g_bountyActive.exchange(any);
+			g_bountyWhere = where;
 		}
 		for (auto& [hold, gold] : rises) {
 			// exactly the share of the bounty, however it was run up: a small rise that is not yet worth a point is
@@ -1071,7 +1083,13 @@ namespace AG::Guild
 				blocked = BlockedLocked();
 			}
 			if (any && blocked) Hud(Loc::T("$AG_Hud_PromoHold", "The Guild has put your promotion on hold until your bounty is cleared."));
-			SKSE::log::info("Guild: bounty {} - promotion {}", any ? "active" : "cleared", any ? "on hold" : "no longer on hold");
+			std::string where;
+			{
+				std::lock_guard l(g_lock);
+				where = g_bountyWhere;
+			}
+			if (any) SKSE::log::info("Guild: bounty active ({}) - promotion on hold", where);
+			else SKSE::log::info("Guild: bounty cleared - promotion no longer on hold");
 			SyncGlobals();  // the promotion topic and the "ready" notice follow
 			Counter::Refresh();
 		}
@@ -1261,6 +1279,7 @@ namespace AG::Guild
 		j["reputation"] = g_reputation;
 		j["ready"] = ReadyLocked();
 		j["promotionBlocked"] = BlockedLocked();  // would be ready, but for a bounty
+		j["bountyWhere"] = g_bountyWhere;          // where that bounty is, so it can be found and paid
 		j["today"] = Today();
 		// today's calendar date, so the page can turn a stored "days passed" into a date ("3rd of Hearthfire, 4E 201")
 		if (auto* cal = RE::Calendar::GetSingleton())
