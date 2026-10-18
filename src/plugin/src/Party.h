@@ -62,5 +62,6 @@ namespace AG::Party
 	// co-save (part of Guild's record)
 	nlohmann::json Save();
 	void           Load(const nlohmann::json& a_j);
+	void           DropCreatures();  // once a game is loaded: a creature that joined before 1.5.0 leaves its party quietly
 	void           Revert();
 }

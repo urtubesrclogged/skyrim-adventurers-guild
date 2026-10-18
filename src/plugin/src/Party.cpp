@@ -1325,6 +1325,23 @@ namespace AG::Party
 			{ "blessed", std::vector<std::string>(g_blessed.begin(), g_blessed.end()) }, { "facts", std::move(facts) } };
 	}
 
+	void DropCreatures()
+	{
+		// Before 1.5.0 anyone following the player could join, a dog or a horse among them. Such a member is taken off
+		// the roster without a trace: not former, not fallen, no Reputation either way; their Bond goes with them.
+		std::lock_guard l(g_lock);
+		for (auto& p : g_parties) {
+			std::erase_if(p.members, [&](const Member& m) {
+				auto* a = Resolve(m.key);
+				if (!a || Adventurers::IsPerson(a)) return false;
+				SKSE::log::info("Party: {} is not a person and leaves '{}' (only people can be adventurers)", m.name, p.name);
+				g_bonds.erase(m.key);
+				g_facts.erase(m.key);
+				return true;
+			});
+		}
+	}
+
 	void Load(const nlohmann::json& a_j)
 	{
 		std::lock_guard l(g_lock);

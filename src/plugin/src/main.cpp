@@ -52,6 +52,7 @@ namespace
 		AG::GuildCard::Sync(false);  // a member from before 1.2.0, or one who lost theirs, gets a card
 		AG::ControlsGuard::OnGameLoaded();
 		AG::Dungeons::OnGameLoaded();
+		AG::Party::DropCreatures();
 		// Taking a posted job down cannot be undone, and here it would be done on what the save said a moment ago.
 		// Only a save read whole is believed; otherwise it waits until the player walks up to a board.
 		if (AG::Guild::SaveState() == AG::Guild::SaveData::kClean) {

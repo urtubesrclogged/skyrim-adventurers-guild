@@ -38,6 +38,7 @@ namespace AG::Adventurers
 
 	void        Load();                  // at kDataLoaded
 	Info        Of(RE::Actor* a_actor);  // NPCs only; the player's rank lives in Guild
+	bool        IsPerson(RE::Actor* a_actor);  // a person, not a creature: only people can be adventurers (1.5.0)
 	const char* KindName(Kind a_kind);
 	std::string Describe(RE::Actor* a_actor);  // debug: kind, rank and the rule that decided it
 	// A named member's line for their SkyrimNet bio (adventurers.json "named": note / retiredNote), or "".

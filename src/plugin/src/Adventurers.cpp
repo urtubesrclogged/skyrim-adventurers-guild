@@ -462,9 +462,19 @@ namespace AG::Adventurers
 		}
 	}
 
+	bool IsPerson(RE::Actor* a_actor)
+	{
+		// The race in their record, not the one they wear now: a follower who is a werewolf or a vampire lord for the
+		// moment is still the person who joined. A creature never is (a stray dog that followed the player home
+		// registered with the Guild, Nexus 2026-10-14).
+		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		auto* race = base && base->race ? base->race : a_actor ? a_actor->GetRace() : nullptr;
+		return race && race->HasKeywordString("ActorTypeNPC");
+	}
+
 	Info Of(RE::Actor* a_actor)
 	{
-		if (!a_actor || a_actor->IsPlayerRef()) return {};
+		if (!a_actor || a_actor->IsPlayerRef() || !IsPerson(a_actor)) return {};
 		Kind kind;
 		bool joined = false, travelled = false;
 		int  pinned = -1;
