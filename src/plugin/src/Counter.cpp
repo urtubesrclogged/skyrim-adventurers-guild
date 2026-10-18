@@ -595,6 +595,7 @@ namespace AG::Counter
 			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress() + BountyWatch::InProgress();  // the card's "to do" note
 			data["trophies"] = Shop::TrophiesData();
 			data["postings"] = MissiveWatch::Postings(Branch());
+			data["boardStatus"] = MissiveWatch::BoardStatus();  // this town's board: due a refresh, or how long until it is
 			data["notices"] = NoticeWatch::Postings();
 			data["bounty"] = g_cardOnly.load() ? nlohmann::json(nullptr) : BountyWatch::Posting(Branch());  // this hold's one bounty, or null
 			data["boards"] = { { "missives", MissiveWatch::Active() }, { "notices", NoticeWatch::Active() } };  // which sub-tabs the Quests tab has

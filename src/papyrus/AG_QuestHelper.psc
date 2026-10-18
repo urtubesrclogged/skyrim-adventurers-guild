@@ -117,28 +117,6 @@ EndFunction
 ; The Notice Board SE: what its board script does when a board's cell loads (manny_up_noticeboardScript.OnCellAttach),
 ; run when the guild counter opens, so a notice the player has just become eligible for is posted without a walk to
 ; a board first. A quest that cannot start (its own conditions, or the rank gate) simply stays stopped.
-; Missives: one board's quest list rolled as its board script does (_M_ActivatorScript.UpdateQuests), when the player
-; registers or is promoted, so the new rank's jobs are posted at once. Only the starting half: a job already posted
-; stays up (Missives rotates those itself). A quest the rank gate or its own conditions refuse stays stopped.
-Int Function RollMissives(FormList akQuests, Float afChance) Global
-	Int started = 0
-	If !akQuests
-		Return 0
-	EndIf
-	Int i = 0
-	Int n = akQuests.GetSize()
-	While i < n
-		If Utility.RandomInt() < afChance
-			Quest q = akQuests.GetAt(i) as Quest
-			If q && !q.IsRunning() && q.Start()
-				started += 1
-			EndIf
-		EndIf
-		i += 1
-	EndWhile
-	Return started
-EndFunction
-
 Function PostNotices(FormList akQuests) Global
 	If !akQuests
 		Return

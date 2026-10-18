@@ -4,6 +4,7 @@
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
 #include "QuestBoard.h"
+#include "Adventurers.h"
 #include "MissiveWatch.h"
 
 #include "Counter.h"
@@ -39,9 +40,16 @@ namespace AG::MissiveWatch
 		bool                                       g_active{ false };
 		std::unordered_set<RE::FormID>             g_boardBases;  // _M_ActivatorBoard trigger bases
 		std::unordered_set<RE::FormID>             g_boardContainers;  // _M_MissiveBoard: the board the player opens
-		// every board's quest lists, each with the global holding the chance its tier is rolled at (RollBoards)
-		std::vector<std::pair<RE::BGSListForm*, RE::TESGlobal*>> g_lists;
-		std::unordered_map<std::string, RE::TESGlobal*>          g_chances;  // tier name (Low, Med, High, VeryHigh) -> Missives' global
+		// Each board's own refresh timer, as Missives keeps it on the trigger by the board (_M_ActivatorScript:
+		// LastUpdate, RefreshRate): read when the trigger's town loads, since the trigger exists only then. Keyed by
+		// the board's StableKey (boards are persistent: the counter can find them). Co-save.
+		struct BoardTimer
+		{
+			float last{ -100.0f };  // GameDaysPassed of its last refresh (Missives starts every board at -100)
+			float rate{ 3.0f };     // days between refreshes
+		};
+		std::unordered_map<std::string, BoardTimer> g_timers;
+		float                                       g_dueSince{ -1.0f };  // the last registration or promotion: boards refreshed before it are due
 		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
 		std::unordered_set<RE::FormID> g_taken;  // missives the player has taken and not finished (for "gave it up")
 		// one global per known Missives add-on, and whether that add-on is loaded: set on every load, because a save
@@ -153,10 +161,13 @@ namespace AG::MissiveWatch
 			return base && g_boardBases.contains(base->GetFormID());
 		}
 
+		bool ReadTrigger(RE::TESObjectREFR* a_trigger);  // below, with the board timers
+
 		class Sink :
 			public RE::BSTEventSink<RE::TESQuestStageEvent>,
 			public RE::BSTEventSink<RE::TESTriggerEnterEvent>,
-			public RE::BSTEventSink<RE::TESActivateEvent>
+			public RE::BSTEventSink<RE::TESActivateEvent>,
+			public RE::BSTEventSink<RE::TESCellAttachDetachEvent>
 		{
 		public:
 			static Sink* Get()
@@ -213,7 +224,35 @@ namespace AG::MissiveWatch
 					// unregistered player waits until the board is used (1.3.0: it used to be handed out here, to
 					// anyone who walked past - Whiterun's board stands by the gate).
 					SKSE::GetTaskInterface()->AddTask([] { WithdrawAboveRank(); });
+					// Missives may have just refreshed this board: its timer is read again once its own event has run
+					auto* trigger = a && a->IsPlayerRef() ? b : a;
+					if (trigger) {
+						const auto h = trigger->GetHandle();
+						std::thread([h] {
+							std::this_thread::sleep_for(std::chrono::seconds(3));
+							SKSE::GetTaskInterface()->AddTask([h] {
+								if (auto r = h.get()) ReadTrigger(r.get());
+							});
+						}).detach();
+					}
 				}
+				return RE::BSEventNotifyControl::kContinue;
+			}
+
+			// A board's trigger comes into the world with its town: its timer is read (and reset when due)
+			RE::BSEventNotifyControl ProcessEvent(const RE::TESCellAttachDetachEvent* a_event, RE::BSTEventSource<RE::TESCellAttachDetachEvent>*) override
+			{
+				if (!a_event || !a_event->attached || !a_event->reference || g_boardBases.empty()) return RE::BSEventNotifyControl::kContinue;
+				auto* base = a_event->reference->GetBaseObject();
+				if (!base || !g_boardBases.contains(base->GetFormID())) return RE::BSEventNotifyControl::kContinue;
+				const auto h = a_event->reference->GetHandle();
+				SKSE::GetTaskInterface()->AddTask([h] {
+					auto ref = h.get();
+					if (ref && !ReadTrigger(ref.get()))
+						SKSE::GetTaskInterface()->AddTask([h] {
+							if (auto r = h.get(); r && !ReadTrigger(r.get())) SKSE::log::warn("MissiveWatch: a board's trigger has no Missives script bound - its refresh timer was not read");
+						});
+				});
 				return RE::BSEventNotifyControl::kContinue;
 			}
 
@@ -409,14 +448,6 @@ namespace AG::MissiveWatch
 				const auto localId = static_cast<std::uint32_t>(std::stoul(b.get<std::string>(), nullptr, 16));
 				if (auto* c = a_dh->LookupForm(localId, a_plugin)) g_boardContainers.insert(c->GetFormID());
 			}
-			if (a_j.contains("chances"))
-				for (auto& [tier, id] : a_j.at("chances").items())
-					if (auto* g = a_dh->LookupForm<RE::TESGlobal>(static_cast<RE::FormID>(std::stoul(id.get<std::string>(), nullptr, 16)), a_plugin)) g_chances[tier] = g;
-			for (auto& l : a_j.value("lists", nlohmann::json::array())) {
-				auto*      list = a_dh->LookupForm<RE::BGSListForm>(static_cast<RE::FormID>(std::stoul(l.value("formId", std::string("0")), nullptr, 16)), a_plugin);
-				const auto it = g_chances.find(l.value("tier", std::string()));
-				if (list && it != g_chances.end()) g_lists.emplace_back(list, it->second);
-			}
 			for (auto& entry : a_j.value("quests", nlohmann::json::array())) {
 				const auto localId = static_cast<std::uint32_t>(std::stoul(entry.at("formId").get<std::string>(), nullptr, 16));
 				const auto tierStr = entry.at("tier").get<std::string>();
@@ -488,8 +519,6 @@ namespace AG::MissiveWatch
 			std::lock_guard l(g_lock);
 			g_watch.clear();
 			g_hold.clear();
-			g_lists.clear();
-			g_chances.clear();
 			LoadManifest(j, dh, "Missives.esp");
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
@@ -505,6 +534,7 @@ namespace AG::MissiveWatch
 
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESQuestStageEvent>(Sink::Get());
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTriggerEnterEvent>(Sink::Get());
+		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESCellAttachDetachEvent>(Sink::Get());
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESActivateEvent>(Sink::Get());
 		g_active = true;
 		SKSE::log::info("MissiveWatch: registered");
@@ -529,20 +559,131 @@ namespace AG::MissiveWatch
 		}
 	}
 
-	void RollBoards(std::string_view a_why)
+	namespace
 	{
-		std::vector<std::pair<RE::BGSListForm*, float>> lists;
+		float DaysPassed()
+		{
+			auto* cal = RE::Calendar::GetSingleton();
+			return cal ? cal->GetDaysPassed() : 0.0f;
+		}
+
+		// The script Missives puts on a board's trigger, while the trigger is loaded
+		RE::BSTSmartPointer<RE::BSScript::Object> TriggerScript(RE::TESObjectREFR* a_trigger)
+		{
+			auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+			auto* policy = vm ? vm->GetObjectHandlePolicy() : nullptr;
+			if (!policy || !a_trigger) return {};
+			const auto handle = policy->GetHandleForObject(a_trigger->GetFormType(), a_trigger);
+			RE::BSTSmartPointer<RE::BSScript::Object> obj;
+			if (handle == policy->EmptyHandle() || !vm->FindBoundObject(handle, "_M_ActivatorScript", obj)) return {};
+			return obj;
+		}
+
+		// A board's trigger has just loaded: copy its timer, and make it due if the player registered or was
+		// promoted since its last refresh - Missives then refreshes the board itself as the player walks up.
+		// On the game's thread. False if its script is not bound yet (asked again on the next frame, once).
+		bool ReadTrigger(RE::TESObjectREFR* a_trigger)
+		{
+			auto obj = TriggerScript(a_trigger);
+			if (!obj) return false;
+			auto* last = obj->GetVariable("LastUpdate");
+			auto* boardVar = obj->GetProperty("MissiveBoard");
+			auto* rateVar = obj->GetProperty("RefreshRate");
+			auto* board = boardVar ? boardVar->Unpack<RE::TESObjectREFR*>() : nullptr;
+			auto* rate = rateVar ? rateVar->Unpack<RE::TESGlobal*>() : nullptr;
+			if (!last || !board) return true;  // not the script we know: nothing to do
+			const auto key = Adventurers::StableKey(board);
+			std::lock_guard l(g_lock);
+			auto& t = g_timers[key];
+			t.last = last->GetFloat();
+			if (rate) t.rate = rate->value;
+			if (g_dueSince >= 0.0f && t.last >= 0.0f && t.last < g_dueSince) {
+				last->SetFloat(-100.0f);  // as Missives starts every board: refreshed long ago
+				t.last = -100.0f;
+				SKSE::log::info("MissiveWatch: the board at {} is due a refresh (the player's rank changed since it last refreshed)", key);
+			}
+			return true;
+		}
+	}
+
+	void MakeBoardsDue(std::string_view a_why)
+	{
 		{
 			std::lock_guard l(g_lock);
-			for (auto& [list, chance] : g_lists) lists.emplace_back(list, chance ? chance->value : 0.0f);
+			g_dueSince = DaysPassed();
+			for (auto& [key, t] : g_timers) t.last = std::min(t.last, -100.0f);  // shown as due at once; the trigger itself is reset when it loads
 		}
-		auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
-		if (lists.empty() || !vm) return;
-		SKSE::log::info("MissiveWatch: every board's {} quest lists rolled as Missives does ({})", lists.size(), a_why);
-		for (auto& [list, chance] : lists) {
-			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
-			vm->DispatchStaticCall("AG_QuestHelper", "RollMissives", RE::MakeFunctionArguments(static_cast<RE::BGSListForm*>(list), static_cast<float>(chance)), cb);
+		SKSE::log::info("MissiveWatch: every board is due a refresh ({}): Missives refreshes each as the player next walks up to it", a_why);
+		// a board already loaded around the player is reset now
+		if (auto* player = RE::PlayerCharacter::GetSingleton(); player && player->parentCell)
+			player->parentCell->ForEachReference([](RE::TESObjectREFR* a_ref) {
+				auto* base = a_ref ? a_ref->GetBaseObject() : nullptr;
+				if (base && g_boardBases.contains(base->GetFormID())) ReadTrigger(a_ref);
+				return RE::BSContainer::ForEachResult::kContinue;
+			});
+	}
+
+	nlohmann::json BoardStatus()
+	{
+		auto* player = RE::PlayerCharacter::GetSingleton();
+		const auto* area = SettlementOf(player ? player->GetCurrentLocation() : nullptr);
+		if (!area || g_boardContainers.empty()) return nullptr;
+		// the board of this town: a persistent reference, so it can be found from inside the inn
+		static std::vector<RE::FormID> boards;
+		if (boards.empty()) {
+			const auto& [map, lock] = RE::TESForm::GetAllForms();
+			RE::BSReadLockGuard rl{ lock };
+			if (map)
+				for (auto& [id, form] : *map) {
+					auto* ref = form ? form->As<RE::TESObjectREFR>() : nullptr;
+					auto* base = ref ? ref->GetBaseObject() : nullptr;
+					if (base && g_boardContainers.contains(base->GetFormID())) boards.push_back(id);
+				}
 		}
+		for (const auto id : boards) {
+			auto* board = RE::TESForm::LookupByID<RE::TESObjectREFR>(id);
+			auto* loc = board ? board->GetCurrentLocation() : nullptr;
+			if (!loc || !Within(loc, area)) continue;
+			BoardTimer t;
+			bool       known = false;
+			{
+				std::lock_guard l(g_lock);
+				if (auto it = g_timers.find(Adventurers::StableKey(board)); it != g_timers.end()) {
+					t = it->second;
+					known = true;
+				}
+			}
+			// Missives refreshes when GameDaysPassed > LastUpdate + RefreshRate. A board never seen is at its start.
+			const float left = known ? t.last + t.rate - DaysPassed() : -1.0f;
+			const char* name = area->GetFullName();
+			return { { "name", name && *name ? name : "" }, { "due", left <= 0.0f }, { "hours", left > 0.0f ? static_cast<int>(std::ceil(left * 24.0f)) : 0 } };
+		}
+		return nullptr;
+	}
+
+	nlohmann::json Save()
+	{
+		std::lock_guard l(g_lock);
+		auto timers = nlohmann::json::object();
+		for (auto& [k, t] : g_timers) timers[k] = { t.last, t.rate };
+		return { { "dueSince", g_dueSince }, { "timers", timers } };
+	}
+
+	void Load(const nlohmann::json& a_j)
+	{
+		std::lock_guard l(g_lock);
+		g_timers.clear();
+		g_dueSince = a_j.value("dueSince", -1.0f);
+		if (a_j.contains("timers") && a_j.at("timers").is_object())
+			for (auto& [k, v] : a_j.at("timers").items())
+				if (v.is_array() && v.size() == 2) g_timers[Adventurers::CanonicalKey(k)] = { v[0].get<float>(), v[1].get<float>() };
+	}
+
+	void Revert()
+	{
+		std::lock_guard l(g_lock);
+		g_timers.clear();
+		g_dueSince = -1.0f;
 	}
 
 	void WithdrawAboveRank()

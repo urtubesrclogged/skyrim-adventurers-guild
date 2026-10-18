@@ -163,28 +163,6 @@
       "boardTriggers": [],
       "boardContainers": [
         "0x00089A"
-      ],
-      "lists": [
-        {
-          "formId": "0x00083D",
-          "hold": "Solstheim",
-          "tier": "Low"
-        },
-        {
-          "formId": "0x00083E",
-          "hold": "Solstheim",
-          "tier": "Med"
-        },
-        {
-          "formId": "0x00083F",
-          "hold": "Solstheim",
-          "tier": "High"
-        },
-        {
-          "formId": "0x000840",
-          "hold": "Solstheim",
-          "tier": "VeryHigh"
-        }
       ]
     }
   ]

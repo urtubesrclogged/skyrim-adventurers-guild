@@ -251,7 +251,7 @@ namespace AG::Guild
 			Hud(rank > 0 ? Loc::F("$AG_Reg_Assessed", "Your experience has been assessed: you are registered as a Rank {} adventurer.", Letter(rank))
 			             : Loc::T("$AG_Reg_RankE", "You are registered as a Rank E adventurer."));
 			SendModEvent("AG_Registered", LetterStr(rank), static_cast<float>(rank));
-			MissiveWatch::RollBoards("registration");  // jobs of the new rank on every board at once (1.5.0)
+			MissiveWatch::MakeBoardsDue("registration");  // every board refreshes when the player next walks up to it (1.5.0)
 			SKSE::log::info("Guild: registered at rank {} (level {})", Letter(rank), RE::PlayerCharacter::GetSingleton()->GetLevel());
 		}
 
@@ -283,7 +283,7 @@ namespace AG::Guild
 			Hud(Loc::F("$AG_Promo_Done", "The Guild has promoted you to Rank {}.", Letter(rank)));
 			GuildCard::Sync(true);  // "I've updated your guild card."
 			SendModEvent("AG_RankChanged", LetterStr(rank), static_cast<float>(rank));
-			MissiveWatch::RollBoards("promotion");
+			MissiveWatch::MakeBoardsDue("promotion");
 			SKSE::log::info("Guild: promoted to rank {}", Letter(rank));
 		}
 
@@ -520,6 +520,7 @@ namespace AG::Guild
 			j["namedRanks"] = Adventurers::SaveNamedRanks();
 			j["sLevel"] = GetSLevel();
 			j["dungeons"] = Dungeons::Save();
+			j["boards"] = MissiveWatch::Save();
 			j["memberCards"] = MemberCards::Save();
 			j["recruitedDays"] = Adventurers::SaveRecruitedDays();
 			j["parties"] = Party::Save();
@@ -562,6 +563,7 @@ namespace AG::Guild
 			Reset();
 			Adventurers::Revert();
 			Dungeons::Revert();
+			MissiveWatch::Revert();
 			MemberCards::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
@@ -635,6 +637,7 @@ namespace AG::Guild
 					// a save from before 1.4.0 keeps the levels it always had; the MCM (which holds the setting) agrees
 					SetSLevel(j.value("sLevel", kSLevelBefore140));
 					Dungeons::Load(j.value("dungeons", nlohmann::json::object()));
+					MissiveWatch::Load(j.value("boards", nlohmann::json::object()));
 					MemberCards::Load(j.value("memberCards", nlohmann::json::object()));
 					Adventurers::LoadRecruitedDays(j.value("recruitedDays", nlohmann::json::object()));  // after "recruited", which clears them
 					Party::Load(j.value("parties", nlohmann::json::array()));
@@ -655,6 +658,7 @@ namespace AG::Guild
 			Reset();
 			Adventurers::Revert();
 			Dungeons::Revert();
+			MissiveWatch::Revert();
 			MemberCards::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());

@@ -33,7 +33,15 @@ namespace AG::MissiveWatch
 	// rank. Postings made before the rank gate applied would otherwise linger until Missives' random
 	// refresh happens to reset them. Called on walking up to a board and on game load.
 	void WithdrawAboveRank();  // as if the player walked up to a Missives board
-	void RollBoards(std::string_view a_why);  // every board's lists rolled as Missives does (registration, promotion)
+	// Every board's own refresh made due (Missives' timer on its trigger, reset as each board's town loads):
+	// registration and promotion. Missives itself posts the new jobs when the player next walks up to a board.
+	void MakeBoardsDue(std::string_view a_why);
+	// The counter's own board (the one in the town the player is in): {name, due, hours} - hours until Missives'
+	// next refresh of it, 0 when it is due; null when the town has no board.
+	nlohmann::json BoardStatus();
+	nlohmann::json Save();
+	void           Load(const nlohmann::json& a_j);
+	void           Revert();
 
 	// The guild counter's view of the local board: missives currently posted (running, stage 0) in the
 	// hold whose capital is a_city, at or below the player's rank. [{id, tier, title}]

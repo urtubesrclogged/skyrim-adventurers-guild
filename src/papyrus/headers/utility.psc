@@ -3,4 +3,3 @@
 ScriptName Utility Hidden
 
 Function Wait(Float afSeconds) global native
-Int Function RandomInt(Int aiMin = 0, Int aiMax = 100) global native
