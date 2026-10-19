@@ -50,6 +50,7 @@ namespace AG::MissiveWatch
 		};
 		std::unordered_map<std::string, BoardTimer> g_timers;
 		float                                       g_dueSince{ -1.0f };  // the last registration or promotion: boards refreshed before it are due
+		std::unordered_map<RE::FormID, std::string> g_tag;  // the counter's mark for a mod's own missives ([VQE], [MH]); none for Missives' own
 		std::unordered_map<RE::FormID, int>         g_postedStage;  // a quest whose "posted on a board" stage is not 0 (Monster Hunt Missives: 10)
 		int PostedStage(RE::FormID a_id)
 		{
@@ -374,6 +375,7 @@ namespace AG::MissiveWatch
 				g_watch[quest->GetFormID()] = tier[0];
 				g_hold[quest->GetFormID()] = "";  // any hold
 				if (const int ps = j.value("postedStage", 0); ps != 0) g_postedStage[quest->GetFormID()] = ps;
+				if (const auto tg = j.value("tag", std::string()); !tg.empty()) g_tag[quest->GetFormID()] = tg;
 				Label(quest, tier[0]);
 				if (a_rankGlobal && GateQuest(quest, a_rankGlobal, FromLetter(tier[0]))) ++gated;
 				++taken;
@@ -544,6 +546,7 @@ namespace AG::MissiveWatch
 			g_watch.clear();
 			g_hold.clear();
 			g_postedStage.clear();
+			g_tag.clear();
 			LoadManifest(j, dh, "Missives.esp");
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
@@ -794,7 +797,9 @@ namespace AG::MissiveWatch
 		}
 		std::sort(posted.begin(), posted.end(), [](auto& a, auto& b) { return a.second != b.second ? FromLetter(a.second) > FromLetter(b.second) : a.first->GetFormID() < b.first->GetFormID(); });
 		for (auto& [q, tier] : posted) {
-			out.push_back({ { "id", std::format("{:08X}", q->GetFormID()) }, { "tier", std::string(1, tier) }, { "title", PostingTitle(q) } });
+			const auto tg = g_tag.find(q->GetFormID());
+			out.push_back({ { "id", std::format("{:08X}", q->GetFormID()) }, { "tier", std::string(1, tier) }, { "title", PostingTitle(q) },
+				{ "tag", tg == g_tag.end() ? std::string() : tg->second } });
 		}
 		return out;
 	}
@@ -846,6 +851,10 @@ namespace AG::MissiveWatch
 		out["tier"] = std::string(1, tier);
 		out["title"] = PostingTitle(q);
 		out["posted"] = Running(q) && q->GetCurrentStageID() == PostedStage(q->GetFormID());
+		{
+			std::lock_guard l(g_lock);
+			if (const auto tg = g_tag.find(q->GetFormID()); tg != g_tag.end()) out["tag"] = tg->second;
+		}
 
 		auto* noteAlias = AliasNamed(q, "Missive");
 		auto  note = noteAlias ? q->GetAliasedRef(noteAlias->aliasID).get() : nullptr;
