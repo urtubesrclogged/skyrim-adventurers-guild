@@ -1,20 +1,21 @@
 {
-  "_comment": "Monster Hunt Missives (Nexus 186539, by sgtbham1, version 1.8): its hunt contracts with the Guild rank each needs (chosen by the author of this mod, 2026-10-18), and their notes. Read only when MissivesMonsterHunt.esp is loaded; nothing of it is mastered, copied or shipped. Its broker (Pepper) still pays the gold; the Guild credits the report. FormIDs from the plugin (light: local IDs); the editor IDs are for reading only.",
+  "_comment": "Monster Hunt Missives (Nexus 186539, by sgtbham1, version 1.8): its hunt contracts with the Guild rank each needs (chosen by the author of this mod, 2026-10-18), and their notes. Read only when MissivesMonsterHunt.esp is loaded; nothing of it is mastered, copied or shipped. A contract is posted at stage 10 (Missives' own at 0), taken at 20, paid at 100. Its broker (Pepper) still pays the gold; the Guild credits the report. FormIDs from the plugin (light: local IDs); the editor IDs are for reading only.",
   "plugin": "MissivesMonsterHunt.esp",
+  "postedStage": 10,
   "quests": [
     {
       "form": "MissivesMonsterHunt.esp|0x000801",
-      "tier": "C",
+      "tier": "B",
       "editorId": "MMH_QuestVampire"
     },
     {
       "form": "MissivesMonsterHunt.esp|0x000805",
-      "tier": "C",
+      "tier": "B",
       "editorId": "MMH_QuestWerebeast"
     },
     {
       "form": "MissivesMonsterHunt.esp|0x000807",
-      "tier": "B",
+      "tier": "A",
       "editorId": "MMH_QuestLich"
     },
     {
@@ -71,17 +72,17 @@
   "books": [
     {
       "form": "MissivesMonsterHunt.esp|0x000853",
-      "tier": "C",
+      "tier": "B",
       "editorId": "MMH_MissiveVampire"
     },
     {
       "form": "MissivesMonsterHunt.esp|0x000854",
-      "tier": "C",
+      "tier": "B",
       "editorId": "MMH_MissiveWerebeast"
     },
     {
       "form": "MissivesMonsterHunt.esp|0x000855",
-      "tier": "B",
+      "tier": "A",
       "editorId": "MMH_MissiveLich"
     },
     {

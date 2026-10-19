@@ -50,6 +50,12 @@ namespace AG::MissiveWatch
 		};
 		std::unordered_map<std::string, BoardTimer> g_timers;
 		float                                       g_dueSince{ -1.0f };  // the last registration or promotion: boards refreshed before it are due
+		std::unordered_map<RE::FormID, int>         g_postedStage;  // a quest whose "posted on a board" stage is not 0 (Monster Hunt Missives: 10)
+		int PostedStage(RE::FormID a_id)
+		{
+			const auto it = g_postedStage.find(a_id);
+			return it == g_postedStage.end() ? 0 : it->second;
+		}
 		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
 		std::unordered_set<RE::FormID> g_taken;  // missives the player has taken and not finished (for "gave it up")
 		// one global per known Missives add-on, and whether that add-on is loaded: set on every load, because a save
@@ -104,7 +110,7 @@ namespace AG::MissiveWatch
 		// one quest list, so the hold alone isn't enough.
 		bool PostedHere(RE::TESQuest* a_q, const RE::BGSLocation* a_area)
 		{
-			if (!Running(a_q) || a_q->GetCurrentStageID() != 0) return false;
+			if (!Running(a_q) || a_q->GetCurrentStageID() != PostedStage(a_q->GetFormID())) return false;
 			auto* note = AliasRef(a_q, "Missive");
 			auto* board = AliasRef(a_q, "MissiveBoard");
 			if (!note || !board || !note->GetBaseObject()) return false;
@@ -196,7 +202,7 @@ namespace AG::MissiveWatch
 					std::lock_guard l(g_lock);
 					if (a_event->stage == 100) g_taken.erase(a_event->formID);
 					else if (a_event->stage == 105 || a_event->stage == 110) abandoned = g_taken.erase(a_event->formID) > 0;
-					else if (a_event->stage > 0) g_taken.insert(a_event->formID);
+					else if (a_event->stage > PostedStage(a_event->formID)) g_taken.insert(a_event->formID);
 				}
 				if (abandoned) {
 					std::string title = Loc::T("$AG_Title_GuildMissive", "Guild Missive");
@@ -367,6 +373,7 @@ namespace AG::MissiveWatch
 				}
 				g_watch[quest->GetFormID()] = tier[0];
 				g_hold[quest->GetFormID()] = "";  // any hold
+				if (const int ps = j.value("postedStage", 0); ps != 0) g_postedStage[quest->GetFormID()] = ps;
 				Label(quest, tier[0]);
 				if (a_rankGlobal && GateQuest(quest, a_rankGlobal, FromLetter(tier[0]))) ++gated;
 				++taken;
@@ -536,6 +543,7 @@ namespace AG::MissiveWatch
 			std::lock_guard l(g_lock);
 			g_watch.clear();
 			g_hold.clear();
+			g_postedStage.clear();
 			LoadManifest(j, dh, "Missives.esp");
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
@@ -577,7 +585,7 @@ namespace AG::MissiveWatch
 		g_taken.clear();
 		for (auto& [id, tier] : g_watch) {
 			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
-			if (q && Running(q) && q->GetCurrentStageID() > 0 && q->GetCurrentStageID() < 100) g_taken.insert(id);
+			if (q && Running(q) && q->GetCurrentStageID() > PostedStage(id) && q->GetCurrentStageID() < 100) g_taken.insert(id);
 		}
 	}
 
@@ -760,7 +768,7 @@ namespace AG::MissiveWatch
 		std::lock_guard l(g_lock);
 		for (auto& [id, tier] : g_watch) {
 			auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
-			if (q && Running(q) && q->GetCurrentStageID() != 0 && !q->IsCompleted()) ++n;  // stage 0 is "posted on a board"
+			if (q && Running(q) && q->GetCurrentStageID() > PostedStage(q->GetFormID()) && !q->IsCompleted()) ++n;  // up to the posted stage is "on a board"
 		}
 		return n;
 	}
@@ -837,7 +845,7 @@ namespace AG::MissiveWatch
 		if (!q) return out;
 		out["tier"] = std::string(1, tier);
 		out["title"] = PostingTitle(q);
-		out["posted"] = Running(q) && q->GetCurrentStageID() == 0;
+		out["posted"] = Running(q) && q->GetCurrentStageID() == PostedStage(q->GetFormID());
 
 		auto* noteAlias = AliasNamed(q, "Missive");
 		auto  note = noteAlias ? q->GetAliasedRef(noteAlias->aliasID).get() : nullptr;
@@ -901,7 +909,7 @@ namespace AG::MissiveWatch
 			std::lock_guard l(g_lock);
 			if (g_watch.contains(id)) q = RE::TESForm::LookupByID<RE::TESQuest>(id);
 		} catch (...) {}
-		if (!q || !Running(q) || q->GetCurrentStageID() != 0) return Loc::T("$AG_Missive_Gone", "That missive is no longer posted.");
+		if (!q || !Running(q) || q->GetCurrentStageID() != PostedStage(q->GetFormID())) return Loc::T("$AG_Missive_Gone", "That missive is no longer posted.");
 		auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
 		if (!vm) return "";
 		const auto title = PostingTitle(q);
