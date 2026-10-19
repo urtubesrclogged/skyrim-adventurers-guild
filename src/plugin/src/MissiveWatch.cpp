@@ -923,7 +923,7 @@ namespace AG::MissiveWatch
 		if (!vm) return "";
 		const auto title = PostingTitle(q);
 		RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
-		vm->DispatchStaticCall("AG_QuestHelper", "AcceptMissive", RE::MakeFunctionArguments(static_cast<RE::TESQuest*>(q)), cb);
+		vm->DispatchStaticCall("AG_QuestHelper", "AcceptMissive", RE::MakeFunctionArguments(static_cast<RE::TESQuest*>(q), static_cast<std::int32_t>(PostedStage(q->GetFormID()))), cb);
 		SKSE::log::info("MissiveWatch: accepted {:08X} ({}) from the counter", q->GetFormID(), title);
 		return Loc::F("$AG_Missive_Taken", "Missive taken: {}", title);
 	}

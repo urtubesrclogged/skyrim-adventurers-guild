@@ -38,8 +38,9 @@ EndFunction
 ; the note moves from the board container into the player's inventory, and Missives' own note alias script
 ; (_M_AliasMissiveScript / _M_AliasMissiveDeliverScript, OnContainerChanged) accepts the quest. The board
 ; and the counter stay in sync because there is only one note.
-Function AcceptMissive(Quest akQuest) Global
-	If !akQuest || !akQuest.IsRunning() || akQuest.GetStage() != 0
+; aiPostedStage: the stage a posting waits at on the board - 0 for Missives, 10 for Monster Hunt Missives (1.5.0)
+Function AcceptMissive(Quest akQuest, Int aiPostedStage = 0) Global
+	If !akQuest || !akQuest.IsRunning() || akQuest.GetStage() != aiPostedStage
 		Return
 	EndIf
 	ReferenceAlias noteAlias = akQuest.GetAliasByName("Missive") as ReferenceAlias
