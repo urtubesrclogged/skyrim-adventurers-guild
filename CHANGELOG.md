@@ -14,6 +14,11 @@
   Reputation when you report them. The steward still pays the gold.  More Guild quests!
 - Missives - Voice and Quest Expansion: its missives are Guild missives too (optional).  Even more Guild quests!!  
 - One new party affinity added
+- Monster Hunt Missives: its hunt contracts are Guild missives too (optional), ranked by what you hunt.
+- Pay off all of your bounties at any Guild counter (Services), for a small Guild fee. No jail, and you keep the loot.
+- Missive boards refresh after you register or rank up, and the counter tells you when the local board has new work
+  waiting (or how long until it does).
+- Missives from other mods are tagged at the counter: [VQE] and [MH].
 - SkyrimNet: adventurers can show you their guild card, and NPCs know about the dungeon dead 
 
 **Audio**
@@ -26,6 +31,14 @@
 - A dungeon entered through a cell with no zone of its own is ranked by the dungeon, not by your level.
 - Guild Cards dropped no longer fall through floors.
 - Fewer hunters are Guild members: one in five instead of three in five.
+- Fixed the infinite loading screen on older Anniversary Edition versions (before 1.6.629).
+- Dogs and other animal followers no longer join the Guild.
+- Only a bounty you can actually pay (in a hold) puts promotion on hold or costs Reputation, and the counter now says
+  where it is.
+- The "Join the Guild" missive leaves your inventory once you register.
+- SkyrimNet: NPCs bring up the Guild only when it fits the conversation.
+- The MCM's Audio page warns when another mod has replaced the Skyrim notice sounds; its Debug page now lists
+  Missives - Worldspace Additions and Monster Hunt Missives.
 
 ## 1.4.3
 
