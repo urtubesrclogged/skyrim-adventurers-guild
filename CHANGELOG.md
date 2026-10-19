@@ -32,6 +32,7 @@
 - Fewer hunters are Guild members: one in five instead of three in five.
 - Fixed the infinite loading screen on older Skyrim versions (before 1.6.629).
 - Dogs and other animal followers no longer join the Guild. (goodbye favorite bug)
+- Followers say each of their Guild lines only once per playthrough (and less often while travelling with you).
 - Only a bounty you can actually pay (in a hold) puts promotion on hold or costs Reputation, and the counter now says where it is.
 - The "Join the Guild" missive leaves your inventory once you register.
 - SkyrimNet: NPCs bring up the Guild only when it fits the conversation.
