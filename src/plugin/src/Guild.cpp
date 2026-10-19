@@ -1709,9 +1709,22 @@ namespace AG::Guild
 		const int level = pc ? pc->GetLevel() : 1;
 		const auto trophies = Shop::TrophiesData();
 		const bool hasCard = GuildCard::Has();
+		const auto board = MissiveWatch::BoardStatus();  // this town's board (1.5.0): a liaison says when new work is waiting
+		int        bountySum = 0;
+		const auto bounties = Bounties(bountySum);
 		std::lock_guard l(g_lock);
 		nlohmann::json j;
 		j["registered"] = g_registered;
+		// the player's bounties with the holds, and what this counter would charge to pay them all (1.5.0)
+		{
+			std::string where;
+			for (auto& [f, g] : bounties) {
+				const char* n = f->GetName();
+				where += std::format("{}{} gold in {}", where.empty() ? "" : ", ", g, n && *n ? n : "a hold");
+			}
+			j["bounty"] = { { "total", bountySum }, { "where", where }, { "payTotal", bountySum + BountyFee(bountySum) } };
+		}
+		if (!board.is_null()) j["board"] = board;
 		// the real fees, so a liaison quotes them instead of inventing a number
 		j["registrationFee"] = g_cfg.fee;
 		j["promotionFee"] = g_cfg.promotionFee;

@@ -45,6 +45,12 @@
                 {% if led.reportsWaiting.count > 0 %}
         - {{ player.name }} has {{ led.reportsWaiting.count }} finished job(s) not yet reported to the Guild, worth {{ led.reportsWaiting.gold }} gold, {{ led.reportsWaiting.merit }} Merit and {{ led.reportsWaiting.reputation }} Reputation when handed in at a counter
                 {% endif %}
+                {% if led.bounty and led.bounty.total > 0 %}
+        - {{ player.name }} has a price on their head ({{ led.bounty.where }}); while it stands the Guild hears no case for their promotion. This counter can pay off all of it for {{ led.bounty.payTotal }} gold, the Guild's fee included, when {{ player.name }} asks
+                {% endif %}
+                {% if led.board and led.board.due %}
+        - New work is waiting to go up on this town's missive board: {{ player.name }} should go and look at it
+                {% endif %}
                 {% if led.trophiesCarried.kinds > 0 %}
         - {{ player.name }} carries monster trophies the Guild would buy, worth about {{ led.trophiesCarried.merit }} Merit
                 {% endif %}

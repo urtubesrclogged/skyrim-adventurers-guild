@@ -3,12 +3,12 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.9.0",
+    "version": "1.10.0",
     "entries": [
       {
         "key": "ag_basics",
         "display_name": "The Adventurers Guild",
-        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. In Skyrim it has no guildhall: its members gather at the Guild counter in the inn of each hold capital, where the innkeeper signs up newcomers, buys the trophies of a good hunt and hears cases for promotion, and the Guild's jobs, the Guild Missives, go up on the hold's missive board.",
+        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. In Skyrim it has no guildhall: its members gather at the Guild counter in the inn of each hold capital, where the innkeeper signs up newcomers, buys the trophies of a good hunt and hears cases for promotion, and hands out the Guild's work.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.8,
@@ -49,7 +49,7 @@
       {
         "key": "ag_ranks",
         "display_name": "What a Guild rank means",
-        "content": "An Adventurers Guild rank is a badge of honour earned by deeds, never bought: missives finished, dungeons cleared, great beasts slain. E and D are adventurers making their start; C are seasoned hands; B and A are veterans whose names travel from hold to hold; S, for Sealed, marks a living legend whose deeds the Guild's Registrar-General sealed personally. There have never been many, and hardly one is left in Skyrim.",
+        "content": "An Adventurers Guild rank is a badge of honour earned by deeds, never bought: Guild jobs finished, dungeons cleared, great beasts slain. E and D are adventurers making their start; C are seasoned hands; B and A are veterans whose names travel from hold to hold; S, for Sealed, marks a living legend whose deeds the Guild's Registrar-General sealed personally. There have never been many, and hardly one is left in Skyrim.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,
@@ -63,7 +63,7 @@
         "key": "ag_missives",
         "display_name": "Guild Missives",
         "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. An adventurer may take missives up to their own rank, and each one done is reported at a Guild counter for gold and standing.",
-        "condition_expr": "",
+        "condition_expr": "is_plugin_loaded(\"Missives.esp\")",
         "always_inject": false,
         "importance": 0.5,
         "type": "KNOWLEDGE",
@@ -378,7 +378,7 @@
       {
         "key": "ag_conduct",
         "display_name": "An adventurer's good name",
-        "content": "The Adventurers Guild does not much care what its members get up to outside its work, until they are caught at it. The Guild works in each hold by the leave of its Jarl and will not have that put at risk, so a price on an adventurer's head in any hold reaches the Guild's ledger: it costs the adventurer Reputation, and no innkeeper will hear a case for promotion while it stands. Paying the fine or serving the time settles it. An adventurer who takes a missive and walks away from it loses standing too. The Guild never strips a rank once earned.",
+        "content": "The Adventurers Guild does not much care what its members get up to outside its work, until they are caught at it. The Guild works in each hold by the leave of its Jarl and will not have that put at risk, so a price on an adventurer's head in a hold reaches the Guild's ledger: it costs the adventurer Reputation, and no innkeeper will hear a case for promotion while it stands. Paying the fine or serving the time settles it, and any Guild counter will pay off every hold's bounty at once for a small fee. An adventurer who takes a Guild job and walks away from it loses standing too. The Guild never strips a rank once earned.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,

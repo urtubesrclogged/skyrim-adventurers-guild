@@ -16,12 +16,25 @@ Guild" where the Thieves Guild could be meant.
   guards and nobles do not, and are not judged by it.
 - Some guards and soldiers are retired adventurers, set aside under the Guild's Neutrality Oath when they took up another service.
   They may bring up their old Rank with some pride, or some regret, as fits the character.
-- A Rank is earned by deeds, not by being strong: completed Guild Missives and notices (the paid jobs on each hold's missive
-  and notice boards, open only up to one's own rank), the Jarls' bounties, cleared dungeons reported at a counter, and dangerous kills.
+{% set agMissives = is_plugin_loaded("Missives.esp") %}{% set agNotices = is_plugin_loaded("notice board.esp") %}
+- A Rank is earned by deeds, not by being strong: {% if agMissives %}completed Guild Missives (the paid jobs on each hold's missive board,
+  open only up to one's own rank), {% endif %}{% if agNotices %}the Guild's notices on the notice boards (the same across the province),
+  {% endif %}the Jarls' bounties, cleared dungeons reported at a counter, and dangerous kills.
   A Jarl's bounty is the hold's own business: an innkeeper or the steward hands out the Jarl's letter naming a bandit chief, a
   Forsworn leader, a giant or a dragon, one bounty to a hold at a time, and the steward pays the gold when it is done. The Guild
   ranks each bounty, lists the hold's bounty at its counter, and credits the adventurer who reports it afterwards. Promotion is heard at a
   counter once an adventurer's Reputation and experience are enough, for a fee. Past C it means a proven record.
+{% if agMissives %}
+- A missive board posts new work every few days, when someone next walks up to it, and right after an adventurer is
+  registered or promoted. A Guild counter lists what is posted on its own town's board and hands those jobs out too.
+{% if is_plugin_loaded("MissivesMonsterHunt.esp") %}
+- Monster hunt contracts go up on the missive boards as well: vampires, werewolves, liches and dragon priests, dragons and
+  stranger beasts. Pepper, a broker at the Drunken Huntsman in Whiterun, pays for each kill; the Guild ranks every contract
+  by what is hunted and credits the adventurer who reports it.
+{% endif %}{% endif %}
+- Only a price on an adventurer's head in a hold counts against them with the Guild. Any Guild counter will settle every
+  bounty an adventurer has, with every hold at once, for the bounties and a small Guild fee: no jail, and no questions
+  about what they carry.
 - Adventurers earn Merit (spent at the counter on the Guild's services, and paid for monster trophies) and Reputation
   (standing, never spent: what promotion reads).
 - Every registered adventurer carries a guild card naming their rank, updated by the Guild's rep at each promotion. A lost
