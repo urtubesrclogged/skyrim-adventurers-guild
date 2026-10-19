@@ -479,9 +479,12 @@ namespace AG::MissiveWatch
 		}
 
 		// Missives add-ons (missives.addons.json): each is applied only while its plugin is loaded. Caller holds g_lock.
+		std::atomic<int> g_worldspace{ 0 };  // Missives - Worldspace Additions (its Raven Rock board): 0 not loaded, 1 loaded, 2 taken in
+
 		void LoadAddons(RE::TESDataHandler* a_dh)
 		{
 			g_addonGlobals.clear();
+			g_worldspace = 0;
 			std::ifstream f("Data/SKSE/Plugins/AdventurersGuild/missives.addons.json");
 			if (!f) return;
 			try {
@@ -500,7 +503,9 @@ namespace AG::MissiveWatch
 						SKSE::log::info("MissiveWatch: add-on {} not loaded", plugin);
 						continue;
 					}
+					g_worldspace = 1;
 					LoadManifest(a, a_dh, plugin.c_str());
+					if (!a.value("quests", nlohmann::json::array()).empty()) g_worldspace = 2;
 				}
 			} catch (const std::exception& e) {
 				SKSE::log::error("MissiveWatch: missives.addons.json error: {}", e.what());
@@ -558,6 +563,7 @@ namespace AG::MissiveWatch
 	bool Active() { return g_active; }
 	int  ExpansionState() { return g_active ? g_expansion.load() : 0; }
 	int  MonsterHuntState() { return g_active ? g_monsterHunt.load() : 0; }
+	int  WorldspaceState() { return g_active ? g_worldspace.load() : 0; }
 
 	// After a load: which missives the player is carrying (running, past the board, not finished)
 	void OnGameLoaded()
