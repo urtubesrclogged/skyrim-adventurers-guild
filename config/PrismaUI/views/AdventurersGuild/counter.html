@@ -729,14 +729,13 @@ function renderQuests() {
       pager("board", pages) + state;
   }
   if (isNotices) {
-    const hint = `<div class="boardhint">${esc(t("$AG_UI_NoticesHint", "Bounties and investigations are posted at each hold's own board. Check the board outside for more."))}</div>`;
-    if (!notices.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoticesEmpty", "No notices are posted for your rank right now."))}<br/>${esc(t("$AG_UI_NoticesEmpty2", "Notices are the same on every board in the province; new ones go up as old ones are taken."))}</div>${hint}`;
+    if (!notices.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoticesEmpty", "No notices are posted for your rank right now."))}<br/>${esc(t("$AG_UI_NoticesEmpty2", "Notices are the same on every board in the province; new ones go up as old ones are taken."))}</div>`;
     const { items, pages } = paged("notices", notices, ROWS);
     return `<div class="bar-top">${tabs}<span class="sum caps"><b>${notices.length}</b> ${esc(t("$AG_UI_Posted", "posted"))}</span></div>` +
       items.map((x) => `<div class="row"><span class="tier">${esc(x.tier)}</span><div class="body"><div class="title">${esc(x.title)}</div>
         <div class="detail">${esc(t("$AG_UI_NoticeDetail", "Guild Notice · Rank {0} · posted across the province", x.tier))}</div></div>
         <button class="btn" data-note="${esc(x.id)}">${esc(t("$AG_UI_Details", "Details"))}</button><button class="btn" data-action="accept:${esc(x.id)}">${esc(t("$AG_UI_Take", "Take"))}</button></div>`).join("") +
-      pager("notices", pages) + hint;
+      pager("notices", pages);
   }
   if (!reports.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoReports", "No completed quests to report."))}<br/>${esc(t("$AG_UI_NoReports2", "Take a bounty, a missive or a notice, finish it, then return here to submit your report."))}</div>`;
   const merit = reports.reduce((a, x) => a + x.merit, 0), gold = reports.reduce((a, x) => a + x.gold, 0), rep = reports.reduce((a, x) => a + (x.rep || 0), 0);
