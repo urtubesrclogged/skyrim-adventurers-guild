@@ -11,7 +11,8 @@
 		"Hjaalmarch": "CrimeFactionHjaalmarch", "Pale": "CrimeFactionPale", "Winterhold": "CrimeFactionWinterhold",
 		"Solstheim": "DLC2RavenRockGuardFaction"
 	},
-	"chance": { "wanderer": 60, "npc": 40, "guards": 20, "retired": 35, "promoted": 50 },
+	"chance": { "wanderer": 60, "npc": 40, "guards": 20, "retired": 35, "promoted": 50, "following": 15 },
+	"_following": "A follower's own lines (any line with teammate: true or false) are said once per playthrough, and those said while following the player roll the 'following' chance whatever else the line says (1.5.0: Serana said her Guild lines over and over at 40% with a day's rest; a Nexus report, 2026-10-19).",
 
 	"lines": [
 		{ "id": "ysolda",        "who": "Ysolda", "whileAlive": "Hulda",            "rank": "<B", "text": "Hulda says the Bannered Mare comes with the Adventurers Guild counter now. If I'm ever to buy it, I'll need the Guild's blessing as well as hers." },

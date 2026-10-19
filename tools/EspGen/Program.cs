@@ -902,13 +902,17 @@ foreach (var ln in world["lines"]!.AsArray())
         conds.Insert(1, on);
         conds.Insert(2, new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = new GetPlayerTeammateConditionData() });
     }
-    conds.Add(Chance(ln["chance"]?.GetValue<int>() ?? chance[kind]!.GetValue<int>()));
+    // said while following the player: rarer, and rested longer (world_dialogue.json "following", "followingRestHours")
+    var following = ln["teammate"]?.GetValue<bool>() == true && chance["following"] is not null;
+    conds.Add(Chance(following ? chance["following"]!.GetValue<int>() : ln["chance"]?.GetValue<int>() ?? chance[kind]!.GetValue<int>()));
     conds.AddRange(voices);  // the OR group last, so it stands alone
     var info = new DialogResponses(FK(InfoId("world:" + id)), Rel)
     {
         EditorID = "AG_Info_world_" + id,
         Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = ln["restHours"] is JsonNode rest ? rest.GetValue<float>() : kind == "npc" ? 24f : kind == "wanderer" ? 0f : 6f },  // wanderers: no rest. Two or three lines per case, shared by every adventurer on the road: with a rest the first one met used them up (measured: 3 Guild lines in 48 greetings). The chance mixes them with the game's own instead
     };
+    // a follower's own line (teammate given, either way) is said once per playthrough: the same words again and again sound odd
+    if (ln["teammate"] is not null) info.Flags!.Flags |= DialogResponses.Flag.SayOnce;
     info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
     foreach (var c in conds) info.Conditions.Add(c);
     hello.Responses.Add(info);
