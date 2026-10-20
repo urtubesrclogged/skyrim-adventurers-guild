@@ -580,7 +580,7 @@ namespace AG::Counter
 			// a member without their card: the Guild Card page shows it masked, with a replacement for sale
 			data["hasCard"] = GuildCard::Has();
 			data["cardFee"] = Guild::CardFee();
-			if (auto* pc = RE::PlayerCharacter::GetSingleton()) data["cardAfford"] = pc->GetGoldAmount() >= Guild::CardFee();
+			data["cardAfford"] = Guild::Gold() >= Guild::CardFee();
 			// the hold stamps on the card, in the order they were stamped (the page lays them out), and at a counter how
 			// far this hold's is from being earned
 			{

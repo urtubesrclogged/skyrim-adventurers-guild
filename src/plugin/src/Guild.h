@@ -112,6 +112,9 @@ namespace AG::Guild
 	void  CountTrophies(int a_count);
 	void  Record(std::string a_text);
 	bool  PayGold(int a_amount);
+	// The gold the player carries: Gold001 counted in the pack. Never pc->GetGoldAmount(), which goes through the
+	// game's default object Gold and crashes when a plugin has left that empty (1.5.1).
+	int   Gold();
 	// Successor liaisons (Ysolda once she has the Bannered Mare) join AG_GuildLiaisonFaction: their dialogue and the
 	// SkyrimNet actions wait for it. Called on load and a few seconds after a liaison dies. Game thread.
 	void  SyncSuccessors();

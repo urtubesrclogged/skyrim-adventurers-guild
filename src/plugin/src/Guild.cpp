@@ -847,6 +847,18 @@ namespace AG::Guild
 		g_regQuest = Own<RE::TESQuest>(0x810);
 		g_regMissive = Own<RE::TESObjectBOOK>(0x811);
 		g_gold = RE::TESForm::LookupByID<RE::TESBoundObject>(0x0000000F);
+		// CommonLib's GetGoldAmount() finds gold through the game's default object Gold, which a plugin overriding the
+		// Default Object Manager can leave empty: it then reads through a null pointer (a counter crash on Nexus, 1.5.0).
+		// The mod counts Gold001 itself (Gold()); this only says in the log when that default object is missing.
+#ifdef GetObject
+#	undef GetObject  // windows.h renames it GetObjectW
+#endif
+		if (auto* dom = RE::BGSDefaultObjectManager::GetSingleton()) {
+			auto** slot = dom->GetObject(RE::DefaultObjectID::kGold);
+			auto*  def = slot ? *slot : nullptr;
+			if (!def) SKSE::log::warn("Guild: the game's default object Gold is empty (a plugin overriding the Default Object Manager?) - the Guild counts Gold001 itself");
+			else if (def->GetFormID() != 0x0000000F) SKSE::log::info("Guild: the game's default object Gold is {:08X}, not Gold001 - the Guild counts Gold001", def->GetFormID());
+		}
 		for (int t = 0; t < 3; ++t) g_appraisalPerks[t] = Own<RE::BGSPerk>(0x820 + t);
 		// Training steps: 0x840 + stat*0x20 + (step-1), as many as the ESP carries (stops at the first gap).
 		auto* dh = RE::TESDataHandler::GetSingleton();
@@ -1392,7 +1404,7 @@ namespace AG::Guild
 					const char* n = f->GetName();
 					where += std::format("{}{} ({} gold)", where.empty() ? "" : ", ", n && *n ? n : "?", g);
 				}
-				const bool can = pc && pc->GetGoldAmount() >= sum + fee;
+				const bool can = GoldCount() >= sum + fee;
 				services.push_back({ { "id", "bounties:pay" }, { "section", Loc::T("$AG_UI_SvcBounties", "Bounties") }, { "sectionId", "bounties" },
 					{ "name", Loc::T("$AG_UI_PayBounties", "Pay off all bounties") },
 					{ "desc", Loc::F("$AG_UI_PayBountiesDesc", "{0}, and the Guild's {1}% fee. Settled with every hold; no jail, and you keep what you carry.", where, g_cfg.bountyFeePercent) },
@@ -1693,6 +1705,8 @@ namespace AG::Guild
 			if (std::isalnum(static_cast<unsigned char>(c))) key += c;
 		return a_city.empty() ? a_city : Loc::T(key, a_city);
 	}
+
+	int Gold() { return GoldCount(); }
 
 	bool PayGold(int a_amount)
 	{
