@@ -301,7 +301,7 @@ namespace AG::MemberCards
 
 		// Their blood is on the card of someone who is dead: seen dead, fell in the player's party, or lying dead now. The ONE
 		// test, for the card page (CardFor) and for the object (Bloody) alike: the object followed only the first of the
-		// three and stayed clean on Uthgerd's body while her page showed blood (Librum, 2026-10-14).
+		// three and stayed clean on Uthgerd's body while her page showed blood (a test install, 2026-10-14).
 		bool OwnerDead(const Record& a_r)
 		{
 			if (a_r.dead || Party::IsFallen(a_r.key)) return true;

@@ -32,7 +32,7 @@ namespace AG::PrismaToast
 
 		// The game's file each cue plays (tools/EspGen/Program.cs, Cue), under Data. The game keeps every one of them in
 		// its archives, so a loose file at that path is another mod's. A list that restyles its interface sounds
-		// (Librum: "Paper UI Sounds", "No UI Sounds") gave a promotion a rustle of paper in place of the sound chosen
+		// (a test install: "Paper UI Sounds", "No UI Sounds") gave a promotion a rustle of paper in place of the sound chosen
 		// for it (in game, 2026-10-13); the author would have no sound there over the wrong one. A replacement packed
 		// into a mod's own archive is not seen this way: only loose files, which is how such mods come.
 		constexpr const char* kCueFile[] = { nullptr,

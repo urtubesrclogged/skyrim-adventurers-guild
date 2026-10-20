@@ -127,7 +127,7 @@ namespace AG::Dungeons
 		// outdoor part of the place, a courtyard, the spot its map marker sits on) the zone of the dungeon's own interior,
 		// as Intel prices it. Only a dungeon with no zone anywhere falls back to the player's level. Without the second
 		// step Bashskull Retreat, a level-40 place, was announced as rank E to a level-4 player who came in through a
-		// cell with no zone (Librum, 2026-10-13).
+		// cell with no zone (a test install, 2026-10-13).
 		int LevelHere()
 		{
 			if (auto* z = ZoneHere()) return LevelFor(z);
