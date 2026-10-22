@@ -48,7 +48,7 @@ namespace AG::Adventurers
 	// they hold a rank from their level from now on. Refused for members, retired adventurers (Neutrality Oath),
 	// children and the Guild reps. A hidden (assassin) membership becomes an open one. Returns a short status.
 	std::string Join(RE::Actor* a_actor);
-	// "can_join", or why not ("member", "retired", "guard", "child", "guild_rep", "invalid"): the SkyrimNet action's
+	// "can_join", or why not ("member", "retired", "guard", "child", "summoned", "guild_rep", "invalid"): the SkyrimNet action's
 	// eligibility rule (decorator ag_join_status) and Join() share it, so the AI is never offered a join that is refused.
 	std::string JoinStatus(RE::Actor* a_actor);
 

@@ -472,9 +472,24 @@ namespace AG::Adventurers
 		return race && race->HasKeywordString("ActorTypeNPC");
 	}
 
+	bool IsSummon(RE::Actor* a_actor)
+	{
+		// Conjured or raised (a thrall, a zombie, a summoned person): at the player's side, but nobody who could join
+		// (Xamos on the SkyrimNet Discord, 2026-10-22: raised dead registered with the Guild)
+		return a_actor && (a_actor->IsSummoned() || a_actor->IsCommandedActor());
+	}
+
 	Info Of(RE::Actor* a_actor)
 	{
 		if (!a_actor || a_actor->IsPlayerRef() || !IsPerson(a_actor)) return {};
+		if (IsSummon(a_actor)) {
+			// one registered before 1.5.1 is let go while it serves
+			std::lock_guard l(g_lock);
+			g_recruitedDay.erase(StableKey(a_actor));
+			if (g_recruited.erase(StableKey(a_actor))) SKSE::log::info("Adventurers: {} is summoned or raised - no longer registered", a_actor->GetDisplayFullName());
+			g_cache.erase(a_actor->GetFormID());
+			return {};
+		}
 		Kind kind;
 		bool joined = false, travelled = false;
 		int  pinned = -1;
@@ -523,6 +538,7 @@ namespace AG::Adventurers
 	{
 		if (!a_actor || a_actor->IsPlayerRef() || a_actor->IsDead()) return "invalid";
 		if (a_actor->IsChild()) return "child";
+		if (IsSummon(a_actor)) return "summoned";
 		if (IsLiaison(a_actor)) return "guild_rep";
 		const auto kind = Of(a_actor).kind;  // takes g_lock itself
 		if (kind == Kind::kMember) return "member";

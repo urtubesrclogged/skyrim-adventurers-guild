@@ -33,7 +33,7 @@ String Function ActionShowCard(Actor akActor) Global Native     ; SkyrimNet: an 
 String Function GetJoinStatus(Actor akActor) Global Native
 ; SkyrimNet ag_party(actor): the player's party (name, members, Bond, renown) and this actor's own tie to a party (JSON)
 String Function GetPartyInfo(Actor akActor) Global Native
-String Function GetPartyName() Global Native ; the player's active party, "" without one ; "can_join" or member/retired/guard/child/guild_rep/invalid
+String Function GetPartyName() Global Native ; the player's active party, "" without one ; "can_join" or member/retired/guard/child/summoned/guild_rep/invalid
 Function ReloadConfig() Global Native                      ; re-read guild.json, adventurers + ini
 
 ; uninstall (MCM "Debug" page)

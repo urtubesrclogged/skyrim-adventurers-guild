@@ -25,7 +25,7 @@ String Function GetGuildRankOf(Actor akActor) Global
 	Return "{\"status\":\"" + status + "\",\"letter\":\"" + letter + "\",\"rank\":" + r + ",\"liaison\":" + liaison + ",\"note\":\"" + AG_Native.GetActorGuildNote(akActor) + "\"}"
 EndFunction
 
-; ag_join_status(actor) -> "can_join", or why not: member / retired / guard / child / guild_rep / invalid.
+; ag_join_status(actor) -> "can_join", or why not: member / retired / guard / child / summoned / guild_rep / invalid.
 ; The eligibility rule of AG_JoinAdventurersGuild (plain string); the DLL applies the same check when it runs.
 String Function GetJoinStatusOf(Actor akActor) Global
 	If !akActor
