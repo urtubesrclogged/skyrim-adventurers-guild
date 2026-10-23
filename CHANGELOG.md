@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1
+
+**Fixes/Bugs**
+- Fixed a crash when opening the Guild counter on load orders where another mod empties the game's default Gold object.
+- Summoned and raised followers (conjurations, Raise Zombie, Dead Thralls...) no longer register with the Guild.
+- The MCM now shows English text instead of `$AG_MCM_...` keys when the game runs in a language with no translation installed. On a save made before 1.5.1, the mod's name in the MCM list may still show the key: type `setstage SKI_ConfigManagerInstance 1` in the console once to refresh it.
+
 ## 1.5.0
 
 **Guild Cards**
