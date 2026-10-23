@@ -51,6 +51,7 @@ Bool Function GetShowThreatRank() Global Native
 Function SetShowThreatRank(Bool abOn) Global Native
 Bool Function GetShowLevelSuffix() Global Native
 Function SetShowLevelSuffix(Bool abOn) Global Native
+String Function Tr(String asKey) Global Native                ; an MCM text in the game's language, English where the translation lacks it
 String Function CardKeyConflictText(String asOther) Global Native ; "already used by ...: use it anyway?" in the game's language
 Function ToggleGuildCard() Global Native                     ; opens the carried Guild Card in the world, or closes it
 Function SetCardHotkey(Int aiKey) Global Native              ; key that opens the Guild Card (SkyUI key code; 0 or less = none)

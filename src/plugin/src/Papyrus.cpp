@@ -104,6 +104,14 @@ namespace AG
 		void SetShowLevelSuffix(Tag*, bool a_on) { LevelDisplay::SetEnabled(a_on); }
 		void SetCardHotkey(Tag*, std::int32_t a_key) { GuildCard::SetHotkey(a_key); }
 		void ToggleGuildCard(Tag*) { GuildCard::Toggle(); }
+		// The MCM's text: SkyUI only reads the translation file of the game's language, with no English fallback, so a
+		// game in a language we ship no file for showed raw "$AG_MCM_..." keys (Nexus 2026-10-21). Loc lays the player's
+		// language over English key by key, so the menu asks it instead.
+		RE::BSFixedString Tr(Tag*, RE::BSFixedString a_key)
+		{
+			const std::string key = a_key.c_str();
+			return Loc::T(key, key);
+		}
 		RE::BSFixedString CardKeyConflictText(Tag*, RE::BSFixedString a_other)
 		{
 			return Loc::F("$AG_MCM_CardKeyConflict", "This key is already used by:\n{}\n\nUse it for the Guild Card anyway?", a_other.c_str());
@@ -259,6 +267,7 @@ namespace AG
 		REG(SetShowLevelSuffix);
 		REG(SetCardHotkey);
 		REG(ToggleGuildCard);
+		REG(Tr);
 		REG(CardKeyConflictText);
 		REG(SetSkyrimNetReady);
 		REG(GetIntegrationNames);

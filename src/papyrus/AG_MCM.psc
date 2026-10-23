@@ -39,11 +39,18 @@ Bool bRegistrationWasRunning = False
 Int iSLevel = 60
 Bool bSLevelSet = False
 
+; The MCM's text, in the game's language: SkyUI only reads the translation file of that language, with no English
+; fallback, so the DLL gives the text (the translation's line, else English) and SkyUI shows it as it is
+String Function T(String asKey)
+	Return AG_Native.Tr(asKey)
+EndFunction
+
 Int Function GetVersion()
 	Return 6
 EndFunction
 
 Event OnConfigInit()
+	ModName = T("$AG_MCM_ModName")
 	SetPages()
 	bShowLabels = AG_Native.GetShowGuildRank() || AG_Native.GetShowThreatRank() || AG_Native.GetShowLevelSuffix()
 	bLabelsCarriedOver = True  ; a first install has nothing older to carry over
@@ -86,6 +93,8 @@ Event OnVersionUpdate(Int a_version)
 EndEvent
 
 Event OnGameReload()
+	ModName = T("$AG_MCM_ModName")
+	SetPages()
 	Parent.OnGameReload()
 	Apply()
 	RegisterCardAction()
@@ -107,9 +116,9 @@ EndFunction
 
 Function SetPages()
 	Pages = new String[3]
-	Pages[0] = "$AG_MCM_System"
-	Pages[1] = "$AG_MCM_Audio"
-	Pages[2] = "$AG_MCM_Debug"
+	Pages[0] = T("$AG_MCM_System")
+	Pages[1] = T("$AG_MCM_Audio")
+	Pages[2] = T("$AG_MCM_Debug")
 EndFunction
 
 ; Pushes every setting into the DLL. Cheap and idempotent.
@@ -137,53 +146,53 @@ Event OnPageReset(String a_page)
 	; "" is what SkyUI asks for when the mod is first selected, before a page is clicked: the System page is shown
 	; then, so the menu does not open on an empty panel (it looked broken to a player; 1.4.3)
 	If a_page == "" || a_page == Pages[0]
-		AddHeaderOption("$AG_MCM_System_Labels_Header", OPTION_FLAG_NONE)
-		AddToggleOptionST("Labels", "$AG_MCM_System_bShowLabels_Text", bShowLabels, OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_System_Labels_Header"), OPTION_FLAG_NONE)
+		AddToggleOptionST("Labels", T("$AG_MCM_System_bShowLabels_Text"), bShowLabels, OPTION_FLAG_NONE)
 		AddEmptyOption()
-		AddHeaderOption("$AG_MCM_System_Notices_Header", OPTION_FLAG_NONE)
-		AddToggleOptionST("Toast", "$AG_MCM_System_bShowNotices_Text", bShowToast, OPTION_FLAG_NONE)
-		AddSliderOptionST("ToastSeconds", "$AG_MCM_System_fNoticeSeconds_Text", fToastSeconds, "{0} s", OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_System_Notices_Header"), OPTION_FLAG_NONE)
+		AddToggleOptionST("Toast", T("$AG_MCM_System_bShowNotices_Text"), bShowToast, OPTION_FLAG_NONE)
+		AddSliderOptionST("ToastSeconds", T("$AG_MCM_System_fNoticeSeconds_Text"), fToastSeconds, "{0} s", OPTION_FLAG_NONE)
 		AddEmptyOption()
-		AddHeaderOption("$AG_MCM_System_Card_Header", OPTION_FLAG_NONE)
-		AddKeyMapOptionST("CardKey", "$AG_MCM_System_iCardKey_Text", CardKeyShown(), OPTION_FLAG_WITH_UNMAP)
+		AddHeaderOption(T("$AG_MCM_System_Card_Header"), OPTION_FLAG_NONE)
+		AddKeyMapOptionST("CardKey", T("$AG_MCM_System_iCardKey_Text"), CardKeyShown(), OPTION_FLAG_WITH_UNMAP)
 		; right-hand column: the level of rank S, and the level each rank then needs (read-only)
 		SetCursorPosition(1)
-		AddHeaderOption("$AG_MCM_System_Ranks_Header", OPTION_FLAG_NONE)
-		AddSliderOptionST("SLevel", "$AG_MCM_System_iSLevel_Text", iSLevel, "{0}", OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_System_Ranks_Header"), OPTION_FLAG_NONE)
+		AddSliderOptionST("SLevel", T("$AG_MCM_System_iSLevel_Text"), iSLevel, "{0}", OPTION_FLAG_NONE)
 		AddEmptyOption()
-		AddHeaderOption("$AG_MCM_System_RankLevels_Header", OPTION_FLAG_NONE)
-		AddTextOption("$AG_MCM_System_RankD_Text", AG_Native.GetRankLevel(1), OPTION_FLAG_NONE)
-		AddTextOption("$AG_MCM_System_RankC_Text", AG_Native.GetRankLevel(2), OPTION_FLAG_NONE)
-		AddTextOption("$AG_MCM_System_RankB_Text", AG_Native.GetRankLevel(3), OPTION_FLAG_NONE)
-		AddTextOption("$AG_MCM_System_RankA_Text", AG_Native.GetRankLevel(4), OPTION_FLAG_NONE)
-		AddTextOption("$AG_MCM_System_RankS_Text", AG_Native.GetRankLevel(5), OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_System_RankLevels_Header"), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankD_Text"), AG_Native.GetRankLevel(1), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankC_Text"), AG_Native.GetRankLevel(2), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankB_Text"), AG_Native.GetRankLevel(3), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankA_Text"), AG_Native.GetRankLevel(4), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankS_Text"), AG_Native.GetRankLevel(5), OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[1]
-		AddHeaderOption("$AG_MCM_Audio_Sounds_Header", OPTION_FLAG_NONE)
-		AddMenuOptionST("SoundSet", "$AG_MCM_Audio_iSoundSet_Text", SoundSetName(iSoundSet), OPTION_FLAG_NONE)
-		AddMenuOptionST("SoundVolume", "$AG_MCM_Audio_iSoundVolume_Text", SoundVolumeNames()[iSoundVolume + 1], OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_Audio_Sounds_Header"), OPTION_FLAG_NONE)
+		AddMenuOptionST("SoundSet", T("$AG_MCM_Audio_iSoundSet_Text"), SoundSetName(iSoundSet), OPTION_FLAG_NONE)
+		AddMenuOptionST("SoundVolume", T("$AG_MCM_Audio_iSoundVolume_Text"), SoundVolumeNames()[iSoundVolume + 1], OPTION_FLAG_NONE)
 		; the game's own sounds chosen, and another mod has replaced some of them: those notices are silent (one line for any number)
 		If iSoundSet == 1 && AG_Native.GetSkyrimSoundsReplaced()
-			AddTextOptionST("SoundsReplaced", "$AG_MCM_Audio_Replaced_Text", "", OPTION_FLAG_NONE)
+			AddTextOptionST("SoundsReplaced", T("$AG_MCM_Audio_Replaced_Text"), "", OPTION_FLAG_NONE)
 		EndIf
 		AddEmptyOption()
-		AddHeaderOption("$AG_MCM_Audio_Voices_Header", OPTION_FLAG_NONE)
-		AddToggleOptionST("Greetings", "$AG_MCM_Audio_bGreetings_Text", !bGreetingsOff, OPTION_FLAG_NONE)
-		AddToggleOptionST("FollowerComments", "$AG_MCM_Audio_bFollowerComments_Text", !bFollowerCommentsOff, OPTION_FLAG_NONE)
-		AddToggleOptionST("Interactions", "$AG_MCM_Audio_bInteractions_Text", !bInteractionsOff, OPTION_FLAG_NONE)
-		AddToggleOptionST("RepLines", "$AG_MCM_Audio_bRepLines_Text", !bRepLinesOff, OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_Audio_Voices_Header"), OPTION_FLAG_NONE)
+		AddToggleOptionST("Greetings", T("$AG_MCM_Audio_bGreetings_Text"), !bGreetingsOff, OPTION_FLAG_NONE)
+		AddToggleOptionST("FollowerComments", T("$AG_MCM_Audio_bFollowerComments_Text"), !bFollowerCommentsOff, OPTION_FLAG_NONE)
+		AddToggleOptionST("Interactions", T("$AG_MCM_Audio_bInteractions_Text"), !bInteractionsOff, OPTION_FLAG_NONE)
+		AddToggleOptionST("RepLines", T("$AG_MCM_Audio_bRepLines_Text"), !bRepLinesOff, OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[2]
-		AddHeaderOption("$AG_MCM_Debug_Log_Header", OPTION_FLAG_NONE)
-		AddToggleOptionST("DetailedLog", "$AG_MCM_Debug_bDetailedLog_Text", bDetailedLog, OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_Debug_Log_Header"), OPTION_FLAG_NONE)
+		AddToggleOptionST("DetailedLog", T("$AG_MCM_Debug_bDetailedLog_Text"), bDetailedLog, OPTION_FLAG_NONE)
 		AddEmptyOption()
-		AddHeaderOption("$AG_MCM_Debug_Rank_Header", OPTION_FLAG_NONE)
-		AddTextOptionST("RankReset", "$AG_MCM_Debug_RankReset_Text", "", OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_Debug_Rank_Header"), OPTION_FLAG_NONE)
+		AddTextOptionST("RankReset", T("$AG_MCM_Debug_RankReset_Text"), "", OPTION_FLAG_NONE)
 		AddEmptyOption()
-		AddHeaderOption("$AG_MCM_Debug_Uninstall_Header", OPTION_FLAG_NONE)
-		AddTextOptionST("Prepare", "$AG_MCM_Debug_Prepare_Text", "", OPTION_FLAG_NONE)
-		AddTextOptionST("Cancel", "$AG_MCM_Debug_Cancel_Text", "", OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_Debug_Uninstall_Header"), OPTION_FLAG_NONE)
+		AddTextOptionST("Prepare", T("$AG_MCM_Debug_Prepare_Text"), "", OPTION_FLAG_NONE)
+		AddTextOptionST("Cancel", T("$AG_MCM_Debug_Cancel_Text"), "", OPTION_FLAG_NONE)
 		; right-hand column: the optional mods this one works with, and what the DLL found of each (read-only)
 		SetCursorPosition(1)
-		AddHeaderOption("$AG_MCM_Debug_Mods_Header", OPTION_FLAG_NONE)
+		AddHeaderOption(T("$AG_MCM_Debug_Mods_Header"), OPTION_FLAG_NONE)
 		String[] names = AG_Native.GetIntegrationNames()
 		String[] found = AG_Native.GetIntegrationStates()
 		Int i = 0
@@ -207,7 +216,7 @@ State Labels
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_System_bShowLabels_Help")
+		SetInfoText(T("$AG_MCM_System_bShowLabels_Help"))
 	EndEvent
 EndState
 
@@ -223,7 +232,7 @@ State Greetings
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Audio_bGreetings_Help")
+		SetInfoText(T("$AG_MCM_Audio_bGreetings_Help"))
 	EndEvent
 EndState
 
@@ -239,7 +248,7 @@ State FollowerComments
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Audio_bFollowerComments_Help")
+		SetInfoText(T("$AG_MCM_Audio_bFollowerComments_Help"))
 	EndEvent
 EndState
 
@@ -255,7 +264,7 @@ State Interactions
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Audio_bInteractions_Help")
+		SetInfoText(T("$AG_MCM_Audio_bInteractions_Help"))
 	EndEvent
 EndState
 
@@ -271,15 +280,15 @@ State RepLines
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Audio_bRepLines_Help")
+		SetInfoText(T("$AG_MCM_Audio_bRepLines_Help"))
 	EndEvent
 EndState
 
 String[] Function SoundSetNames()
 	String[] names = new String[3]
-	names[0] = "$AG_MCM_Audio_SoundSet_Drums"
-	names[1] = "$AG_MCM_Audio_SoundSet_Skyrim"
-	names[2] = "$AG_MCM_Audio_SoundSet_None"
+	names[0] = T("$AG_MCM_Audio_SoundSet_Drums")
+	names[1] = T("$AG_MCM_Audio_SoundSet_Skyrim")
+	names[2] = T("$AG_MCM_Audio_SoundSet_None")
 	Return names
 EndFunction
 
@@ -289,15 +298,15 @@ EndFunction
 
 String[] Function SoundVolumeNames()
 	String[] names = new String[3]
-	names[0] = "$AG_MCM_Audio_SoundVolume_Quieter"
-	names[1] = "$AG_MCM_Audio_SoundVolume_Default"
-	names[2] = "$AG_MCM_Audio_SoundVolume_Louder"
+	names[0] = T("$AG_MCM_Audio_SoundVolume_Quieter")
+	names[1] = T("$AG_MCM_Audio_SoundVolume_Default")
+	names[2] = T("$AG_MCM_Audio_SoundVolume_Louder")
 	Return names
 EndFunction
 
 State SoundsReplaced
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Audio_Replaced_Help")
+		SetInfoText(T("$AG_MCM_Audio_Replaced_Help"))
 	EndEvent
 EndState
 
@@ -320,7 +329,7 @@ State SoundVolume
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Audio_iSoundVolume_Help")
+		SetInfoText(T("$AG_MCM_Audio_iSoundVolume_Help"))
 	EndEvent
 EndState
 
@@ -344,7 +353,7 @@ State SoundSet
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Audio_iSoundSet_Help")
+		SetInfoText(T("$AG_MCM_Audio_iSoundSet_Help"))
 	EndEvent
 EndState
 
@@ -360,7 +369,7 @@ State Toast
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_System_bShowNotices_Help")
+		SetInfoText(T("$AG_MCM_System_bShowNotices_Help"))
 	EndEvent
 EndState
 
@@ -383,7 +392,7 @@ State SLevel
 		ForcePageReset()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_System_iSLevel_Help")
+		SetInfoText(T("$AG_MCM_System_iSLevel_Help"))
 	EndEvent
 EndState
 
@@ -405,7 +414,7 @@ State ToastSeconds
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_System_fNoticeSeconds_Help")
+		SetInfoText(T("$AG_MCM_System_fNoticeSeconds_Help"))
 	EndEvent
 EndState
 
@@ -425,7 +434,7 @@ State CardKey
 			If a_conflictName != ""
 				other = a_conflictControl + " (" + a_conflictName + ")"
 			EndIf
-			If !ShowMessage(AG_Native.CardKeyConflictText(other), True, "$AG_MCM_Debug_Yes", "$AG_MCM_Debug_No")
+			If !ShowMessage(AG_Native.CardKeyConflictText(other), True, T("$AG_MCM_Debug_Yes"), T("$AG_MCM_Debug_No"))
 				Return
 			EndIf
 		EndIf
@@ -439,7 +448,7 @@ State CardKey
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_System_iCardKey_Help")
+		SetInfoText(T("$AG_MCM_System_iCardKey_Help"))
 	EndEvent
 EndState
 
@@ -456,7 +465,7 @@ State DetailedLog
 		Apply()
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Debug_bDetailedLog_Help")
+		SetInfoText(T("$AG_MCM_Debug_bDetailedLog_Help"))
 	EndEvent
 EndState
 
@@ -468,7 +477,7 @@ State Prepare
 			ShowMessage(AG_Native.UninstallText(1), False, "$Accept", "$Cancel")
 			Return
 		EndIf
-		If !ShowMessage(AG_Native.UninstallText(0), True, "$AG_MCM_Debug_Yes", "$AG_MCM_Debug_No")
+		If !ShowMessage(AG_Native.UninstallText(0), True, T("$AG_MCM_Debug_Yes"), T("$AG_MCM_Debug_No"))
 			Return
 		EndIf
 		String report = AG_Native.PrepareUninstall()
@@ -478,7 +487,7 @@ State Prepare
 		ShowMessage(report, False, "$Accept", "$Cancel")
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Debug_Prepare_Help")
+		SetInfoText(T("$AG_MCM_Debug_Prepare_Help"))
 	EndEvent
 EndState
 
@@ -496,7 +505,7 @@ State RankReset
 		ShowMessage(AG_Native.RecalculateRank(), False, "$Accept", "$Cancel")
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Debug_RankReset_Help")
+		SetInfoText(T("$AG_MCM_Debug_RankReset_Help"))
 	EndEvent
 EndState
 
@@ -511,7 +520,7 @@ State Cancel
 		ShowMessage(report, False, "$Accept", "$Cancel")
 	EndEvent
 	Event OnHighlightST()
-		SetInfoText("$AG_MCM_Debug_Cancel_Help")
+		SetInfoText(T("$AG_MCM_Debug_Cancel_Help"))
 	EndEvent
 EndState
 
