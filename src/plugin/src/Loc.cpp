@@ -89,38 +89,6 @@ namespace AG::Loc
 		g_language = language;
 	}
 
-	int FillScaleformGaps()
-	{
-		// SkyUI looks "$" keys up only in the file for the game's language, with no English fallback (SkyUI wiki, MCM
-		// Advanced Features): with no AdventurersGuild_SPANISH.txt the MCM showed raw keys (Nexus 2026-10-21). SKSE has
-		// loaded the translation files into the game's Scaleform translator; whatever key it lacks gets our text
-		// (English laid under the player's language). insert never replaces a key a translation file provided.
-		auto* mgr = RE::BSScaleformManager::GetSingleton();
-		auto* loader = mgr ? mgr->loader : nullptr;
-		auto* state = loader ? loader->GetStateAddRef(RE::GFxState::StateType::kTranslator) : nullptr;
-		if (!state) return -1;
-		auto wide = [](const std::string& a_s) {
-			const int n = MultiByteToWideChar(CP_UTF8, 0, a_s.data(), static_cast<int>(a_s.size()), nullptr, 0);
-			std::wstring w(static_cast<std::size_t>(n), L'\0');
-			MultiByteToWideChar(CP_UTF8, 0, a_s.data(), static_cast<int>(a_s.size()), w.data(), n);
-			return w;
-		};
-		int added = -1;
-		const REL::Relocation<std::uintptr_t> vtbl{ RE::VTABLE_BSScaleformTranslator[0] };
-		if (*reinterpret_cast<std::uintptr_t*>(state) == vtbl.address()) {
-			auto& map = static_cast<RE::BSScaleformTranslator*>(state)->translator.translationMap;
-			std::lock_guard l(g_lock);
-			added = 0;
-			for (auto& [k, v] : g_map) {
-				if (k.starts_with("$") && map.insert({ RE::BSFixedStringW(wide(k).c_str()), RE::BSFixedStringW(wide(v).c_str()) }).second) ++added;
-			}
-		} else {
-			SKSE::log::warn("Loc: the game's Scaleform translator is not the expected type; MCM text left as it is");
-		}
-		state->Release();
-		return added;
-	}
-
 	std::string T(std::string_view a_key, std::string_view a_english)
 	{
 		std::lock_guard l(g_lock);

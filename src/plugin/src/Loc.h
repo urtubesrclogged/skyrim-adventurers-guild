@@ -19,10 +19,6 @@ namespace AG::Loc
 {
 	void Load();  // at kDataLoaded: reads the player's language, falling back to ENGLISH
 
-	// After Load: every "$" key the game's Scaleform translator lacks (no file for the player's language, or a partial
-	// one) gets our text, so SkyUI's MCM shows English instead of raw keys. Returns how many were added (-1: not done).
-	int FillScaleformGaps();
-
 	// Translated text for a_key ("$AG_..."), or a_english when the file lacks it.
 	std::string T(std::string_view a_key, std::string_view a_english);
 

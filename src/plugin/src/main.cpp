@@ -73,8 +73,6 @@ namespace
 		case SKSE::MessagingInterface::kDataLoaded:
 			AG::Diag::LogEnvironment();
 			AG::Loc::Load();
-			if (const int filled = AG::Loc::FillScaleformGaps(); filled != 0)  // 0: the language's file has every key
-				SKSE::log::info("Loc: {} MCM/interface key(s) the {} translation lacks filled in from ours", filled, AG::Loc::Language());
 			AG::LoadConfig();
 			AG::Guild::LoadConfig();
 			AG::Party::LoadConfig();
