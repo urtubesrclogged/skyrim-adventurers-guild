@@ -18,6 +18,7 @@
 #include "PrismaToast.h"
 #include "RankCore.h"
 #include "Shop.h"
+#include "SkyrimNetData.h"
 
 #include <SimpleIni.h>
 #include <chrono>
@@ -1079,6 +1080,7 @@ namespace AG::Guild
 
 	void ConductTick()
 	{
+		SkyrimNetData::Tick();
 		SyncWanderers();
 		SyncSuccessors();
 		SyncStampMarks();

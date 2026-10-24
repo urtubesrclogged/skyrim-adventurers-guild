@@ -20,7 +20,7 @@ namespace AG::Diag
 	namespace
 	{
 		std::atomic<bool> g_ini{ false }, g_mcm{ false };
-		std::atomic<bool> g_skyrimNet{ false };  // AG_SkyrimNetInit registered every decorator with SkyrimNet this session
+		std::atomic<bool> g_skyrimNet{ false };  // SkyrimNetData has written this game's Guild record for SkyrimNet (1.5.2)
 		std::uint32_t     g_skse = 0;
 
 		void Apply()

@@ -21,7 +21,7 @@ namespace AG::Diag
 	// the player's language and says what the mod actually acted on (Active: loaded and hooked up; Inactive: loaded, but this
 	// mod could not hook it up; Not Detected: not loaded).
 	std::vector<std::pair<std::string, std::string>> Integrations();
-	void SetSkyrimNetReady(bool a_ready);  // from AG_SkyrimNetInit, each load
+	void SetSkyrimNetReady(bool a_ready);  // SkyrimNetData, once its record is written (was AG_SkyrimNetInit until 1.5.1)
 
 	// "Is the freeze this mod's?" Put one of these at the top of work the game calls us for; if the work took
 	// a_limitMs or longer, the log says so (the first five times for each kind of work, then every 50th). A healthy

@@ -1,7 +1,9 @@
 # Adventurers Guild: SkyrimNet custom action (AG_SkyrimNetActions on AG_GuildDialogueQuest). The SPEAKER signs themselves
 # up: AdventurersGuild.dll remembers them like a recruited follower (co-save), so they carry a Guild rank from their level
-# on their name, in SkyrimNet and on the Appraisal card. Offered only while ag_join_status says "can_join" (not a
-# member, retired adventurer, serving guard, child or Guild rep); the DLL re-checks the same thing when it runs. The Guild's paperwork is implied (a letter to the nearest counter).
+# on their name, in SkyrimNet and on the Appraisal card. Offered only to someone who is not a member, retired adventurer,
+# child or summon (AG_SkyrimNetStandingFaction, kept by the DLL: below 0 = none of those), serving guard or Guild rep; the
+# DLL re-checks all of it when it runs (Adventurers::JoinStatus). The Guild's paperwork is implied (a letter to the nearest
+# counter). Native decorators only since 1.5.2: the Papyrus decorator ag_join_status is gone.
 # Liaison check mirrors SeverActions: get_faction_rank >= 0 (members are 0+, non-members -1). Do NOT add "tags:" --
 # a tag names a SkyrimNet eligibility tag group, and an unknown one silently makes the action ineligible. Do NOT add
 # "customCategory:" either -- that nests the action under a category that needs its own definition file (SeverActions'
@@ -20,10 +22,14 @@ parameterMapping:
 
 eligibilityRules:
   - conditions:
-      - decoratorName: "ag_join_status"
-        arguments: ["currentActor"]
-        comparisonOperator: "=="
-        expectedValue: "can_join"
+      - decoratorName: "get_faction_rank"
+        arguments: ["currentActor", "AG_SkyrimNetStandingFaction"]
+        comparisonOperator: "<"
+        expectedValue: 0
+      - decoratorName: "get_faction_rank"
+        arguments: ["currentActor", "IsGuardFaction"]
+        comparisonOperator: "<"
+        expectedValue: 0
     logicalOperator: "AND"
     required: true
   - conditions:

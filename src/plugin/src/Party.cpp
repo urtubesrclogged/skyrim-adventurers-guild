@@ -1291,6 +1291,32 @@ namespace AG::Party
 		return j.dump();
 	}
 
+	int SkyrimNetTie(RE::Actor* a_actor)
+	{
+		if (!a_actor || a_actor->IsPlayerRef()) return -1;
+		const std::string key = Adventurers::StableKey(a_actor);
+		std::lock_guard l(g_lock);
+		for (auto i = static_cast<int>(g_parties.size()) - 1; i >= 0; --i)
+			if (auto* m = FindLocked(g_parties[i], key)) {
+				if (m->status == "active" && g_parties[i].disbanded < 0.0f) return TierOf(BondLocked(key));
+				return 10 + std::min(i, 117);  // a faction rank is a signed byte
+			}
+		return -1;
+	}
+
+	nlohmann::json SkyrimNetState()
+	{
+		nlohmann::json j = nlohmann::json::parse(SkyrimNetJson(nullptr));
+		auto& names = j["parties"] = nlohmann::json::array();
+		{
+			std::lock_guard l(g_lock);
+			for (auto& p : g_parties) names.push_back(p.name);
+		}
+		auto& words = j["bondWords"] = nlohmann::json::array();
+		for (int t = 0; t < 5; ++t) words.push_back(TierWord(t));
+		return j;
+	}
+
 	std::string Dump()
 	{
 		std::lock_guard l(g_lock);

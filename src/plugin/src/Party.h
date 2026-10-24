@@ -51,6 +51,11 @@ namespace AG::Party
 	std::string    Dump();                              // DevBench
 	// SkyrimNet ag_party(actor): the player's party (name, members, Bond, renown) and this actor's own tie to a party.
 	std::string    SkyrimNetJson(RE::Actor* a_actor);
+	// For SkyrimNet's native decorators (SkyrimNetData): an NPC's tie as one number, their rank in AG_SkyrimNetPartyFaction
+	// (-1 none, 0..4 an active member at that Bond tier, 10 + n a former member of parties[n]); and the player's side:
+	// SkyrimNetJson's party summary, plus every party's name oldest first ("parties") and the tier words ("bondWords").
+	int            SkyrimNetTie(RE::Actor* a_actor);
+	nlohmann::json SkyrimNetState();
 
 	// Bond, 0..100, between the player and each NPC: it survives leaving, rejoining and new parties. The party's Bond is
 	// the mean over its active members (0 with none); it and its blessing only apply with a member at the player's side.

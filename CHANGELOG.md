@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.2
+
+**SkyrimNet**
+- SkyrimNet now reads Guild ranks, your Guild record and adventuring parties through its own native decorators, instead of the older Papyrus decorators SkyrimNet is phasing out. It's lighter on the game, the data is there as soon as a save loads, and the "Decorator 'ag_join_status' not found" errors seen for a few seconds after loading are gone.
+
 ## 1.5.1
 
 **Fixes/Bugs**

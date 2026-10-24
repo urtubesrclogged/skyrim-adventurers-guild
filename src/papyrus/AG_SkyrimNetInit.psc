@@ -3,9 +3,10 @@
 ; Source and license: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
 ScriptName AG_SkyrimNetInit Extends ReferenceAlias
-{Optional SkyrimNet integration: registers the guild_rank_of / threat_rank_of decorators and turns guild
-registration, promotions and Deeds of Skyrim unlocks into remembered SkyrimNet events. Attached to
-AG_ConfigQuest's PlayerAlias, alongside SKI_PlayerLoadGameAlias. Fully inert without SkyrimNet.esp.}
+{Optional SkyrimNet integration: turns guild registration, promotions, Guild work and Deeds of Skyrim unlocks into
+remembered SkyrimNet events. Attached to AG_ConfigQuest's PlayerAlias, alongside SKI_PlayerLoadGameAlias. Fully inert
+without SkyrimNet.esp. What NPCs know of the Guild (ranks, the player's record, parties) is no longer a Papyrus decorator
+(1.5.2): AdventurersGuild.dll keeps it where SkyrimNet's native decorators read it (factions and a JSON file).}
 
 Event OnInit()
 	Utility.Wait(0.5)
@@ -20,15 +21,6 @@ Function Initialize()
 	If Game.GetModByName("SkyrimNet.esp") == 255
 		Return
 	EndIf
-	Int a = SkyrimNetApi.RegisterDecorator("guild_rank_of", "AG_SkyrimNet_Decorators", "GetGuildRankOf")
-	Int b = SkyrimNetApi.RegisterDecorator("threat_rank_of", "AG_SkyrimNet_Decorators", "GetThreatRankOf")
-	Int c = SkyrimNetApi.RegisterDecorator("ag_player", "AG_SkyrimNet_Decorators", "GetPlayerLedger")
-	Int d = SkyrimNetApi.RegisterDecorator("ag_join_status", "AG_SkyrimNet_Decorators", "GetJoinStatusOf")
-	Int e = SkyrimNetApi.RegisterDecorator("ag_party", "AG_SkyrimNet_Decorators", "GetPartyOf")
-	Debug.Trace("[AdventurersGuild] SkyrimNet decorators: guild_rank_of " + (a == 0) as String + ", threat_rank_of " + (b == 0) as String + ", ag_player " + (c == 0) as String + ", ag_join_status " + (d == 0) as String + ", ag_party " + (e == 0) as String)
-	; the MCM's Debug page shows SkyrimNet as active only when every decorator registered
-	AG_Native.SetSkyrimNetReady(a == 0 && b == 0 && c == 0 && d == 0 && e == 0)
-
 	RegisterForModEvent("AG_Registered", "OnGuildRegistered")
 	RegisterForModEvent("AG_RankChanged", "OnGuildRankChanged")
 	RegisterForModEvent("DS_DeedUnlocked", "OnDeedUnlocked")

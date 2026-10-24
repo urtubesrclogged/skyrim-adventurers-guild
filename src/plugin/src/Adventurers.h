@@ -43,13 +43,16 @@ namespace AG::Adventurers
 	std::string Describe(RE::Actor* a_actor);  // debug: kind, rank and the rule that decided it
 	// A named member's line for their SkyrimNet bio (adventurers.json "named": note / retiredNote), or "".
 	std::string Note(RE::Actor* a_actor);
+	// The same line by number (-1 for none), and every line by number: what SkyrimNet reads (SkyrimNetData).
+	int                      NoteIndex(RE::Actor* a_actor);
+	std::vector<std::string> NoteTexts();
 
 	// An NPC signs themselves up (SkyrimNet action AG_JoinAdventurersGuild): remembered like a recruited follower, so
 	// they hold a rank from their level from now on. Refused for members, retired adventurers (Neutrality Oath),
 	// children and the Guild reps. A hidden (assassin) membership becomes an open one. Returns a short status.
 	std::string Join(RE::Actor* a_actor);
-	// "can_join", or why not ("member", "retired", "guard", "child", "summoned", "guild_rep", "invalid"): the SkyrimNet action's
-	// eligibility rule (decorator ag_join_status) and Join() share it, so the AI is never offered a join that is refused.
+	// "can_join", or why not ("member", "retired", "guard", "child", "summoned", "guild_rep", "invalid"). Join() checks it; the
+	// SkyrimNet action's eligibility rule reads the same answer from AG_SkyrimNetStandingFaction (SkyrimNetData).
 	std::string JoinStatus(RE::Actor* a_actor);
 
 	// The innkeepers who keep a guild counter: one per hold capital (dialogue.json "liaisons").

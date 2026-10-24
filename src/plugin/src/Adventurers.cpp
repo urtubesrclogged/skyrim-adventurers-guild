@@ -8,6 +8,7 @@
 
 #include "Guild.h"
 #include "RankCore.h"
+#include "SkyrimNetData.h"
 
 #include <fstream>
 #include <mutex>
@@ -68,6 +69,19 @@ namespace AG::Adventurers
 		};
 		std::unordered_multimap<RE::FormID, BioNote> g_notes;
 		std::string                                  g_wandererNote;
+		// Every bio line by number, for SkyrimNet (SkyrimNetData: an actor's rank in AG_SkyrimNetNoteFaction is the number
+		// of their line). Seeded at Load in adventurers.json's order, so a number kept in a save means the same line next
+		// session; a line made up of two (never so far) is added the first time it is asked for.
+		std::vector<std::string> g_noteTexts;
+		std::mutex               g_noteLock;
+		int InternNote(const std::string& a_text)
+		{
+			if (a_text.empty()) return -1;
+			std::lock_guard l(g_noteLock);
+			if (auto it = std::ranges::find(g_noteTexts, a_text); it != g_noteTexts.end()) return static_cast<int>(it - g_noteTexts.begin());
+			g_noteTexts.push_back(a_text);
+			return static_cast<int>(g_noteTexts.size()) - 1;
+		}
 
 		// The game's own GetDeadCount, as dialogue conditions ask it: true once that NPC has died
 		bool HasDied(RE::TESNPC* a_npc)
@@ -420,6 +434,16 @@ namespace AG::Adventurers
 					g_named[npc->GetFormID()] = nm;
 				}
 			}
+			{
+				std::lock_guard nl(g_noteLock);
+				g_noteTexts.clear();
+			}
+			for (auto& n : j.value("named", nlohmann::json::array())) {
+				InternNote(n.value("note", ""));
+				InternNote(n.value("retiredNote", ""));
+			}
+			for (auto& n : j.value("notes", nlohmann::json::array())) InternNote(n.value("note", ""));
+			InternNote(g_wandererNote);
 			for (auto& c : j.value("chance", nlohmann::json::array())) {
 				ChanceGroup g;
 				g.id = c.value("id", std::string("?"));
@@ -558,8 +582,9 @@ namespace AG::Adventurers
 		const std::string name = a_actor->GetDisplayFullName();
 		const int rank = MemberRank(a_actor);
 		SKSE::log::info("Adventurers: {} joined the guild of their own accord (rank {})", name, rank);
-		SKSE::GetTaskInterface()->AddTask([name] {
+		SKSE::GetTaskInterface()->AddTask([name, h = a_actor->GetHandle()] {
 			RE::SendHUDMessage::ShowHUDMessage(Loc::F("$AG_Hud_Recruited", "{} has registered with the Adventurers Guild.", name).c_str());
+			if (auto ref = h.get(); ref) SkyrimNetData::Mark(ref->As<RE::Actor>());  // SkyrimNet knows them as a member at once
 		});
 		Guild::Notify("AG_AdventurerJoined", name, static_cast<float>(rank));
 		return "joined";
@@ -711,6 +736,14 @@ namespace AG::Adventurers
 			if (!n->second.whenDead || HasDied(n->second.whenDead)) add(n->second.text);
 		if (out.empty() && !g_wandererNote.empty() && WandererLocked(a_actor)) add(g_wandererNote);
 		return out;
+	}
+
+	int NoteIndex(RE::Actor* a_actor) { return InternNote(Note(a_actor)); }
+
+	std::vector<std::string> NoteTexts()
+	{
+		std::lock_guard l(g_noteLock);
+		return g_noteTexts;
 	}
 
 	const char* KindName(Kind a_kind)

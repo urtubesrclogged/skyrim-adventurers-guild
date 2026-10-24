@@ -55,7 +55,7 @@ String Function Tr(String asKey) Global Native                ; an MCM text in t
 String Function CardKeyConflictText(String asOther) Global Native ; "already used by ...: use it anyway?" in the game's language
 Function ToggleGuildCard() Global Native                     ; opens the carried Guild Card in the world, or closes it
 Function SetCardHotkey(Int aiKey) Global Native              ; key that opens the Guild Card (SkyUI key code; 0 or less = none)
-Function SetSkyrimNetReady(Bool abReady) Global Native      ; AG_SkyrimNetInit: its decorators registered with SkyrimNet
+Function SetSkyrimNetReady(Bool abReady) Global Native      ; unused since 1.5.2 (the DLL knows); kept for scripts built against it
 String[] Function GetIntegrationNames() Global Native       ; MCM Debug page: the optional mods this one works with ...
 String[] Function GetIntegrationStates() Global Native      ; ... and what was found of each (same length)
 Bool Function GetDetailedLog() Global Native                ; the detailed support log (each kill, each counter action)

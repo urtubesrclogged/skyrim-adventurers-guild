@@ -20,6 +20,7 @@
 //   0xC93-0xC94  Teldryn Sero's "You're with the Adventurers Guild?" branch and topic
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
 //   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
+//   0xCD8-0xCDA  SkyrimNet (1.5.2): AG_SkyrimNetStandingFaction, AG_SkyrimNetNoteFaction, AG_SkyrimNetPartyFaction
 //   0xCE0-0xCE5  Show Guild Card: the strongholds' branch and topic (0xCE4/5). 0xCE0-0xCE3 were the College's and the Treasury House's in
 //                development builds only (never released): free.
 //   0xC00-0xC7B  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
@@ -289,6 +290,11 @@ mod.Factions.Add(new Faction(FK(0xCFB), Rel) { EditorID = "AG_CardCheckedFaction
 mod.Factions.Add(stampDueFaction);
 var liaisonFaction = new Faction(FK(0x8C6), Rel) { EditorID = "AG_GuildLiaisonFaction", Name = "Adventurers Guild Liaison", Flags = Faction.FactionFlag.HiddenFromPC };
 mod.Factions.Add(liaisonFaction);
+// What SkyrimNet's native get_faction_rank reads about an NPC (1.5.2, in place of the Papyrus decorators); the DLL keeps
+// them on the actors near the player (SkyrimNetData.h has the meaning of each rank)
+mod.Factions.Add(new Faction(FK(0xCD8), Rel) { EditorID = "AG_SkyrimNetStandingFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC });
+mod.Factions.Add(new Faction(FK(0xCD9), Rel) { EditorID = "AG_SkyrimNetNoteFaction", Name = "Adventurer", Flags = Faction.FactionFlag.HiddenFromPC });
+mod.Factions.Add(new Faction(FK(0xCDA), Rel) { EditorID = "AG_SkyrimNetPartyFaction", Name = "Adventuring Party Member", Flags = Faction.FactionFlag.HiddenFromPC });
 var gReports = Global(0x8C7, "AG_ReportsWaitingGlobal", 0);
 
 ConditionFloat QuestDone(string edid, bool done)
