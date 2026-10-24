@@ -59,6 +59,12 @@ namespace AG::MissiveWatch
 		}
 		std::unordered_map<RE::FormID, std::string> g_hold;       // quest -> Missives hold name (Whiterun, Haafingar, ...)
 		std::unordered_set<RE::FormID> g_taken;  // missives the player has taken and not finished (for "gave it up")
+		// Missives that can never be finished, kept off the boards (1.5.2). Missives 2.03's "Gather Common Ore" for Whiterun
+		// (_M_QuestWhiterunGatherOreLow) fills its "Player" alias with the nearest MISSIVE BOARD (GetIsID _M_MissiveBoard)
+		// where its 98 sister quests name the player: the ore count watches the board's inventory, never moves past what
+		// was carried when the job was taken, and the turn-in needs it to reach the total. Found by that shape, not by name,
+		// so an add-on with the same slip is caught too.
+		std::unordered_set<RE::FormID> g_broken;
 		// one global per known Missives add-on, and whether that add-on is loaded: set on every load, because a save
 		// carries the value it had (dialogue reads these: Geldis Sadri and the Raven Rock board)
 		std::vector<std::pair<RE::TESGlobal*, float>> g_addonGlobals;
@@ -202,7 +208,8 @@ namespace AG::MissiveWatch
 				{
 					std::lock_guard l(g_lock);
 					if (a_event->stage == 100) g_taken.erase(a_event->formID);
-					else if (a_event->stage == 105 || a_event->stage == 110) abandoned = g_taken.erase(a_event->formID) > 0;
+					// one that could never be finished (g_broken) costs nothing to give up
+					else if (a_event->stage == 105 || a_event->stage == 110) abandoned = g_taken.erase(a_event->formID) > 0 && !g_broken.contains(a_event->formID);
 					else if (a_event->stage > PostedStage(a_event->formID)) g_taken.insert(a_event->formID);
 				}
 				if (abandoned) {
@@ -337,6 +344,39 @@ namespace AG::MissiveWatch
 			return best != nullptr;
 		}
 
+		// A quest whose "Player" alias is filled by matching a GetIsID that names someone other than the player: whatever
+		// it watches (an inventory, a kill) is never the player's. See g_broken.
+		bool PlayerAliasIsNotPlayer(RE::TESQuest* a_quest)
+		{
+			for (auto* base : a_quest->aliases) {
+				if (!base || base->GetVMTypeID() != RE::BGSRefAlias::VMTYPEID || base->aliasName != "Player") continue;
+				auto* alias = static_cast<RE::BGSRefAlias*>(base);
+				if (alias->fillType.get() != RE::BGSBaseAlias::FILL_TYPE::kConditions || !alias->conditions) return false;
+				for (auto* i = alias->conditions->head; i; i = i->next) {
+					if (i->data.functionData.function.get() != RE::FUNCTION_DATA::FunctionID::kGetIsID) continue;
+					auto* who = static_cast<RE::TESForm*>(i->data.functionData.params[0]);
+					if (who && who->GetFormID() != 0x7) return true;  // 0x7: the player's own NPC record
+				}
+				return false;
+			}
+			return false;
+		}
+
+		// Kept off every board: a condition no rank meets goes first on its alias, as the rank gate does, so Missives
+		// never posts it. Caller holds g_lock.
+		void ShutIfBroken(RE::TESQuest* a_quest, RE::TESGlobal* a_rank)
+		{
+			if (!a_rank || !PlayerAliasIsNotPlayer(a_quest)) return;
+			for (auto* base : a_quest->aliases)
+				if (base && base->GetVMTypeID() == RE::BGSRefAlias::VMTYPEID && base->aliasName == "Player") {
+					auto* alias = static_cast<RE::BGSRefAlias*>(base);
+					if (alias->conditions) Gate(alias->conditions, a_rank, 99);
+				}
+			g_broken.insert(a_quest->GetFormID());
+			SKSE::log::warn("MissiveWatch: {} ({:08X}) can never be finished - its Player alias is not the player - kept off the boards",
+				a_quest->GetFormEditorID(), a_quest->GetFormID());
+		}
+
 		// "Plugin.esp|0x00ABCD" -> the form, or nullptr
 		RE::TESForm* KeyForm(RE::TESDataHandler* a_dh, const std::string& a_key)
 		{
@@ -378,6 +418,7 @@ namespace AG::MissiveWatch
 				if (const auto tg = j.value("tag", std::string()); !tg.empty()) g_tag[quest->GetFormID()] = tg;
 				Label(quest, tier[0]);
 				if (a_rankGlobal && GateQuest(quest, a_rankGlobal, FromLetter(tier[0]))) ++gated;
+				ShutIfBroken(quest, a_rankGlobal);
 				++taken;
 			}
 			for (auto& b : j.value("books", nlohmann::json::array())) {
@@ -428,6 +469,7 @@ namespace AG::MissiveWatch
 					++ungated;
 					SKSE::log::warn("MissiveWatch: {} has no gateable alias - shown to every rank", quest->GetFormEditorID());
 				}
+				ShutIfBroken(quest, rankGlobal);
 				// the rank variant of a shared note, only while the quest still creates Missives' original
 				if (entry.contains("noteTo") && missive) {
 					// untyped lookup + As<>: LookupForm<T> matches T::FORMTYPE exactly, so <TESBoundObject> never finds a book
@@ -750,7 +792,7 @@ namespace AG::MissiveWatch
 		{
 			std::lock_guard l(g_lock);
 			for (auto& [id, tier] : g_watch) {
-				if (FromLetter(tier) <= rank) continue;
+				if (FromLetter(tier) <= rank && !g_broken.contains(id)) continue;  // one that can never be finished comes down too
 				auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
 				if (Running(q) && q->GetCurrentStageID() == 0) stale.push_back(q);
 			}
@@ -788,7 +830,7 @@ namespace AG::MissiveWatch
 		{
 			std::lock_guard l(g_lock);
 			for (auto& [id, tier] : g_watch) {
-				if (FromLetter(tier) > rank) continue;
+				if (FromLetter(tier) > rank || g_broken.contains(id)) continue;
 				auto h = g_hold.find(id);
 				if (h == g_hold.end() || (!h->second.empty() && h->second != hold)) continue;  // "" = a quest that serves every hold
 				auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
