@@ -3,7 +3,7 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.10.0",
+    "version": "1.11.0",
     "entries": [
       {
         "key": "ag_basics",
@@ -60,9 +60,25 @@
         ]
       },
       {
+        "key": "ag_promotion",
+        "display_name": "Merit, Reputation and promotion",
+        "content": "Adventurers Guild members earn two things for their work. Merit is spent: on the Guild's services at its counters, and it is what the Guild pays for monster trophies. Reputation is never spent: it is an adventurer's standing, and what a case for promotion is judged on. Guild jobs and dungeons reported at a counter earn both; dangerous kills earn Reputation. Once an adventurer's Reputation and experience are enough, any Guild counter will hear their case for promotion, for a fee. Past C-rank, a rank means a proven record.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "ranks",
+          "merit",
+          "reputation",
+          "promotion"
+        ]
+      },
+      {
         "key": "ag_missives",
         "display_name": "Guild Missives",
-        "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. An adventurer may take missives up to their own rank, and each one done is reported at a Guild counter for gold and standing.",
+        "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. An adventurer may take missives up to their own rank, and each one done is reported at a Guild counter for gold and standing. A missive board posts new work every few days, when someone next walks up to it, and right after an adventurer is registered or promoted. A Guild counter lists what is posted on its own town's board and hands those jobs out too.",
         "condition_expr": "is_plugin_loaded(\"Missives.esp\")",
         "always_inject": false,
         "importance": 0.5,
@@ -70,6 +86,51 @@
         "tags": [
           "guild",
           "missives",
+          "jobs"
+        ]
+      },
+      {
+        "key": "ag_jarl_bounties",
+        "display_name": "The Jarls' bounties",
+        "content": "A Jarl's bounty is the hold's own business: an innkeeper or the steward hands out the Jarl's letter naming a bandit chief, a Forsworn leader, a giant or a dragon, one bounty to a hold at a time, and the steward pays the gold when it is done. The Adventurers Guild ranks each bounty, lists the hold's bounty at its counter, and credits the adventurer who reports it afterwards.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "bounty",
+          "jarl",
+          "jobs"
+        ]
+      },
+      {
+        "key": "ag_notices",
+        "display_name": "The Guild's notices",
+        "content": "Besides the missive boards, the Adventurers Guild posts its notices on the notice boards found across the province, the same notices wherever one stands. An adventurer takes them up to their own rank and reports them at a Guild counter like any other Guild work.",
+        "condition_expr": "is_plugin_loaded(\"notice board.esp\")",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "notices",
+          "jobs"
+        ]
+      },
+      {
+        "key": "ag_monster_hunts",
+        "display_name": "Monster hunt contracts",
+        "content": "Monster hunt contracts go up on the missive boards as well: vampires, werewolves, liches and dragon priests, dragons and stranger beasts. Pepper, a broker at the Drunken Huntsman in Whiterun, pays for each kill; the Adventurers Guild ranks every contract by what is hunted and credits the adventurer who reports it.",
+        "condition_expr": "is_plugin_loaded(\"MissivesMonsterHunt.esp\")",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "monsters",
+          "hunt",
+          "contracts",
           "jobs"
         ]
       },
@@ -301,6 +362,20 @@
         ]
       },
       {
+        "key": "ag_guild_card",
+        "display_name": "The guild card",
+        "content": "Every registered adventurer carries a guild card: their name, their rank, the day they registered, and the crest stamps of the holds they have served. The Guild's rep updates it at each promotion, and a lost card is replaced at any Guild counter for a small fee. A card is its holder's own: someone else's card handed in at a counter goes back to its owner, and the card of a dead adventurer lets the Guild close their page and write to their kin.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild card",
+          "adventurers",
+          "guild"
+        ]
+      },
+      {
         "key": "ag_augments",
         "display_name": "Guild Augments and tomes",
         "content": "The Adventurers Guild's counters sell Guild Augments for Merit: a preparation taken before a job that lasts one day. There are five: Packhorse for carrying more, Haggler for better prices, Quick Study for learning faster, Hardy against disease and poison, and Vigor for more health, stamina and magicka. An adventurer may hold one at a time. The counters also sell spell tomes. A member may buy tomes of their own rank, and of one rank above at twice the Merit; anything higher is not offered.",
@@ -402,6 +477,21 @@
           "guild",
           "counter",
           "innkeeper"
+        ]
+      },
+      {
+        "key": "ag_liaison_duties",
+        "display_name": "Keeping a Guild counter",
+        "content": "As the Adventurers Guild's licensed liaison at this inn's counter: registers new adventurers for a fee, buys monster trophies for Merit, pays out adventurers' reports (gold, Merit and Reputation), sells the Guild's services for Merit (intel on dungeons and on other places worth knowing, Appraisal, training, library books), and hears cases for promotion. The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go. Knows why the Guild's ranks have grown so thin in Skyrim, and speaks of the disappearances carefully, never where a Thalmor might hear.",
+        "condition_expr": "get_faction_rank(actorUUID, \"AG_GuildLiaisonFaction\") >= 0",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "counter",
+          "innkeeper",
+          "liaison"
         ]
       },
       {

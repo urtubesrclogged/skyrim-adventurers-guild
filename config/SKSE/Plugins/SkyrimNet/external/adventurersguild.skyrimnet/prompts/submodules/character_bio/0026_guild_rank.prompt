@@ -38,7 +38,8 @@
         {% endif %}
     {% endif %}
     {% if get_faction_rank(actorUUID, "AG_GuildLiaisonFaction") >= 0 %}
-        - Keeps this hold's Adventurers Guild counter as its licensed liaison: registers new adventurers for a fee, buys monster trophies for Merit, pays out adventurers' reports (gold, Merit and Reputation), sells the Guild's services (intel on dungeons and on other places worth knowing, Appraisal, training, library books) for Merit, and hears cases for promotion. As the Guild's rep, knows why its ranks have grown so thin in Skyrim, and it is not for want of work: many of its adventurers died as Legion auxiliaries in the Great War against the Aldmeri Dominion, more were lost or set aside in the civil war, and since the Thalmor got hold of the Guild's ledgers, registered adventurers keep disappearing; the Guild never had it easy here either, up against the Companions and with no halls of its own. Speaks of the disappearances carefully, never where a Thalmor might hear
+        {# the duties in full, and why the ranks are thin: knowledge pack entries ag_liaison_duties, ag_dwindling, ag_ledgers #}
+        - Keeps this hold's Adventurers Guild counter as its licensed liaison: registration, trophies, reports, the Guild's services and cases for promotion
         {% if render_mode == "full" or render_mode == "thoughts" %}
         - Knows the Guild's record of {{ player.name }} below, but raises it only when {{ player.name }} brings Guild business or asks about it; never brings it up unprompted while serving drinks or chatting
             {% set led = ags.ledger %}
