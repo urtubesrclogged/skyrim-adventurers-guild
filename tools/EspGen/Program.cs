@@ -1879,8 +1879,11 @@ for (int si = 0; si < 3; si++)
             mod.MagicEffects.Add(m);
             return m;
         }
-        Note((uint)(0xFF0 + 2 * i), "Weapon", CastType.FireAndForget, TargetType.Touch, $"Curse, while it is in your hand: {curseNote}.");
-        Note((uint)(0xFF1 + 2 * i), "Worn", CastType.ConstantEffect, TargetType.Self, $"Curse: {curseNote}.");
+        // the engine joins each effect's text after the one before, which keeps its full stop: "Absorb 80 points of
+        // magicka. But you take 50% more damage from shock." (the author's wording, 2026-10-26)
+        var noteText = $"But {curseNote}.";
+        Note((uint)(0xFF0 + 2 * i), "Weapon", CastType.FireAndForget, TargetType.Touch, noteText);
+        Note((uint)(0xFF1 + 2 * i), "Worn", CastType.ConstantEffect, TargetType.Self, noteText);
         var sp = new Spell(FK((uint)(0xFE0 + i)), Rel)
         {
             EditorID = $"AG_Ab_WareCurse_{id}", Name = $"Curse: {name}",
