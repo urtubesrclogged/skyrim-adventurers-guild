@@ -25,7 +25,8 @@
 //                development builds only (never released): free.
 //   0xC00-0xC7B  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 //   0xC7C-0xC7F  a dead adventurer's card (1.5.0): AG_MemberCardBloody, AG_MemberCardMorrowindBloody, and their inventory art
-//   0xFE0-0xFFF  Guild Wares (1.6.0): 0xFE0-0xFEF the cursed weapons' curse abilities (wares.json "curses", in order); the
+//   0xFE0-0xFFF  Guild Wares (1.6.0): 0xFE0-0xFEF the cursed weapons' curse abilities (wares.json "curses", in order);
+//                0xFF0-0xFFF the curses' description notes, two per curse (0xFF0 + 2n weapon, 0xFF1 + 2n worn: at most 8 curses); the
 //                dialogue INFOs that grow from 0xD00 stop short of this block
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -1853,7 +1854,7 @@ for (int si = 0; si < 3; si++)
 {
     var wares = ReadConfig("wares");
     var curses = wares["curses"]!.AsArray();
-    if (curses.Count > 16) { Console.Error.WriteLine("ERROR wares.json: at most 16 curses (0xFE0-0xFEF)"); Environment.Exit(1); }
+    if (curses.Count > 8) { Console.Error.WriteLine("ERROR wares.json: at most 8 curses (their notes fill 0xFF0-0xFFF)"); Environment.Exit(1); }
     for (int i = 0; i < curses.Count; i++)
     {
         var c = curses[i]!;
@@ -1861,13 +1862,32 @@ for (int si = 0; si < 3; si++)
         var bar = key.IndexOf('|');
         var fx = FormKey.Factory($"{Convert.ToUInt32(key[(bar + 1)..], 16):X6}:{key[..bar]}");
         var name = c["name"]!.GetValue<string>();
+        var id = c["id"]!.GetValue<string>();
+        var curseNote = c["note"]!.GetValue<string>();
+        var mag = c["magnitude"]!.GetValue<float>();
+        // the notes: effects that do nothing (Script archetype, no script) and exist for their description. Battle
+        // Summaries ignores both: a Script effect is "not something done to the target", a worn enchantment's never shows.
+        MagicEffect Note(uint nid, string suffix, CastType cast, TargetType target, string desc)
+        {
+            var m = new MagicEffect(FK(nid), Rel)
+            {
+                EditorID = $"AG_MGEF_WareCurseNote_{id}_{suffix}", Name = $"Curse: {name}", Description = desc,
+                Archetype = new MagicEffectArchetype { Type = MagicEffectArchetype.TypeEnum.Script },
+                CastType = cast, TargetType = target, BaseCost = 0f,
+                Flags = MagicEffect.Flag.NoHitEvent | MagicEffect.Flag.Painless | MagicEffect.Flag.NoArea | MagicEffect.Flag.NoDuration,
+            };
+            mod.MagicEffects.Add(m);
+            return m;
+        }
+        Note((uint)(0xFF0 + 2 * i), "Weapon", CastType.FireAndForget, TargetType.Touch, $"Curse, while it is in your hand: {curseNote}.");
+        Note((uint)(0xFF1 + 2 * i), "Worn", CastType.ConstantEffect, TargetType.Self, $"Curse: {curseNote}.");
         var sp = new Spell(FK((uint)(0xFE0 + i)), Rel)
         {
-            EditorID = $"AG_Ab_WareCurse_{c["id"]!.GetValue<string>()}", Name = $"Curse: {name}",
-            Description = "The price of a cursed weapon, paid while it is in your hand.",
+            EditorID = $"AG_Ab_WareCurse_{id}", Name = $"Curse: {name}",
+            Description = $"While your cursed weapon is in your hand, {curseNote.Replace("<mag>", mag.ToString("0"))}.",
             Type = SpellType.Ability, CastType = CastType.ConstantEffect, TargetType = TargetType.Self, BaseCost = 0,
         };
-        sp.Effects.Add(new Effect { BaseEffect = new FormLinkNullable<IMagicEffectGetter>(fx), Data = new EffectData { Magnitude = c["magnitude"]!.GetValue<float>() } });
+        sp.Effects.Add(new Effect { BaseEffect = new FormLinkNullable<IMagicEffectGetter>(fx), Data = new EffectData { Magnitude = mag } });
         mod.Spells.Add(sp);
     }
 }

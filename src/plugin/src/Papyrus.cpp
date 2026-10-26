@@ -226,7 +226,12 @@ namespace AG
 		void         DebugSetAppraisal(Tag*, std::int32_t a_tier) { Guild::SetAppraisalLevel(a_tier); }
 		std::int32_t GetAppraisalLevel(Tag*) { return Guild::AppraisalLevel(); }
 		void         DebugAddReport(Tag*, std::string a_title, std::int32_t a_gold, std::int32_t a_merit) { Guild::AddReport("debug", a_title, "Added from DevBench", a_gold, a_merit, a_merit); }
-		std::string  DebugBuy(Tag*, std::string a_id) { return Guild::BuyService(a_id); }
+		std::string  DebugBuy(Tag*, std::string a_id)
+		{
+			// Papyrus keeps one spelling per string, case-blind: "perk" arrives as "Perk" (a Papyrus type name)
+			if (_stricmp(a_id.c_str(), "perk") == 0) a_id = "perk";
+			return Guild::BuyService(a_id);
+		}
 		std::string  DebugWareMake(Tag*, std::int32_t a_tier)
 		{
 			std::string err;

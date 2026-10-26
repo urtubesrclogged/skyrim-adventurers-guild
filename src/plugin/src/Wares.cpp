@@ -21,6 +21,7 @@ namespace AG::Wares
 	{
 		constexpr std::string_view kPlugin = "AdventurersGuild.esp";
 		constexpr RE::FormID       kCurseAbility = 0xFE0;  // + index in wares.json "curses"
+		constexpr RE::FormID       kCurseNote = 0xFF0;     // + 2 * index (weapon), + 1 for the worn one
 
 		struct Kind
 		{
@@ -38,6 +39,7 @@ namespace AG::Wares
 			std::uint32_t      durMin{ 0 }, durMax{ 0 };
 			float              costAtMax{ 0.0f };  // the strongest tier's cost, scaled for what we make
 			bool               seen{ false };
+			bool               measured{ false };  // found on a tier, not only on the base
 		};
 
 		struct Family
@@ -65,6 +67,8 @@ namespace AG::Wares
 			RE::EffectSetting* fx{ nullptr };
 			float              magnitude{ 0.0f };
 			RE::SpellItem*     ability{ nullptr };
+			RE::EffectSetting* noteWeapon{ nullptr };  // nothing but the curse's description, for a weapon's enchantment
+			RE::EffectSetting* noteWorn{ nullptr };    // ... and for a worn one whose vanilla effect has no text
 		};
 
 		std::mutex                           g_lock;
@@ -112,13 +116,27 @@ namespace AG::Wares
 			if (!f.fx.empty()) g_families.push_back(std::move(f));
 		}
 
+		// the masters a vanilla tier comes from. An enchantment overhaul adds tiers of its own under vanilla's bases (Librum:
+		// Resist Magic up to 250, Carry Weight 200), and those would stretch "the strongest vanilla tier" far past vanilla;
+		// a vanilla record keeps the values the load order gives it, so an overhaul's rebalance of vanilla still counts
+		bool FromVanilla(const RE::TESForm* a_form)
+		{
+			const auto* file = a_form ? a_form->GetFile(0) : nullptr;
+			if (!file) return false;
+			const auto name = file->GetFilename();
+			for (const auto v : { "Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm" }) {
+				if (_stricmp(std::string(name).c_str(), v) == 0) return true;
+			}
+			return false;
+		}
+
 		// every vanilla tier of each base enchantment (EnchArmorFortifyHealth01..06 -> its base): the range a ware is placed in
 		void MeasureTiers()
 		{
 			auto* dh = RE::TESDataHandler::GetSingleton();
 			if (!dh) return;
 			for (auto* ench : dh->GetFormArray<RE::EnchantmentItem>()) {
-				if (!ench || !ench->data.baseEnchantment) continue;
+				if (!ench || !ench->data.baseEnchantment || !FromVanilla(ench)) continue;
 				for (auto& f : g_families) {
 					if (f.base != ench->data.baseEnchantment) continue;
 					++f.tiers;
@@ -128,6 +146,7 @@ namespace AG::Wares
 						auto&       r = f.fx[i];
 						const float m = e->effectItem.magnitude;
 						const auto  d = e->effectItem.duration;
+						r.measured = true;
 						if (!r.seen) {
 							r.magMin = r.magMax = m;
 							r.durMin = r.durMax = d;
@@ -145,7 +164,13 @@ namespace AG::Wares
 					}
 				}
 			}
-			// a family no tier names: the base's own numbers are all there is
+			// an effect no tier carries (an overhaul replaced it on the tiers: the robes' Magicka regeneration) is dropped, and
+			// so is one with nothing to scale; a family no tier names keeps the base's own numbers, which are all there is
+			for (auto& f : g_families) {
+				if (f.tiers == 0) continue;
+				std::erase_if(f.fx, [](const FamilyFx& r) { return !r.measured || (r.magMax <= 0.0f && r.durMax == 0); });
+			}
+			std::erase_if(g_families, [](const Family& f) { return f.fx.empty(); });
 			for (auto& f : g_families) {
 				for (std::size_t i = 0; i < f.fx.size(); ++i) {
 					auto& r = f.fx[i];
@@ -246,8 +271,14 @@ namespace AG::Wares
 			RE::FormID id = kCurseAbility;
 			for (auto& c : j.value("curses", nlohmann::json::array())) {
 				Curse curse{ c.value("id", ""), c.value("name", ""), Resolve<RE::EffectSetting>(c.value("effect", "")), c.value("magnitude", 0.0f),
-					dh ? dh->LookupForm<RE::SpellItem>(id++, kPlugin) : nullptr };
-				if (!curse.fx || !curse.ability) SKSE::log::warn("Wares: curse {} is missing its effect or ability", curse.id);
+					dh ? dh->LookupForm<RE::SpellItem>(id, kPlugin) : nullptr };
+				if (dh) {
+					const auto n = kCurseNote + 2 * (id - kCurseAbility);
+					curse.noteWeapon = dh->LookupForm<RE::EffectSetting>(n, kPlugin);
+					curse.noteWorn = dh->LookupForm<RE::EffectSetting>(n + 1, kPlugin);
+				}
+				++id;
+				if (!curse.fx || !curse.ability || !curse.noteWeapon || !curse.noteWorn) SKSE::log::warn("Wares: curse {} is missing its effect, ability or notes", curse.id);
 				g_curses.push_back(std::move(curse));
 			}
 		} catch (const std::exception& e) {
@@ -358,11 +389,21 @@ namespace AG::Wares
 		if (tier.curse && !g_curses.empty()) {
 			curse = std::uniform_int_distribution<int>(0, static_cast<int>(g_curses.size()) - 1)(g_rng);
 			auto& c = g_curses[curse];
-			if (!weapon && c.fx) {  // worn: part of the enchantment, as on vanilla's Necromancer Amulet
+			const auto note = [&](RE::EffectSetting* a_note) {  // the description's line; does nothing
+				if (!a_note) return;
+				RE::Effect e;
+				e.baseEffect = a_note;
+				e.effectItem.magnitude = c.magnitude;
+				effects.push_back(e);
+			};
+			if (weapon) {
+				note(c.noteWeapon);  // the curse itself is an ability while it is held (SyncCurses)
+			} else if (c.fx) {  // worn: part of the enchantment, as on vanilla's Necromancer Amulet
 				RE::Effect e;
 				e.baseEffect = c.fx;
 				e.effectItem.magnitude = c.magnitude;
 				effects.push_back(e);
+				if (c.fx->magicItemDescription.empty()) note(c.noteWorn);  // four of vanilla's have no text
 			}
 			said.push_back(std::format("curse {} ({} {:.0f})", c.name, Name(c.fx), c.magnitude));
 		}
