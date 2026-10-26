@@ -41,6 +41,9 @@
 	"_training": "Guild Training: a permanent +amount to max Health / Stamina / Magicka per purchase, at most perRank purchases per stat for each guild rank reached (E = perRank, D = 2*perRank ...). The first purchase costs baseMerit; each one after costs more than the last by the stepMerit of the rank it belongs to (index 0..5 = E..S; a single number means the same step throughout): 40, 60 at E; 80, 100 at D; 130, 160 at C; 190, 220 at B; 260, 300 at A; 340, 380 at S. Max purchases per stat = perRank*6 (the ESP carries that many steps).",
 	"training": { "amount": 10, "perRank": 2, "baseMerit": 40, "stepMerit": [20, 20, 30, 30, 40, 40] },
 
+	"_perkTraining": "Perk training (1.6.0): one perk point per purchase, the same as a point earned by leveling (given through the game's own AddPerkPoints, so it is never taken back, not even by Prepare to Uninstall). One point for each guild rank reached from fromRank up (index 0..5 = E..S; 1 = D, so five in all). merit[n] is the price of point n+1; the list's length also caps the total. Merit, not Reputation: Reputation is standing and nothing spends it, so it gates through rank instead.",
+	"perkTraining": { "fromRank": 1, "merit": [100, 200, 300, 400, 500] },
+
 	"_augments": "Guild Augments: a timed boon bought at the counter, one at a time (a new one replaces the one you have). merit: the price of each. rank: the guild rank they need. days: how long one lasts, in game days. list: at most 8; the ESP carries one ability each, built by tools/EspGen from the numbers here (carry: carry weight; barter: percent better prices; skillRate: percent faster skill gains; resistDisease / resistPoison: percent; health / stamina / magicka: points). name and desc are the English text (translators: $AG_Aug_<id>, $AG_AugDesc_<id>).",
 	"augments": {
 		"merit": 10, "rank": 0, "days": 1,

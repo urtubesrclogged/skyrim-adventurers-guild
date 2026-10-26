@@ -71,6 +71,8 @@ namespace AG::Guild
 	void  SetAppraisalLevel(int a_tier);
 	int   TrainingSteps(int a_stat);            // 0 = Health, 1 = Stamina, 2 = Magicka
 	void  AddTrainingStep(int a_stat);
+	int   PerkPointsBought();                   // perk training (1.6.0): points bought at the counter
+	void  AddPerkPoint();                       // counts one and gives it (vanilla Game.AddPerkPoints)
 	bool  TrySpendMerit(int a_cost, std::string_view a_record);  // false if not enough; logs a_record
 	void  AddGold(int a_amount);
 	// Guild Augments (shop.json): one at a time, until a game time. The ability is the ESP's (0xCC0 + index).

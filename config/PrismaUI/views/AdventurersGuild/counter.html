@@ -660,7 +660,7 @@ function renderCard() {
       ${cardFigures(c)}
       <hr/>
       <div class="chips"><span>${esc(t("$AG_UI_ChipAppraisal", "Appraisal {0}", app))}</span><span>${esc(t("$AG_UI_ChipVitality", "Vitality +{0}", (tr[0] || 0) * 10))}</span>
-        <span>${esc(t("$AG_UI_ChipEndurance", "Endurance +{0}", (tr[1] || 0) * 10))}</span><span>${esc(t("$AG_UI_ChipArcana", "Arcana +{0}", (tr[2] || 0) * 10))}</span>
+        <span>${esc(t("$AG_UI_ChipEndurance", "Endurance +{0}", (tr[1] || 0) * 10))}</span><span>${esc(t("$AG_UI_ChipArcana", "Arcana +{0}", (tr[2] || 0) * 10))}</span>${data.perkPoints ? `<span>${esc(t("$AG_UI_ChipPerks", "Perk points +{0}", data.perkPoints))}</span>` : ""}
         ${(data.passives || []).map((x) => `<span class="timed">${esc(t("$AG_UI_ChipTimed", "{0} · {1}h left", x.name, x.hours))}</span>`).join("")}</div>
       ${cardStats()}
       ${data.registered ? cardStamps() : ""}

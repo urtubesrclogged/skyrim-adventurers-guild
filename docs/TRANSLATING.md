@@ -65,6 +65,16 @@ Rank letters (E to S) are the same in every language.
 `data-t` in the counter page, and `config/lang/mcm_english.json` (`build.ps1 -Only lang`). New player-facing text
 must go through those, never as a bare string, or it cannot be translated.
 
+## Since 1.6.0
+
+New keys in the interface file, all optional, for Perk training (Services > Guild Skills):
+
+* `$AG_Svc_PerkName` (the row's name) and `$AG_Svc_PerkDesc` (`{}` = the first rank that offers it, then how many
+  bought, then how many the player's rank allows).
+* `$AG_Buy_Perk` (bought), `$AG_Buy_PerkRank` (`{}` = the rank it needs) and `$AG_Log_Perk` (the Records line, `{}` =
+  the Merit paid).
+* `$AG_UI_ChipPerks`: the chip on the Guild Card once a point is bought (`{0}` = how many).
+
 ## Since 1.5.0
 
 New keys in the interface file, all optional, for the hold stamps on the Guild Card:

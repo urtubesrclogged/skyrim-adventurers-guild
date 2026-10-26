@@ -225,6 +225,7 @@ namespace AG
 		void         DebugSetAppraisal(Tag*, std::int32_t a_tier) { Guild::SetAppraisalLevel(a_tier); }
 		std::int32_t GetAppraisalLevel(Tag*) { return Guild::AppraisalLevel(); }
 		void         DebugAddReport(Tag*, std::string a_title, std::int32_t a_gold, std::int32_t a_merit) { Guild::AddReport("debug", a_title, "Added from DevBench", a_gold, a_merit, a_merit); }
+		std::string  DebugBuy(Tag*, std::string a_id) { return Guild::BuyService(a_id); }
 		void         SetNameMode(Tag*, std::int32_t a_mode) { Names::SetMode(a_mode); }
 		std::int32_t GetNameMode(Tag*) { return Names::GetMode(); }
 		void         NameSiteAllow(Tag*, std::int32_t a_rva, bool a_on) { Names::AllowSite(a_rva, a_on); }
@@ -333,6 +334,7 @@ namespace AG
 		REG(DebugSetAppraisal);
 		REG(GetAppraisalLevel);
 		REG(DebugAddReport);
+		REG(DebugBuy);
 		REG(SetNameMode);
 		REG(GetNameMode);
 		REG(NameSiteAllow);

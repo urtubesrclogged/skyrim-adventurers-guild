@@ -3,7 +3,7 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.11.0",
+    "version": "1.12.0",
     "entries": [
       {
         "key": "ag_basics",
@@ -387,6 +387,21 @@
           "guild",
           "augments",
           "tomes",
+          "merit"
+        ]
+      },
+      {
+        "key": "ag_training",
+        "display_name": "Guild Training",
+        "content": "The Adventurers Guild's counters sell training for Merit. The Guild's drills make a member hardier: more health, stamina or magicka for good, though each stat's training is capped by the rank they have reached, and each lesson costs more than the last. From D-rank up, a member may also buy perk training: a veteran's lesson in a technique, worth what a hard-won step in experience would teach them. One lesson for each rank from D to S, five in all, and it is never cheap: 100 Merit for the first, up to 500 for the last. Rank is earned by Reputation, so only a member with real standing gets the most of it.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "training",
+          "perks",
           "merit"
         ]
       },

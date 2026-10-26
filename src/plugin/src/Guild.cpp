@@ -98,6 +98,7 @@ namespace AG::Guild
 		std::atomic<bool>            g_dormant{ false };
 		std::atomic<SaveData>        g_saveData{ SaveData::kNone };  // set as a save loads; see Guild.h
 		std::array<int, 3>           g_training{};      // purchased steps: Health, Stamina, Magicka
+		int                          g_perkPoints{ 0 }; // perk points bought (1.6.0); the points themselves live in the game's save
 
 		// ---- our forms ----
 		RE::TESGlobal*       g_gRank{ nullptr };
@@ -545,6 +546,7 @@ namespace AG::Guild
 				j["trophiesSold"] = g_trophiesSold;
 				j["appraisal"] = g_appraisal.load();
 				j["training"] = g_training;
+				j["perkPoints"] = g_perkPoints;
 				if (g_augment >= 0) j["augment"] = { { "index", g_augment }, { "until", g_augmentUntil } };
 				j["dormant"] = g_dormant.load();
 				j["cardIssued"] = GuildCard::Issued();
@@ -599,6 +601,7 @@ namespace AG::Guild
 			g_history.clear();
 			g_appraisal = 0;
 			g_training.fill(0);
+			g_perkPoints = 0;
 			g_augment = -1;
 			g_augmentUntil = 0.0f;
 			g_dormant = false;
@@ -664,6 +667,7 @@ namespace AG::Guild
 							auto v = j.at("training").get<std::vector<int>>();
 							for (std::size_t i = 0; i < g_training.size() && i < v.size(); ++i) g_training[i] = std::max(0, v[i]);
 						}
+						g_perkPoints = std::max(0, j.value("perkPoints", 0));
 						for (auto& r : j.value("reports", nlohmann::json::array())) {
 							g_reports.push_back({ r.value("kind", ""), r.value("title", ""), r.value("detail", ""), r.value("gold", 0), r.value("merit", 0), r.value("rep", r.value("merit", 0)), r.value("key", "") });
 						}
@@ -1394,7 +1398,8 @@ namespace AG::Guild
 		for (auto& h : g_history) history.push_back({ { "day", h.day }, { "text", h.text } });
 		j["appraisal"] = g_appraisal.load();
 		j["training"] = g_training;
-		auto services = Shop::ServicesData(g_rank, g_merit, g_appraisal.load(), g_training, g_augment, g_augment >= 0 ? (g_augmentUntil - Today()) * 24.0f : 0.0f);
+		j["perkPoints"] = g_perkPoints;
+		auto services = Shop::ServicesData(g_rank, g_merit, g_appraisal.load(), g_training, g_perkPoints, g_augment, g_augment >= 0 ? (g_augmentUntil - Today()) * 24.0f : 0.0f);
 		// Pay off all bounties: one row, only while there is something to pay
 		{
 			int        sum = 0;
@@ -1508,6 +1513,26 @@ namespace AG::Guild
 			++g_training[a_stat];
 		}
 		ApplyAbilities();
+	}
+
+	int PerkPointsBought()
+	{
+		std::lock_guard l(g_lock);
+		return g_perkPoints;
+	}
+
+	// A perk point is the game's own: given through vanilla Game.AddPerkPoints (version-safe on SE, AE and VR, unlike
+	// the player's perkCount field), and never taken back, not even by Prepare to Uninstall.
+	void AddPerkPoint()
+	{
+		{
+			std::lock_guard l(g_lock);
+			++g_perkPoints;
+		}
+		auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+		if (!vm) return;
+		RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+		vm->DispatchStaticCall("Game", "AddPerkPoints", RE::MakeFunctionArguments(static_cast<std::int32_t>(1)), cb);
 	}
 
 	bool TrySpendMerit(int a_cost, std::string_view a_record)
@@ -1779,9 +1804,9 @@ namespace AG::Guild
 	std::string Dump()
 	{
 		std::lock_guard l(g_lock);
-		return std::format("registered={} rank={} merit={} reputation={} ready={} regMissive={} reports={} history={} appraisal={} training={}/{}/{} fee={} cap={}",
+		return std::format("registered={} rank={} merit={} reputation={} ready={} regMissive={} reports={} history={} appraisal={} training={}/{}/{} perks={} fee={} cap={}",
 			g_registered, g_registered ? LetterStr(g_rank) : "-", g_merit, g_reputation, ReadyLocked(), g_regMissiveGiven,
-			g_reports.size(), g_history.size(), g_appraisal.load(), g_training[0], g_training[1], g_training[2], g_cfg.fee, Letter(g_cfg.cap));
+			g_reports.size(), g_history.size(), g_appraisal.load(), g_training[0], g_training[1], g_training[2], g_perkPoints, g_cfg.fee, Letter(g_cfg.cap));
 	}
 
 	// ---- SkyrimNet actions: a Guild rep doing guild business in an AI conversation. Same paths (fees, eligibility) as

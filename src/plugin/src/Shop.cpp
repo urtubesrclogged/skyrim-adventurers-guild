@@ -65,6 +65,9 @@ namespace AG::Shop
 		std::unordered_map<RE::FormID, int> g_variantOf;  // item -> index in g_trophies, or -1 (names never change)
 		int                  g_trainAmount{ 10 }, g_trainPerRank{ 2 }, g_trainBase{ 40 };
 		std::array<int, kRankCount> g_trainStep{ 20, 20, 30, 30, 40, 40 };  // added per purchase, by the rank it belongs to
+		// Perk training (1.6.0): one perk point per guild rank reached from fromRank up; merit[n] is the price of point n+1
+		int                  g_perkFrom{ 1 };
+		std::vector<int>     g_perkMerit{ 100, 200, 300, 400, 500 };
 		int                  g_tomeAbove{ 1 }, g_tomeAboveMult{ 2 };        // tomes this many ranks above yours, at this many times the Merit
 		struct Augment { std::string id, name, desc; };
 		std::vector<Augment> g_augments;
@@ -168,6 +171,8 @@ namespace AG::Shop
 			for (int n = 1; n <= a_done; ++n) cost += g_trainStep[std::min(n / g_trainPerRank, kRankCount - 1)];
 			return cost;
 		}
+		int PerkMax() { return std::min(static_cast<int>(g_perkMerit.size()), kRankCount - g_perkFrom); }
+		int PerkCap(int a_rank) { return std::clamp(a_rank - g_perkFrom + 1, 0, PerkMax()); }
 		// what a tome costs this player, or -1 when it is too far above their rank to be offered
 		int TomeCost(const Item& a_tome, int a_rank)
 		{
@@ -474,6 +479,11 @@ namespace AG::Shop
 					} else g_trainStep.fill(sm.get<int>());
 				}
 			}
+			if (shop.contains("perkTraining")) {
+				auto& p = shop.at("perkTraining");
+				g_perkFrom = std::clamp(p.value("fromRank", g_perkFrom), 0, kRankCount - 1);
+				g_perkMerit = p.value("merit", g_perkMerit);
+			}
 			if (shop.contains("tomesAboveRank")) {
 				g_tomeAbove = std::max(0, shop.at("tomesAboveRank").value("ranks", g_tomeAbove));
 				g_tomeAboveMult = std::max(1, shop.at("tomesAboveRank").value("multiplier", g_tomeAboveMult));
@@ -548,7 +558,7 @@ namespace AG::Shop
 		return Loc::T("$AG_Aug_" + g_augments[a_index].id, g_augments[a_index].name);
 	}
 
-	nlohmann::json ServicesData(int a_rank, int a_merit, int a_appraisal, const std::array<int, 3>& a_training, int a_augment, float a_augmentHours)
+	nlohmann::json ServicesData(int a_rank, int a_merit, int a_appraisal, const std::array<int, 3>& a_training, int a_perkPoints, int a_augment, float a_augmentHours)
 	{
 		std::lock_guard l(g_lock);
 		auto rows = nlohmann::json::array();
@@ -580,6 +590,13 @@ namespace AG::Shop
 			add("Guild Skills", std::format("train:{}", st), Loc::F("$AG_Svc_TrainName", "{} training", stat(st)),
 				Loc::F("$AG_Svc_TrainDesc", "Permanently +{} maximum {}. Trained {} of {} at your rank (currently +{}).", g_trainAmount, av(st), done, std::min(cap, max), done * g_trainAmount),
 				TrainCost(done), 0, block);
+		}
+		if (const int max = PerkMax(); max > 0) {
+			const int done = a_perkPoints, cap = PerkCap(a_rank);
+			std::string block = done >= max ? Loc::T("$AG_Note_FullyTrained", "Fully trained") : (a_rank >= g_perkFrom && done >= cap ? Loc::T("$AG_Note_RankLimit", "Limit for your rank reached") : "");
+			add("Guild Skills", "perk", Loc::T("$AG_Svc_PerkName", "Perk training"),
+				Loc::F("$AG_Svc_PerkDesc", "One perk point, to spend as you would one earned by leveling. One for each rank from {} up: {} of {} bought at your rank.", Letter(g_perkFrom), done, cap),
+				g_perkMerit[std::min(done, max - 1)], g_perkFrom, block);
 		}
 
 		// Guild Augments: one at a time, each for a game day
@@ -659,6 +676,25 @@ namespace AG::Shop
 			if (!Pay(cost, Loc::F("$AG_Log_Train", "{} training: +{} {} ({} Merit).", sname, amount, savn, cost), err)) return err;
 			Guild::AddTrainingStep(st);
 			return Loc::F("$AG_Buy_Train", "{} training complete: +{} maximum {}.", sname, amount, savn);
+		}
+		if (a_id == "perk") {
+			const int done = Guild::PerkPointsBought();
+			int cost, cap, max, from;
+			{
+				std::lock_guard l(g_lock);
+				max = PerkMax();
+				cap = PerkCap(rank);
+				from = g_perkFrom;
+				cost = max > 0 ? g_perkMerit[std::min(done, max - 1)] : 0;
+			}
+			if (max <= 0) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
+			if (rank < from) return Loc::F("$AG_Buy_PerkRank", "Perk training requires Rank {}.", Letter(from));
+			if (done >= max) return Loc::T("$AG_Buy_TrainMax", "You are fully trained.");
+			if (done >= cap) return Loc::T("$AG_Buy_TrainCap", "You have trained as far as your rank allows.");
+			if (!RE::BSScript::Internal::VirtualMachine::GetSingleton()) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
+			if (!Pay(cost, Loc::F("$AG_Log_Perk", "Perk training: +1 perk point ({} Merit).", cost), err)) return err;
+			Guild::AddPerkPoint();
+			return Loc::T("$AG_Buy_Perk", "Perk training complete: you have one more perk point to spend.");
 		}
 		if (a_id.starts_with("lib:")) {
 			RE::TESObjectBOOK* book = nullptr;
