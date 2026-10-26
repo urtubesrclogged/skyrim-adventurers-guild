@@ -31,10 +31,13 @@ namespace AG::Wares
 	struct Offer
 	{
 		int         tier{ 0 };
+		std::string id;          // "cursed"
 		std::string name, desc;  // "Cursed Item", what it is
 		int         rank{ 0 }, merit{ 0 }, reputation{ 0 }, gold{ 0 };
 	};
 	std::vector<Offer> Offers();
+	// The strongbox's sounds for a tier (wares.json "sounds"): (ms from the start of the notice, sound record FormID)
+	std::vector<std::pair<int, RE::FormID>> LootBoxSounds(int a_tier);
 
 	// A ware made: its name, and its description as the item card reads it, one line per effect (curse = the price).
 	struct Made

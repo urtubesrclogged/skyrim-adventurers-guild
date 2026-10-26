@@ -979,8 +979,9 @@ namespace AG::Guild
 		}
 	}
 
-	// Reputation taken away (conduct). A rank is never lost; Reputation does not go below zero.
-	void LoseReputation(int a_amount, const std::string& a_why)
+	// Reputation taken away (conduct). A rank is never lost; Reputation does not go below zero. a_notice false: the
+	// caller shows the loss itself (a Guild Ware's strongbox has it on its card).
+	void LoseReputation(int a_amount, const std::string& a_why, bool a_notice = true)
 	{
 		if (a_amount <= 0) return;
 		int lost;
@@ -994,8 +995,9 @@ namespace AG::Guild
 		}
 		SKSE::log::info("Guild: -{} reputation ({})", lost, a_why);
 		if (lost > 0) {
-			PrismaToast::Show(Loc::T("$AG_Toast_RepLost", "REPUTATION LOST"), Loc::F("$AG_Toast_RepLostSub", "-{} Reputation · {}", lost, a_why), {},
-				PrismaToast::Priority::kImportant, PrismaToast::Cue::kReputationLost);
+			if (a_notice)
+				PrismaToast::Show(Loc::T("$AG_Toast_RepLost", "REPUTATION LOST"), Loc::F("$AG_Toast_RepLostSub", "-{} Reputation · {}", lost, a_why), {},
+					PrismaToast::Priority::kImportant, PrismaToast::Cue::kReputationLost);
 			Hud(Loc::F("$AG_Hud_RepLost", "-{} Guild Reputation ({})", lost, a_why));
 		}
 		SyncGlobals();
@@ -1344,9 +1346,8 @@ namespace AG::Guild
 	// Guild Wares (1.6.0): Merit, gold and Reputation for a ware made on the spot. Reputation is spent here and nowhere
 	// else: the author's lore, a gambler's shortcut the Guild frowns on. Everything is checked before anything is taken,
 	// and the ware is made before the price is taken, so a failure costs nothing.
-	std::string BuyWare(int a_tier, nlohmann::json& a_reveal)
+	std::string BuyWare(int a_tier)
 	{
-		a_reveal = nullptr;
 		const auto offers = Wares::Offers();
 		const auto it = std::ranges::find(offers, a_tier, &Wares::Offer::tier);
 		if (it == offers.end()) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
@@ -1370,22 +1371,19 @@ namespace AG::Guild
 			RE::PlayerCharacter::GetSingleton()->RemoveItem(g_gold, o.gold, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
 			Hud(Loc::F("$AG_Hud_GoldRemoved", "{} gold removed.", o.gold));
 		}
-		LoseReputation(o.reputation, Loc::T("$AG_Why_Ware", "a gambler's shortcut at the counter"));
+		LoseReputation(o.reputation, Loc::T("$AG_Why_Ware", "a gambler's shortcut at the counter"), false);
 		auto lines = nlohmann::json::array();
 		for (auto& line : made->lines) lines.push_back({ { "text", line.text }, { "curse", line.curse } });
-		a_reveal = { { "tier", made->tier }, { "name", made->name }, { "lines", lines }, { "merit", o.merit }, { "reputation", o.reputation }, { "gold", o.gold } };
+		PrismaToast::ShowLootBox({ { "tierId", o.id }, { "tier", Loc::F("$AG_Ware_ToastTier", "{} Ware", made->tier) }, { "name", made->name }, { "lines", lines },
+									 { "price", Loc::F("$AG_Ware_Price", "{} Merit · {} Reputation · {} gold", o.merit, o.reputation, o.gold) } },
+			Wares::LootBoxSounds(a_tier));
 		return Loc::F("$AG_Buy_Ware", "You bought {}.", made->name);
 	}
 
 	std::string BuyService(const std::string& a_id)
 	{
 		if (a_id == "bounties:pay") return PayBounties();
-		if (a_id.starts_with("ware:")) {  // the counter itself goes through BuyWare, for the reveal; this is DevBench's way
-			nlohmann::json reveal;
-			auto           msg = BuyWare(std::atoi(a_id.c_str() + 5), reveal);
-			Counter::Refresh();
-			return msg;
-		}
+		if (a_id.starts_with("ware:")) return BuyWare(std::atoi(a_id.c_str() + 5));
 		if (a_id.starts_with("intel:")) {
 			auto msg = Dungeons::BuyIntel(a_id);
 			Counter::Refresh();

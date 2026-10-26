@@ -60,6 +60,7 @@ namespace AG::Wares
 			bool        curse{ false };
 			int         charge{ 0 };
 			int         merit{ 0 }, reputation{ 0 }, gold{ 0 };
+			RE::FormID  revealSound{ 0 };  // the moment the card rises
 		};
 
 		struct Curse
@@ -80,6 +81,8 @@ namespace AG::Wares
 		std::map<RE::FormID, int>            g_cursedWeapons;  // the created enchantment of a cursed weapon -> its curse
 		std::mt19937                         g_rng{ std::random_device{}() };
 		float                                g_resistCap{ 100.0f };
+		RE::FormID                           g_rattleSound{ 0 }, g_unlockSound{ 0 }, g_openSound{ 0 };
+
 
 		// the tier names a translator sees: literal keys, so tools/make_translations.py finds them
 		std::string TierName(const Tier& a_t)
@@ -127,6 +130,13 @@ namespace AG::Wares
 			const auto id = static_cast<RE::FormID>(std::stoul(a_key.substr(bar + 1), nullptr, 16));
 			auto*      form = dh ? dh->LookupForm(id, a_key.substr(0, bar)) : nullptr;
 			return form ? form->As<T>() : nullptr;
+		}
+
+		RE::FormID SoundId(const std::string& a_key)
+		{
+			auto* f = a_key.empty() ? nullptr : Resolve<RE::BGSSoundDescriptorForm>(a_key);
+			if (!a_key.empty() && !f) SKSE::log::warn("Wares: no sound record {}", a_key);
+			return f ? f->GetFormID() : 0;
 		}
 
 		std::string Name(const RE::TESForm* a_form)
@@ -308,6 +318,14 @@ namespace AG::Wares
 					std::max(0, t.value("merit", 0)), std::max(0, t.value("reputation", 0)), std::max(0, t.value("gold", 0)) });
 			}
 			g_resistCap = j.value("resistCap", 100.0f);
+			const auto sounds = j.value("sounds", nlohmann::json::object());
+			g_rattleSound = SoundId(sounds.value("rattle", ""));
+			g_unlockSound = SoundId(sounds.value("unlock", ""));
+			g_openSound = SoundId(sounds.value("open", ""));
+			for (std::size_t i = 0; i < g_tiers.size(); ++i) {
+				const auto& t = j["tiers"][i];
+				g_tiers[i].revealSound = SoundId(t.value("revealSound", ""));
+			}
 			auto*      dh = RE::TESDataHandler::GetSingleton();
 			RE::FormID id = kCurseAbility;
 			for (auto& c : j.value("curses", nlohmann::json::array())) {
@@ -381,8 +399,19 @@ namespace AG::Wares
 		for (int i = 0; i < static_cast<int>(g_tiers.size()); ++i) {
 			auto& t = g_tiers[i];
 			if (t.rank < 0) continue;  // not offered yet (Heroic: Hero status)
-			out.push_back({ i, Loc::F("$AG_Ware_Offer", "{} Item", TierName(t)), TierDesc(t), t.rank, t.merit, t.reputation, t.gold });
+			out.push_back({ i, t.id, Loc::F("$AG_Ware_Offer", "{} Item", TierName(t)), TierDesc(t), t.rank, t.merit, t.reputation, t.gold });
 		}
+		return out;
+	}
+
+	std::vector<std::pair<int, RE::FormID>> LootBoxSounds(int a_tier)
+	{
+		std::lock_guard                          l(g_lock);
+		std::vector<std::pair<int, RE::FormID>> out;
+		// index.html's timeline: the box rattles from 0.5 s, the lock gives at 1.55 s, the lid bursts at 1.7 s, the card at 2.0 s
+		for (const auto& [ms, id] : { std::pair{ 550, g_rattleSound }, { 1050, g_rattleSound }, { 1550, g_unlockSound }, { 1700, g_openSound } })
+			if (id) out.emplace_back(ms, id);
+		if (a_tier >= 0 && a_tier < static_cast<int>(g_tiers.size()) && g_tiers[a_tier].revealSound) out.emplace_back(2000, g_tiers[a_tier].revealSound);
 		return out;
 	}
 

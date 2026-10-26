@@ -213,13 +213,11 @@ namespace AG::Counter
 					if (Valid()) g_api->Invoke(g_view, ("window.agDetails(" + details.dump() + ")").c_str());
 					return;
 				}
-				std::string    msg;
-				nlohmann::json reveal;  // a Guild Ware bought: what it turned out to be
+				std::string msg;
 				if (arg == "claim") msg = Guild::ClaimAll(g_cardOnly.load() ? std::string() : Branch());
 				// a lost guild card, replaced at the counter as the liaison's dialogue line does (same fee, this branch's seal).
 				// Not from the card itself: read from the inventory, there is one, and no branch to issue another.
 				else if (arg == "replacecard") { if (g_cardOnly.load()) return; msg = GuildCard::Replace(Branch()); }
-				else if (arg.starts_with("service:ware:")) msg = Guild::BuyWare(std::atoi(arg.c_str() + 13), reveal);
 				else if (arg.starts_with("service:")) msg = Guild::BuyService(arg.substr(8));
 				else if (arg.starts_with("turnin:")) msg = Shop::TurnIn(arg.substr(7));
 				else if (arg.starts_with("accept:")) {
@@ -234,7 +232,6 @@ namespace AG::Counter
 				SKSE::log::debug("Counter: action '{}' -> '{}'", arg, msg);  // detailed log: for "I clicked and nothing happened"
 				Refresh();
 				Status(msg);
-				if (!reveal.is_null() && Valid()) g_api->Invoke(g_view, ("window.agReveal(" + reveal.dump() + ")").c_str());
 			});
 		}
 

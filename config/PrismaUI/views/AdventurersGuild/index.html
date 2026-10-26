@@ -7,7 +7,7 @@
 <!--
   Adventurers Guild toast: a parchment notice that unrolls beneath the carved guild emblem (registration,
   promotion, missive turn-ins). Non-interactive, plays over live gameplay. Same visual language as
-  the guild counter (tex/ is shared). Entry point: window.rkFlourish({title, subtitle}).
+  the guild counter (tex/ is shared). Entry point: window.rkFlourish({title, subtitle}); a Guild Ware bought: window.agLootBox (below).
   Timeline: 0.3s fade-in (0.5s unroll), hold d.hold seconds (MCM "Notice duration", default 5), 0.5s fade-out.
   PrismaToast.cpp hides the view shortly after.
 -->
@@ -32,6 +32,80 @@
   #notice.play .seal { animation: stamp 0.45s cubic-bezier(.3, 1.6, .5, 1) 0.4s both; }
   @keyframes unroll { 0% { transform: scaleY(0.05); } 100% { transform: scaleY(1); } }
   @keyframes stamp { 0% { transform: scale(1.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  /* ---------- a Guild Ware bought (1.6.0): a strongbox that rattles, bursts open and gives up its item ----------
+     window.agLootBox({tierId, tier, name, lines: [{text, curse}], price, hold, flat}). Drawn in CSS only (no art to
+     ship), 2D transforms and plain gradients: Prisma draws heavy shadows and filters on the CPU, so they stay few.
+     Timeline: 0 drop, 0.5-1.6 rattle with light at the seam, 1.7 the lid bursts off (flash, sparks, rays), 2.0 the
+     card rises, then a line every 0.3 s; the sounds are timed to it by the DLL (PrismaToast::ShowLootBox). */
+  #lootbox { position: fixed; top: 4%; left: 50%; width: 640px; margin-left: -320px; opacity: 0; --tc: #d9a35a; --tc2: rgba(217, 163, 90, 0.55); }
+  #lootbox.blessed { --tc: #f6dc8a; --tc2: rgba(246, 220, 138, 0.6); }
+  #lootbox.cursed  { --tc: #c4321f; --tc2: rgba(150, 30, 20, 0.6); }
+  #lootbox.heroic  { --tc: #9fd8ff; --tc2: rgba(159, 216, 255, 0.55); }
+  .lb-stage { position: relative; height: 250px; }
+  .lb-glow { position: absolute; left: 50%; top: 150px; width: 420px; height: 420px; margin: -210px 0 0 -210px; border-radius: 50%;
+             background: radial-gradient(circle, var(--tc2) 0%, transparent 62%); opacity: 0; }
+  .lb-rays { position: absolute; left: 50%; top: 150px; width: 0; height: 0; opacity: 0; }
+  .lb-rays span { position: absolute; left: -5px; bottom: 0; width: 10px; height: 230px; transform-origin: 50% 100%;
+                  background: linear-gradient(to top, var(--tc), transparent); opacity: 0.7; }
+  .lb-flash { position: absolute; left: 50%; top: 150px; width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%;
+              background: radial-gradient(circle, rgba(255, 252, 236, 0.97) 0%, var(--tc2) 35%, transparent 65%); opacity: 0; }
+  .lb-drop { position: absolute; left: 50%; top: 92px; width: 210px; height: 150px; margin-left: -105px; }
+  .lb-chest { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+  .lb-body { position: absolute; left: 0; right: 0; bottom: 0; height: 100px; border-radius: 6px 6px 10px 10px; border: 3px solid #23150a;
+             background: linear-gradient(#6d4626, #3a2412); box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.6), 0 12px 14px rgba(0, 0, 0, 0.6); }
+  .lb-lid { position: absolute; left: -5px; right: -5px; top: 0; height: 56px; border: 3px solid #23150a; z-index: 2;
+            border-radius: 100px 100px 6px 6px / 46px 46px 6px 6px; background: linear-gradient(#835731, #4a2e16); transform-origin: 50% 100%; }
+  .lb-band { position: absolute; top: 0; bottom: 0; left: 21%; width: 15px; background: linear-gradient(90deg, #2e2e2c, #8c8b85, #2e2e2c); }
+  .lb-band.r { left: auto; right: 21%; }
+  .lb-lock { position: absolute; left: 50%; top: -18px; width: 58px; margin-left: -29px; z-index: 3; }
+  .lb-seam { position: absolute; left: 3px; right: 3px; top: 52px; height: 5px; z-index: 1; background: var(--tc); opacity: 0;
+             box-shadow: 0 0 14px 5px var(--tc2); }
+  .lb-sparks, .lb-smoke { position: absolute; left: 50%; top: 150px; width: 0; height: 0; }
+  .lb-sparks span { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--tc);
+                    box-shadow: 0 0 8px 2px var(--tc2); opacity: 0; }
+  .lb-smoke span { position: absolute; left: -60px; top: -60px; width: 120px; height: 120px; border-radius: 50%; opacity: 0;
+                   background: radial-gradient(circle, rgba(25, 10, 8, 0.75) 0%, transparent 65%); }
+  .lb-card { position: relative; margin-top: -6px; padding: 26px 64px 22px 64px; text-align: center; color: #22160b; opacity: 0;
+             background: url(tex/skin/scroll.png) center / 100% 100% no-repeat;
+             filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.9)) drop-shadow(3px 9px 10px rgba(0, 0, 0, 0.65)); }
+  .lb-tier { font-size: 16px; letter-spacing: 0.22em; text-transform: uppercase; color: #6b4a22; }
+  #lootbox.cursed .lb-tier { color: #7a1f14; }
+  .lb-name { font-size: 32px; font-variant: small-caps; letter-spacing: 0.05em; line-height: 1.15; color: #3a2616; margin-top: 4px; }
+  .lb-card .rule { margin: 10px 40px 8px; }
+  .lb-line { font-size: 20px; font-style: italic; color: #49351d; line-height: 1.35; margin-top: 6px; opacity: 0; }
+  .lb-line.curse { color: #7a1f14; font-style: normal; }
+  .lb-price { font-size: 15px; color: #6e5634; margin-top: 12px; opacity: 0; }
+
+  #lootbox.play .lb-drop  { animation: lbDrop 0.45s cubic-bezier(.3, 1.4, .6, 1) both; }
+  #lootbox.play .lb-chest { animation: lbRattle 1.15s ease-in 0.5s both; }
+  #lootbox.play .lb-seam  { animation: lbSeam 1.2s ease-in 0.5s both; }
+  #lootbox.play .lb-lid   { animation: lbLid 0.5s cubic-bezier(.2, .8, .3, 1) 1.7s both; }
+  #lootbox.play .lb-flash { animation: lbFlash 0.7s ease-out 1.7s both; }
+  #lootbox.play .lb-glow  { animation: lbFade 0.6s ease-out 1.7s both; }
+  #lootbox.play .lb-rays  { animation: lbRays 14s linear 1.75s both; }
+  #lootbox.play .lb-sparks span { animation: lbSpark 1s cubic-bezier(.1, .7, .3, 1) both; }
+  #lootbox.play .lb-smoke span  { animation: lbSmoke 2.2s ease-out both; }
+  #lootbox.play .lb-card  { animation: lbCard 0.55s cubic-bezier(.3, 1.4, .5, 1) 2.0s both; }
+  #lootbox.play .lb-line  { animation: lbLine 0.45s ease-out both; }
+  #lootbox.play .lb-line.curse { animation: lbLine 0.45s ease-out both, lbShudder 0.5s ease-in-out both; }
+  #lootbox.play .lb-price { animation: lbLine 0.45s ease-out both; }
+  @keyframes lbDrop { 0% { transform: translateY(-170px); opacity: 0; } 60% { opacity: 1; } 100% { transform: translateY(0); opacity: 1; } }
+  @keyframes lbRattle { 0%, 100% { transform: none; } 8% { transform: translateX(-3px) rotate(-1.5deg); } 16% { transform: translateX(3px) rotate(1.5deg); }
+                        24% { transform: none; } 40% { transform: translateX(-5px) rotate(-3deg); } 48% { transform: translateX(5px) rotate(3deg); }
+                        56% { transform: none; } 66% { transform: translate(-7px, -4px) rotate(-5deg); } 72% { transform: translate(7px, -2px) rotate(5deg); }
+                        78% { transform: translate(-7px, -5px) rotate(-6deg); } 84% { transform: translate(8px, -3px) rotate(6deg); }
+                        90% { transform: translate(-6px, -6px) rotate(-4deg); } 96% { transform: translate(4px, -2px) rotate(3deg); } }
+  @keyframes lbSeam { 0% { opacity: 0; } 30% { opacity: 0.25; } 45% { opacity: 0.05; } 65% { opacity: 0.6; } 75% { opacity: 0.3; } 100% { opacity: 1; } }
+  @keyframes lbLid { 0% { transform: none; } 100% { transform: translate(-46px, -110px) rotate(-38deg); opacity: 0.85; } }
+  @keyframes lbFlash { 0% { transform: scale(0.2); opacity: 1; } 100% { transform: scale(2.1); opacity: 0; } }
+  @keyframes lbFade { 0% { opacity: 0; } 100% { opacity: 1; } }
+  @keyframes lbRays { 0% { opacity: 0; transform: rotate(0deg); } 4% { opacity: 1; } 100% { opacity: 1; transform: rotate(140deg); } }
+  @keyframes lbSpark { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; } }
+  @keyframes lbSmoke { 0% { transform: translate(0, 0) scale(0.4); opacity: 0.9; } 100% { transform: translate(var(--dx), -150px) scale(1.8); opacity: 0; } }
+  @keyframes lbCard { 0% { transform: translateY(60px) scale(0.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  @keyframes lbLine { 0% { transform: translateY(8px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  @keyframes lbShudder { 0%, 100% { transform: none; } 20% { transform: translateX(-3px); } 40% { transform: translateX(3px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
 </style>
 </head>
 <body>
@@ -43,6 +117,27 @@
     <div class="rule"></div>
     <div id="sub"></div>
     <div class="rod bottom"></div>
+  </div>
+</div>
+<div id="lootbox">
+  <div class="lb-stage">
+    <div class="lb-glow"></div>
+    <div class="lb-rays"></div>
+    <div class="lb-smoke"></div>
+    <div class="lb-flash"></div>
+    <div class="lb-drop"><div class="lb-chest">
+      <div class="lb-lid"><div class="lb-band"></div><div class="lb-band r"></div></div>
+      <div class="lb-seam"></div>
+      <div class="lb-body"><div class="lb-band"></div><div class="lb-band r"></div><img class="lb-lock" src="tex/emblem.png" alt="" /></div>
+    </div></div>
+    <div class="lb-sparks"></div>
+  </div>
+  <div class="lb-card">
+    <div class="lb-tier" id="lbTier"></div>
+    <div class="lb-name" id="lbName"></div>
+    <div class="rule"></div>
+    <div id="lbLines"></div>
+    <div class="lb-price" id="lbPrice"></div>
   </div>
 </div>
 <script>
@@ -67,6 +162,60 @@ window.rkFlourish = (json) => {
   // Linear overall timeline: easing belongs to each fade only. (An overall "ease" stretched the fades and ate
   // into the hold - the notice felt no longer than before.) 0.3 s in, `hold` s fully visible, 0.5 s out.
   n._life = n.animate([{ opacity: 0, easing: "ease-out" }, { opacity: 1, offset: 0.3 / total }, { opacity: 1, offset: (0.3 + hold) / total, easing: "ease-in" }, { opacity: 0 }],
+                      { duration: total * 1000, easing: "linear", fill: "forwards" });
+};
+
+// A Guild Ware bought at the counter: the strongbox above. The DLL plays the sounds on the same timeline.
+window.agLootBox = (json) => {
+  let d = json;
+  try { if (typeof json === "string") d = JSON.parse(json); } catch (e) { return; }
+  const n = document.getElementById("lootbox");
+  const scale = d.flat ? Math.min(innerWidth / 1920, innerHeight / 1080) : 1;
+  n.style.zoom = scale > 0 && scale !== 1 ? scale : "";
+  n.className = "";
+  if (["blessed", "cursed", "heroic"].includes(d.tierId)) n.classList.add(d.tierId);
+  document.getElementById("lbTier").textContent = d.tier || "";
+  document.getElementById("lbName").textContent = d.name || "";
+  const lines = document.getElementById("lbLines");
+  lines.textContent = "";
+  const list = d.lines || [];
+  list.forEach((l, i) => {
+    const el = document.createElement("div");
+    el.className = "lb-line" + (l.curse ? " curse" : "");
+    el.textContent = l.text || "";
+    el.style.animationDelay = l.curse ? `${2.45 + i * 0.3}s, ${2.6 + i * 0.3}s` : `${2.45 + i * 0.3}s`;
+    lines.appendChild(el);
+  });
+  const price = document.getElementById("lbPrice");
+  price.textContent = d.price || "";
+  price.style.animationDelay = `${2.45 + list.length * 0.3}s`;
+  // sparks fly out every way, smoke only from a cursed box; the rays are twelve spokes
+  const sparks = n.querySelector(".lb-sparks"), smoke = n.querySelector(".lb-smoke"), rays = n.querySelector(".lb-rays");
+  sparks.textContent = ""; smoke.textContent = ""; rays.textContent = "";
+  for (let i = 0; i < 18; i++) {
+    const s = document.createElement("span"), a = (i / 18) * 2 * Math.PI + Math.random() * 0.3, r = 120 + Math.random() * 110;
+    s.style.setProperty("--dx", `${Math.cos(a) * r}px`); s.style.setProperty("--dy", `${Math.sin(a) * r * 0.75 - 30}px`);
+    s.style.animationDelay = `${1.7 + Math.random() * 0.12}s`;
+    sparks.appendChild(s);
+  }
+  if (d.tierId === "cursed") {
+    for (let i = 0; i < 6; i++) {
+      const s = document.createElement("span");
+      s.style.setProperty("--dx", `${(Math.random() - 0.5) * 220}px`);
+      s.style.animationDelay = `${1.7 + i * 0.15}s`;
+      smoke.appendChild(s);
+    }
+  }
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement("span");
+    s.style.transform = `rotate(${i * 30}deg)`;
+    rays.appendChild(s);
+  }
+  void n.offsetWidth;  // restart the animation
+  n.classList.add("play");
+  const reveal = 2.45 + list.length * 0.3 + 0.5, hold = Math.max(3, Number(d.hold) || 5), total = reveal + hold + 0.6;
+  if (n._life) n._life.cancel();
+  n._life = n.animate([{ opacity: 1 }, { opacity: 1, offset: (reveal + hold) / total, easing: "ease-in" }, { opacity: 0 }],
                       { duration: total * 1000, easing: "linear", fill: "forwards" });
 };
 </script>

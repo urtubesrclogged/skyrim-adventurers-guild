@@ -26,11 +26,13 @@
 
 	"_tiers": "Index 0..3 = Guild, Blessed, Cursed, Heroic. rank: the guild rank that unlocks it (0..5 = E..S; -1 = not offered yet: Heroic waits for Hero status). strength: where in vanilla's tiers of the enchantment it sits, 0 = the weakest vanilla tier, 1 = the strongest. multiplier: the result is then multiplied (Cursed: twice the strongest vanilla item). effects: how many different enchantments (Heroic: two). curse: a Cursed Item also carries one of 'curses'. charge: a weapon's enchantment charge (a grand soul gem fills 3000). name: the tier's English name, which leads the item's new name ('Cursed Steel Mace'; translators: $AG_WareTier_<id>). merit / reputation / gold: the price, all three at once. Reputation is SPENT here, the one place it is: the Guild sells what is in its vaults, but it frowns on members who buy their way to power (the author's lore: a gambler's shortcut).",
 	"tiers": [
-		{ "id": "guild",   "name": "Guild",   "rank": 1,  "strength": 0.15, "multiplier": 1.0, "effects": 1, "curse": false, "charge": 1500, "merit": 40,  "reputation": 10, "gold": 300 },
-		{ "id": "blessed", "name": "Blessed", "rank": 2,  "strength": 0.85, "multiplier": 1.0, "effects": 1, "curse": false, "charge": 2500, "merit": 80,  "reputation": 25, "gold": 800 },
-		{ "id": "cursed",  "name": "Cursed",  "rank": 3,  "strength": 1.0,  "multiplier": 2.0, "effects": 1, "curse": true,  "charge": 4000, "merit": 150, "reputation": 50, "gold": 1500 },
-		{ "id": "heroic",  "name": "Heroic",  "rank": -1, "strength": 1.0,  "multiplier": 1.0, "effects": 2, "curse": false, "charge": 4000, "merit": 250, "reputation": 75, "gold": 3000 }
+		{ "id": "guild",   "name": "Guild",   "rank": 1,  "strength": 0.15, "multiplier": 1.0, "effects": 1, "curse": false, "charge": 1500, "merit": 40,  "reputation": 10, "gold": 300 , "revealSound": "Skyrim.esm|0x0C8C71" },
+		{ "id": "blessed", "name": "Blessed", "rank": 2,  "strength": 0.85, "multiplier": 1.0, "effects": 1, "curse": false, "charge": 2500, "merit": 80,  "reputation": 25, "gold": 800 , "revealSound": "Skyrim.esm|0x0C8C77" },
+		{ "id": "cursed",  "name": "Cursed",  "rank": 3,  "strength": 1.0,  "multiplier": 2.0, "effects": 1, "curse": true,  "charge": 4000, "merit": 150, "reputation": 50, "gold": 1500 , "revealSound": "Skyrim.esm|0x0C8C76" },
+		{ "id": "heroic",  "name": "Heroic",  "rank": -1, "strength": 1.0,  "multiplier": 1.0, "effects": 2, "curse": false, "charge": 4000, "merit": 250, "reputation": 75, "gold": 3000 , "revealSound": "Skyrim.esm|0x068D83" }
 	],
+	"_sounds": "The strongbox's sounds (the counter's notice of a ware bought): the game's own sound records, 'Plugin|0xID'. rattle plays twice as the box shakes, unlock as the lock gives, open as the lid bursts off, and each tier's revealSound as its card rises. Empty = silent. None of them plays when MCM > Audio > Notification sounds is None.",
+	"sounds": { "rattle": "Skyrim.esm|0x0C1919", "unlock": "Skyrim.esm|0x0C1917", "open": "Skyrim.esm|0x087F84" },
 	"_resistCap": "No resistance a ware gives goes past this (percent): a Cursed Item's doubled Resist Poison would otherwise read 200.",
 	"resistCap": 100,
 

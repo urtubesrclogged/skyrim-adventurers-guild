@@ -219,49 +219,89 @@ namespace AG::PrismaToast
 	int  Volume() { return g_volume.load(std::memory_order_relaxed); }
 	void SetVolume(int a_step) { g_volume.store(std::clamp(a_step, -1, 1), std::memory_order_relaxed); }
 
+	namespace
+	{
+		// Both kinds of notice: call the view's entry point, show it over play, and hide it once a_hideMs have passed
+		// (unless a newer notice has come since).
+		void Present(const std::string& a_call, int a_hideMs)
+		{
+			// A toast raised while the counter is open (e.g. intel bought) must draw above it, not behind it.
+			if (const int co = Counter::ViewOrder(); co >= 0 && g_api->GetOrder(g_view) <= co) {
+				g_api->SetOrder(g_view, co + 1);
+				SKSE::log::info("PrismaToast: order raised above the counter ({} -> {})", co, g_api->GetOrder(g_view));
+			}
+			g_api->Invoke(g_view, a_call.c_str());
+			// PrismaVR masks fighting controls while a laser is on any of its panels, the notice included (ControlsGuard.h).
+			if (!g_shown.exchange(true)) {
+				ControlsGuard::Shown();
+				std::thread([]() {
+					while (g_shown.load()) {
+						std::this_thread::sleep_for(std::chrono::milliseconds(50));
+						if (auto* task = SKSE::GetTaskInterface())
+							task->AddTask([]() {
+								if (g_shown.load() && !Counter::IsOpen()) ControlsGuard::KeepOn();  // the counter is clickable: leave its masking alone
+							});
+					}
+				}).detach();
+			}
+			g_api->Show(g_view);  // no Focus() - purely visual, plays over live gameplay
+
+			// Auto-hide after the CSS animation finishes so the (invisible but still "shown") view doesn't linger.
+			// Only the latest toast's timer hides the view: a toast shown mid-way through another restarts the
+			// animation, and the earlier timer would otherwise cut it off.
+			const auto seq = ++g_seq;
+			const int  hideMs = a_hideMs;
+			std::thread([seq, hideMs]() {
+				std::this_thread::sleep_for(std::chrono::milliseconds(hideMs));
+				if (auto* task = SKSE::GetTaskInterface()) {
+					task->AddTask([seq]() {
+						if (seq == g_seq.load() && g_api && g_api->IsValid(g_view)) {
+							g_api->Hide(g_view);
+							if (g_shown.exchange(false)) ControlsGuard::Hidden();
+						}
+					});
+				}
+			}).detach();
+		}
+	}
+
 	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal, Priority a_priority, Cue a_cue)
 	{
 		if (!Active() || !g_enabled.load(std::memory_order_relaxed)) return;
 		if (a_cue != Cue::kNone && Sounds() != SoundSet::kNone) Play(a_cue);  // only with a notice that is shown: a sound alone says nothing
 
 		std::string json = "{\"title\":\"" + Esc(a_title) + "\",\"subtitle\":\"" + Esc(a_subtitle) + "\",\"seal\":\"" + Esc(a_seal) + "\",\"hold\":" + std::to_string(HoldMs(a_priority) / 1000.0) + ",\"flat\":" + (REL::Module::IsVR() ? "false" : "true") + "}";
-		// A toast raised while the counter is open (e.g. intel bought) must draw above it, not behind it.
-		if (const int co = Counter::ViewOrder(); co >= 0 && g_api->GetOrder(g_view) <= co) {
-			g_api->SetOrder(g_view, co + 1);
-			SKSE::log::info("PrismaToast: order raised above the counter ({} -> {})", co, g_api->GetOrder(g_view));
-		}
-		g_api->Invoke(g_view, ("window.rkFlourish(" + json + ")").c_str());
-		// PrismaVR masks fighting controls while a laser is on any of its panels, the notice included (ControlsGuard.h).
-		if (!g_shown.exchange(true)) {
-			ControlsGuard::Shown();
-			std::thread([]() {
-				while (g_shown.load()) {
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-					if (auto* task = SKSE::GetTaskInterface())
-						task->AddTask([]() {
-							if (g_shown.load() && !Counter::IsOpen()) ControlsGuard::KeepOn();  // the counter is clickable: leave its masking alone
-						});
-				}
+		Present("window.rkFlourish(" + json + ")", HoldMs(a_priority) + 800 + 200);  // hold + fades + slack
+	}
+
+	void ShowLootBox(nlohmann::json a_ware, const std::vector<std::pair<int, RE::FormID>>& a_sounds)
+	{
+		if (!Active() || !g_enabled.load(std::memory_order_relaxed)) return;
+		const int  holdMs = std::max(3000, HoldMs(Priority::kImportant));
+		const auto lines = a_ware.contains("lines") && a_ware["lines"].is_array() ? static_cast<int>(a_ware["lines"].size()) : 0;
+		a_ware["hold"] = holdMs / 1000.0;
+		a_ware["flat"] = !REL::Module::IsVR();
+		// the reveal (index.html: the card at 2.0 s, a line every 0.3 s from 2.45 s), the hold, the fade, and slack
+		Present("window.agLootBox(" + a_ware.dump() + ")", 2450 + lines * 300 + 500 + holdMs + 600 + 200);
+		if (Sounds() == SoundSet::kNone) return;
+		// the game's own sounds, each the descriptor inside its record (see Play), on the game's thread, at its moment
+		const float gain = std::pow(10.0f, -std::max(-4.0f * static_cast<float>(Volume()), 0.0f) / 20.0f);
+		for (const auto& [ms, id] : a_sounds) {
+			std::thread([ms, id, gain]() {
+				std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+				if (auto* task = SKSE::GetTaskInterface())
+					task->AddTask([id, gain]() {
+						auto* f = RE::TESForm::LookupByID<RE::BGSSoundDescriptorForm>(id);
+						auto* m = RE::BSAudioManager::GetSingleton();
+						if (!f || !f->soundDescriptor || !m) return;
+						RE::BSSoundHandle h;
+						if (m->GetSoundHandle(h, f->soundDescriptor)) {
+							h.SetVolume(gain);
+							h.Play();
+						}
+					});
 			}).detach();
 		}
-		g_api->Show(g_view);  // no Focus() - purely visual, plays over live gameplay
-
-		// Auto-hide after the CSS animation finishes so the (invisible but still "shown") view doesn't linger.
-		// Only the latest toast's timer hides the view: a toast shown mid-way through another restarts the
-		// animation, and the earlier timer would otherwise cut it off.
-		const auto seq = ++g_seq;
-		const int  hideMs = HoldMs(a_priority) + 800 + 200;  // hold + fades + slack
-		std::thread([seq, hideMs]() {
-			std::this_thread::sleep_for(std::chrono::milliseconds(hideMs));
-			if (auto* task = SKSE::GetTaskInterface()) {
-				task->AddTask([seq]() {
-					if (seq == g_seq.load() && g_api && g_api->IsValid(g_view)) {
-						g_api->Hide(g_view);
-						if (g_shown.exchange(false)) ControlsGuard::Hidden();
-					}
-				});
-			}
-		}).detach();
 	}
 
 	float HoldSeconds() { return g_holdMs.load() / 1000.0f; }

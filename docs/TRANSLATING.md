@@ -84,8 +84,8 @@ Reputation and gold.
 * `$AG_Ware_Offer` (`{} Item`: the row's name, `{}` = the tier) and `$AG_Ware_Name` (`{} {}`: the item's new name, the
   tier then the item's own name; reorder them if your language puts the word after).
 * The counter: `$AG_Sec_GuildWares` (the section), `$AG_UI_NoteWares` (its note: that a ware costs Reputation),
-  `$AG_Note_NoRep`, and the reveal page: `$AG_UI_WareMeta` (`{0}` =
-  the tier, `{1}` = the price) and `$AG_UI_WareInPack`.
+  `$AG_Note_NoRep`, and the strongbox notice that shows what was bought: `$AG_Ware_ToastTier` (`{} Ware`, `{}` = the
+  tier) and `$AG_Ware_Price` (the price paid: Merit, Reputation, gold, in that order).
 * Messages: `$AG_Buy_Ware`, `$AG_Buy_WareRank`, `$AG_Buy_WareRep`, `$AG_Buy_WareGold`, `$AG_Buy_WareNone`, `$AG_Log_Ware`
   (the Records line) and `$AG_Why_Ware` (the reason shown when the Reputation is taken).
 
