@@ -95,10 +95,10 @@ namespace AG::Wares
 		}
 		std::string TierDesc(const Tier& a_t)
 		{
-			if (a_t.id == "guild") return Loc::T("$AG_WareDesc_guild", "A piece of gear for your level, from the Guild's vaults, with a modest enchantment.");
-			if (a_t.id == "blessed") return Loc::T("$AG_WareDesc_blessed", "A piece of gear for your level with a strong enchantment.");
-			if (a_t.id == "cursed") return Loc::T("$AG_WareDesc_cursed", "An enchantment stronger than any you will find, and a curse that comes with it.");
-			if (a_t.id == "heroic") return Loc::T("$AG_WareDesc_heroic", "A piece of gear for your level with two strong enchantments.");
+			if (a_t.id == "guild") return Loc::T("$AG_WareDesc_guild", "A strongbox from the Guild's vaults: a piece of gear for your level, with a modest enchantment.");
+			if (a_t.id == "blessed") return Loc::T("$AG_WareDesc_blessed", "A strongbox from the Guild's vaults: a piece of gear for your level, with a strong enchantment.");
+			if (a_t.id == "cursed") return Loc::T("$AG_WareDesc_cursed", "A sealed tomb chest: an enchantment stronger than any you will find, and a curse that comes with it.");
+			if (a_t.id == "heroic") return Loc::T("$AG_WareDesc_heroic", "A great chest from the Guild's vaults: a piece of gear for your level, with two strong enchantments.");
 			return {};
 		}
 
@@ -399,7 +399,7 @@ namespace AG::Wares
 		for (int i = 0; i < static_cast<int>(g_tiers.size()); ++i) {
 			auto& t = g_tiers[i];
 			if (t.rank < 0) continue;  // not offered yet (Heroic: Hero status)
-			out.push_back({ i, t.id, Loc::F("$AG_Ware_Offer", "{} Item", TierName(t)), TierDesc(t), t.rank, t.merit, t.reputation, t.gold });
+			out.push_back({ i, t.id, Loc::F("$AG_Ware_Offer", "{} Box", TierName(t)), TierDesc(t), t.rank, t.merit, t.reputation, t.gold });
 		}
 		return out;
 	}

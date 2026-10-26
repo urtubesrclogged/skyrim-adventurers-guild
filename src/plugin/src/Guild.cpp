@@ -1378,7 +1378,7 @@ namespace AG::Guild
 		LoseReputation(o.reputation, Loc::T("$AG_Why_Ware", "a gambler's shortcut at the counter"), false);
 		auto lines = nlohmann::json::array();
 		for (auto& line : made->lines) lines.push_back({ { "text", line.text }, { "curse", line.curse } });
-		PrismaToast::ShowLootBox({ { "tierId", o.id }, { "tier", Loc::F("$AG_Ware_ToastTier", "{} Ware", made->tier) }, { "name", made->name }, { "lines", lines },
+		PrismaToast::ShowLootBox({ { "tierId", o.id }, { "tier", Loc::F("$AG_Ware_ToastTier", "{} Item", made->tier) }, { "name", made->name }, { "lines", lines },
 									 { "price", Loc::F("$AG_Ware_Price", "{} Merit · {} Reputation · {} gold", o.merit, o.reputation, o.gold) } },
 			Wares::LootBoxSounds(a_tier));
 		return Loc::F("$AG_Buy_Ware", "You bought {}.", made->name);
@@ -1466,7 +1466,7 @@ namespace AG::Guild
 					{ "gold", sum + fee }, { "available", can }, { "note", can ? "" : Loc::T("$AG_UI_NotEnoughGold", "Not enough gold") } });
 			}
 		}
-		// Guild Wares (1.6.0): one row per tier on offer, priced in Merit, Reputation and gold
+		// Guild Boxes (1.6.0): one row per tier on offer, priced in Merit, Reputation and gold
 		{
 			const int gold = GoldCount();
 			for (auto& o : Wares::Offers()) {
@@ -1475,7 +1475,7 @@ namespace AG::Guild
 				else if (g_merit < o.merit) note = Loc::T("$AG_Note_NoMerit", "Not enough Merit");
 				else if (g_reputation < o.reputation) note = Loc::T("$AG_Note_NoRep", "Not enough Reputation");
 				else if (gold < o.gold) note = Loc::T("$AG_UI_NotEnoughGold", "Not enough gold");
-				services.push_back({ { "id", std::format("ware:{}", o.tier) }, { "section", Loc::T("$AG_Sec_GuildWares", "Guild Wares") }, { "sectionId", "Guild Wares" },
+				services.push_back({ { "id", std::format("ware:{}", o.tier) }, { "section", Loc::T("$AG_Sec_GuildBoxes", "Guild Boxes") }, { "sectionId", "Guild Boxes" },
 					{ "name", o.name }, { "desc", o.desc }, { "cost", o.merit }, { "rep", o.reputation }, { "gold", o.gold }, { "available", note.empty() }, { "note", note } });
 			}
 		}

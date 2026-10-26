@@ -75,16 +75,16 @@ New keys in the interface file, all optional, for Perk training (Services > Guil
   the Merit paid).
 * `$AG_UI_ChipPerks`: the chip on the Guild Card once a point is bought (`{0}` = how many).
 
-New keys for the Guild Wares (Services > Guild Wares): a piece of gear enchanted on the spot, bought for Merit,
-Reputation and gold.
+New keys for the Guild Boxes (Services > Guild Boxes): a strongbox bought for Merit, Reputation and gold, opened on
+the spot on a piece of gear enchanted for the buyer.
 
 * The tiers: `$AG_WareTier_guild`, `$AG_WareTier_blessed`, `$AG_WareTier_cursed`, `$AG_WareTier_heroic` (one word each:
   it leads the item's name), and what each is: `$AG_WareDesc_guild`, `$AG_WareDesc_blessed`, `$AG_WareDesc_cursed`,
   `$AG_WareDesc_heroic`.
-* `$AG_Ware_Offer` (`{} Item`: the row's name, `{}` = the tier) and `$AG_Ware_Name` (`{} {}`: the item's new name, the
+* `$AG_Ware_Offer` (`{} Box`: the row's name, `{}` = the tier) and `$AG_Ware_Name` (`{} {}`: the item's new name, the
   tier then the item's own name; reorder them if your language puts the word after).
-* The counter: `$AG_Sec_GuildWares` (the section), `$AG_UI_NoteWares` (its note: that a ware costs Reputation),
-  `$AG_Note_NoRep`, and the strongbox notice that shows what was bought: `$AG_Ware_ToastTier` (`{} Ware`, `{}` = the
+* The counter: `$AG_Sec_GuildBoxes` (the section), `$AG_UI_NoteBoxes` (its note: that a box costs Reputation),
+  `$AG_Note_NoRep`, and the strongbox notice that shows what was in the box: `$AG_Ware_ToastTier` (`{} Item`, `{}` = the
   tier) and `$AG_Ware_Price` (the price paid: Merit, Reputation, gold, in that order).
 * Messages: `$AG_Buy_Ware`, `$AG_Buy_WareRank`, `$AG_Buy_WareRep`, `$AG_Buy_WareGold`, `$AG_Buy_WareNone`, `$AG_Log_Ware`
   (the Records line) and `$AG_Why_Ware` (the reason shown when the Reputation is taken).

@@ -35,6 +35,9 @@ cp "$V/counter.html" "$V/index.html" "$M/PrismaUI/views/AdventurersGuild/"   # b
 [ -f "$V/tex/skin/sheet.png" ] || { echo "tex/skin/ is empty - run: python tools/make_skin_assets.py" >&2; exit 1; }
 mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex/skin" "$M/PrismaUI/views/AdventurersGuild/fonts"
 cp "$V"/tex/skin/*.png "$M/PrismaUI/views/AdventurersGuild/tex/skin/"
+# the Guild Boxes' strongboxes: renders of the game's own chests, not in the repository either (tools/make_chest_assets.py)
+[ -f "$V/tex/chest/guild_body.png" ] || { echo "tex/chest/ is empty - run tools/chest_render.py and tools/make_chest_assets.py" >&2; exit 1; }
+mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex/chest" && cp "$V"/tex/chest/*.png "$M/PrismaUI/views/AdventurersGuild/tex/chest/"
 cp "$V"/fonts/* "$M/PrismaUI/views/AdventurersGuild/fonts/"                   # Cyrodiil and its licence (OFL: they travel together)
 mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex" && cp "$R"/config/PrismaUI/views/AdventurersGuild/tex/*.png "$M/PrismaUI/views/AdventurersGuild/tex/"
 cp "$R"/build/papyrus/AG_*.pex                             "$M/Scripts/"

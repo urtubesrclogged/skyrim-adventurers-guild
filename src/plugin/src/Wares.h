@@ -32,7 +32,7 @@ namespace AG::Wares
 	{
 		int         tier{ 0 };
 		std::string id;          // "cursed"
-		std::string name, desc;  // "Cursed Item", what it is
+		std::string name, desc;  // "Cursed Box", what is in it
 		int         rank{ 0 }, merit{ 0 }, reputation{ 0 }, gold{ 0 };
 	};
 	std::vector<Offer> Offers();
