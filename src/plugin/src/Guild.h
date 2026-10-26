@@ -60,6 +60,9 @@ namespace AG::Guild
 	std::string ClaimAll(const std::string& a_city = {});
 	std::string PayBounties();  // the counter's Pay off all bounties (Services)
 	std::string BuyService(const std::string& a_id);  // returns a status line
+	// Guild Wares (1.6.0): buys and makes a ware of this tier; a_reveal gets what was made ({tier,name,lines,price}) for
+	// the counter to show, null when nothing was bought
+	std::string BuyWare(int a_tier, nlohmann::json& a_reveal);
 	nlohmann::json CounterData();                    // everything the counter window shows
 	void SyncGlobals();         // AG_PlayerRankGlobal / AG_RegisteredGlobal / AG_PromotionReadyGlobal
 

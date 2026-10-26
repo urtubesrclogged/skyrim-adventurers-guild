@@ -406,6 +406,22 @@
         ]
       },
       {
+        "key": "ag_wares",
+        "display_name": "Guild Wares",
+        "content": "The Adventurers Guild's counters sell Guild Wares from the Guild's vaults: a weapon, a piece of armour or a jewel, enchanted on the spot for whoever buys it, paid for in Merit, gold and Reputation. A Guild Item carries a modest enchantment and is sold from D-rank; a Blessed Item a strong one, from C-rank; a Cursed Item, from B-rank, an enchantment stronger than any found in the wild, and a curse that comes with it: slower healing, or a weakness to fire, frost, shock or magic, for as long as it is worn or held. The Guild sells them but frowns on them: a member who buys their power is taking a gambler's shortcut, and it costs them standing. Old hands tease anyone who shows off a cursed blade.",
+        "condition_expr": "",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "wares",
+          "cursed",
+          "merit",
+          "reputation"
+        ]
+      },
+      {
         "key": "ag_intel",
         "display_name": "What the Guild's scouts know",
         "content": "The Adventurers Guild keeps scouts, and sells what they know at its counters for Merit. Mostly that is where a hold's dungeons lie and how dangerous each one is. But the scouts also mark places that are no dungeon at all and still worth an adventurer's while: an Orc stronghold, a standing stone, a Daedric shrine, a hunters' shack, a lodge of the Vigilants of Stendarr, a landmark, a wreck on the shore. An innkeeper who keeps a counter will put any of them on an adventurer's map.",
@@ -497,7 +513,7 @@
       {
         "key": "ag_liaison_duties",
         "display_name": "Keeping a Guild counter",
-        "content": "As the Adventurers Guild's licensed liaison at this inn's counter: registers new adventurers for a fee, buys monster trophies for Merit, pays out adventurers' reports (gold, Merit and Reputation), sells the Guild's services for Merit (intel on dungeons and on other places worth knowing, Appraisal, training, library books), and hears cases for promotion. The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go. Knows why the Guild's ranks have grown so thin in Skyrim, and speaks of the disappearances carefully, never where a Thalmor might hear.",
+        "content": "As the Adventurers Guild's licensed liaison at this inn's counter: registers new adventurers for a fee, buys monster trophies for Merit, pays out adventurers' reports (gold, Merit and Reputation), sells the Guild's services for Merit (intel on dungeons and on other places worth knowing, Appraisal, training, library books) and Guild Wares from the vaults (enchanted gear, some of it cursed, that costs a member Reputation too), and hears cases for promotion. The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go. Knows why the Guild's ranks have grown so thin in Skyrim, and speaks of the disappearances carefully, never where a Thalmor might hear.",
         "condition_expr": "get_faction_rank(actorUUID, \"AG_GuildLiaisonFaction\") >= 0",
         "always_inject": false,
         "importance": 0.8,

@@ -59,6 +59,7 @@ namespace AG::Wares
 			int         effects{ 1 };
 			bool        curse{ false };
 			int         charge{ 0 };
+			int         merit{ 0 }, reputation{ 0 }, gold{ 0 };
 		};
 
 		struct Curse
@@ -78,6 +79,44 @@ namespace AG::Wares
 		std::vector<Curse>                   g_curses;
 		std::map<RE::FormID, int>            g_cursedWeapons;  // the created enchantment of a cursed weapon -> its curse
 		std::mt19937                         g_rng{ std::random_device{}() };
+		float                                g_resistCap{ 100.0f };
+
+		// the tier names a translator sees: literal keys, so tools/make_translations.py finds them
+		std::string TierName(const Tier& a_t)
+		{
+			if (a_t.id == "guild") return Loc::T("$AG_WareTier_guild", "Guild");
+			if (a_t.id == "blessed") return Loc::T("$AG_WareTier_blessed", "Blessed");
+			if (a_t.id == "cursed") return Loc::T("$AG_WareTier_cursed", "Cursed");
+			if (a_t.id == "heroic") return Loc::T("$AG_WareTier_heroic", "Heroic");
+			return a_t.name;
+		}
+		std::string TierDesc(const Tier& a_t)
+		{
+			if (a_t.id == "guild") return Loc::T("$AG_WareDesc_guild", "A piece of gear for your level, from the Guild's vaults, with a modest enchantment.");
+			if (a_t.id == "blessed") return Loc::T("$AG_WareDesc_blessed", "A piece of gear for your level with a strong enchantment.");
+			if (a_t.id == "cursed") return Loc::T("$AG_WareDesc_cursed", "An enchantment stronger than any you will find, and a curse that comes with it.");
+			if (a_t.id == "heroic") return Loc::T("$AG_WareDesc_heroic", "A piece of gear for your level with two strong enchantments.");
+			return {};
+		}
+
+		bool IsResist(RE::ActorValue a_av)
+		{
+			using AV = RE::ActorValue;
+			return a_av == AV::kResistFire || a_av == AV::kResistFrost || a_av == AV::kResistShock || a_av == AV::kResistMagic || a_av == AV::kPoisonResist ||
+			       a_av == AV::kResistDisease;
+		}
+
+		// an effect's line on the item card: its own description with the numbers filled in, as the game shows it
+		std::string Text(const RE::Effect& a_e)
+		{
+			std::string s = a_e.baseEffect ? std::string(a_e.baseEffect->magicItemDescription.c_str()) : std::string();
+			const auto  put = [&](std::string_view a_tag, const std::string& a_v) {
+				for (auto at = s.find(a_tag); at != std::string::npos; at = s.find(a_tag, at + a_v.size())) s.replace(at, a_tag.size(), a_v);
+			};
+			put("<mag>", std::format("{:.0f}", a_e.effectItem.magnitude));
+			put("<dur>", std::to_string(a_e.effectItem.duration));
+			return s;
+		}
 
 		template <class T = RE::TESForm>
 		T* Resolve(const std::string& a_key)
@@ -265,8 +304,10 @@ namespace AG::Wares
 			MeasureTiers();
 			for (auto& t : j.value("tiers", nlohmann::json::array())) {
 				g_tiers.push_back({ t.value("id", ""), t.value("name", ""), t.value("rank", -1), t.value("strength", 0.0f), t.value("multiplier", 1.0f),
-					std::max(1, t.value("effects", 1)), t.value("curse", false), std::max(0, t.value("charge", 0)) });
+					std::max(1, t.value("effects", 1)), t.value("curse", false), std::max(0, t.value("charge", 0)),
+					std::max(0, t.value("merit", 0)), std::max(0, t.value("reputation", 0)), std::max(0, t.value("gold", 0)) });
 			}
+			g_resistCap = j.value("resistCap", 100.0f);
 			auto*      dh = RE::TESDataHandler::GetSingleton();
 			RE::FormID id = kCurseAbility;
 			for (auto& c : j.value("curses", nlohmann::json::array())) {
@@ -332,7 +373,20 @@ namespace AG::Wares
 		}
 	}
 
-	std::string Make(int a_tier, std::string& a_err)
+	std::vector<Offer> Offers()
+	{
+		std::lock_guard    l(g_lock);
+		std::vector<Offer> out;
+		if (g_kinds.empty() || g_families.empty()) return out;
+		for (int i = 0; i < static_cast<int>(g_tiers.size()); ++i) {
+			auto& t = g_tiers[i];
+			if (t.rank < 0) continue;  // not offered yet (Heroic: Hero status)
+			out.push_back({ i, Loc::F("$AG_Ware_Offer", "{} Item", TierName(t)), TierDesc(t), t.rank, t.merit, t.reputation, t.gold });
+		}
+		return out;
+	}
+
+	std::optional<Made> Make(int a_tier, std::string& a_err)
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		auto* mgr = RE::BGSCreatedObjectManager::GetSingleton();
@@ -375,6 +429,7 @@ namespace AG::Wares
 				const float s = tier.strength, m = tier.multiplier;
 				if (r.magMax > 0.0f) {
 					e.effectItem.magnitude = std::round((r.magMin + s * (r.magMax - r.magMin)) * m);
+					if (IsResist(r.fx->data.primaryAV)) e.effectItem.magnitude = std::min(e.effectItem.magnitude, g_resistCap);  // past it, nothing
 					e.effectItem.duration = r.durMax;
 					e.cost = r.costAtMax * e.effectItem.magnitude / r.magMax;
 				} else {  // no magnitude (paralysis, soul trap): the strength is in the duration
@@ -418,7 +473,19 @@ namespace AG::Wares
 			return {};
 		}
 		if (weapon && curse >= 0) g_cursedWeapons[ench->GetFormID()] = curse;
-		const auto name = Loc::F("$AG_Ware_Name", "{} {}", Loc::T("$AG_WareTier_" + tier.id, tier.name), Name(item));
+		const auto tierName = TierName(tier);
+		const auto name = Loc::F("$AG_Ware_Name", "{} {}", tierName, Name(item));
+		Made       made{ tierName, name };
+		for (auto& e : effects) {
+			const Curse* c = curse >= 0 ? &g_curses[curse] : nullptr;
+			const bool  isCurse = c && (e.baseEffect == c->fx || e.baseEffect == c->noteWeapon || e.baseEffect == c->noteWorn);
+			auto        text = Text(e);
+			if (text.empty()) {
+				if (isCurse) continue;  // a vanilla curse effect with no text: its note says it
+				text = Describe(e);
+			}
+			made.lines.push_back({ std::move(text), isCurse });
+		}
 		l.unlock();
 
 		pc->AddObjectToContainer(item, nullptr, 1, nullptr);
@@ -426,10 +493,10 @@ namespace AG::Wares
 		if (xl) xl->SetOverrideName(name.c_str());
 		if (weapon && curse >= 0) SyncCurses();
 
-		std::string text = std::format("{} ({:08X}, enchantment {:08X}{}): ", name, item->GetFormID(), ench->GetFormID(), xl ? "" : ", NOT named: no extra list");
-		for (std::size_t i = 0; i < said.size(); ++i) text += (i ? "; " : "") + said[i];
-		SKSE::log::info("Wares: made {}", text);
-		return text;
+		made.log = std::format("{} ({:08X}, enchantment {:08X}{}): ", name, item->GetFormID(), ench->GetFormID(), xl ? "" : ", NOT named: no extra list");
+		for (std::size_t i = 0; i < said.size(); ++i) made.log += (i ? "; " : "") + said[i];
+		SKSE::log::info("Wares: made {}", made.log);
+		return made;
 	}
 
 	void SyncCurses()

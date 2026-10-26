@@ -235,8 +235,8 @@ namespace AG
 		std::string  DebugWareMake(Tag*, std::int32_t a_tier)
 		{
 			std::string err;
-			auto        made = Wares::Make(a_tier, err);
-			return made.empty() ? "failed: " + err : made;
+			const auto  made = Wares::Make(a_tier, err);
+			return made ? made->log : "failed: " + err;
 		}
 		std::string  DebugWaresDump(Tag*) { return Wares::DebugDump(); }
 		void         SetNameMode(Tag*, std::int32_t a_mode) { Names::SetMode(a_mode); }

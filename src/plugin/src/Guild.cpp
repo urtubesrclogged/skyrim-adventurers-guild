@@ -1341,9 +1341,51 @@ namespace AG::Guild
 		return Loc::F("$AG_Bounty_Paid", "Your bounties are paid: {} gold, the Guild's fee included.", sum + fee);
 	}
 
+	// Guild Wares (1.6.0): Merit, gold and Reputation for a ware made on the spot. Reputation is spent here and nowhere
+	// else: the author's lore, a gambler's shortcut the Guild frowns on. Everything is checked before anything is taken,
+	// and the ware is made before the price is taken, so a failure costs nothing.
+	std::string BuyWare(int a_tier, nlohmann::json& a_reveal)
+	{
+		a_reveal = nullptr;
+		const auto offers = Wares::Offers();
+		const auto it = std::ranges::find(offers, a_tier, &Wares::Offer::tier);
+		if (it == offers.end()) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
+		const auto& o = *it;
+		{
+			std::lock_guard l(g_lock);
+			if (!g_registered) return Loc::T("$AG_Buy_Unknown", "That service is not available yet.");
+			if (g_rank < o.rank) return Loc::F("$AG_Buy_WareRank", "{} requires Rank {}.", o.name, Letter(o.rank));
+			if (g_merit < o.merit) return Loc::F("$AG_Svc_NeedMerit", "You need {} Merit.", o.merit);
+			if (g_reputation < o.reputation) return Loc::F("$AG_Buy_WareRep", "It costs {} Reputation, and you have less.", o.reputation);
+		}
+		if (GoldCount() < o.gold) return Loc::F("$AG_Buy_WareGold", "It costs {} gold.", o.gold);
+		std::string err;
+		const auto  made = Wares::Make(a_tier, err);
+		if (!made) {
+			SKSE::log::warn("Guild: no ware of tier {} could be made ({})", a_tier, err);
+			return Loc::T("$AG_Buy_WareNone", "The Guild's vaults have nothing of that kind for you just now.");
+		}
+		TrySpendMerit(o.merit, Loc::F("$AG_Log_Ware", "Bought {} ({} Merit, {} gold).", made->name, o.merit, o.gold));
+		if (o.gold > 0 && g_gold) {
+			RE::PlayerCharacter::GetSingleton()->RemoveItem(g_gold, o.gold, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+			Hud(Loc::F("$AG_Hud_GoldRemoved", "{} gold removed.", o.gold));
+		}
+		LoseReputation(o.reputation, Loc::T("$AG_Why_Ware", "a gambler's shortcut at the counter"));
+		auto lines = nlohmann::json::array();
+		for (auto& line : made->lines) lines.push_back({ { "text", line.text }, { "curse", line.curse } });
+		a_reveal = { { "tier", made->tier }, { "name", made->name }, { "lines", lines }, { "merit", o.merit }, { "reputation", o.reputation }, { "gold", o.gold } };
+		return Loc::F("$AG_Buy_Ware", "You bought {}.", made->name);
+	}
+
 	std::string BuyService(const std::string& a_id)
 	{
 		if (a_id == "bounties:pay") return PayBounties();
+		if (a_id.starts_with("ware:")) {  // the counter itself goes through BuyWare, for the reveal; this is DevBench's way
+			nlohmann::json reveal;
+			auto           msg = BuyWare(std::atoi(a_id.c_str() + 5), reveal);
+			Counter::Refresh();
+			return msg;
+		}
 		if (a_id.starts_with("intel:")) {
 			auto msg = Dungeons::BuyIntel(a_id);
 			Counter::Refresh();
@@ -1420,6 +1462,19 @@ namespace AG::Guild
 					{ "name", Loc::T("$AG_UI_PayBounties", "Pay off all bounties") },
 					{ "desc", Loc::F("$AG_UI_PayBountiesDesc", "{0}, and the Guild's {1}% fee. Settled with every hold; no jail, and you keep what you carry.", where, g_cfg.bountyFeePercent) },
 					{ "gold", sum + fee }, { "available", can }, { "note", can ? "" : Loc::T("$AG_UI_NotEnoughGold", "Not enough gold") } });
+			}
+		}
+		// Guild Wares (1.6.0): one row per tier on offer, priced in Merit, Reputation and gold
+		{
+			const int gold = GoldCount();
+			for (auto& o : Wares::Offers()) {
+				std::string note;
+				if (g_rank < o.rank) note = Loc::F("$AG_Note_NeedRank", "Requires Rank {}", Letter(o.rank));
+				else if (g_merit < o.merit) note = Loc::T("$AG_Note_NoMerit", "Not enough Merit");
+				else if (g_reputation < o.reputation) note = Loc::T("$AG_Note_NoRep", "Not enough Reputation");
+				else if (gold < o.gold) note = Loc::T("$AG_UI_NotEnoughGold", "Not enough gold");
+				services.push_back({ { "id", std::format("ware:{}", o.tier) }, { "section", Loc::T("$AG_Sec_GuildWares", "Guild Wares") }, { "sectionId", "Guild Wares" },
+					{ "name", o.name }, { "desc", o.desc }, { "cost", o.merit }, { "rep", o.reputation }, { "gold", o.gold }, { "available", note.empty() }, { "note", note } });
 			}
 		}
 		j["services"] = std::move(services);

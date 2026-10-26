@@ -75,6 +75,25 @@ New keys in the interface file, all optional, for Perk training (Services > Guil
   the Merit paid).
 * `$AG_UI_ChipPerks`: the chip on the Guild Card once a point is bought (`{0}` = how many).
 
+New keys for the Guild Wares (Services > Guild Wares): a piece of gear enchanted on the spot, bought for Merit,
+Reputation and gold.
+
+* The tiers: `$AG_WareTier_guild`, `$AG_WareTier_blessed`, `$AG_WareTier_cursed`, `$AG_WareTier_heroic` (one word each:
+  it leads the item's name), and what each is: `$AG_WareDesc_guild`, `$AG_WareDesc_blessed`, `$AG_WareDesc_cursed`,
+  `$AG_WareDesc_heroic`.
+* `$AG_Ware_Offer` (`{} Item`: the row's name, `{}` = the tier) and `$AG_Ware_Name` (`{} {}`: the item's new name, the
+  tier then the item's own name; reorder them if your language puts the word after).
+* The counter: `$AG_Sec_GuildWares` (the section), `$AG_UI_NoteWares` (its note: that a ware costs Reputation),
+  `$AG_Note_NoRep`, and the reveal page: `$AG_UI_WareMeta` (`{0}` =
+  the tier, `{1}` = the price) and `$AG_UI_WareInPack`.
+* Messages: `$AG_Buy_Ware`, `$AG_Buy_WareRank`, `$AG_Buy_WareRep`, `$AG_Buy_WareGold`, `$AG_Buy_WareNone`, `$AG_Log_Ware`
+  (the Records line) and `$AG_Why_Ware` (the reason shown when the Reputation is taken).
+
+New text in the plugin (section 2): the curses. Six abilities named `Curse: ...` (`AG_Ab_WareCurse_*`) with their
+descriptions, and twelve effects whose only purpose is a line in a cursed item's description (`AG_MGEF_WareCurseNote_*`,
+"But you take <mag>% more damage from fire."). Keep `<mag>`: the game fills in the number. The line follows the
+enchantment's own sentence, so it starts a new sentence.
+
 ## Since 1.5.0
 
 New keys in the interface file, all optional, for the hold stamps on the Guild Card:
