@@ -21,6 +21,7 @@
 #include "PrismaToast.h"
 #include "RankCore.h"
 #include "Shop.h"
+#include "Wares.h"
 
 namespace AG
 {
@@ -226,6 +227,13 @@ namespace AG
 		std::int32_t GetAppraisalLevel(Tag*) { return Guild::AppraisalLevel(); }
 		void         DebugAddReport(Tag*, std::string a_title, std::int32_t a_gold, std::int32_t a_merit) { Guild::AddReport("debug", a_title, "Added from DevBench", a_gold, a_merit, a_merit); }
 		std::string  DebugBuy(Tag*, std::string a_id) { return Guild::BuyService(a_id); }
+		std::string  DebugWareMake(Tag*, std::int32_t a_tier)
+		{
+			std::string err;
+			auto        made = Wares::Make(a_tier, err);
+			return made.empty() ? "failed: " + err : made;
+		}
+		std::string  DebugWaresDump(Tag*) { return Wares::DebugDump(); }
 		void         SetNameMode(Tag*, std::int32_t a_mode) { Names::SetMode(a_mode); }
 		std::int32_t GetNameMode(Tag*) { return Names::GetMode(); }
 		void         NameSiteAllow(Tag*, std::int32_t a_rva, bool a_on) { Names::AllowSite(a_rva, a_on); }
@@ -335,6 +343,8 @@ namespace AG
 		REG(GetAppraisalLevel);
 		REG(DebugAddReport);
 		REG(DebugBuy);
+		REG(DebugWareMake);
+		REG(DebugWaresDump);
 		REG(SetNameMode);
 		REG(GetNameMode);
 		REG(NameSiteAllow);

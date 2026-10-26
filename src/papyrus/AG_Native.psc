@@ -120,6 +120,8 @@ Function DebugToast() Global Native                        ; shows a test notice
 Function DebugSetAppraisal(Int aiTier) Global Native       ; 0 = none, 1..3
 Int Function GetAppraisalLevel() Global Native
 Function DebugAddReport(String asTitle, Int aiGold, Int aiMerit) Global Native
+String Function DebugWareMake(Int aiTier) Global Native     ; makes a Guild Ware of tier 0..3 (Guild, Blessed, Cursed, Heroic) for the player, free
+String Function DebugWaresDump() Global Native             ; the enchantment families and their vanilla ranges
 String Function DebugBuy(String asId) Global Native         ; buys a counter service by id ("perk", "train:0", ...) and returns its status line
 Function SetNameMode(Int aiMode) Global Native
 Int Function GetNameMode() Global Native

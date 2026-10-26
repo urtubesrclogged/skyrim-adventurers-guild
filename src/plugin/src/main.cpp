@@ -26,6 +26,7 @@
 #include "RankCore.h"
 #include "Shop.h"
 #include "SkyrimNetData.h"
+#include "Wares.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
 
@@ -55,6 +56,7 @@ namespace
 		AG::Dungeons::OnGameLoaded();
 		AG::Party::DropCreatures();
 		AG::SkyrimNetData::OnGameLoaded();  // SkyrimNet reads this save's Guild record from now on
+		AG::Wares::OnGameLoaded();
 		// Taking a posted job down cannot be undone, and here it would be done on what the save said a moment ago.
 		// Only a save read whole is believed; otherwise it waits until the player walks up to a board.
 		if (AG::Guild::SaveState() == AG::Guild::SaveData::kClean) {
@@ -80,6 +82,7 @@ namespace
 			AG::Party::LoadConfig();
 			AG::Adventurers::Load();
 			AG::Shop::Load();
+			AG::Wares::Load();
 			AG::Guild::Register();
 			AG::LevelDisplay::Register();
 			AG::PrismaToast::Install();

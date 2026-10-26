@@ -25,6 +25,8 @@
 //                development builds only (never released): free.
 //   0xC00-0xC7B  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 //   0xC7C-0xC7F  a dead adventurer's card (1.5.0): AG_MemberCardBloody, AG_MemberCardMorrowindBloody, and their inventory art
+//   0xFE0-0xFFF  Guild Wares (1.6.0): 0xFE0-0xFEF the cursed weapons' curse abilities (wares.json "curses", in order); the
+//                dialogue INFOs that grow from 0xD00 stop short of this block
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mutagen.Bethesda;
@@ -372,7 +374,7 @@ uint InfoId(string key)
     if (!ids.TryGetValue(key, out var hex))
     {
         if (nextId is >= 0xC00 and < 0xD00) nextId = 0xD00;
-        if (nextId > 0xFFF) { Console.Error.WriteLine($"ERROR dialogue: no FormIDs left for '{key}' (0xA00-0xBFF and 0xD00-0xFFF are full)"); Environment.Exit(1); }
+        if (nextId >= 0xFE0) { Console.Error.WriteLine($"ERROR dialogue: no FormIDs left for '{key}' (0xA00-0xBFF and 0xD00-0xFDF are full; 0xFE0-0xFFF are the Guild Wares')"); Environment.Exit(1); }
         hex = $"0x{nextId++:X3}"; ids[key] = hex;
     }
     return Convert.ToUInt32(hex, 16);
@@ -1842,6 +1844,32 @@ for (int si = 0; si < 3; si++)
     }
     mod.Spells.Add(spell);
     Console.WriteLine($"party blessing: {spell.Effects.Count} effects, {traits.Count} traits, FormIDs to 0x{nextFx - 1:X}");
+}
+
+// ---------- Guild Wares (0xFE0-0xFEF, 1.6.0): the cursed weapons' curse abilities ----------
+// A worn Cursed Item carries its curse inside its enchantment (made at run time by the DLL, the way vanilla's Necromancer
+// Amulet carries slower regeneration). A weapon's enchantment strikes the target instead, so the owner of a cursed weapon
+// gets the curse as one of these abilities while it is equipped. Vanilla effects only; the order is wares.json's.
+{
+    var wares = ReadConfig("wares");
+    var curses = wares["curses"]!.AsArray();
+    if (curses.Count > 16) { Console.Error.WriteLine("ERROR wares.json: at most 16 curses (0xFE0-0xFEF)"); Environment.Exit(1); }
+    for (int i = 0; i < curses.Count; i++)
+    {
+        var c = curses[i]!;
+        var key = c["effect"]!.GetValue<string>();
+        var bar = key.IndexOf('|');
+        var fx = FormKey.Factory($"{Convert.ToUInt32(key[(bar + 1)..], 16):X6}:{key[..bar]}");
+        var name = c["name"]!.GetValue<string>();
+        var sp = new Spell(FK((uint)(0xFE0 + i)), Rel)
+        {
+            EditorID = $"AG_Ab_WareCurse_{c["id"]!.GetValue<string>()}", Name = $"Curse: {name}",
+            Description = "The price of a cursed weapon, paid while it is in your hand.",
+            Type = SpellType.Ability, CastType = CastType.ConstantEffect, TargetType = TargetType.Self, BaseCost = 0,
+        };
+        sp.Effects.Add(new Effect { BaseEffect = new FormLinkNullable<IMagicEffectGetter>(fx), Data = new EffectData { Magnitude = c["magnitude"]!.GetValue<float>() } });
+        mod.Spells.Add(sp);
+    }
 }
 
 // ---------- Missives (hard master): rank gating, rank labels, board manifest ----------

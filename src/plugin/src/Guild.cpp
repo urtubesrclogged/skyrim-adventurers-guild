@@ -19,6 +19,7 @@
 #include "RankCore.h"
 #include "Shop.h"
 #include "SkyrimNetData.h"
+#include "Wares.h"
 
 #include <SimpleIni.h>
 #include <chrono>
@@ -547,6 +548,7 @@ namespace AG::Guild
 				j["appraisal"] = g_appraisal.load();
 				j["training"] = g_training;
 				j["perkPoints"] = g_perkPoints;
+				j["wares"] = Wares::Saved();
 				if (g_augment >= 0) j["augment"] = { { "index", g_augment }, { "until", g_augmentUntil } };
 				j["dormant"] = g_dormant.load();
 				j["cardIssued"] = GuildCard::Issued();
@@ -602,6 +604,7 @@ namespace AG::Guild
 			g_appraisal = 0;
 			g_training.fill(0);
 			g_perkPoints = 0;
+			Wares::Restore({});
 			g_augment = -1;
 			g_augmentUntil = 0.0f;
 			g_dormant = false;
@@ -668,6 +671,7 @@ namespace AG::Guild
 							for (std::size_t i = 0; i < g_training.size() && i < v.size(); ++i) g_training[i] = std::max(0, v[i]);
 						}
 						g_perkPoints = std::max(0, j.value("perkPoints", 0));
+						Wares::Restore(j.value("wares", nlohmann::json::object()));
 						for (auto& r : j.value("reports", nlohmann::json::array())) {
 							g_reports.push_back({ r.value("kind", ""), r.value("title", ""), r.value("detail", ""), r.value("gold", 0), r.value("merit", 0), r.value("rep", r.value("merit", 0)), r.value("key", "") });
 						}

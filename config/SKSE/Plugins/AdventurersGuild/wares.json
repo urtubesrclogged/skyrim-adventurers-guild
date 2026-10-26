@@ -1,0 +1,44 @@
+{
+	"_comment": "Guild Wares (1.6.0): a gear piece bought at the counter and enchanted on the spot. Forms are 'Plugin|0xID' (no editor IDs: the DLL reads this file as it is).",
+
+	"_kinds": "What the gear piece is. list: a vanilla leveled list rolled at the player's level (gear other mods add to it comes along). weight: how often this kind is picked. A rolled item that is already enchanted is rolled again.",
+	"kinds": [
+		{ "id": "weapon",  "list": "Skyrim.esm|0x0B4212", "weight": 40 },
+		{ "id": "armor",   "list": "Skyrim.esm|0x0B420B", "weight": 40 },
+		{ "id": "jewelry", "list": "Skyrim.esm|0x0876A5", "weight": 20 }
+	],
+
+	"_families": "The enchantments a ware can carry: vanilla's base enchantments, the ones the enchanting table teaches. Armor ones say themselves which slots they fit (their worn restrictions, as at the table); weapon ones fit any weapon. Their strength comes from vanilla's own tiers of the same enchantment (e.g. Fortify Health 20..70), read at run time.",
+	"armorFamilies": [
+		"Skyrim.esm|0x10FB70", "Skyrim.esm|0x10FB71", "Skyrim.esm|0x10FB72", "Skyrim.esm|0x10FB73", "Skyrim.esm|0x10FB74",
+		"Skyrim.esm|0x10FB75", "Skyrim.esm|0x10FB76", "Skyrim.esm|0x10FB77", "Skyrim.esm|0x10FB78", "Skyrim.esm|0x10FB79",
+		"Skyrim.esm|0x10FB7A", "Skyrim.esm|0x10FB7B", "Skyrim.esm|0x10FB7C", "Skyrim.esm|0x10FB7D", "Skyrim.esm|0x10FB7E",
+		"Skyrim.esm|0x10FB7F", "Skyrim.esm|0x10FB80", "Skyrim.esm|0x10FB81", "Skyrim.esm|0x10FB82", "Skyrim.esm|0x10FB83",
+		"Skyrim.esm|0x10FB84", "Skyrim.esm|0x10FB85", "Skyrim.esm|0x10FB86", "Skyrim.esm|0x10FB87", "Skyrim.esm|0x10FB8A",
+		"Skyrim.esm|0x10FB8B", "Skyrim.esm|0x10FB8C", "Skyrim.esm|0x10FB8D", "Skyrim.esm|0x10FB8E", "Skyrim.esm|0x10FB8F",
+		"Skyrim.esm|0x10EAD1", "Skyrim.esm|0x10EAD2", "Skyrim.esm|0x10EAD3", "Skyrim.esm|0x10EAD4", "Skyrim.esm|0x10EAD5"
+	],
+	"weaponFamilies": [
+		"Skyrim.esm|0x10FB91", "Skyrim.esm|0x10FB92", "Skyrim.esm|0x10FB93", "Skyrim.esm|0x10FB94", "Skyrim.esm|0x10FB95",
+		"Skyrim.esm|0x10FB96", "Skyrim.esm|0x10FB97", "Skyrim.esm|0x10FB98", "Skyrim.esm|0x10FB99", "Skyrim.esm|0x10FB9A",
+		"Skyrim.esm|0x10FB9B", "Skyrim.esm|0x10FB9C", "Skyrim.esm|0x10FB9D", "Dragonborn.esm|0x02C46E"
+	],
+
+	"_tiers": "Index 0..3 = Guild, Blessed, Cursed, Heroic. rank: the guild rank that unlocks it (0..5 = E..S; -1 = not offered yet: Heroic waits for Hero status). strength: where in vanilla's tiers of the enchantment it sits, 0 = the weakest vanilla tier, 1 = the strongest. multiplier: the result is then multiplied (Cursed: twice the strongest vanilla item). effects: how many different enchantments (Heroic: two). curse: a Cursed Item also carries one of 'curses'. charge: a weapon's enchantment charge (a grand soul gem fills 3000). prefix: the item's new name is '<prefix> <item>'.",
+	"tiers": [
+		{ "id": "guild",   "name": "Guild",   "rank": 1,  "strength": 0.15, "multiplier": 1.0, "effects": 1, "curse": false, "charge": 1500 },
+		{ "id": "blessed", "name": "Blessed", "rank": 2,  "strength": 0.85, "multiplier": 1.0, "effects": 1, "curse": false, "charge": 2500 },
+		{ "id": "cursed",  "name": "Cursed",  "rank": 3,  "strength": 1.0,  "multiplier": 2.0, "effects": 1, "curse": true,  "charge": 4000 },
+		{ "id": "heroic",  "name": "Heroic",  "rank": -1, "strength": 1.0,  "multiplier": 1.0, "effects": 2, "curse": false, "charge": 4000 }
+	],
+
+	"_curses": "What a Cursed Item costs its owner while it is worn or held: vanilla effects only, and never one that touches Health or max Health (Battle Summaries counts a fall in Health that no blow explains as a wound). On worn items the curse is part of the enchantment, the way vanilla's Necromancer Amulet carries its slower regeneration. Weapons cannot carry it that way (a weapon's enchantment strikes the target), so a cursed weapon's owner gets the curse as an ability while the weapon is equipped: tools/EspGen builds one per entry, 0xFE0 onwards, in this order (append only).",
+	"curses": [
+		{ "id": "healrate",    "name": "Withering",       "effect": "Skyrim.esm|0x01729B", "magnitude": 75 },
+		{ "id": "staminarate", "name": "Leaden Limbs",    "effect": "Skyrim.esm|0x01729D", "magnitude": 75 },
+		{ "id": "fire",        "name": "Kindling",        "effect": "Skyrim.esm|0x02431E", "magnitude": 50 },
+		{ "id": "frost",       "name": "Thin Blood",      "effect": "Skyrim.esm|0x02431F", "magnitude": 50 },
+		{ "id": "shock",       "name": "Lightning Rod",   "effect": "Skyrim.esm|0x024324", "magnitude": 50 },
+		{ "id": "magic",       "name": "Open Mind",       "effect": "Skyrim.esm|0x0F0EA7", "magnitude": 35 }
+	]
+}
