@@ -20,7 +20,7 @@ namespace AG::Wares
 
 	// the co-save's part (inside the Guild's JSON)
 	nlohmann::json Saved();
-	void           Restore(const nlohmann::json& a_j);  // {} on a new game or revert
+	void           Restore(const nlohmann::json& a_j);  // an empty object on a new game or revert; never throws
 
 	// Makes a ware of tier 0..3 and gives it to the player. Returns a description of what was made ("" on failure,
 	// with the reason in a_err).

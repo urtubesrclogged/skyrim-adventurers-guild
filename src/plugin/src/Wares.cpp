@@ -220,32 +220,42 @@ namespace AG::Wares
 			return;
 		}
 		const auto j = nlohmann::json::parse(f, nullptr, false, true);
-		if (j.is_discarded()) {
+		if (j.is_discarded() || !j.is_object()) {
 			SKSE::log::error("Wares: wares.json is not valid JSON");
 			return;
 		}
-		for (auto& k : j.value("kinds", nlohmann::json::array())) {
-			auto* list = Resolve<RE::TESLevItem>(k.value("list", ""));
-			if (!list) {
-				SKSE::log::warn("Wares: kind {} has no list", k.value("id", ""));
-				continue;
+		// an entry of the wrong type (or a bad FormID) throws; at data load that would take the game down, so it only
+		// costs the wares
+		try {
+			for (auto& k : j.value("kinds", nlohmann::json::array())) {
+				auto* list = Resolve<RE::TESLevItem>(k.value("list", ""));
+				if (!list) {
+					SKSE::log::warn("Wares: kind {} has no list", k.value("id", ""));
+					continue;
+				}
+				g_kinds.push_back({ k.value("id", ""), list, std::max(0, k.value("weight", 1)) });
 			}
-			g_kinds.push_back({ k.value("id", ""), list, std::max(0, k.value("weight", 1)) });
-		}
-		for (auto& key : j.value("armorFamilies", std::vector<std::string>{})) AddFamily(key, false);
-		for (auto& key : j.value("weaponFamilies", std::vector<std::string>{})) AddFamily(key, true);
-		MeasureTiers();
-		for (auto& t : j.value("tiers", nlohmann::json::array())) {
-			g_tiers.push_back({ t.value("id", ""), t.value("name", ""), t.value("rank", -1), t.value("strength", 0.0f), t.value("multiplier", 1.0f),
-				std::max(1, t.value("effects", 1)), t.value("curse", false), std::max(0, t.value("charge", 0)) });
-		}
-		auto*      dh = RE::TESDataHandler::GetSingleton();
-		RE::FormID id = kCurseAbility;
-		for (auto& c : j.value("curses", nlohmann::json::array())) {
-			Curse curse{ c.value("id", ""), c.value("name", ""), Resolve<RE::EffectSetting>(c.value("effect", "")), c.value("magnitude", 0.0f),
-				dh ? dh->LookupForm<RE::SpellItem>(id++, kPlugin) : nullptr };
-			if (!curse.fx || !curse.ability) SKSE::log::warn("Wares: curse {} is missing its effect or ability", curse.id);
-			g_curses.push_back(std::move(curse));
+			for (auto& key : j.value("armorFamilies", std::vector<std::string>{})) AddFamily(key, false);
+			for (auto& key : j.value("weaponFamilies", std::vector<std::string>{})) AddFamily(key, true);
+			MeasureTiers();
+			for (auto& t : j.value("tiers", nlohmann::json::array())) {
+				g_tiers.push_back({ t.value("id", ""), t.value("name", ""), t.value("rank", -1), t.value("strength", 0.0f), t.value("multiplier", 1.0f),
+					std::max(1, t.value("effects", 1)), t.value("curse", false), std::max(0, t.value("charge", 0)) });
+			}
+			auto*      dh = RE::TESDataHandler::GetSingleton();
+			RE::FormID id = kCurseAbility;
+			for (auto& c : j.value("curses", nlohmann::json::array())) {
+				Curse curse{ c.value("id", ""), c.value("name", ""), Resolve<RE::EffectSetting>(c.value("effect", "")), c.value("magnitude", 0.0f),
+					dh ? dh->LookupForm<RE::SpellItem>(id++, kPlugin) : nullptr };
+				if (!curse.fx || !curse.ability) SKSE::log::warn("Wares: curse {} is missing its effect or ability", curse.id);
+				g_curses.push_back(std::move(curse));
+			}
+		} catch (const std::exception& e) {
+			SKSE::log::error("Wares: wares.json could not be read ({}); no wares are offered", e.what());
+			g_kinds.clear();
+			g_families.clear();
+			g_tiers.clear();
+			g_curses.clear();
 		}
 		SKSE::log::info("Wares: {} kinds, {} enchantment families, {} tiers, {} curses", g_kinds.size(), g_families.size(), g_tiers.size(), g_curses.size());
 
@@ -282,8 +292,12 @@ namespace AG::Wares
 	{
 		std::lock_guard l(g_lock);
 		g_cursedWeapons.clear();
-		for (auto& p : a_j.value("cursedWeapons", nlohmann::json::array())) {
-			if (p.is_array() && p.size() == 2) g_cursedWeapons[p[0].get<RE::FormID>()] = p[1].get<int>();
+		// value() throws on anything but an object, and this runs while a save loads: anything else is "no wares"
+		if (!a_j.is_object()) return;
+		const auto& list = a_j.find("cursedWeapons");
+		if (list == a_j.end() || !list->is_array()) return;
+		for (auto& p : *list) {
+			if (p.is_array() && p.size() == 2 && p[0].is_number_unsigned() && p[1].is_number_integer()) g_cursedWeapons[p[0].get<RE::FormID>()] = p[1].get<int>();
 		}
 	}
 

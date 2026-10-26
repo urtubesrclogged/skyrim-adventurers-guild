@@ -604,7 +604,7 @@ namespace AG::Guild
 			g_appraisal = 0;
 			g_training.fill(0);
 			g_perkPoints = 0;
-			Wares::Restore({});
+			Wares::Restore(nlohmann::json::object());
 			g_augment = -1;
 			g_augmentUntil = 0.0f;
 			g_dormant = false;
