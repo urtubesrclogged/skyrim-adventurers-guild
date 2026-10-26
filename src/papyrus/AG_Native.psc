@@ -69,6 +69,7 @@ Int Function GetDefaultSLevel() Global Native                ; a new game's: [Ra
 Function SetSLevel(Int aiLevel) Global Native
 Int Function GetRankLevel(Int aiRank) Global Native
 Function NoticeRankLevelsKept() Global Native                ; the one-time notice on a save from before 1.4.0
+Bool Function IsSaveFromBefore140() Global Native            ; the loaded save's Guild record predates 1.4.0 (false on a new game)
 Bool Function GetAudioOption(Int aiWhich) Global Native      ; MCM > Audio: 1 NPC greetings, 2 NPC interactions, 3 the representatives' own lines, 4 follower comments
 Function SetAudioOption(Int aiWhich, Bool abOn) Global Native
 Int Function GetNoticeSoundSet() Global Native              ; MCM > Audio > Notification sounds: 0 Guild Drums, 1 Skyrim, 2 none

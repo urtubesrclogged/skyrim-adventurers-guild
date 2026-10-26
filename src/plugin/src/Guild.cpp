@@ -76,6 +76,7 @@ namespace AG::Guild
 
 		std::mutex                   g_lock;
 		bool                         g_registered{ false };
+		std::atomic<bool>            g_oldRankLevels{ false };  // this game's Guild record predates 1.4.0 (no rank-S level in it)
 		int                          g_rank{ -1 };
 		int                          g_merit{ 0 };
 		int                          g_reputation{ 0 };
@@ -619,6 +620,7 @@ namespace AG::Guild
 			MemberCards::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
+			g_oldRankLevels = false;
 			g_saveData = SaveData::kNone;
 			std::uint32_t type, ver, len;
 			while (a->GetNextRecordInfo(type, ver, len)) {
@@ -690,6 +692,7 @@ namespace AG::Guild
 					if (j.contains("namedRanks")) Adventurers::LoadNamedRanks(j.at("namedRanks"));
 					// a save from before 1.4.0 keeps the levels it always had; the MCM (which holds the setting) agrees
 					SetSLevel(j.value("sLevel", kSLevelBefore140));
+					g_oldRankLevels = !j.contains("sLevel");
 					Dungeons::Load(j.value("dungeons", nlohmann::json::object()));
 					MissiveWatch::Load(j.value("boards", nlohmann::json::object()));
 					MemberCards::Load(j.value("memberCards", nlohmann::json::object()));
@@ -716,6 +719,7 @@ namespace AG::Guild
 			MemberCards::Revert();
 			Party::Revert();
 			SetSLevel(DefaultSLevel());
+			g_oldRankLevels = false;
 			g_saveData = SaveData::kNone;
 		}
 
@@ -1924,8 +1928,16 @@ namespace AG::Guild
 		});
 	}
 
+	bool SaveKeepsOldRankLevels() { return g_oldRankLevels.load(); }
+
 	void NoticeRankLevelsKept()
 	{
+		// only for a save whose Guild record predates 1.4.0. Until 1.5.2 the MCM decided by the order its own events ran
+		// in, and on a new game Skyrim's double OnInit could run its version step first: "rank levels kept" on a new game.
+		if (!g_oldRankLevels) {
+			SKSE::log::info("Guild: the MCM asked for the 'rank levels kept' notice, but this game is not a save from before 1.4.0 - not shown");
+			return;
+		}
 		SKSE::log::info("Guild: a save from before 1.4.0 - rank S stays at level {} here (new games: {})", GetSLevel(), DefaultSLevel());
 		PrismaToast::Show(Loc::T("$AG_Toast_BandsKept", "RANK LEVELS KEPT"),
 			Loc::F("$AG_Toast_BandsKeptSub", "Rank S stays at level {} in this game · new games use {} · change it in the MCM", GetSLevel(), DefaultSLevel()));

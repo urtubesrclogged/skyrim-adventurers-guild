@@ -81,6 +81,7 @@ namespace AG
 		void         SLevelSet(Tag*, std::int32_t a_level) { AG::SetSLevel(a_level); Guild::OnBandsChanged(); }
 		std::int32_t GetRankLevel(Tag*, std::int32_t a_rank) { return AG::MinLevel(a_rank); }
 		void         NoticeRankLevelsKept(Tag*) { Guild::NoticeRankLevelsKept(); }
+		bool         IsSaveFromBefore140(Tag*) { return Guild::SaveKeepsOldRankLevels(); }
 		std::string CancelUninstall(Tag*) { return Guild::CancelUninstall(); }
 		std::string UninstallText(Tag*, std::int32_t a_which)
 		{
@@ -269,6 +270,7 @@ namespace AG
 		a_vm->RegisterFunction("SetSLevel", kClass, SLevelSet);
 		REG(GetRankLevel);
 		REG(NoticeRankLevelsKept);
+		REG(IsSaveFromBefore140);
 		REG(CancelUninstall);
 		REG(UninstallText);
 		REG(IsGuildLiaison);

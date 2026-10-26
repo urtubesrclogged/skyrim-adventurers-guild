@@ -83,12 +83,19 @@ Event OnVersionUpdate(Int a_version)
 		bShowLabels = bShowGuild || bShowThreat || bShowLevel
 		Apply()
 	EndIf
-	; version 4: the level of rank S. A game already under way keeps the levels it had (S at 60). Once only.
+	; version 4: the level of rank S. A save from before 1.4.0 keeps the levels it had (S at 60), and says so; anything
+	; else takes the default. Once only. The DLL says which it is (1.5.2): on a new game Skyrim can run this before
+	; OnConfigInit (a start-game quest gets OnInit twice, on two threads), so "not set yet" alone does not mean an old save.
 	If !bSLevelSet
 		bSLevelSet = True
-		iSLevel = 60
-		Apply()
-		AG_Native.NoticeRankLevelsKept()
+		If AG_Native.IsSaveFromBefore140()
+			iSLevel = 60
+			Apply()
+			AG_Native.NoticeRankLevelsKept()
+		Else
+			iSLevel = AG_Native.GetDefaultSLevel()
+			Apply()
+		EndIf
 	EndIf
 EndEvent
 
