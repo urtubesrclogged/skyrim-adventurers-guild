@@ -38,7 +38,9 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
     [Missives - Voice and Quest Expansion](https://www.nexusmods.com/skyrimspecialedition/mods/166094), its twenty new kinds of missive are Guild
     missives as well.
     With [Monster Hunt Missives](https://www.nexusmods.com/skyrimspecialedition/mods/186539), its hunt contracts are Guild
-    missives too, ranked C to A by what you hunt.
+    missives too, ranked C to A by what you hunt. With
+    [Missives for the Good Guys](https://www.nexusmods.com/skyrimspecialedition/mods/98373), its four hundred new missives
+    (crafting orders, deliveries, tombs to clear and more) are Guild missives, ranked E to C like Missives' own.
   - Provincial Notices, with [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218) installed.
 - **Reports**: hand in finished quests and cleared dungeons at any counter for gold, Merit and Reputation.
 - **Trophies**: sell proof of your hunts to the Guild for Merit.
@@ -79,6 +81,10 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   hunt contracts are Guild missives, ranked by what you hunt (C to A), behind the rank gate, on the counter's Quests tab,
   and a report for Merit and Reputation when its broker has paid you. Built on as its author's terms invite; nothing of
   it is included or overridden.
+- [Missives for the Good Guys](https://www.nexusmods.com/skyrimspecialedition/mods/98373) by Lizzy of the Wildlander Team (with
+  Missives): its missives are Guild missives, ranked by the Missives difficulty list it puts each in (E to C), behind the
+  rank gate, on the counter's Quests tab, and a report when done. Supported with its author's permission; nothing of it
+  is included or overridden. It needs SkyPatcher, as its page says.
 - [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218): more guild quests, shared across the
   province.
 - SkyUI: the mod's settings menu (MCM), including the uninstall button.

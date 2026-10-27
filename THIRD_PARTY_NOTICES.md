@@ -29,8 +29,9 @@ EXCEPTIONS.md (see LICENSE). It builds on the following work by others.
 
 SKSE / SKSE VR, Address Library for SKSE Plugins, PrismaUI, SkyUI (or SkyUI VR) for the MCM, Missives (optional: rank-gated
 Guild Missives), with Missives - Worldspace Additions, Missives - Voice and Quest Expansion (by jayserpa) and
-Monster Hunt Missives (by sgtbham1, https://www.nexusmods.com/skyrimspecialedition/mods/186539) as optional add-ons to
-it, The Notice Board SE (optional: rank-gated Guild Notices), and optionally SkyrimNet and Deeds of Skyrim. Each is the work of its own authors and under its own terms.
+Monster Hunt Missives (by sgtbham1, https://www.nexusmods.com/skyrimspecialedition/mods/186539) and Missives for the
+Good Guys (by Lizzy of the Wildlander Team, https://www.nexusmods.com/skyrimspecialedition/mods/98373) as optional add-ons
+to it, The Notice Board SE (optional: rank-gated Guild Notices), and optionally SkyrimNet and Deeds of Skyrim. Each is the work of its own authors and under its own terms.
 
 `TESV_Papyrus_Flags.flg` is Bethesda's file from the Creation Kit; it is not included - point `PAPYRUS_FLAGS` in
 `local.env` at your own copy.

@@ -97,6 +97,86 @@ static class MissivesPatch
         Console.WriteLine($"wrote {path}");
     }
 
+    /// "Missives for the Good Guys" (Nexus 98373, by Lizzy of the Wildlander Team; taken in with its author's permission):
+    /// some 450 new missives in two plugins. It does not put them in Missives' per-hold lists in its plugins: SkyPatcher
+    /// adds them at load, from SKSE/Plugins/Skypatcher/formList/MFTGG_Formlists.ini. So this reads that file, finds
+    /// which "_M_ListQuests<Hold><Tier>" list (Missives', or Missives - Solstheim's) each line fills, and gives each new
+    /// quest the rank of the lowest list it is in, as Missives' own. It also overrides 291 of Missives' quests (its
+    /// bug fixes): those are already in missives.json, and the DLL gates whichever version wins. Writes
+    /// missives_goodguys.json; nothing of the mod is mastered, copied or overridden. Run when the mod updates (set
+    /// MISSIVES_GOODGUYS in local.env to its folder).
+    public static void GoodGuys(string folder, string missivesPath, string configDir)
+    {
+        var rel = SkyrimRelease.SkyrimSE;
+        var plugins = new[] { "MissivesforTheGoodGuys.esp", "MissivesforTheGoodGuysPart2.esp" }
+            .Select(p => SkyrimMod.CreateFromBinaryOverlay(Path.Combine(folder, p), rel)).ToList();
+        var ini = Path.Combine(folder, "SKSE", "Plugins", "Skypatcher", "formList", "MFTGG_Formlists.ini");
+        var listNameRe = new Regex(@"^_M_ListQuests([A-Za-z]+?)(Low|Med|High|VeryHigh)$");
+        // the lists a line may fill, by "plugin|local id": Missives' own, and Missives - Solstheim's when it is at hand
+        var lists = new Dictionary<string, (string hold, int rank)>(StringComparer.OrdinalIgnoreCase);
+        void Lists(ISkyrimModGetter m)
+        {
+            foreach (var l in m.FormLists)
+                if (listNameRe.Match(l.EditorID ?? "") is { Success: true } lm)
+                    lists[$"{m.ModKey.FileName}|{l.FormKey.ID:X}"] = (lm.Groups[1].Value, TierRank[lm.Groups[2].Value].rank);
+        }
+        Lists(SkyrimMod.CreateFromBinaryOverlay(missivesPath, rel));
+        var dirs = (Environment.GetEnvironmentVariable("MISSIVES_ADDONS") ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (dirs.Select(d => Path.Combine(d, "Missives - Solstheim.esp")).FirstOrDefault(File.Exists) is string sol) Lists(SkyrimMod.CreateFromBinaryOverlay(sol, rel));
+        else Console.WriteLine("Missives for the Good Guys: Missives - Solstheim.esp not found (MISSIVES_ADDONS) - its Solstheim missives are left out");
+
+        var quests = plugins.SelectMany(p => p.Quests).Where(q => plugins.Any(p => p.ModKey == q.FormKey.ModKey)).ToDictionary(q => q.FormKey);
+        var questAt = new Dictionary<FormKey, (string hold, int rank)>();
+        int lines = 0, otherLists = 0, notOurs = 0;
+        var lineRe = new Regex(@"^\s*filterByFormLists\s*=\s*([^|:]+)\|0x([0-9A-Fa-f]+)\s*:\s*formsToAdd\s*=\s*(.*)$");
+        var formRe = new Regex(@"([^,|]+?\.es[pml])\|0x([0-9A-Fa-f]+)", RegexOptions.IgnoreCase);
+        foreach (var line in File.ReadLines(ini))
+        {
+            var m = lineRe.Match(line);
+            if (!m.Success) continue;
+            lines++;
+            if (!lists.TryGetValue($"{m.Groups[1].Value.Trim()}|{Convert.ToUInt32(m.Groups[2].Value, 16):X}", out var at)) { otherLists++; continue; }  // e.g. Raise Disposition's
+            foreach (Match f in formRe.Matches(m.Groups[3].Value))
+            {
+                var fk = new FormKey(ModKey.FromFileName(f.Groups[1].Value.Trim()), Convert.ToUInt32(f.Groups[2].Value, 16));
+                if (!quests.ContainsKey(fk)) { notOurs++; continue; }   // one of Missives' own (already in missives.json), or not a quest
+                questAt[fk] = questAt.TryGetValue(fk, out var have) && have.rank <= at.rank ? have : at;
+            }
+        }
+
+        string K(FormKey fk) => $"{fk.ModKey.FileName}|0x{fk.ID:X6}";
+        var bookRanks = new SortedDictionary<string, SortedSet<int>>();
+        var outQuests = new List<object>();
+        int gateable = 0, retarget = 0;
+        foreach (var (fk, at) in questAt.OrderBy(kv => kv.Key.ModKey.FileName.String).ThenBy(kv => kv.Key.ID))
+        {
+            var q = quests[fk];
+            if (q.Aliases.Any(a => a.Conditions.Count > 0 && !(a.Flags?.HasFlag(QuestAlias.Flag.Optional) ?? false))) gateable++;
+            else Console.WriteLine($"WARNING Missives for the Good Guys: {q.EditorID} has no gateable alias");
+            string? noteFrom = null, noteTo = null;
+            if (q.Aliases.FirstOrDefault(a => a.Name == "Missive" && a.CreateReferenceToObject is not null)?.CreateReferenceToObject!.Object.FormKey is FormKey nk)
+            {
+                if (nk.ModKey == Missives)
+                {   // one of Missives' notes: its rank variant, as for Missives' own quests
+                    if (NoteVariant.TryGetValue((nk, at.rank), out var use) && use != nk) { noteFrom = $"0x{nk.ID:X6}"; noteTo = $"0x{use.ID:X6}"; retarget++; }
+                }
+                else { if (!bookRanks.TryGetValue(K(nk), out var set)) bookRanks[K(nk)] = set = new(); set.Add(at.rank); }
+            }
+            outQuests.Add(new { form = K(fk), tier = Letter(at.rank).ToString(), hold = at.hold, noteFrom, noteTo, editorId = q.EditorID });
+        }
+        // a note used at one rank is labeled; a shared one is left as the mod wrote it (the quest still shows its rank)
+        var books = bookRanks.Where(kv => kv.Value.Count == 1).Select(kv => new { form = kv.Key, tier = Letter(kv.Value.Min).ToString() }).ToList();
+        var outPath = Path.Combine(configDir, "missives_goodguys.json");
+        File.WriteAllText(outPath, JsonSerializer.Serialize(new
+        {
+            _comment = "Missives for the Good Guys (Nexus 98373, by Lizzy of the Wildlander Team; taken in with its author's permission): its missives with the Guild rank of the Missives difficulty list SkyPatcher puts each in (Low E, Med D, High C), generated by tools/EspGen from its plugins and MFTGG_Formlists.ini (see MissivesPatch.GoodGuys). Read only when MissivesforTheGoodGuys.esp is loaded; nothing of it is mastered, copied or shipped. noteFrom/noteTo: a Missives note swapped for its rank variant in AdventurersGuild.esp. The editor IDs are for reading only.",
+            plugin = "MissivesforTheGoodGuys.esp", tag = "MFTGG", quests = outQuests, books,
+        }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
+        Console.WriteLine($"Missives for the Good Guys: {lines} list lines ({otherLists} for other lists), {questAt.Count} missives ({gateable} gateable; " +
+                          $"{string.Join(" ", questAt.GroupBy(kv => Letter(kv.Value.rank)).OrderBy(g => "EDCB".IndexOf(g.Key)).Select(g => g.Key + ":" + g.Count()))}), " +
+                          $"{notOurs} entries not its own, {books.Count} of {bookRanks.Count} notes labeled, {retarget} Missives notes swapped -> {outPath}");
+    }
+
     /// "Missives - Voice and Quest Expansion" (Nexus 166094, MissivesExpansion.esp): 20 more missive types. It overrides
     /// Missives' per-hold lists to add a WRAPPER quest per type (script _ME_QuestBoard), which sets the hold and starts
     /// the real quest (property QuestToStart; its note is QuestToStartMissive). One real quest serves every hold. This

@@ -390,9 +390,35 @@ namespace AG::MissiveWatch
 		// every hold, so it has no hold of its own here (the board its note is on says where it is posted).
 		// g_lock held. Returns how many were taken in.
 		// The same, for any other mod that posts missives of its own on Missives' boards: Monster Hunt Missives (1.5.0,
-		// missives_monsterhunt.json - its hunt contracts; its broker still pays the gold, the Guild credits the report).
+		// missives_monsterhunt.json - its hunt contracts; its broker still pays the gold, the Guild credits the report),
+		// and Missives for the Good Guys (1.6.0, missives_goodguys.json - its missives are per hold, as Missives' own).
 		std::atomic<int> g_expansion{ 0 };  // 0 not loaded, 1 loaded but nothing taken in, 2 active (MCM Debug page)
 		std::atomic<int> g_monsterHunt{ 0 };
+		std::atomic<int> g_goodGuys{ 0 };
+
+		// A quest's "Missive" alias pointed at the rank variant of a Missives note (noteFrom: Missives.esp, noteTo:
+		// AdventurersGuild.esp), only while it still creates Missives' original. 1 swapped, -1 left as another patch set
+		// it, 0 nothing to do.
+		int RetargetNote(RE::TESDataHandler* a_dh, RE::TESQuest* a_quest, const nlohmann::json& a_from, const nlohmann::json& a_to)
+		{
+			RE::BGSRefAlias* missive = nullptr;
+			for (auto* base : a_quest->aliases) {
+				if (!base || base->GetVMTypeID() != RE::BGSRefAlias::VMTYPEID) continue;
+				auto* alias = static_cast<RE::BGSRefAlias*>(base);
+				if (alias->aliasName == "Missive" && alias->fillType.all(RE::BGSBaseAlias::FILL_TYPE::kCreated)) missive = alias;
+			}
+			if (!missive) return 0;
+			// untyped lookup + As<>: LookupForm<T> matches T::FORMTYPE exactly, so <TESBoundObject> never finds a book
+			auto* fromForm = a_dh->LookupForm(Hex(a_from), "Missives.esp");
+			auto* from = fromForm ? fromForm->As<RE::TESBoundObject>() : nullptr;
+			auto* to = a_dh->LookupForm(Hex(a_to), "AdventurersGuild.esp");
+			auto*& obj = missive->fillData.created.object;
+			if (obj && obj == from && to && to->As<RE::TESBoundObject>()) {
+				obj = to->As<RE::TESBoundObject>();
+				return 1;
+			}
+			return from && obj != from ? -1 : 0;
+		}
 
 		int IntegrateExpansion(RE::TESDataHandler* a_dh, RE::TESGlobal* a_rankGlobal, const char* a_file, std::atomic<int>& a_state)
 		{
@@ -403,7 +429,7 @@ namespace AG::MissiveWatch
 			const auto plugin = j.value("plugin", "");
 			if (plugin.empty() || (!a_dh->LookupLoadedModByName(plugin) && !a_dh->LookupLoadedLightModByName(plugin))) return 0;
 			a_state = 1;
-			int taken = 0, gated = 0, missing = 0, labeled = 0;
+			int taken = 0, gated = 0, missing = 0, labeled = 0, retargeted = 0;
 			for (auto& e : j.value("quests", nlohmann::json::array())) {
 				auto* form = KeyForm(a_dh, e.value("form", ""));
 				auto* quest = form ? form->As<RE::TESQuest>() : nullptr;
@@ -413,12 +439,13 @@ namespace AG::MissiveWatch
 					continue;
 				}
 				g_watch[quest->GetFormID()] = tier[0];
-				g_hold[quest->GetFormID()] = "";  // any hold
+				g_hold[quest->GetFormID()] = e.value("hold", "");  // none: any hold
 				if (const int ps = j.value("postedStage", 0); ps != 0) g_postedStage[quest->GetFormID()] = ps;
 				if (const auto tg = j.value("tag", std::string()); !tg.empty()) g_tag[quest->GetFormID()] = tg;
 				Label(quest, tier[0]);
 				if (a_rankGlobal && GateQuest(quest, a_rankGlobal, FromLetter(tier[0]))) ++gated;
 				ShutIfBroken(quest, a_rankGlobal);
+				if (e.contains("noteTo") && RetargetNote(a_dh, quest, e.at("noteFrom"), e.at("noteTo")) == 1) ++retargeted;
 				++taken;
 			}
 			for (auto& b : j.value("books", nlohmann::json::array())) {
@@ -430,8 +457,9 @@ namespace AG::MissiveWatch
 					++labeled;
 				}
 			}
-			SKSE::log::info("MissiveWatch: {} - {} missives taken in ({} rank-gated, {} notes labeled, {} not found: a different version of it?)",
-				plugin, taken, gated, labeled, missing);
+			SKSE::log::info("MissiveWatch: {} - {} missives taken in ({} rank-gated, {} notes labeled, {} notes swapped to rank variants, {} not found: a "
+							"different version of it?)",
+				plugin, taken, gated, labeled, retargeted, missing);
 			if (taken > 0) a_state = 2;
 			return taken;
 		}
@@ -454,11 +482,9 @@ namespace AG::MissiveWatch
 				Label(quest, tier[0]);
 				// the must-fill alias: non-Optional, the richest existing filter (as the Missives patch always did)
 				RE::BGSRefAlias* best = nullptr;
-				RE::BGSRefAlias* missive = nullptr;
 				for (auto* base : quest->aliases) {
 					if (!base || base->GetVMTypeID() != RE::BGSRefAlias::VMTYPEID) continue;
 					auto* alias = static_cast<RE::BGSRefAlias*>(base);
-					if (alias->aliasName == "Missive" && alias->fillType.all(RE::BGSBaseAlias::FILL_TYPE::kCreated)) missive = alias;
 					if (alias->flags.any(RE::BGSBaseAlias::FLAGS::kOptional) || !alias->conditions || !alias->conditions->head) continue;
 					if (!best || Count(alias->conditions) > Count(best->conditions)) best = alias;
 				}
@@ -471,18 +497,10 @@ namespace AG::MissiveWatch
 				}
 				ShutIfBroken(quest, rankGlobal);
 				// the rank variant of a shared note, only while the quest still creates Missives' original
-				if (entry.contains("noteTo") && missive) {
-					// untyped lookup + As<>: LookupForm<T> matches T::FORMTYPE exactly, so <TESBoundObject> never finds a book
-					auto* fromForm = a_dh->LookupForm(Hex(entry.at("noteFrom")), "Missives.esp");
-					auto* from = fromForm ? fromForm->As<RE::TESBoundObject>() : nullptr;
-					auto* to = a_dh->LookupForm(Hex(entry.at("noteTo")), "AdventurersGuild.esp");
-					auto*& obj = missive->fillData.created.object;
-					if (obj && obj == from && to && to->As<RE::TESBoundObject>()) {
-						obj = to->As<RE::TESBoundObject>();
-						++retargeted;
-					} else if (from && obj != from) {
-						++keptPatched;
-					}
+				if (entry.contains("noteTo")) {
+					const int r = RetargetNote(a_dh, quest, entry.at("noteFrom"), entry.at("noteTo"));
+					if (r == 1) ++retargeted;
+					if (r == -1) ++keptPatched;
 				}
 			}
 			for (auto& b : a_j.value("books", nlohmann::json::array())) {
@@ -593,7 +611,8 @@ namespace AG::MissiveWatch
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
 			auto* rankGlobal = dh->LookupForm<RE::TESGlobal>(Hex(j.at("rankGlobal")), "AdventurersGuild.esp");
-			for (const auto& [file, state] : { std::pair{ "missives_expansion.json", &g_expansion }, std::pair{ "missives_monsterhunt.json", &g_monsterHunt } }) {
+			for (const auto& [file, state] : { std::pair{ "missives_expansion.json", &g_expansion }, std::pair{ "missives_monsterhunt.json", &g_monsterHunt },
+					 std::pair{ "missives_goodguys.json", &g_goodGuys } }) {
 				try {
 					IntegrateExpansion(dh, rankGlobal, file, *state);
 				} catch (const std::exception& e) {
@@ -616,6 +635,7 @@ namespace AG::MissiveWatch
 	bool Active() { return g_active; }
 	int  ExpansionState() { return g_active ? g_expansion.load() : 0; }
 	int  MonsterHuntState() { return g_active ? g_monsterHunt.load() : 0; }
+	int  GoodGuysState() { return g_active ? g_goodGuys.load() : 0; }
 	int  WorldspaceState() { return g_active ? g_worldspace.load() : 0; }
 
 	// After a load: which missives the player is carrying (running, past the board, not finished)

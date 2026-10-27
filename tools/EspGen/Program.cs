@@ -1903,6 +1903,9 @@ MissivesPatch.ApplyAddons(configDir, gRank.FormKey, addonGlobals.ToDictionary(kv
 // optional: refresh the manifest of "Missives - Voice and Quest Expansion" (the checked-in file is used otherwise)
 if (Environment.GetEnvironmentVariable("MISSIVES_EXPANSION_ESP") is { Length: > 0 } expansionPath && File.Exists(expansionPath))
     MissivesPatch.Expansion(expansionPath, configDir);
+// optional: refresh the manifest of "Missives for the Good Guys" (its folder: the plugins and its SkyPatcher lists)
+if (Environment.GetEnvironmentVariable("MISSIVES_GOODGUYS") is { Length: > 0 } goodGuys && Directory.Exists(goodGuys))
+    MissivesPatch.GoodGuys(goodGuys, missivesPath, configDir);
 
 // ---------- write ----------
 mod.ModHeader.Stats.NextFormID = Math.Max(0x900u, nextMissivesId);

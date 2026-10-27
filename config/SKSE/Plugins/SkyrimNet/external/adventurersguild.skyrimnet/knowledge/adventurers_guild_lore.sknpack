@@ -135,6 +135,22 @@
         ]
       },
       {
+        "key": "ag_missives_crafting",
+        "display_name": "Trade and crafting missives",
+        "content": "Not every Guild missive is a fight. The boards also carry the work of a hold's traders and households: a smith wanted to outfit the guards or the army, a full set of armour and a blade made to order, gear to temper or enchant, potions, scrolls and spell books for the alchemists and the court mage, pelts, gemstones, firewood, fish and vegetables for the inns, food for a Jarl's feast, meals and harvests to deliver, books for a noble's library, and rush orders against the clock. There are tombs and mage lairs to clear as well. The Guild ranks them like any other missive and credits whoever reports them; crafters and hunters among its members make a steady living from them.",
+        "condition_expr": "is_plugin_loaded(\"MissivesforTheGoodGuys.esp\")",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "missives",
+          "crafting",
+          "trade",
+          "jobs"
+        ]
+      },
+      {
         "key": "ag_dwindling",
         "display_name": "Why so few adventurers remain",
         "content": "Skyrim has few adventurers left, and not for want of work: the roads, barrows and caves are as dangerous as ever. The losses came in waves. Many of the Adventurers Guild's registered members died fighting the Aldmeri Dominion in the Great War, when the Legion called them up as auxiliaries. More were lost or set aside in the civil war. And since the Thalmor got hold of the Guild's ledgers, adventurers on its books keep disappearing. Underneath it all, the Guild always had an uphill fight in Skyrim, against the Companions and without halls of its own.",
