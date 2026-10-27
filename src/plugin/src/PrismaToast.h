@@ -15,6 +15,7 @@
 // every call here is a safe no-op.
 #include <nlohmann/json.hpp>
 
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -41,9 +42,9 @@ namespace AG::PrismaToast
 	// a_seal: image in the view's folder shown in place of the guild emblem, e.g. "tex/rank_C.png" ("" = emblem).
 	void Show(std::string_view a_title, std::string_view a_subtitle, std::string_view a_seal = {}, Priority a_priority = Priority::kImportant, Cue a_cue = Cue::kNone);
 	// A Guild Ware bought (1.6.0): a strongbox rattles, bursts open and gives up its item (index.html, agLootBox).
-	// a_ware: {tierId, tier, name, lines: [{text, curse}], price}. a_sounds: the game's sound records to play on its
-	// timeline, as (ms from the start, FormID); none when the notices' sounds are off.
-	void ShowLootBox(nlohmann::json a_ware, const std::vector<std::pair<int, RE::FormID>>& a_sounds);
+	// a_ware: {tierId, tier, name, lines: [{text, curse}], price}. a_sounds: the sound records to play on its timeline, as
+	// (ms from the start, FormID, dB below the file at the default volume step); none when the notices' sounds are off.
+	void ShowLootBox(nlohmann::json a_ware, const std::vector<std::tuple<int, RE::FormID, float>>& a_sounds);
 	// MCM > Audio > Notification sounds: which sounds the notices play (AdventurersGuild.ini [System] NoticeSoundSet)
 	enum class SoundSet { kDrums = 0, kSkyrim = 1, kNone = 2 };
 	SoundSet Sounds();

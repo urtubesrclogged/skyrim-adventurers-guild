@@ -9,6 +9,7 @@
 
 #include <optional>
 #include <string>
+#include <tuple>
 #include <vector>
 
 // Guild Wares (1.6.0): a gear piece bought at the counter and enchanted on the spot (wares.json). The piece comes from
@@ -36,8 +37,9 @@ namespace AG::Wares
 		int         rank{ 0 }, merit{ 0 }, reputation{ 0 }, gold{ 0 };
 	};
 	std::vector<Offer> Offers();
-	// The strongbox's sounds for a tier (wares.json "sounds"): (ms from the start of the notice, sound record FormID)
-	std::vector<std::pair<int, RE::FormID>> LootBoxSounds(int a_tier);
+	// The strongbox's sounds for a tier (wares.json "sounds"): (ms from the start of the notice, sound record FormID, dB
+	// below the file at the default volume step). a_drums: MCM > Audio's Guild Drums set, else the game's own sounds.
+	std::vector<std::tuple<int, RE::FormID, float>> LootBoxSounds(int a_tier, bool a_drums);
 
 	// A ware made: its name, and its description as the item card reads it, one line per effect (curse = the price).
 	struct Made

@@ -81,7 +81,7 @@ namespace AG::Wares
 		std::map<RE::FormID, int>            g_cursedWeapons;  // the created enchantment of a cursed weapon -> its curse
 		std::mt19937                         g_rng{ std::random_device{}() };
 		float                                g_resistCap{ 100.0f };
-		RE::FormID                           g_rattleSound{ 0 }, g_unlockSound{ 0 }, g_openSound{ 0 };
+		RE::FormID                           g_rattleSound{ 0 }, g_unlockSound{ 0 }, g_openSound{ 0 }, g_drumSound{ 0 };
 
 
 		// the tier names a translator sees: literal keys, so tools/make_translations.py finds them
@@ -342,6 +342,7 @@ namespace AG::Wares
 			g_rattleSound = SoundId(sounds.value("rattle", ""));
 			g_unlockSound = SoundId(sounds.value("unlock", ""));
 			g_openSound = SoundId(sounds.value("open", ""));
+			g_drumSound = SoundId(sounds.value("drum", ""));
 			for (std::size_t i = 0; i < g_tiers.size(); ++i) {
 				const auto& t = j["tiers"][i];
 				g_tiers[i].revealSound = SoundId(t.value("revealSound", ""));
@@ -429,14 +430,21 @@ namespace AG::Wares
 		return out;
 	}
 
-	std::vector<std::pair<int, RE::FormID>> LootBoxSounds(int a_tier)
+	std::vector<std::tuple<int, RE::FormID, float>> LootBoxSounds(int a_tier, bool a_drums)
 	{
-		std::lock_guard                          l(g_lock);
-		std::vector<std::pair<int, RE::FormID>> out;
+		std::lock_guard                                  l(g_lock);
+		std::vector<std::tuple<int, RE::FormID, float>> out;
+		// The Guild Drums: the drum (made for this timeline, from the start) at every drum's level (PrismaToast.cpp, Play),
+		// the game's rattle, lock and lid 1 dB under it, the balance the author chose by ear (2026-10-27); no reveal sound,
+		// the drum's last blow is the reveal. Without the drum's record, the game's sounds as below.
+		const bool drums = a_drums && g_drumSound;
+		if (drums) out.emplace_back(0, g_drumSound, 3.93f);
+		const float foley = drums ? 3.93f + 1.02f : 0.0f;
 		// index.html's timeline: the box rattles from 0.5 s, the lock gives at 1.55 s, the lid bursts at 1.7 s, the card at 2.0 s
 		for (const auto& [ms, id] : { std::pair{ 550, g_rattleSound }, { 1050, g_rattleSound }, { 1550, g_unlockSound }, { 1700, g_openSound } })
-			if (id) out.emplace_back(ms, id);
-		if (a_tier >= 0 && a_tier < static_cast<int>(g_tiers.size()) && g_tiers[a_tier].revealSound) out.emplace_back(2000, g_tiers[a_tier].revealSound);
+			if (id) out.emplace_back(ms, id, foley);
+		if (!drums && a_tier >= 0 && a_tier < static_cast<int>(g_tiers.size()) && g_tiers[a_tier].revealSound)
+			out.emplace_back(2000, g_tiers[a_tier].revealSound, 0.0f);
 		return out;
 	}
 

@@ -1380,7 +1380,7 @@ namespace AG::Guild
 		for (auto& line : made->lines) lines.push_back({ { "text", line.text }, { "curse", line.curse } });
 		PrismaToast::ShowLootBox({ { "tierId", o.id }, { "tier", Loc::F("$AG_Ware_ToastTier", "{} Item", made->tier) }, { "name", made->name }, { "lines", lines },
 									 { "price", Loc::F("$AG_Ware_Price", "{} Merit · {} Reputation · {} gold", o.merit, o.reputation, o.gold) } },
-			Wares::LootBoxSounds(a_tier));
+			Wares::LootBoxSounds(a_tier, PrismaToast::Sounds() == PrismaToast::SoundSet::kDrums));
 		return Loc::F("$AG_Buy_Ware", "You bought {}.", made->name);
 	}
 

@@ -274,7 +274,7 @@ namespace AG::PrismaToast
 		Present("window.rkFlourish(" + json + ")", HoldMs(a_priority) + 800 + 200);  // hold + fades + slack
 	}
 
-	void ShowLootBox(nlohmann::json a_ware, const std::vector<std::pair<int, RE::FormID>>& a_sounds)
+	void ShowLootBox(nlohmann::json a_ware, const std::vector<std::tuple<int, RE::FormID, float>>& a_sounds)
 	{
 		if (!Active() || !g_enabled.load(std::memory_order_relaxed)) return;
 		const int  holdMs = std::max(3000, HoldMs(Priority::kImportant));
@@ -284,9 +284,10 @@ namespace AG::PrismaToast
 		// the reveal (index.html: the card at 2.0 s, a line every 0.3 s from 2.45 s), the hold, the fade, and slack
 		Present("window.agLootBox(" + a_ware.dump() + ")", 2450 + lines * 300 + 500 + holdMs + 600 + 200);
 		if (Sounds() == SoundSet::kNone) return;
-		// the game's own sounds, each the descriptor inside its record (see Play), on the game's thread, at its moment
-		const float gain = std::pow(10.0f, -std::max(-4.0f * static_cast<float>(Volume()), 0.0f) / 20.0f);
-		for (const auto& [ms, id] : a_sounds) {
+		// each the descriptor inside its record (see Play), on the game's thread, at its moment; its level as Play's: its
+		// own cut, 4 dB less or more a volume step, never above the file itself
+		for (const auto& [ms, id, cut] : a_sounds) {
+			const float gain = std::pow(10.0f, -std::max(cut - 4.0f * static_cast<float>(Volume()), 0.0f) / 20.0f);
 			std::thread([ms, id, gain]() {
 				std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 				if (auto* task = SKSE::GetTaskInterface())

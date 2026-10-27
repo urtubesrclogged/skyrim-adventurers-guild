@@ -21,6 +21,7 @@
 //   0xC90        AG_MissivesSolstheimGlobal (one global per Missives add-on, 0xC90-0xC9F)
 //   0xCA0-0xCD7  Guild Augments: effects 0xCA0+, abilities 0xCC0+, perks 0xCD0+
 //   0xCD8-0xCDA  SkyrimNet (1.5.2): AG_SkyrimNetStandingFaction, AG_SkyrimNetNoteFaction, AG_SkyrimNetPartyFaction
+//   0xCDB        AG_DrumBoxOpened (1.6.0): the Guild Drums' Guild Box opening (wares.json "sounds")
 //   0xCE0-0xCE5  Show Guild Card: the strongholds' branch and topic (0xCE4/5). 0xCE0-0xCE3 were the College's and the Treasury House's in
 //                development builds only (never released): free.
 //   0xC00-0xC7B  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
@@ -1484,6 +1485,9 @@ Cue(0xC8E, "AG_DrumPromotionReady", "UILevelUpSD", @"Data\Sound\FX\AdventurersGu
 Cue(0xC8F, "AG_DrumComplete", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_cleared.wav");
 Cue(0xCE7, "AG_DrumStamped", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_stamp.wav");
 Cue(0xCE8, "AG_DrumReputationLost", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_reputation_lost.wav");
+// a Guild Box opened at the counter (1.6.0): a drum scored to the box's animation, played under the game's rattle,
+// lock and lid (Wares.cpp, LootBoxSounds); the author's pick of 2026-10-27
+Cue(0xCDB, "AG_DrumBoxOpened", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_box_opened.wav");
 
 // What the inventory shows for a card, and what the Book Menu opens (a book's "inventory art"): the game's own menu
 // note with its pages hidden and the card laid in it (tools/make_card_mesh.py, write_inventory, says why). 0xCE0-0xCE2,

@@ -60,7 +60,9 @@ mkdir -p "$M/SEQ" && cp "$R/build/esp/SEQ/AdventurersGuild.seq" "$M/SEQ/"
 # voiced lines ship as .fuz: build.ps1 -Only voice packs config/Sound (.wav + .lip sources) into build/Sound
 if [ -d "$R/build/Sound" ]; then rm -rf "$M/Sound" && mkdir -p "$M/Sound" && cp -r "$R/build/Sound/." "$M/Sound/"; fi   # .fuz only; replaces the old WAV + LIP set
 # the Guild Drums (1.5.0): the notices' own sounds, made by tools/make_drums.py (private, like all the mod's audio)
-[ -f "$R/config/Sound/FX/AdventurersGuild/ag_cleared.wav" ] || { echo "the Guild Drums are missing - run: python tools/make_drums.py" >&2; exit 1; }
+for f in ag_cleared ag_box_opened; do   # ag_box_opened: the Guild Box (1.6.0)
+  [ -f "$R/config/Sound/FX/AdventurersGuild/$f.wav" ] || { echo "the Guild Drums are missing ($f) - run: python tools/make_drums.py" >&2; exit 1; }
+done
 mkdir -p "$M/Sound/FX/AdventurersGuild" && cp "$R"/config/Sound/FX/AdventurersGuild/*.wav "$M/Sound/FX/AdventurersGuild/"
 [ -f "$M/meta.ini" ] || printf '[General]\nmodid=0\nnotes=Adventurers Guild. Requires Missives 2.03.\n' > "$M/meta.ini"   # MO2 bookkeeping only
 echo "deployed"; find "$M" -type f | sed "s#$M/##" | sort
