@@ -109,6 +109,26 @@ namespace AG::Wares
 			       a_av == AV::kResistDisease;
 		}
 
+		// the stat an effect works on, with a regeneration rate and its multiplier counted as one (vanilla's Fortify
+		// Healing Rate and the Necromancer Amulet's slower healing may name either)
+		RE::ActorValue Stat(const RE::EffectSetting* a_fx)
+		{
+			using AV = RE::ActorValue;
+			switch (const auto av = a_fx ? a_fx->data.primaryAV : AV::kNone) {
+			case AV::kHealRateMult: return AV::kHealRate;
+			case AV::kStaminaRateMult: return AV::kStaminaRate;
+			case AV::kMagickaRateMult: return AV::kMagickaRate;
+			default: return av;
+			}
+		}
+
+		// a curse that works on the stat a boon raises would cancel it (Resist Fire and a weakness to fire)
+		bool Cancels(const Curse& a_c, const Family& a_f)
+		{
+			const auto stat = Stat(a_c.fx);
+			return stat != RE::ActorValue::kNone && std::ranges::any_of(a_f.fx, [&](auto& r) { return Stat(r.fx) == stat; });
+		}
+
 		// an effect's line on the item card: its own description with the numbers filled in, as the game shows it
 		std::string Text(const RE::Effect& a_e)
 		{
@@ -348,6 +368,11 @@ namespace AG::Wares
 			g_curses.clear();
 		}
 		SKSE::log::info("Wares: {} kinds, {} enchantment families, {} tiers, {} curses", g_kinds.size(), g_families.size(), g_tiers.size(), g_curses.size());
+		for (auto& c : g_curses) {
+			for (auto& f : g_families) {
+				if (Cancels(c, f)) SKSE::log::info("Wares: curse {} is never paired with {}", c.id, Name(f.base));
+			}
+		}
 
 		struct EquipSink : RE::BSTEventSink<RE::TESEquipEvent>
 		{
@@ -471,7 +496,12 @@ namespace AG::Wares
 		}
 		int curse = -1;
 		if (tier.curse && !g_curses.empty()) {
-			curse = std::uniform_int_distribution<int>(0, static_cast<int>(g_curses.size()) - 1)(g_rng);
+			std::vector<int> open;  // never one that cancels the boon it comes with
+			for (int i = 0; i < static_cast<int>(g_curses.size()); ++i) {
+				if (std::ranges::none_of(fits, [&](auto* f) { return Cancels(g_curses[i], *f); })) open.push_back(i);
+			}
+			if (open.empty()) open.push_back(std::uniform_int_distribution<int>(0, static_cast<int>(g_curses.size()) - 1)(g_rng));
+			curse = open[std::uniform_int_distribution<std::size_t>(0, open.size() - 1)(g_rng)];
 			auto& c = g_curses[curse];
 			const auto note = [&](RE::EffectSetting* a_note) {  // the description's line; does nothing
 				if (!a_note) return;
