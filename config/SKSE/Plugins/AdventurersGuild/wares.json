@@ -38,8 +38,8 @@
 
 	"_curses": "What a Cursed Item costs its owner while it is worn or held: vanilla effects only, and never one that touches Health or max Health (Battle Summaries counts a fall in Health that no blow explains as a wound). On worn items the curse is part of the enchantment, the way vanilla's Necromancer Amulet carries its slower regeneration. Weapons cannot carry it that way (a weapon's enchantment strikes the target), so a cursed weapon's owner gets the curse as an ability while the weapon is equipped: tools/EspGen builds one per entry, 0xFE0 onwards, in this order (append only). note: how the curse reads in the item's description, after 'But ' (<mag> is the magnitude): 'Absorb 80 points of magicka. But you take 50% more damage from shock.' A weapon's description cannot show its owner's curse, and four of these vanilla effects have no text at all, so EspGen also builds two effects per curse that do nothing but carry this note (0xFF0 + 2n for weapons, 0xFF1 + 2n for worn items); the worn one is only added when the vanilla effect has no text of its own.",
 	"curses": [
-		{ "id": "healrate",    "name": "Withering",       "effect": "Skyrim.esm|0x01729B", "magnitude": 100, "note": "your Health regenerates <mag>% slower" },
-		{ "id": "staminarate", "name": "Leaden Limbs",    "effect": "Skyrim.esm|0x01729D", "magnitude": 100, "note": "your Stamina regenerates <mag>% slower" },
+		{ "id": "healrate",    "name": "Withering",       "effect": "Skyrim.esm|0x01729B", "magnitude": 50, "note": "your Health regenerates <mag>% slower" },
+		{ "id": "staminarate", "name": "Leaden Limbs",    "effect": "Skyrim.esm|0x01729D", "magnitude": 50, "note": "your Stamina regenerates <mag>% slower" },
 		{ "id": "fire",        "name": "Kindling",        "effect": "Skyrim.esm|0x02431E", "magnitude": 100, "note": "you take <mag>% more damage from fire" },
 		{ "id": "frost",       "name": "Thin Blood",      "effect": "Skyrim.esm|0x02431F", "magnitude": 100, "note": "you take <mag>% more damage from frost" },
 		{ "id": "shock",       "name": "Lightning Rod",   "effect": "Skyrim.esm|0x024324", "magnitude": 100, "note": "you take <mag>% more damage from shock" },
