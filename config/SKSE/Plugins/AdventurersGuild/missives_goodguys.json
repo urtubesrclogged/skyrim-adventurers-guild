@@ -2811,5 +2811,1779 @@
       "form": "MissivesforTheGoodGuysPart2.esp|0x000DA4",
       "tier": "C"
     }
+  ],
+  "messages": [
+    {
+      "form": "MissivesforTheGoodGuysPart2.esp|0x000F03",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000802",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000803",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000804",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000805",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000806",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000808",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000809",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00080A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00080B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00080C",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00080D",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00080E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00080F",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000810",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000811",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000812",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000813",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000814",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000815",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000816",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000817",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000818",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000819",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00081A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00081B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00081C",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00081D",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00081E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00081F",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000820",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000821",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000822",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000823",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000824",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000825",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000826",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000827",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000828",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000829",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00082A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00082B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00082C",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00082D",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00082E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00082F",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000830",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000831",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000832",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000833",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000834",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000835",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000836",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000837",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000838",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000839",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00083A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00083B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00083C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00083D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00083E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00083F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000840",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000841",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000842",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000843",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000844",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000845",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000846",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000847",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000848",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000849",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00084A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00084B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00084C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00084D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00084E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00084F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000850",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000851",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000852",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000853",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000854",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000855",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000856",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000857",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000858",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000859",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00085A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00085B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00085D",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00085E",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00085F",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000860",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000861",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000862",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000863",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000864",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000865",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000866",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000867",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000868",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000869",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00086A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00086B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00086C",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00086D",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00086E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00086F",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000871",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000872",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000873",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000874",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000875",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000876",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000877",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000878",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000879",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00087A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00087B",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00087C",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00087D",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00087E",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00087F",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000880",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000881",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000882",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000883",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000884",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000885",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000886",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000887",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000888",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000889",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00088A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00088B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00088C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00088D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00088E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00088F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000890",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000891",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000892",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000893",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000894",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000895",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000896",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000897",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000898",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000899",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00089A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00089B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00089C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00089D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00089E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00089F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A0",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A1",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A2",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A3",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A4",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A5",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A6",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A7",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A8",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008A9",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008AA",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008AB",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008AC",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008AD",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008AE",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008AF",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B0",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B1",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B2",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B3",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B4",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B5",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B6",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B7",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B8",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008B9",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008BA",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008BB",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008BC",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008BD",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008BE",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008BF",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C0",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C1",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C2",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C3",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C4",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C5",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C6",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C7",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C8",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008C9",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008CA",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008CB",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008CC",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008CD",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008CE",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008CF",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D0",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D1",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D2",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D3",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D4",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D5",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D6",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D7",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D8",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008D9",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008DA",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008DB",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008DC",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008DD",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008DE",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008DF",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E0",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E1",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E2",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E3",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E4",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E5",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E6",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E7",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E8",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008E9",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008EA",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008EB",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008EC",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008ED",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008EE",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008EF",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F0",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F2",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F3",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F4",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F5",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F6",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F7",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F8",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008F9",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008FA",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008FB",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008FC",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008FD",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008FE",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0008FF",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000900",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000901",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000902",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000903",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000904",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000905",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000906",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000907",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000908",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000909",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00090A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00090B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00090C",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00090D",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00090E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00090F",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000910",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000911",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000912",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000913",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000914",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000915",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000916",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000917",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000918",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000919",
+      "tier": "B"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00091A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00091B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00091C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00091D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00091E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00091F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000920",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000922",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000923",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000924",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000925",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000926",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000927",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000928",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000929",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00092A",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00092B",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00092C",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00092D",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00092E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00092F",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000930",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000931",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000932",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000933",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000934",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000936",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000937",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000938",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000939",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00093A",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00093B",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00093C",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00093D",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00093E",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00093F",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000941",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000942",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000943",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000944",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000945",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000946",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000947",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000948",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000949",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00094A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00094B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00094C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00094D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00094E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00094F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000950",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000951",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000952",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000953",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000954",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000955",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000956",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000957",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000958",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000959",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00095A",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00095B",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00095C",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00095D",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00095E",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00095F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000960",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000961",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000962",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000963",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000964",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000965",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000966",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000967",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000968",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000969",
+      "tier": "D"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00096A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00096B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00096C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00096D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00096E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00096F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000970",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000971",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000972",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000973",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000974",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000975",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000976",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000977",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000978",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000979",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00097A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00097B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00097C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00097D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00097E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00097F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000980",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000981",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000982",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000983",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000984",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000985",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000986",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000987",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000988",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000989",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00098A",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00098B",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00098C",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00098D",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00098E",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00098F",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000990",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000991",
+      "tier": "C"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000992",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000993",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000994",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000995",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000996",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000997",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000998",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x000999",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00099A",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00099B",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00099C",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00099D",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00099E",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x00099F",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A0",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A1",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A2",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A3",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A4",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A5",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A6",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A7",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A8",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009A9",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009AA",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009AB",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009AC",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009AD",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009AE",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009AF",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B0",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B1",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B2",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B3",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B4",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B5",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B6",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B7",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B8",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009B9",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009BA",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009BB",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009BC",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009BD",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009BE",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009BF",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009C0",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009C1",
+      "tier": "E"
+    },
+    {
+      "form": "MissivesSharedResources.esp|0x0009C2",
+      "tier": "E"
+    }
   ]
 }

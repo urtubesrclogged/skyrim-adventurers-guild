@@ -40,6 +40,10 @@ namespace AG::MissiveWatch
 		bool                                       g_active{ false };
 		std::unordered_set<RE::FormID>             g_boardBases;  // _M_ActivatorBoard trigger bases
 		std::unordered_set<RE::FormID>             g_boardContainers;  // _M_MissiveBoard: the board the player opens
+		// The Messages a mod titles its notes from (manifest "messages"): its scripts rebuild some titles from scratch as
+		// they post (an enchanting or potion order), so the label is put back each time a board is opened.
+		std::vector<std::pair<RE::FormID, char>>   g_titles;
+		void                                       RelabelTitles();
 		// Each board's own refresh timer, as Missives keeps it on the trigger by the board (_M_ActivatorScript:
 		// LastUpdate, RefreshRate): read when the trigger's town loads, since the trigger exists only then. Keyed by
 		// the board's StableKey (boards are persistent: the counter can find them). Co-save.
@@ -276,6 +280,7 @@ namespace AG::MissiveWatch
 				if (!a_event || g_boardContainers.empty() || !a_event->objectActivated || !a_event->actionRef || !a_event->actionRef->IsPlayerRef())
 					return RE::BSEventNotifyControl::kContinue;
 				auto* base = a_event->objectActivated->GetBaseObject();
+				if (base && g_boardContainers.contains(base->GetFormID())) RelabelTitles();  // before the board's list is drawn
 				if (base && g_boardContainers.contains(base->GetFormID()))
 					SKSE::GetTaskInterface()->AddTask([] {
 						WithdrawAboveRank();
@@ -296,6 +301,13 @@ namespace AG::MissiveWatch
 			const std::string_view cur = a_named->GetFullName();
 			if (QuestBoard::StripRank(std::string(cur)) != cur) return;  // already labeled
 			a_named->fullName = std::string(cur) + QuestBoard::RankSuffix(a_tier);
+		}
+
+		void RelabelTitles()
+		{
+			std::lock_guard l(g_lock);
+			for (const auto& [id, tier] : g_titles)
+				if (auto* msg = RE::TESForm::LookupByID<RE::BGSMessage>(id); msg && *msg->GetFullName()) Label(msg, tier);
 		}
 
 		// "AG_PlayerRankGlobal >= rank" as the FIRST condition, so it is ANDed with the whole existing list (a leading
@@ -457,9 +469,22 @@ namespace AG::MissiveWatch
 					++labeled;
 				}
 			}
-			SKSE::log::info("MissiveWatch: {} - {} missives taken in ({} rank-gated, {} notes labeled, {} notes swapped to rank variants, {} not found: a "
-							"different version of it?)",
-				plugin, taken, gated, labeled, retargeted, missing);
+			// the Messages a mod titles its notes from at run time (Missives for the Good Guys: "Miner Needed: Collect and
+			// Deliver 11 Iron Ore to Falkreath"), each used at one rank: the title keeps the label it is built from
+			int titles = 0;
+			for (auto& m : j.value("messages", nlohmann::json::array())) {
+				auto* form = KeyForm(a_dh, m.value("form", ""));
+				auto* msg = form ? form->As<RE::BGSMessage>() : nullptr;
+				const auto tier = m.value("tier", "");
+				if (msg && !tier.empty()) {
+					Label(msg, tier[0]);
+					g_titles.emplace_back(msg->GetFormID(), tier[0]);  // g_lock is held (Install)
+					++titles;
+				}
+			}
+			SKSE::log::info("MissiveWatch: {} - {} missives taken in ({} rank-gated, {} notes and {} note titles labeled, {} notes swapped to rank variants, "
+							"{} not found: a different version of it?)",
+				plugin, taken, gated, labeled, titles, retargeted, missing);
 			if (taken > 0) a_state = 2;
 			return taken;
 		}
@@ -607,6 +632,7 @@ namespace AG::MissiveWatch
 			g_hold.clear();
 			g_postedStage.clear();
 			g_tag.clear();
+			g_titles.clear();
 			LoadManifest(j, dh, "Missives.esp");
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
