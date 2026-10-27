@@ -216,6 +216,9 @@
   .item .cost { font-size: 17px; color: var(--bronze); }
   .item .why { font-size: 14px; color: var(--warn); font-style: italic; flex: 1; text-align: right; }
   .item .btn { min-height: 48px; font-size: 18px; margin-left: auto; }
+  /* a Guild Box asked about before it is bought: the question in the description's place, Cancel then Buy */
+  .item .detail.ask { font-size: 19px; color: var(--ink); }
+  .item .foot .btn + .btn { margin-left: 0; }
 
   /* ---------- party: a banner over the roll; Bond is pips + a named tier (never a letter, never in brackets) ---------- */
   .banner { height: 96px; display: flex; align-items: center; gap: 22px; padding: 0 22px; margin-bottom: 6px;
@@ -776,12 +779,20 @@ function renderServices() {
   const inote = isec === "poi" ? t("$AG_UI_NotePoi", "Undiscovered places in this hold that are not dungeons.") : t("$AG_UI_NoteDungeons", "Undiscovered dungeons in this hold appropriate for your rank.");
   /* an empty Dungeons tab is usually the rank rule (intel is sold at or below the player's rank), so say so */
   const emptyNote = intel && isec === "dungeon" ? t("$AG_UI_NoDungeonsAtRank", "No dungeons found for your rank in this hold.") : t("$AG_UI_NothingOffered", "Nothing on offer.");
+  /* a Guild Box is asked about first (a stray press under its notice bought a second one, in game 2026-10-27): its Buy
+     turns the card into "Buy Cursed Box?" with Cancel highlighted, as Disband does */
+  const asks = (x) => x.id.startsWith("ware:");
   const itabs = intel ? `<div class="itabs"><button data-isec="dungeon" class="${isec === "dungeon" ? "on" : ""}">${esc(t("$AG_UI_IntelDungeons", "Dungeons"))}</button><button data-isec="poi" class="${isec === "poi" ? "on" : ""}">${esc(t("$AG_UI_IntelPoi", "Points of Interest"))}</button><span class="inote">${esc(inote)}</span></div>` : "";
   return `<div class="svc"><div class="sections">${sections.map((s) => `<button data-section="${esc(s)}" class="${s === section ? "on" : ""}">${esc(label[s])}</button>`).join("")}</div>
     <div class="gridwrap">${itabs}${note ? `<div class="secnote">${esc(note)}</div>` : ""}<div class="grid">${!items.length ? `<div class="empty">${esc(emptyNote)}</div>` : ""}${items.map((x) => `<div class="item ${x.available ? "" : "off"}">
-      <div class="title">${x.tier ? `<span class="chip">${esc(x.tier)}</span>` : ""}${esc(x.name)}</div><div class="detail">${esc(x.desc)}</div>
+      <div class="title">${x.tier ? `<span class="chip">${esc(x.tier)}</span>` : ""}${esc(x.name)}</div>${sconfirm === x.id && x.available
+        ? `<div class="detail ask">${esc(t("$AG_UI_BuyQ", "Buy {0}?", x.name))}</div>`
+        : `<div class="detail">${esc(x.desc)}</div>`}
       <div class="foot">${x.cost ? `<span class="cost">${esc(t("$AG_UI_NMerit", "{0} merit", x.cost))}</span>` : ""}${x.rep ? `<span class="cost">${esc(t("$AG_UI_NRep", "{0} rep", x.rep))}</span>` : ""}${x.gold ? `<span class="cost">${esc(t("$AG_UI_NGold", "{0} gold", x.gold))}</span>` : ""}<span class="why">${esc(x.note || "")}</span>
-        ${x.available ? `<button class="btn" data-action="service:${esc(x.id)}">${esc(x.gold && !x.cost ? t("$AG_UI_Pay", "Pay") : t("$AG_UI_Buy", "Buy"))}</button>` : ""}</div></div>`).join("")}</div></div></div>` +
+        ${!x.available ? "" : sconfirm === x.id
+          ? `<button class="btn" data-sconfirm="">${esc(t("$AG_UI_Cancel", "Cancel"))}</button><button class="btn" data-action="service:${esc(x.id)}">${esc(t("$AG_UI_Buy", "Buy"))}</button>`
+          : asks(x) ? `<button class="btn" data-sconfirm="${esc(x.id)}">${esc(t("$AG_UI_Buy", "Buy"))}</button>`
+          : `<button class="btn" data-action="service:${esc(x.id)}">${esc(x.gold && !x.cost ? t("$AG_UI_Pay", "Pay") : t("$AG_UI_Buy", "Buy"))}</button>`}</div></div>`).join("")}</div></div></div>` +
     pager("services", pages);
 }
 
@@ -794,6 +805,7 @@ const tierName = (i) => [t("$AG_UI_BondStrangers", "Strangers"), t("$AG_UI_BondC
 function bondCell(tier) { return `<span class="mbond">${pips(tier)}<span class="mbondname">${esc(t("$AG_UI_BondX", "Bond: {0}", tierName(tier)))}</span></span>`; }
 function pips(tier) { let s = ""; for (let i = 0; i < 5; i++) s += i <= tier ? "●" : `<span class="off">●</span>`; return `<span class="pips">${s}</span>`; }
 let psec = "party", pedit = null, pconfirm = false, draft = "";
+let sconfirm = null;  /* the Guild Box asked about (its service id), Services */
 const pick = new Set();  /* founding members chosen on the found screen (FormID hex) */
 /* VR: PrismaVR cannot route SteamVR keyboard text into an <input> (it only does so under OpenComposite), so in VR the
    name is a button: the DLL opens the headset keyboard itself and hands the text back (window.agKeyboardText). */
@@ -1131,7 +1143,7 @@ const TABS = ["card", "quests", "trophies", "services", "party", "records"];
 function setTab(t) {
   tab = t;
   note = null;
-  pedit = null; pconfirm = false;
+  pedit = null; pconfirm = false; sconfirm = null;
   $("status").textContent = "";
   render();
 }
@@ -1142,8 +1154,16 @@ $("tabs").addEventListener("click", (e) => {
 $("main").addEventListener("click", (e) => {
   const b = e.target.closest("button");
   if (!b || b.disabled) return;
-  if (b.dataset.page) { const [k, d] = b.dataset.page.split(":"); page[k] += Number(d); render(); return; }
-  if (b.dataset.section) { section = b.dataset.section; page.services = 0; render(); return; }
+  if (b.dataset.page) { const [k, d] = b.dataset.page.split(":"); page[k] += Number(d); sconfirm = null; render(); return; }
+  if (b.dataset.section) { section = b.dataset.section; page.services = 0; sconfirm = null; render(); return; }
+  /* Buy on a Guild Box asks first, Cancel highlighted; Cancel (or the bought box) puts the highlight back on its Buy */
+  if (b.dataset.sconfirm !== undefined) {
+    const id = b.dataset.sconfirm || sconfirm;
+    sconfirm = b.dataset.sconfirm || null;
+    focusKey = sconfirm ? "sconfirm:" : "sconfirm:" + id;
+    render(); return;
+  }
+  if (sconfirm && b.dataset.action === "service:" + sconfirm) { focusKey = "sconfirm:" + sconfirm; sconfirm = null; render(); }
   if (b.dataset.isec) { isec = b.dataset.isec; page.services = 0; render(); return; }
   if (b.dataset.qsec) { qsec = b.dataset.qsec; note = null; render(); return; }
   if (b.dataset.note) { noteReturn = keyOf(b); note = { id: b.dataset.note }; render(); if (window.agAction) window.agAction("details:" + b.dataset.note); return; }
@@ -1184,6 +1204,7 @@ function keyOf(b) {
   return b.id || (d.tab && "tab:" + d.tab) || d.action || (d.note && "note:" + d.note) || (d.page && "page:" + d.page) ||
     (d.section && "sec:" + d.section) || (d.qsec && "qsec:" + d.qsec) || (d.psec && "psec:" + d.psec) ||
     (d.pkeyboard && "pkeyboard") || (d.pfollow && "pfollow") || (d.pick && "pick:" + d.pick) || (d.psubmit && "psubmit:" + d.psubmit) || (d.pedit != null && "pedit:" + d.pedit) || (d.pconfirm != null && "pconfirm:" + d.pconfirm) ||
+    (d.sconfirm != null && "sconfirm:" + d.sconfirm) ||
     (d.back && "back") || b.textContent.trim();
 }
 function current() { return focusKey ? targets().find((b) => keyOf(b) === focusKey) || null : null; }

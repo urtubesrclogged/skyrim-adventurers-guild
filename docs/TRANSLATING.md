@@ -86,6 +86,7 @@ the spot on a piece of gear enchanted for the buyer.
 * The counter: `$AG_Sec_GuildBoxes` (the section), `$AG_UI_NoteBoxes` (its note: that a box costs Reputation),
   `$AG_Note_NoRep`, and the strongbox notice that shows what was in the box: `$AG_Ware_ToastTier` (`{} Item`, `{}` = the
   tier) and `$AG_Ware_Price` (the price paid: Merit, Reputation, gold, in that order).
+* `$AG_UI_BuyQ`: the question a box's card asks before it is bought (`Buy {0}?`, `{0}` = the box, e.g. "Cursed Box").
 * Messages: `$AG_Buy_Ware`, `$AG_Buy_WareRank`, `$AG_Buy_WareRep`, `$AG_Buy_WareGold`, `$AG_Buy_WareNone`, `$AG_Log_Ware`
   (the Records line) and `$AG_Why_Ware` (the reason shown when the Reputation is taken).
 
