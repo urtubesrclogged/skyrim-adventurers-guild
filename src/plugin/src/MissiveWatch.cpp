@@ -403,10 +403,12 @@ namespace AG::MissiveWatch
 		// g_lock held. Returns how many were taken in.
 		// The same, for any other mod that posts missives of its own on Missives' boards: Monster Hunt Missives (1.5.0,
 		// missives_monsterhunt.json - its hunt contracts; its broker still pays the gold, the Guild credits the report),
-		// and Missives for the Good Guys (1.6.0, missives_goodguys.json - its missives are per hold, as Missives' own).
+		// and Missives for the Good Guys (1.6.0, missives_goodguys.json - its missives are per hold, as Missives' own), and
+		// its sister mod Missives for the Bad Guys (1.6.0, missives_badguys.json - on boards of its own, in the Outlaw Refuges).
 		std::atomic<int> g_expansion{ 0 };  // 0 not loaded, 1 loaded but nothing taken in, 2 active (MCM Debug page)
 		std::atomic<int> g_monsterHunt{ 0 };
 		std::atomic<int> g_goodGuys{ 0 };
+		std::atomic<int> g_badGuys{ 0 };
 
 		// A quest's "Missive" alias pointed at the rank variant of a Missives note (noteFrom: Missives.esp, noteTo:
 		// AdventurersGuild.esp), only while it still creates Missives' original. 1 swapped, -1 left as another patch set
@@ -442,6 +444,9 @@ namespace AG::MissiveWatch
 			if (plugin.empty() || (!a_dh->LookupLoadedModByName(plugin) && !a_dh->LookupLoadedLightModByName(plugin))) return 0;
 			a_state = 1;
 			int taken = 0, gated = 0, missing = 0, labeled = 0, retargeted = 0;
+			// a board of its own (the Bad Guys' refuge boards): opened like Missives' own; their trigger is Missives'
+			for (auto& b : j.value("boardContainers", nlohmann::json::array()))
+				if (auto* c = KeyForm(a_dh, b.get<std::string>())) g_boardContainers.insert(c->GetFormID());
 			for (auto& e : j.value("quests", nlohmann::json::array())) {
 				auto* form = KeyForm(a_dh, e.value("form", ""));
 				auto* quest = form ? form->As<RE::TESQuest>() : nullptr;
@@ -638,7 +643,7 @@ namespace AG::MissiveWatch
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
 			auto* rankGlobal = dh->LookupForm<RE::TESGlobal>(Hex(j.at("rankGlobal")), "AdventurersGuild.esp");
 			for (const auto& [file, state] : { std::pair{ "missives_expansion.json", &g_expansion }, std::pair{ "missives_monsterhunt.json", &g_monsterHunt },
-					 std::pair{ "missives_goodguys.json", &g_goodGuys } }) {
+					 std::pair{ "missives_goodguys.json", &g_goodGuys }, std::pair{ "missives_badguys.json", &g_badGuys } }) {
 				try {
 					IntegrateExpansion(dh, rankGlobal, file, *state);
 				} catch (const std::exception& e) {
@@ -662,6 +667,7 @@ namespace AG::MissiveWatch
 	int  ExpansionState() { return g_active ? g_expansion.load() : 0; }
 	int  MonsterHuntState() { return g_active ? g_monsterHunt.load() : 0; }
 	int  GoodGuysState() { return g_active ? g_goodGuys.load() : 0; }
+	int  BadGuysState() { return g_active ? g_badGuys.load() : 0; }
 	int  WorldspaceState() { return g_active ? g_worldspace.load() : 0; }
 
 	// After a load: which missives the player is carrying (running, past the board, not finished)

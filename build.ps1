@@ -24,6 +24,7 @@ if (-not $Only -or $Only -eq "esp") {
   $env:MISSIVES_ADDONS = $cfg["MISSIVES_ADDONS"]   # optional: folders holding Missives add-on plugins (see local.env.example)
   $env:MISSIVES_EXPANSION_ESP = $cfg["MISSIVES_EXPANSION_ESP"]  # optional: regenerates missives_expansion.json
   $env:MISSIVES_GOODGUYS = $cfg["MISSIVES_GOODGUYS"]  # optional: regenerates missives_goodguys.json
+  $env:MISSIVES_BADGUYS = $cfg["MISSIVES_BADGUYS"]    # optional: regenerates missives_badguys.json
   dotnet run -c Release --project "$root\tools\EspGen" -- "$root\build\esp" "$root\config\SKSE\Plugins\AdventurersGuild" (Need "MISSIVES_ESP")
   if ($LASTEXITCODE -ne 0) { throw "EspGen failed" }
 }

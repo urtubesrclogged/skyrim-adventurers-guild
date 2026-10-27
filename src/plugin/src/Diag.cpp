@@ -132,6 +132,7 @@ namespace AG::Diag
 		out.emplace_back("Missives - Worldspace Additions", MissiveWatch::WorldspaceState() == 2 ? active : MissiveWatch::WorldspaceState() == 1 ? inactive : none);
 		out.emplace_back("Monster Hunt Missives", MissiveWatch::MonsterHuntState() == 2 ? active : MissiveWatch::MonsterHuntState() == 1 ? inactive : none);
 		out.emplace_back("Missives for the Good Guys", MissiveWatch::GoodGuysState() == 2 ? active : MissiveWatch::GoodGuysState() == 1 ? inactive : none);
+		out.emplace_back("Missives for the Bad Guys", MissiveWatch::BadGuysState() == 2 ? active : MissiveWatch::BadGuysState() == 1 ? inactive : none);
 		out.emplace_back("The Notice Board", !plugin("notice board.esp") ? none : NoticeWatch::Active() ? active : inactive);
 		out.emplace_back("SkyrimNet", !GetModuleHandleW(L"SkyrimNet.dll") ? none : g_skyrimNet.load() ? active : inactive);
 		return out;
