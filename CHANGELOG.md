@@ -10,16 +10,12 @@
 - CHIM users: the Guild's lore as entries for CHIM's Oghma Infinium, in docs/CHIM_LORE.md. It isn't an integration like SkyrimNet's, just the lore.
 - The Guild Drums notices have a drum roll of their own for opening a Guild Box.
 
-**SkyrimNet**
-- NPCs know about Guild Boxes and perk training, and, when those mods are installed, about the Good Guys' trade and crafting missives, the Outlaw Refuges' jobs and the Dragonborn Gallery's relic work.
-
-## 1.5.2
-
 **Fixes/Bugs**
 - Whiterun's "Gather Common Ore" (iron ore) missive is no longer posted. A bug in Missives itself means its ore count never goes up, so it can't be handed in. If you already took it, you can discard the note without losing any Reputation.
 - A new game no longer shows the "Rank levels kept" notice, which is only meant for saves from before 1.4.0, and always starts with rank S at the level the MCM shows (80 by default).
 
 **SkyrimNet**
+- NPCs know about Guild Boxes and perk training, and, when those mods are installed, about the Good Guys' trade and crafting missives, the Outlaw Refuges' jobs and the Dragonborn Gallery's relic work.
 - SkyrimNet now reads Guild ranks, your Guild record and adventuring parties through its own native decorators, instead of the older Papyrus decorators SkyrimNet is phasing out. It's lighter on the game, the data is there as soon as a save loads, and the "Decorator 'ag_join_status' not found" errors seen for a few seconds after loading are gone.
 - Much smaller SkyrimNet prompts: the Guild guidelines every NPC reads went from about 1,600 tokens to under 400, and a Guild rep's bio got shorter. The details moved into the Guild's knowledge pack, which SkyrimNet only brings in when a conversation turns to them.
 
