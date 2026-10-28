@@ -63,8 +63,10 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 - **New Dialogue**: over 1,100 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
 - **SkyrimNet integration** (optional): NPCs know the Guild, its lore and its rules, know your rank and your party,
   and can play along.
-- **Lore for CHIM**: no CHIM integration, but the Guild's lore as entries to add to CHIM's Oghma Infinium yourself
-  (see [docs/CHIM_LORE.md](docs/CHIM_LORE.md)).
+- **CHIM integration** (optional): NPCs know the Guild's lore (in CHIM's Oghma), their own rank and party, the Guild's
+  view of you if they keep a counter, and hear the news of your Guild record. CHIM installs the Guild's part on its
+  server by itself when a save loads; there is nothing to set up. CHIM's actions (opening the counter, showing your card)
+  are not supported yet.
 - **Translatable**: all text is in a standard translation file (see [docs/TRANSLATING.md](docs/TRANSLATING.md)).
 
 ## Requirements
@@ -102,6 +104,8 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   province.
 - SkyUI: the mod's settings menu (MCM), including the uninstall button.
 - SkyrimNet: see above.
+- [CHIM](https://www.nexusmods.com/skyrimspecialedition/mods/126330): see above. Needs a CHIM from mid-2026 or later
+  (HerikaServer 3.4.2+, with server plugins installed from the mod folder).
 
 Each of these is detected when the game starts. Without one, its part of the mod is simply not there.
 

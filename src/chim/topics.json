@@ -1,0 +1,143 @@
+{
+ "_comment": "Adventurers Guild for CHIM: the Oghma topic and aliases each knowledge-pack entry is filed under (CHIM brings an entry in when the talk names its topic or an alias). Entries the pack gives only to some factions are not listed: CHIM gets those through the speaker's factions instead (chim.json). src/chim/build_dwpkg.py fails on a pack entry that is neither here nor faction-bound.",
+ "_guidelines": "Sent with a line only when the talk is about the Guild or someone present holds a guild rank: the few rules of SkyrimNet's guidelines/0511_guild_guidelines.prompt every NPC needs, kept short.",
+ "guidelines": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers; in Skyrim the innkeeper of each hold capital's inn keeps its counter. Bring it up only when the talk is already about it, or about work, monsters, ranks or adventuring; a character's own rank or party is part of who they are, not something to announce. Say \"the Adventurers Guild\" or speak of adventurers, never just \"the Guild\" (that could mean the Thieves Guild). Only adventurers hold a guild rank, from E (novice) to S (legendary), said as \"a C-rank adventurer\"; an adventurer met on the road is never above A. Let rank colour how adventurers treat each other: deference to much higher ranks, rivalry among peers. Never state the rank of a beast or foe: only the Guild's Appraisal reads those.",
+ "topics": {
+  "ag_basics": {
+   "topic": "Adventurers Guild",
+   "aliases": "Adventurer's Guild, Guild adventurers, Guild adventurer"
+  },
+  "ag_reputation": {
+   "topic": "Adventurers Guild reputation",
+   "aliases": "Guild adventurers, adventurer"
+  },
+  "ag_dwindling": {
+   "topic": "Adventurers Guild losses",
+   "aliases": "few adventurers, missing adventurers"
+  },
+  "ag_rumor_thalmor": {
+   "topic": "Adventurers Guild disappearances",
+   "aliases": "vanished adventurers, Thalmor and the Guild"
+  },
+  "ag_founding": {
+   "topic": "Adventurers Guild founding",
+   "aliases": "Wayfarers' Hall, Registrar-General"
+  },
+  "ag_hall_folk": {
+   "topic": "Guild Hall residents",
+   "aliases": "Willem, Merila Andalen, Margot Belleau, Elise Varnier, Cassius Varro, Brynja, Old Henriette, Ghrulek, Ylva, Zhasim, Marius Crassus, Caralion of Cloudrest"
+  },
+  "ag_guild_board": {
+   "topic": "Guild Board",
+   "aliases": "Guild Hall board, every hold's work"
+  },
+  "ag_counters": {
+   "topic": "Guild counters",
+   "aliases": "Guild counter, Guild reps, innkeeper reps"
+  },
+  "ag_counter_lost": {
+   "topic": "Closed Guild counter",
+   "aliases": "dead innkeeper, Guild representative"
+  },
+  "ag_ranks": {
+   "topic": "Guild ranks",
+   "aliases": "E-rank, D-rank, C-rank, B-rank, A-rank, S-rank, rank letter"
+  },
+  "ag_promotion": {
+   "topic": "Merit and Reputation",
+   "aliases": "Guild Merit, Guild Reputation, promotion, promotion case"
+  },
+  "ag_conduct": {
+   "topic": "Adventurer conduct",
+   "aliases": "Guild bounty, good name, Guild standing"
+  },
+  "ag_guild_card": {
+   "topic": "Guild card",
+   "aliases": "guild card, adventurer's card, replacement card"
+  },
+  "ag_card_shown": {
+   "topic": "Showing a guild card",
+   "aliases": "card at the gate, proof of rank"
+  },
+  "ag_hold_stamps": {
+   "topic": "Hold stamps",
+   "aliases": "guild card stamps, hold crest"
+  },
+  "ag_appraisal": {
+   "topic": "Appraisal",
+   "aliases": "threat rank, sizing up a foe"
+  },
+  "ag_augments": {
+   "topic": "Guild Augments",
+   "aliases": "Packhorse, Haggler, Quick Study, Hardy, Vigor, Guild spell tomes"
+  },
+  "ag_training": {
+   "topic": "Guild Training",
+   "aliases": "perk training, Guild drills"
+  },
+  "ag_wares": {
+   "topic": "Guild Boxes",
+   "aliases": "Guild Box, Blessed Box, Cursed Box, cursed gear"
+  },
+  "ag_intel": {
+   "topic": "Guild scouts",
+   "aliases": "Guild intel, dungeon intel"
+  },
+  "ag_jarl_bounties": {
+   "topic": "Jarls' bounties",
+   "aliases": "Jarl's bounty, bounty letter"
+  },
+  "ag_parties": {
+   "topic": "Adventuring parties",
+   "aliases": "party, Guild party, party name"
+  },
+  "ag_party_bond": {
+   "topic": "Party bond",
+   "aliases": "Strangers, Comrades, Sworn, Legend"
+  },
+  "ag_party_fame": {
+   "topic": "Famous parties",
+   "aliases": "party fame"
+  },
+  "ag_party_fallen": {
+   "topic": "Fallen party members",
+   "aliases": "the fallen, Guild ledger"
+  },
+  "ag_party_coincidence": {
+   "topic": "Obviously a coincidence",
+   "aliases": "Guild joke, party joke"
+  },
+  "ag_wanderers": {
+   "topic": "Adventurers on the roads",
+   "aliases": "wandering adventurers"
+  },
+  "ag_dungeon_dead": {
+   "topic": "Dead adventurers' cards",
+   "aliases": "bloodied guild card, lost adventurers"
+  },
+  "ag_missives": {
+   "topic": "Guild Missives",
+   "aliases": "missive, missive board, Guild jobs"
+  },
+  "ag_notices": {
+   "topic": "Guild notices",
+   "aliases": "notice board, Guild notice"
+  },
+  "ag_monster_hunts": {
+   "topic": "Monster hunt contracts",
+   "aliases": "Pepper, hunt contract"
+  },
+  "ag_missives_crafting": {
+   "topic": "Trade and crafting missives",
+   "aliases": "crafting missive, rush order"
+  },
+  "ag_missives_outlaws": {
+   "topic": "Outlaw Refuge missives",
+   "aliases": "Outlaw Refuge board, underworld jobs"
+  },
+  "ag_lotd_relics": {
+   "topic": "Dragonborn Gallery relic work",
+   "aliases": "Auryen's leads, Finders Keepers, ruined books"
+  }
+ }
+}

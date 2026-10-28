@@ -1,0 +1,26 @@
+{
+	"_comment": "Adventurers Guild for CHIM (1.6.0): what AdventurersGuild.dll reports to the Guild's CHIM server plugin about the people near the player. factions: the factions the knowledge pack's per-NPC entries depend on (their condition_expr), 'Plugin|0xID'; the DLL tells the server which of them the speaker is in. plugins: the other mods the pack has entries for; only the loaded ones are taught to CHIM. src/chim/build_dwpkg.py fails if the pack names a faction or plugin missing here.",
+	"factions": {
+		"AG_GuildLiaisonFaction": "AdventurersGuild.esp|0x8C6",
+		"BardSingerFaction": "Skyrim.esm|0x0CF8F9",
+		"CollegeofWinterholdFaction": "Skyrim.esm|0x01F259",
+		"CompanionsFaction": "Skyrim.esm|0x048362",
+		"CWImperialFaction": "Skyrim.esm|0x02BF9A",
+		"CWSonsFaction": "Skyrim.esm|0x02BF9B",
+		"DLC2RavenRockGuardFaction": "Dragonborn.esm|0x0195AD",
+		"DLC2SkaalVillageCitizenFaction": "Dragonborn.esm|0x018F9A",
+		"GuardDialogueFaction": "Skyrim.esm|0x02BE3B",
+		"JobInnkeeperFaction": "Skyrim.esm|0x05091B",
+		"JobJarlFaction": "Skyrim.esm|0x050920",
+		"JobStewardFaction": "Skyrim.esm|0x050922",
+		"ThalmorFaction": "Skyrim.esm|0x039F26"
+	},
+	"plugins": [
+		"Missives.esp",
+		"notice board.esp",
+		"MissivesMonsterHunt.esp",
+		"MissivesforTheGoodGuys.esp",
+		"MissivesForTheBadGuys.esp",
+		"LegacyoftheDragonborn.esm"
+	]
+}

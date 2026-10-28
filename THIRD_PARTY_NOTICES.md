@@ -32,7 +32,7 @@ Guild Missives), with Missives - Worldspace Additions, Missives - Voice and Ques
 Monster Hunt Missives (by sgtbham1, https://www.nexusmods.com/skyrimspecialedition/mods/186539) and Missives for the
 Good Guys (by Lizzy of the Wildlander Team, https://www.nexusmods.com/skyrimspecialedition/mods/98373) and its sister mod
 Missives for the Bad Guys (by the same author) as optional add-ons
-to it, Legacy of the Dragonborn (optional: its relic work credited as Guild work, https://www.nexusmods.com/skyrimspecialedition/mods/11802), The Notice Board SE (optional: rank-gated Guild Notices), and optionally SkyrimNet and Deeds of Skyrim. Each is the work of its own authors and under its own terms.
+to it, Legacy of the Dragonborn (optional: its relic work credited as Guild work, https://www.nexusmods.com/skyrimspecialedition/mods/11802), The Notice Board SE (optional: rank-gated Guild Notices), and optionally SkyrimNet, CHIM (Dwemer Dynamics; the Guild's CHIM server plugin in CHIM/server-plugins is our own code, written to CHIM's documented plugin API, with CHIM Injury Framework and CHIM Gore by Marcius3d, MIT, as working examples of it; no code is taken from them) and Deeds of Skyrim. Each is the work of its own authors and under its own terms.
 
 `TESV_Papyrus_Flags.flg` is Bethesda's file from the Creation Kit; it is not included - point `PAPYRUS_FLAGS` in
 `local.env` at your own copy.

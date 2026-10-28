@@ -7,7 +7,7 @@
 - Perk training (Services > Guild Skills): one perk point for each rank from D to S, paid in Merit.
 - Missives for the Good Guys and Missives for the Bad Guys: their missives are Guild missives, ranked E to C, labeled on the boards and handed in at a counter. Both need SkyPatcher; the Bad Guys also needs Outlaws Refuges.
 - Legacy of the Dragonborn: its repeatable relic work (Finders Keepers, Research Project, One Man's Junk, the sextant and survey digs) earns a Guild report for Merit and Reputation, on top of the museum's own reward.
-- CHIM users: the Guild's lore as entries for CHIM's Oghma Infinium, in docs/CHIM_LORE.md. It isn't an integration like SkyrimNet's, just the lore.
+- CHIM integration: CHIM's NPCs know the Guild's lore (added to CHIM's Oghma for you), their own rank, bio and party, and a counter keeper knows your record; your Guild ledger's news reaches the NPCs nearby. CHIM installs the Guild's server part by itself when a save loads. Actions aren't supported yet. Not yet tested in game: please report how it goes.
 - The Guild Drums notices have a drum roll of their own for opening a Guild Box.
 
 **Fixes/Bugs**

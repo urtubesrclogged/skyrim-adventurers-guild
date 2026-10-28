@@ -12,8 +12,8 @@ if(NOT COMMONLIB_DIR)
 endif()
 add_subdirectory(${COMMONLIB_DIR} CommonLibSSE EXCLUDE_FROM_ALL)
 
-add_library(AdventurersGuild SHARED src/main.cpp src/RankCore.cpp src/Adventurers.cpp src/Guild.cpp src/Counter.cpp src/SteamVRAim.cpp src/GuildCard.cpp src/Diag.cpp src/ControlsGuard.cpp src/Shop.cpp src/Papyrus.cpp src/NameHook.cpp src/LevelDisplay.cpp src/PrismaToast.cpp src/MissiveWatch.cpp src/NoticeWatch.cpp src/BountyWatch.cpp src/LotdWatch.cpp src/Dungeons.cpp src/Kills.cpp src/Loc.cpp src/Party.cpp src/ChoiceSwap.cpp src/MemberCards.cpp src/SkyrimNetData.cpp src/Wares.cpp)
-target_link_libraries(AdventurersGuild PRIVATE CommonLibSSE::CommonLibSSE)
+add_library(AdventurersGuild SHARED src/main.cpp src/RankCore.cpp src/Adventurers.cpp src/Guild.cpp src/Counter.cpp src/SteamVRAim.cpp src/GuildCard.cpp src/Diag.cpp src/ControlsGuard.cpp src/Shop.cpp src/Papyrus.cpp src/NameHook.cpp src/LevelDisplay.cpp src/PrismaToast.cpp src/MissiveWatch.cpp src/NoticeWatch.cpp src/BountyWatch.cpp src/LotdWatch.cpp src/Dungeons.cpp src/Kills.cpp src/Loc.cpp src/Party.cpp src/ChoiceSwap.cpp src/MemberCards.cpp src/SkyrimNetData.cpp src/ChimData.cpp src/Wares.cpp)
+target_link_libraries(AdventurersGuild PRIVATE CommonLibSSE::CommonLibSSE winhttp)
 target_precompile_headers(AdventurersGuild PRIVATE <SKSE/SKSE.h> <RE/Skyrim.h>)
 target_compile_definitions(AdventurersGuild PRIVATE _UNICODE UNICODE NOMINMAX
 	AG_VERSION_MAJOR=${PROJECT_VERSION_MAJOR} AG_VERSION_MINOR=${PROJECT_VERSION_MINOR} AG_VERSION_PATCH=${PROJECT_VERSION_PATCH}

@@ -25,4 +25,5 @@ namespace AG::SkyrimNetData
 	void Tick();           // game thread, on the Guild's few-second beat (Guild::ConductTick)
 	void Mark(RE::Actor* a_actor);  // game thread: one actor's marks, now (an NPC who has just joined)
 	bool Active();         // SkyrimNet is here and its data is being kept (the MCM's Debug page)
+	int  Standing(RE::Actor* a_actor);  // 0..5 a member at rank E..S, 10..15 retired, 20 can never join, -1 none (also for CHIM)
 }

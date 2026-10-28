@@ -23,7 +23,7 @@ rm -f "$M/Scripts/AG_ConfigMenu.pex" "$M/MCM/Config/AdventurersGuild/config.json
 rmdir "$M/MCM/Config/AdventurersGuild" "$M/MCM/Config" "$M/MCM" 2>/dev/null || true
 cp "$R/src/plugin/build/AdventurersGuild.dll"             "$M/SKSE/Plugins/AdventurersGuild.dll"
 cp "$R/config/SKSE/Plugins/AdventurersGuild.ini"          "$M/SKSE/Plugins/AdventurersGuild.ini"
-for f in guild.json adventurers.json trophies.json shop.json traits.json notices.json threat.json missives.addons.json missives_expansion.json missives_monsterhunt.json missives_goodguys.json missives_badguys.json lotd.json wares.json; do
+for f in guild.json adventurers.json trophies.json shop.json traits.json notices.json threat.json missives.addons.json missives_expansion.json missives_monsterhunt.json missives_goodguys.json missives_badguys.json lotd.json wares.json chim.json; do
 	cp "$R/config/SKSE/Plugins/AdventurersGuild/$f" "$P/$f"      # sources (documentation; the DLL reads guild.json directly)
 done
 cp "$R"/build/esp/*.resolved.json "$P/"
@@ -53,6 +53,9 @@ cp "$R"/config/textures/AdventurersGuild/*.dds "$M/textures/AdventurersGuild/"
 # folder is no longer read, so old copies in either place are removed.
 SN="$M/SKSE/Plugins/SkyrimNet"; rm -rf "$SN/prompts" "$SN/library" "$SN/external/adventurersguild.skyrimnet"
 mkdir -p "$SN/external" && cp -r "$R/config/SKSE/Plugins/SkyrimNet/external/adventurersguild.skyrimnet" "$SN/external/"
+# CHIM (1.6.0): the Guild's server plugin, which CHIM's own DLL uploads to its server when a save loads (src/chim). Built
+# from the same knowledge pack; the version carries a hash of its content, so CHIM reinstalls it only when it changed.
+python "$R/src/chim/build_dwpkg.py" "$(sed -n 's/^project(AdventurersGuild VERSION \([0-9.]*\).*/\1/p' "$R/src/plugin/CMakeLists.txt")" "$M"
 cp "$R/build/esp/AdventurersGuild.esp" "$M/AdventurersGuild.esp"
 # translations: the standard Skyrim file (DLL text, counter page, MCM); translators add _FRENCH.txt etc. beside it
 mkdir -p "$M/Interface/Translations" && cp "$R/config/Interface/Translations/AdventurersGuild_ENGLISH.txt" "$M/Interface/Translations/"

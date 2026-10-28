@@ -44,15 +44,6 @@ namespace AG::SkyrimNetData
 			if (have != want) a_actor->AddToFaction(a_faction, want);
 		}
 
-		int Standing(RE::Actor* a_actor)
-		{
-			const auto info = Adventurers::Of(a_actor);
-			if (info.kind == Adventurers::Kind::kMember) return std::clamp(info.rank, 0, kRankCount - 1);
-			if (info.kind == Adventurers::Kind::kRetired) return kRetired + std::clamp(info.rank, 0, kRankCount - 1);
-			const auto why = Adventurers::JoinStatus(a_actor);
-			return why == "child" || why == "summoned" ? kNeverJoins : -1;
-		}
-
 		void Write()
 		{
 			nlohmann::json j;
@@ -125,6 +116,15 @@ namespace AG::SkyrimNetData
 		}
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESObjectLoadedEvent>(LoadSink::Get());
 		g_on = true;
+	}
+
+	int Standing(RE::Actor* a_actor)
+	{
+		const auto info = Adventurers::Of(a_actor);
+		if (info.kind == Adventurers::Kind::kMember) return std::clamp(info.rank, 0, kRankCount - 1);
+		if (info.kind == Adventurers::Kind::kRetired) return kRetired + std::clamp(info.rank, 0, kRankCount - 1);
+		const auto why = Adventurers::JoinStatus(a_actor);
+		return why == "child" || why == "summoned" ? kNeverJoins : -1;
 	}
 
 	void Mark(RE::Actor* a_actor)

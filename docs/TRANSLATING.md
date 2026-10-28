@@ -67,6 +67,9 @@ must go through those, never as a bare string, or it cannot be translated.
 
 ## Since 1.6.0
 
+New key for CHIM: `$AG_Chim_News`, how a line of the player's Guild ledger reaches the NPCs nearby (`{}` = the player's
+name, then the ledger line).
+
 New keys in the interface file, all optional, for Perk training (Services > Guild Skills):
 
 * `$AG_Svc_PerkName` (the row's name) and `$AG_Svc_PerkDesc` (`{}` = the first rank that offers it, then how many

@@ -19,6 +19,7 @@
 #include "RankCore.h"
 #include "Shop.h"
 #include "SkyrimNetData.h"
+#include "ChimData.h"
 #include "Wares.h"
 
 #include <SimpleIni.h>
@@ -176,8 +177,10 @@ namespace AG::Guild
 		}
 
 		// caller holds g_lock
-		void LogLocked(std::string a_text)
+		// a_news: CHIM's NPCs hear of it too (ChimData), not of the bookkeeping (uninstall, a record reset from the level)
+		void LogLocked(std::string a_text, bool a_news = true)
 		{
+			if (a_news) ChimData::News(a_text);
 			g_history.push_front({ Today(), std::move(a_text) });
 			while (g_history.size() > kHistoryCap) g_history.pop_back();
 		}
@@ -1095,6 +1098,7 @@ namespace AG::Guild
 	void ConductTick()
 	{
 		SkyrimNetData::Tick();
+		ChimData::Tick();
 		SyncWanderers();
 		SyncSuccessors();
 		SyncStampMarks();
@@ -1733,7 +1737,7 @@ namespace AG::Guild
 		}
 		{
 			std::lock_guard l(g_lock);
-			LogLocked(Loc::T("$AG_Log_Uninstall", "Prepared for uninstall: the Guild's abilities were taken back."));
+			LogLocked(Loc::T("$AG_Log_Uninstall", "Prepared for uninstall: the Guild's abilities were taken back."), false);
 		}
 		SKSE::log::info("Guild: prepared for uninstall ({} companions, {} items)", companions, items);
 		return Loc::F("$AG_Uninstall_Done", "Done. The Guild's abilities are gone from you and {} companion(s), and {} Guild item(s) were removed. "
@@ -1750,7 +1754,7 @@ namespace AG::Guild
 		});
 		{
 			std::lock_guard l(g_lock);
-			LogLocked(Loc::T("$AG_Log_UninstallCancel", "Uninstall cancelled: the Guild's abilities are back."));
+			LogLocked(Loc::T("$AG_Log_UninstallCancel", "Uninstall cancelled: the Guild's abilities are back."), false);
 		}
 		return Loc::T("$AG_Uninstall_Cancelled", "Uninstall cancelled. Your Guild abilities and party bonuses are back.");
 	}
@@ -1984,7 +1988,7 @@ namespace AG::Guild
 			g_rank = rank;
 			g_reputation = rep;
 			g_repCarry = 0.0f;
-			LogLocked(Loc::F("$AG_Log_RankReset", "Guild record set from level {}: Rank {}, {} Reputation.", level, Letter(rank), rep));
+			LogLocked(Loc::F("$AG_Log_RankReset", "Guild record set from level {}: Rank {}, {} Reputation.", level, Letter(rank), rep), false);
 		}
 		SyncGlobals();
 		GuildCard::Sync(false);  // the card carries the rank

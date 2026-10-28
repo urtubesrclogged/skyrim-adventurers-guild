@@ -27,6 +27,7 @@
 #include "RankCore.h"
 #include "Shop.h"
 #include "SkyrimNetData.h"
+#include "ChimData.h"
 #include "Wares.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
@@ -57,6 +58,7 @@ namespace
 		AG::Dungeons::OnGameLoaded();
 		AG::Party::DropCreatures();
 		AG::SkyrimNetData::OnGameLoaded();  // SkyrimNet reads this save's Guild record from now on
+		AG::ChimData::OnGameLoaded();       // ... and CHIM's server is sent it
 		AG::Wares::OnGameLoaded();
 		// Taking a posted job down cannot be undone, and here it would be done on what the save said a moment ago.
 		// Only a save read whole is believed; otherwise it waits until the player walks up to a board.
@@ -101,6 +103,7 @@ namespace
 			AG::Kills::Register();
 			AG::Party::Register();
 			AG::SkyrimNetData::Install();
+			AG::ChimData::Install();  // CHIM, when installed: the Guild's state to its server, the ledger's news to its NPCs
 			SKSE::log::info("Data loaded; sinks registered");
 			break;
 		case SKSE::MessagingInterface::kPreLoadGame:

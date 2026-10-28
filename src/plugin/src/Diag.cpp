@@ -5,6 +5,7 @@
 
 #include "Diag.h"
 
+#include "ChimData.h"
 #include "Counter.h"
 #include "Loc.h"
 #include "LotdWatch.h"
@@ -137,6 +138,7 @@ namespace AG::Diag
 		out.emplace_back("Legacy of the Dragonborn", LotdWatch::State() == 2 ? active : LotdWatch::State() == 1 ? inactive : none);
 		out.emplace_back("The Notice Board", !plugin("notice board.esp") ? none : NoticeWatch::Active() ? active : inactive);
 		out.emplace_back("SkyrimNet", !GetModuleHandleW(L"SkyrimNet.dll") ? none : g_skyrimNet.load() ? active : inactive);
+		out.emplace_back("CHIM", !ChimData::Present() ? none : ChimData::Active() ? active : inactive);  // active: its server has taken the Guild's state
 		return out;
 	}
 
