@@ -63,6 +63,8 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 - **New Dialogue**: over 1,100 voiced lines for vanilla NPCs, so the Guild sounds as if it had always been there.
 - **SkyrimNet integration** (optional): NPCs know the Guild, its lore and its rules, know your rank and your party,
   and can play along.
+- **Lore for CHIM**: no CHIM integration, but the Guild's lore as entries to add to CHIM's Oghma Infinium yourself
+  (see [docs/CHIM_LORE.md](docs/CHIM_LORE.md)).
 - **Translatable**: all text is in a standard translation file (see [docs/TRANSLATING.md](docs/TRANSLATING.md)).
 
 ## Requirements
