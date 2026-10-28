@@ -61,6 +61,7 @@ namespace AG::Wares
 			int         charge{ 0 };
 			int         merit{ 0 }, reputation{ 0 }, gold{ 0 };
 			RE::FormID  revealSound{ 0 };  // the moment the card rises
+			std::map<RE::FormID, float> held;  // effects with a multiplier of their own (effectMultipliers): what one item would break
 		};
 
 		struct Curse
@@ -347,6 +348,14 @@ namespace AG::Wares
 				const auto& t = j["tiers"][i];
 				g_tiers[i].revealSound = SoundId(t.value("revealSound", ""));
 			}
+			for (auto& e : j.value("effectMultipliers", nlohmann::json::array())) {
+				const auto tier = std::ranges::find(g_tiers, e.value("tier", std::string()), &Tier::id);
+				if (tier == g_tiers.end()) continue;
+				for (auto& key : e.value("effects", std::vector<std::string>{})) {
+					if (auto* fx = Resolve<RE::EffectSetting>(key)) tier->held[fx->GetFormID()] = e.value("multiplier", 1.0f);
+					else SKSE::log::warn("Wares: effectMultipliers names {}, which is not a magic effect", key);
+				}
+			}
 			auto*      dh = RE::TESDataHandler::GetSingleton();
 			RE::FormID id = kCurseAbility;
 			for (auto& c : j.value("curses", nlohmann::json::array())) {
@@ -368,7 +377,10 @@ namespace AG::Wares
 			g_tiers.clear();
 			g_curses.clear();
 		}
-		SKSE::log::info("Wares: {} kinds, {} enchantment families, {} tiers, {} curses", g_kinds.size(), g_families.size(), g_tiers.size(), g_curses.size());
+		std::size_t held = 0;
+		for (auto& t : g_tiers) held += t.held.size();
+		SKSE::log::info("Wares: {} kinds, {} enchantment families, {} tiers, {} curses, {} effects with a multiplier of their own", g_kinds.size(), g_families.size(),
+			g_tiers.size(), g_curses.size(), held);
 		for (auto& c : g_curses) {
 			for (auto& f : g_families) {
 				if (Cancels(c, f)) SKSE::log::info("Wares: curse {} is never paired with {}", c.id, Name(f.base));
@@ -488,7 +500,8 @@ namespace AG::Wares
 				RE::Effect e;
 				e.baseEffect = r.fx;
 				e.effectItem.area = r.area;
-				const float s = tier.strength, m = tier.multiplier;
+				const auto  held = tier.held.find(r.fx->GetFormID());
+				const float s = tier.strength, m = held != tier.held.end() ? held->second : tier.multiplier;
 				if (r.magMax > 0.0f) {
 					e.effectItem.magnitude = std::round((r.magMin + s * (r.magMax - r.magMin)) * m);
 					if (IsResist(r.fx->data.primaryAV)) e.effectItem.magnitude = std::min(e.effectItem.magnitude, g_resistCap);  // past it, nothing
