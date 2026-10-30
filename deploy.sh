@@ -23,11 +23,11 @@ rm -f "$M/Scripts/AG_ConfigMenu.pex" "$M/MCM/Config/AdventurersGuild/config.json
 rmdir "$M/MCM/Config/AdventurersGuild" "$M/MCM/Config" "$M/MCM" 2>/dev/null || true
 cp "$R/src/plugin/build/AdventurersGuild.dll"             "$M/SKSE/Plugins/AdventurersGuild.dll"
 cp "$R/config/SKSE/Plugins/AdventurersGuild.ini"          "$M/SKSE/Plugins/AdventurersGuild.ini"
-for f in guild.json adventurers.json trophies.json shop.json traits.json notices.json threat.json missives.addons.json missives_expansion.json missives_monsterhunt.json missives_goodguys.json missives_badguys.json lotd.json wares.json chim.json; do
+for f in guild.json adventurers.json trophies.json shop.json traits.json notices.json threat.json missives.addons.json missives_expansion.json missives_monsterhunt.json missives_goodguys.json missives_badguys.json wares.json chim.json; do
 	cp "$R/config/SKSE/Plugins/AdventurersGuild/$f" "$P/$f"      # sources (documentation; the DLL reads guild.json directly)
 done
 cp "$R"/build/esp/*.resolved.json "$P/"
-rm -f "$P/bounties.json" "$P/bounties.resolved.json" "$P/isekai_points.json"   # retired: bounties (kills pay Reputation directly), Isekai Hero points (shelved patch)
+rm -f "$P/bounties.json" "$P/bounties.resolved.json" "$P/isekai_points.json" "$P/lotd.json"   # retired: bounties (kills pay Reputation directly), Isekai Hero points (shelved patch), Legacy of the Dragonborn (paused: feature/lotd-support)
 cp "$R/build/esp/missives.json" "$P/missives.json"              # Missives board quests (tier, hold) for MissiveWatch
 V="$R/config/PrismaUI/views/AdventurersGuild"
 cp "$V/counter.html" "$V/index.html" "$M/PrismaUI/views/AdventurersGuild/"   # by name: scratch pages (_mock.html) stay behind

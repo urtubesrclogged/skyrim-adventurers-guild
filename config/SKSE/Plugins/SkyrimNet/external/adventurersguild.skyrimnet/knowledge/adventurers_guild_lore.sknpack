@@ -3,7 +3,7 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.13.0",
+    "version": "1.13.1",
     "entries": [
       {
         "key": "ag_basics",
@@ -163,22 +163,6 @@
           "missives",
           "outlaws",
           "underworld",
-          "jobs"
-        ]
-      },
-      {
-        "key": "ag_lotd_relics",
-        "display_name": "Relic work for the Dragonborn Gallery",
-        "content": "The Dragonborn Gallery in Solitude pays adventurers to recover what its collection lacks: Auryen Morellus hands out leads on lost relics, Latoria buys ruined books, and a good researcher with a sextant or a surveyor's kit can dig up a cache on their own. The museum pays its own reward, and the Adventurers Guild counts the work as a Guild job: an adventurer who reports it at a counter earns Merit and Reputation for it.",
-        "condition_expr": "is_plugin_loaded(\"LegacyoftheDragonborn.esm\")",
-        "always_inject": false,
-        "importance": 0.3,
-        "type": "KNOWLEDGE",
-        "tags": [
-          "guild",
-          "museum",
-          "relics",
-          "dragonborn gallery",
           "jobs"
         ]
       },

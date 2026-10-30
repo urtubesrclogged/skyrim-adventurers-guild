@@ -1265,24 +1265,6 @@ namespace AG::Guild
 		Hud(Loc::T("$AG_Hud_BountyDone", "Bounty collected. Submit your report at any guild counter."));
 	}
 
-	// Legacy of the Dragonborn's repeatable relic work (Finders Keepers, Research Project, ...), ranked by lotd.json: as
-	// a bounty, worth what a missive of that rank is and counted with them. The museum pays its own reward; the Guild
-	// pays Merit and Reputation and no gold.
-	void OnLotdCompleted(int a_rank, std::string_view a_title)
-	{
-		const int merit = MissiveMerit(a_rank), rep = MissiveRep(a_rank);
-		{
-			std::lock_guard l(g_lock);
-			if (!g_registered) return;
-			if (a_rank >= 0 && a_rank < kRankCount) ++g_missives[a_rank];
-			LogLocked(Loc::F("$AG_Log_Lotd", "Completed Rank {} museum work: {}.", Letter(a_rank), a_title));
-		}
-		Party::OnMissiveCompleted(a_rank);
-		AddReport("lotd", std::string(a_title), Loc::F("$AG_Report_Lotd", "Rank {} museum work for the Dragonborn Gallery, completed", Letter(a_rank)), 0, merit, rep);
-		SendModEvent("AG_MissiveCompleted", std::string(a_title), static_cast<float>(a_rank));
-		Hud(Loc::T("$AG_Hud_LotdDone", "Museum work done. Submit your report at any guild counter."));
-	}
-
 	void AddReport(std::string a_kind, std::string a_title, std::string a_detail, int a_gold, int a_merit, int a_rep, std::string a_key)
 	{
 		{

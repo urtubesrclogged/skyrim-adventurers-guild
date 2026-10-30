@@ -6,7 +6,6 @@
 #include "ControlsGuard.h"
 #include "Adventurers.h"
 #include "BountyWatch.h"
-#include "LotdWatch.h"
 #include "Counter.h"
 #include "SteamVRAim.h"
 #include "ChoiceSwap.h"
@@ -98,7 +97,6 @@ namespace
 			AG::MissiveWatch::Register();
 			AG::NoticeWatch::Register();
 			AG::BountyWatch::Register();
-			AG::LotdWatch::Register();  // Legacy of the Dragonborn, when loaded: its relic work credited as Guild work
 			AG::Dungeons::Install();
 			AG::Kills::Register();
 			AG::Party::Register();

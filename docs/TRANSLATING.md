@@ -93,10 +93,6 @@ the spot on a piece of gear enchanted for the buyer.
 * Messages: `$AG_Buy_Ware`, `$AG_Buy_WareRank`, `$AG_Buy_WareRep`, `$AG_Buy_WareGold`, `$AG_Buy_WareNone`, `$AG_Log_Ware`
   (the Records line) and `$AG_Why_Ware` (the reason shown when the Reputation is taken).
 
-New keys for Legacy of the Dragonborn's relic work (Finders Keepers, Research Project and the like), credited as
-Guild work when LotD is installed: `$AG_Toast_Lotd` (the notice), `$AG_Hud_LotdDone`, `$AG_Log_Lotd` and
-`$AG_Report_Lotd` (`{}` = the rank, then the quest's name).
-
 New text in the plugin (section 2): the curses. Six abilities named `Curse: ...` (`AG_Ab_WareCurse_*`) with their
 descriptions, and twelve effects whose only purpose is a line in a cursed item's description (`AG_MGEF_WareCurseNote_*`,
 "But you take <mag>% more damage from fire."). Keep `<mag>`: the game fills in the number. The line follows the

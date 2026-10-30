@@ -6,7 +6,6 @@
 - Guild Boxes (Services > Guild Boxes): a strongbox from the Guild's vaults, bought for Merit, Reputation and gold and opened right at the counter, with a weapon, armor or jewelry inside, enchanted at random. A Guild Box from D rank, a Blessed Box from C, and a Cursed Box from B: the strongest enchantments, with a curse attached. The counter asks before you buy one.
 - Perk training (Services > Guild Skills): one perk point for each rank from D to S, paid in Merit.
 - Missives for the Good Guys and Missives for the Bad Guys: their missives are Guild missives, ranked E to C, labeled on the boards and handed in at a counter. Both need SkyPatcher; the Bad Guys also needs Outlaws Refuges.
-- Legacy of the Dragonborn: its repeatable relic work (Finders Keepers, Research Project, One Man's Junk, the sextant and survey digs) earns a Guild report for Merit and Reputation, on top of the museum's own reward.
 - CHIM integration: CHIM's NPCs know the Guild's lore (added to CHIM's Oghma for you), their own rank, bio and party, and a counter keeper knows your record; your Guild ledger's news reaches the NPCs nearby. CHIM installs the Guild's server part by itself when a save loads. CHIM's NPCs can also do Guild business, as with SkyrimNet: a counter keeper opens the counter, registers you, hears your case for promotion, takes your reports or replaces your card, an adventurer shows you their guild card, and anyone without a rank can join the Guild. Not yet fully tested in game: please report how it goes.
 - The Guild Drums notices have a drum roll of their own for opening a Guild Box.
 
@@ -15,7 +14,7 @@
 - A new game no longer shows the "Rank levels kept" notice, which is only meant for saves from before 1.4.0, and always starts with rank S at the level the MCM shows (80 by default).
 
 **SkyrimNet**
-- NPCs know about Guild Boxes and perk training, and, when those mods are installed, about the Good Guys' trade and crafting missives, the Outlaw Refuges' jobs and the Dragonborn Gallery's relic work.
+- NPCs know about Guild Boxes and perk training, and, when those mods are installed, about the Good Guys' trade and crafting missives and the Outlaw Refuges' jobs.
 - SkyrimNet now reads Guild ranks, your Guild record and adventuring parties through its own native decorators, instead of the older Papyrus decorators SkyrimNet is phasing out. It's lighter on the game, the data is there as soon as a save loads, and the "Decorator 'ag_join_status' not found" errors seen for a few seconds after loading are gone.
 - Much smaller SkyrimNet prompts: the Guild guidelines every NPC reads went from about 1,600 tokens to about 150, and a Guild rep's bio got shorter. The details moved into the Guild's knowledge pack, which SkyrimNet only brings in when a conversation turns to them.
 

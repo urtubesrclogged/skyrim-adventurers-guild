@@ -43,9 +43,6 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
     (crafting orders, deliveries, tombs to clear and more) are Guild missives, ranked E to C like Missives' own. Its
     sister mod Missives for the Bad Guys is supported the same way: the jobs on its boards in the Outlaw Refuges
     (thefts, smuggling, dead drops and worse) are Guild missives too, ranked E to C.
-  - With [Legacy of the Dragonborn](https://www.nexusmods.com/skyrimspecialedition/mods/11802), its repeatable relic
-    work (Finders Keepers, Research Project, One Man's Junk, the sextant and survey digs) counts as Guild work: the
-    museum pays its own reward, and the Guild adds a report for Merit and Reputation (ranked E to C).
   - Provincial Notices, with [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218) installed.
 - **Reports**: hand in finished quests and cleared dungeons at any counter for gold, Merit and Reputation.
 - **Trophies**: sell proof of your hunts to the Guild for Merit.
@@ -97,9 +94,6 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 - Missives for the Bad Guys, its sister mod by the same author (with Missives): the same, for the missives on its boards in
   the Outlaw Refuges. Supported with its author's permission; nothing of it is included or overridden. It needs SkyPatcher
   and Outlaws Refuges, as it says.
-- [Legacy of the Dragonborn](https://www.nexusmods.com/skyrimspecialedition/mods/11802): its repeatable relic quests
-  are credited as Guild work, ranked E to C, with a report for Merit and Reputation when done. Only watched; nothing of
-  it is included or overridden. Checked against 5.5.2 and 5.6.5.
 - [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218): more guild quests, shared across the
   province.
 - SkyUI: the mod's settings menu (MCM), including the uninstall button.
