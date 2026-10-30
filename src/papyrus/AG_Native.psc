@@ -31,6 +31,8 @@ String Function ActionReplaceCard(Actor akLiaison) Global Native
 String Function ActionJoinGuild(Actor akActor) Global Native
 String Function ActionShowCard(Actor akActor) Global Native     ; SkyrimNet: an adventurer shows the player their guild card
 String Function GetJoinStatus(Actor akActor) Global Native
+; CHIM actions (AGChim): one of the seven above by its CHIM code (ExtCmdAGChim_<Action>); "" when the code is not ours
+String Function ChimAction(Actor akActor, String asCommand) Global Native
 ; SkyrimNet ag_party(actor): the player's party (name, members, Bond, renown) and this actor's own tie to a party (JSON)
 String Function GetPartyInfo(Actor akActor) Global Native
 String Function GetPartyName() Global Native ; the player's active party, "" without one ; "can_join" or member/retired/guard/child/summoned/guild_rep/invalid

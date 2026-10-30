@@ -4,7 +4,8 @@
 
 writes <mod folder>/CHIM/server-plugins/adventurersguild/<version>+<hash>.dwpkg (and removes older ones: CHIM's DLL
 takes the newest file, not the highest version). The hash is of the payload, so a changed plugin is a new version and
-CHIM installs it again; an unchanged one is left alone.
+CHIM installs it again; an unchanged one is left alone. Also writes <mod folder>/CHIM/adventurersguild_actions.csv from
+actions.json: CHIM's DLL uploads every Data/CHIM/*_actions.csv when a save loads (CHIM Plugin/Misc.cpp).
 
 A .dwpkg (HerikaServer docs/custom-plugins.md, lib/plugin_package_manager.php) is a ZIP: manifest.json (schema 4),
 checksums.sha256 (SHA-256 of every other file) and the plugin under server/, installed to HerikaServer/ext/<name>/.
@@ -23,7 +24,8 @@ CHIM_JSON = os.path.join(ROOT, "config", "SKSE", "Plugins", "AdventurersGuild", 
 NAME = "adventurersguild"
 # HerikaServer loads files with these names from every folder of ext/: our shared code must never be named like one
 HOOKS = {"globals.php", "preprocessing.php", "prerequest.php", "context_pre.php", "context.php", "context_building.php", "prompts.php",
-         "dialogue_prompt.php", "json_response_custom.php", "prepostrequest.php", "postrequest.php", "interact_actions.php"}
+         "dialogue_prompt.php", "json_response_custom.php", "prepostrequest.php", "postrequest.php", "interact_actions.php",
+         "functions.php"}
 STAMP = (2026, 1, 1, 0, 0, 0)  # every entry's date: the same payload makes the same package
 
 
@@ -74,7 +76,33 @@ def payload(version_base):
     return version, files
 
 
+def actions_csv():
+    """CHIM's custom action import (HerikaServer processor/import_files.php): one row per action, its code naming the
+    Papyrus bridge (ExtCmd<script>_<action>, CHIM Plugin/Commands.cpp). Every code must have its rule in lib/ag_chim.php."""
+    import csv
+    src = json.load(open(os.path.join(HERE, "actions.json"), encoding="utf-8"))
+    rules = open(os.path.join(HERE, "server", "lib", "ag_chim.php"), encoding="utf-8").read()
+    meta = json.dumps({"dispatch": "plugin_command", "source": "adventurersguild", "integration": "adventurersguild",
+                       "protocol": "extcmd_static_dispatch", "bridge_script": "AGChim", "bridge_entrypoint": "DispatchExternalCommand"},
+                      separators=(",", ":"))
+    params = json.dumps({"type": "object", "properties": {}, "required": []}, separators=(",", ":"))
+    buf = io.StringIO()
+    w = csv.writer(buf, lineterminator="\n")
+    w.writerow(["code_name", "action_name", "description", "return_message", "available_to_npc", "available_to_followers",
+                "available_to_narrator", "is_activated", "parameters_json", "metadata", "import_version"])
+    for a in src["actions"]:
+        if not re.fullmatch(r"ExtCmdAGChim_[A-Za-z]+", a["code"]) or f"'{a['code']}'" not in rules:
+            sys.exit(f"{a['code']}: not an AGChim code, or no rule for it in server/lib/ag_chim.php")
+        w.writerow([a["code"], a["name"], a["description"], a["returnMessage"], "true", "true", "false", "true", params, meta,
+                    src["importVersion"]])
+    return buf.getvalue().encode("utf-8")
+
+
 def build(version_base, mod_dir):
+    csv_data = actions_csv()
+    os.makedirs(os.path.join(mod_dir, "CHIM"), exist_ok=True)
+    with open(os.path.join(mod_dir, "CHIM", "adventurersguild_actions.csv"), "wb") as f:
+        f.write(csv_data)
     version, files = payload(version_base)
     manifest = {"schema_version": 4, "name": NAME, "version": version,
                 "description": "Adventurers Guild: the Guild's lore, ranks and record for CHIM's NPCs (sent by AdventurersGuild.dll).",

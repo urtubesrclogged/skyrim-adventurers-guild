@@ -13,6 +13,7 @@
 //     Oghma, which brings one in when the talk names its topic;
 //   - context_pre.php: the speaker's own standing, a counter keeper's view of the player's record, the lore only some
 //     factions have, and a few rules when the talk is about the Guild.
+//   - functions.php: the Guild's CHIM actions (CHIM/adventurersguild_actions.csv) only for the speaker they fit.
 // Memory events need nothing here: the DLL logs them as "info_guild" events, which CHIM keeps for the people nearby.
 
 const AG_CHIM_VERSION = '@AG_VERSION@';     // filled in by src/chim/build_dwpkg.py
@@ -259,6 +260,45 @@ function agChimNearby(array $state): array
         }
     }
     return $byName;
+}
+
+// The CHIM actions (CHIM/adventurersguild_actions.csv, from src/chim/actions.json) the speaker may use on this line, by
+// the same rules as SkyrimNet's actions (their eligibilityRules); the AdventurersGuild.dll checks again when one is used.
+// $me null: the game did not list the speaker, which it does for anyone with no rank, bio line, party tie or listed
+// faction (ChimData Near), so for joining they count as no one in particular.
+function agChimActionsAllowed(?array $state, ?array $me, string $speaker): array
+{
+    $led = $state['ledger'] ?? [];
+    $registered = !empty($led['registered']);
+    $factions = $me['factions'] ?? [];
+    $rep = in_array('AG_GuildLiaisonFaction', $factions, true);
+    $standing = (int)($me['standing'] ?? -1);
+    return [
+        'ExtCmdAGChim_OpenCounter' => $rep && $registered,
+        'ExtCmdAGChim_Register'    => $rep && !$registered,
+        'ExtCmdAGChim_Promote'     => $rep && $registered && !empty($led['promotionReady']),
+        'ExtCmdAGChim_Reports'     => $rep && $registered && (int)($led['reportsWaiting']['count'] ?? 0) > 0,
+        'ExtCmdAGChim_ReplaceCard' => $rep && $registered && isset($led['hasCard']) && !$led['hasCard'],
+        'ExtCmdAGChim_ShowCard'    => $me !== null && $standing >= 0 && $standing <= 5,
+        'ExtCmdAGChim_Join'        => $state !== null && $speaker !== '' && $speaker !== 'The Narrator' && $standing < 0 && !$rep
+            && !in_array('GuardDialogueFaction', $factions, true),
+    ];
+}
+
+// Takes our actions the speaker may not use off this line's list (ENABLED_FUNCTIONS, by code). Called from functions.php,
+// which HerikaServer loads right after reading the enabled actions and before it lists them for the model
+// (functions/functions.php, then json_response.php). With no recent state none of them is offered.
+function agChimFilterActions(): void
+{
+    if (!is_array($GLOBALS['ENABLED_FUNCTIONS'] ?? null)) {
+        return;
+    }
+    $state = agChimState();
+    $speaker = (string)($GLOBALS['HERIKA_NAME'] ?? '');
+    $me = $state ? (agChimNearby($state)[$speaker] ?? null) : null;
+    $denied = array_keys(array_filter(agChimActionsAllowed($state, $me, $speaker), static fn($allowed) => !$allowed));
+    $GLOBALS['ENABLED_FUNCTIONS'] = array_values(array_filter($GLOBALS['ENABLED_FUNCTIONS'],
+        static fn($code) => !in_array((string)$code, $denied, true)));
 }
 
 function agChimInjectPrompt(): void

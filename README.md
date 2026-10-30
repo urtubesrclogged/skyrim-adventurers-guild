@@ -65,8 +65,8 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   and can play along.
 - **CHIM integration** (optional): NPCs know the Guild's lore (in CHIM's Oghma), their own rank and party, the Guild's
   view of you if they keep a counter, and hear the news of your Guild record. CHIM installs the Guild's part on its
-  server by itself when a save loads; there is nothing to set up. CHIM's actions (opening the counter, showing your card)
-  are not supported yet.
+  server by itself when a save loads; there is nothing to set up. NPCs can do Guild business as with SkyrimNet: open the
+  counter, register you, hear your promotion case, take your reports, replace your card, show their own card, or join.
 - **Translatable**: all text is in a standard translation file (see [docs/TRANSLATING.md](docs/TRANSLATING.md)).
 
 ## Requirements

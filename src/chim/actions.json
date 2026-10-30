@@ -1,0 +1,48 @@
+{
+ "_about": "CHIM actions (1.6.0), the twins of the SkyrimNet ones (config/.../adventurersguild.skyrimnet/actions). build_dwpkg.py writes them to CHIM/adventurersguild_actions.csv, which CHIM's DLL uploads when a save loads. The code is ExtCmdAGChim_<Action>: CHIM calls AGChim.DispatchExternalCommand (src/papyrus/AGChim.psc), which runs AG_Native.ChimAction. Who is offered which is decided per line by the server plugin (lib/ag_chim.php, agChimFilterActions), as SkyrimNet's eligibility rules do. CHIM replaces an imported action only when importVersion is higher: raise it with every change below.",
+ "importVersion": 2026102901,
+ "actions": [
+  {
+   "code": "ExtCmdAGChim_OpenCounter",
+   "name": "Open_Guild_Counter",
+   "description": "Open the Adventurers Guild counter for #PLAYER_NAME#, a registered adventurer, at the counter you keep. Use it whenever #PLAYER_NAME# brings up guild business: work, jobs, missives, bounties, their guild card, their reports, trophies or the Guild's services, and you are willing to help. The counter is how all Guild business is done, so use it rather than only talking about it. Opening it commits #PLAYER_NAME# to nothing (no fee, no choice), so there is no yes to wait for: use it on the same turn they bring up guild business.",
+   "returnMessage": "#HERIKA_NAME# opens the Adventurers Guild counter for #PLAYER_NAME#."
+  },
+  {
+   "code": "ExtCmdAGChim_Register",
+   "name": "Register_Adventurer",
+   "description": "Register #PLAYER_NAME# with the Adventurers Guild at the counter you keep. Use ONLY when #PLAYER_NAME# asks to join the Adventurers Guild AND agrees to pay the registration fee. The fee is taken and they are registered, or turned away if they cannot pay. Otherwise, do NOT use this action.",
+   "returnMessage": "#HERIKA_NAME# registers #PLAYER_NAME# with the Adventurers Guild."
+  },
+  {
+   "code": "ExtCmdAGChim_Promote",
+   "name": "Hear_Promotion_Case",
+   "description": "Hear #PLAYER_NAME#'s case for promotion at the Adventurers Guild counter you keep: their record has earned it. Use ONLY when #PLAYER_NAME# asks to be promoted AND agrees to pay the promotion fee. Otherwise, do NOT use this action.",
+   "returnMessage": "#HERIKA_NAME# hears #PLAYER_NAME#'s case for promotion."
+  },
+  {
+   "code": "ExtCmdAGChim_Reports",
+   "name": "Take_Guild_Reports",
+   "description": "Take #PLAYER_NAME#'s reports of finished jobs at the Adventurers Guild counter you keep, and pay them out. Use ONLY when #PLAYER_NAME# asks to hand in their reports or claim their reward for finished missives and cleared dungeons. Otherwise, do NOT use this action.",
+   "returnMessage": "#HERIKA_NAME# takes #PLAYER_NAME#'s reports for the Adventurers Guild."
+  },
+  {
+   "code": "ExtCmdAGChim_ReplaceCard",
+   "name": "Replace_Guild_Card",
+   "description": "Issue #PLAYER_NAME# a replacement Adventurers Guild card at the counter you keep: they no longer carry theirs. Use ONLY when #PLAYER_NAME# asks for a replacement guild card AND agrees to pay the replacement fee. Otherwise, do NOT use this action.",
+   "returnMessage": "#HERIKA_NAME# writes out a replacement guild card for #PLAYER_NAME#."
+  },
+  {
+   "code": "ExtCmdAGChim_ShowCard",
+   "name": "Show_Guild_Card",
+   "description": "Show #PLAYER_NAME# your Adventurers Guild card, so they can read it. Use ONLY when #PLAYER_NAME# asks to see your guild card (or proof that you are an adventurer) and you agree to show it, or you choose to show it yourself to prove who you are. Do NOT use it when you only talk about the Guild or your rank.",
+   "returnMessage": "#HERIKA_NAME# shows #PLAYER_NAME# their Adventurers Guild card."
+  },
+  {
+   "code": "ExtCmdAGChim_Join",
+   "name": "Join_Adventurers_Guild",
+   "description": "Join the Adventurers Guild yourself and become a registered adventurer. Use ONLY when you have decided, in this conversation, to become an adventurer of the Adventurers Guild: #PLAYER_NAME# invites or urges you to join and you agree, or you choose it yourself. Your name goes into the Guild's ledger (a letter to the nearest counter will do). It is a real commitment, so do NOT use it for idle talk about the Guild, a maybe, or a refusal.",
+   "returnMessage": "#HERIKA_NAME# joins the Adventurers Guild."
+  }
+ ]
+}

@@ -193,6 +193,28 @@ namespace AG
 		std::string ActionJoinGuild(Tag*, RE::Actor* a_actor) { return Adventurers::Join(a_actor); }
 		std::string ActionShowCard(Tag*, RE::Actor* a_actor) { return MemberCards::ShowCardOf(a_actor); }
 		std::string GetJoinStatus(Tag*, RE::Actor* a_actor) { return Adventurers::JoinStatus(a_actor); }
+		// CHIM actions (AGChim, 1.6.0): the same seven, by their code in CHIM/adventurersguild_actions.csv; "" for a code that
+		// is not ours, so CHIM can pass it on
+		std::string ChimAction(Tag* a_tag, RE::Actor* a_actor, std::string a_command)
+		{
+			if (const auto at = a_command.find('@'); at != std::string::npos) a_command.resize(at);
+			constexpr std::string_view prefix = "ExtCmdAGChim_";
+			if (!a_command.starts_with(prefix)) return {};
+			const auto what = a_command.substr(prefix.size());
+			if (what != "OpenCounter" && what != "Register" && what != "Promote" && what != "Reports" && what != "ReplaceCard" && what != "ShowCard" && what != "Join") return {};
+			std::string result;
+			if (!a_actor) result = "no one by that name is here";
+			else if (what == "OpenCounter") result = ActionOpenCounter(a_tag, a_actor);
+			else if (what == "Register") result = ActionRegister(a_tag, a_actor);
+			else if (what == "Promote") result = ActionPromote(a_tag, a_actor);
+			else if (what == "Reports") result = ActionReports(a_tag, a_actor);
+			else if (what == "ReplaceCard") result = ActionReplaceCard(a_tag, a_actor);
+			else if (what == "ShowCard") result = ActionShowCard(a_tag, a_actor);
+			else result = ActionJoinGuild(a_tag, a_actor);
+			if (result.empty()) result = "done";
+			SKSE::log::info("CHIM action {} by {}: {}", what, a_actor ? a_actor->GetDisplayFullName() : "(no one)", result);
+			return result;
+		}
 
 		// ---- dev / test (DevBench) ----
 		std::string  DebugDump(Tag*) { return Guild::Dump(); }
@@ -315,6 +337,7 @@ namespace AG
 		REG(ActionReplaceCard);
 		REG(ActionJoinGuild);
 		REG(ActionShowCard);
+		REG(ChimAction);
 		REG(GetPartyInfo);
 		REG(GetPartyName);
 		REG(GetJoinStatus);

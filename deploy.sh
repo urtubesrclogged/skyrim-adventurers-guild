@@ -41,6 +41,7 @@ mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex/chest" && cp "$V"/tex/chest/*.p
 cp "$V"/fonts/* "$M/PrismaUI/views/AdventurersGuild/fonts/"                   # Cyrodiil and its licence (OFL: they travel together)
 mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex" && cp "$R"/config/PrismaUI/views/AdventurersGuild/tex/*.png "$M/PrismaUI/views/AdventurersGuild/tex/"
 cp "$R"/build/papyrus/AG_*.pex                             "$M/Scripts/"
+cp "$R/build/papyrus/AGChim.pex" "$M/Scripts/"                 # CHIM's bridge (1.6.0): CHIM calls it by this name, so no AG_ prefix
 # the guild card as an object (1.5.0): its meshes, and their textures, which are made from the game's parchment and are
 # not in the repository (tools/make_card_item.py makes both)
 [ -f "$R/config/textures/AdventurersGuild/guildcard.dds" ] && [ -f "$R/config/meshes/AdventurersGuild/guildcard_inv.nif" ] || { echo "the card's textures or inventory meshes are missing - run: python tools/make_card_item.py" >&2; exit 1; }
