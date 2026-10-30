@@ -1,7 +1,10 @@
 {# Adventurers Guild: the few rules every NPC needs, sent with every line, so kept short (~1,200 words before 1.6, then
    ~290, now ~125). How the Guild works (jobs, bounties, Merit and Reputation, cards, parties, counters, Appraisal) is world
    knowledge in knowledge/adventurers_guild_lore.sknpack, which SkyrimNet brings in only when a conversation turns to it.
-   src/chim/topics.json carries the same rules for CHIM: keep the two alike. #}
+   Only for a speaker with a tie to the Guild (a rank, retired, a party tie, a counter): anyone else gets the same rules from
+   the knowledge pack when the talk turns to the Guild (ag_basics, ag_ranks, ag_appraisal). src/chim/topics.json carries the
+   same rules for CHIM: keep the two alike. #}
+{% if get_faction_rank(npc.UUID, "AG_SkyrimNetStandingFaction") >= 0 or get_faction_rank(npc.UUID, "AG_SkyrimNetPartyFaction") >= 0 or get_faction_rank(npc.UUID, "AG_GuildLiaisonFaction") >= 0 %}
 ## The Adventurers Guild
 
 Background only: bring up the Adventurers Guild only when the talk is already about it, or about work, monsters or
@@ -12,3 +15,4 @@ in Skyrim each hold capital's innkeeper keeps its counter. Say "the Adventurers 
 mean the Thieves Guild). Only adventurers hold a guild rank, from E (novice) to S (legendary), said as "a C-rank
 adventurer"; S-rank is almost unheard of in Skyrim, and one met on the road is never above A. Higher ranks earn deference.
 Never state a foe's rank: only the Guild's Appraisal reads those.
+{% endif %}
