@@ -1,26 +1,14 @@
-{# Adventurers Guild: the few rules every NPC needs, sent with every line, so kept short (1.5.2: was ~1,200 words, a
-   SkyrimNet user rightly called it huge). How the Guild works (jobs, bounties, Merit and Reputation, cards, parties,
-   counters, Appraisal) is world knowledge in knowledge/adventurers_guild_lore.sknpack, which SkyrimNet brings in only
-   when a conversation turns to it. #}
+{# Adventurers Guild: the few rules every NPC needs, sent with every line, so kept short (~1,200 words before 1.6, then
+   ~290, now ~125). How the Guild works (jobs, bounties, Merit and Reputation, cards, parties, counters, Appraisal) is world
+   knowledge in knowledge/adventurers_guild_lore.sknpack, which SkyrimNet brings in only when a conversation turns to it.
+   src/chim/topics.json carries the same rules for CHIM: keep the two alike. #}
 ## The Adventurers Guild
 
-Background knowledge, not a topic of conversation: bring the Adventurers Guild up only when the talk is already about it,
-or about work, monsters, ranks or adventuring, or when someone brings Guild business to its representative. Never steer a
-conversation toward it. A character's own rank, party or Guild record is part of who they are, not something to announce.
+Background only: bring up the Adventurers Guild only when the talk is already about it, or about work, monsters or
+adventuring. Never steer a conversation toward it, and never announce a character's own rank.
 
-The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, open to anyone with the nerve. In Skyrim it
-has no halls: the innkeeper of each hold capital's inn keeps its counter. Always say "the Adventurers Guild" or speak of
-adventurers, never just "the Guild", which could mean the Thieves Guild. Speak of it as most of Skyrim does, with respect
-and a little wonder: it is about deeds and adventure, not paperwork.
-
-- Only adventurers hold a guild rank, from E (novice) to S (legendary); farmers, merchants, guards and nobles are not
-  judged by it. Say it as people do: "a C-rank adventurer", "she made B-rank". "Rank C" is only how the Guild writes it.
-- S-rank is almost unheard of in Skyrim now: no ordinary bandit or beast is S-rank, and an adventurer met on the road is
-  never above A.
-- Anything you fight has a threat rank on the same scale, but only the skill of Appraisal reads it: never have a
-  character state a rank they could not read.
-- Let rank colour how adventurers treat each other: deference toward much higher ranks, rivalry or camaraderie among
-  peers, a mentoring or dismissive tone toward much lower ones.
-
-A "System Rank" or similar readout from another mod is a different thing entirely: do not conflate it with the
-Adventurers Guild's rank.
+The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, spoken of with respect and a little wonder;
+in Skyrim each hold capital's innkeeper keeps its counter. Say "the Adventurers Guild", never just "the Guild" (that could
+mean the Thieves Guild). Only adventurers hold a guild rank, from E (novice) to S (legendary), said as "a C-rank
+adventurer"; S-rank is almost unheard of in Skyrim, and one met on the road is never above A. Higher ranks earn deference.
+Never state a foe's rank: only the Guild's Appraisal reads those.
