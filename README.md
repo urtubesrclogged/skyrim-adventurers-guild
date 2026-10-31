@@ -77,29 +77,26 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 
 - [Missives](https://www.nexusmods.com/skyrimspecialedition/mods/17576) 2.03: guild quests in every hold. Works
   alongside other Missives patches; no patch is needed.
-- [Missives - Worldspace Additions](https://www.nexusmods.com/skyrimspecialedition/mods/26788) (with Missives): its
+- [Missives - Worldspace Additions](https://www.nexusmods.com/skyrimspecialedition/mods/26788): its
   Solstheim board in Raven Rock becomes a Guild board, with ranked jobs that pay Merit and Reputation. Its boards in
   other lands are not Guild boards yet.
-- [Missives - Voice and Quest Expansion](https://www.nexusmods.com/skyrimspecialedition/mods/166094) by jayserpa (with Missives): its missives
+- [Missives - Voice and Quest Expansion](https://www.nexusmods.com/skyrimspecialedition/mods/166094) by jayserpa: its missives
   are Guild missives, each with a rank, the rank gate, a place on the counter's Quests tab and a report when done.
   Supported with its author's permission; nothing of it is included or overridden.
-- [Monster Hunt Missives](https://www.nexusmods.com/skyrimspecialedition/mods/186539) by sgtbham1 (with Missives): its
+- [Monster Hunt Missives](https://www.nexusmods.com/skyrimspecialedition/mods/186539) by sgtbham1: its
   hunt contracts are Guild missives, ranked by what you hunt (C to A), behind the rank gate, on the counter's Quests tab,
   and a report for Merit and Reputation when its broker has paid you. Built on as its author's terms invite; nothing of
   it is included or overridden.
-- [Missives for the Good Guys](https://www.nexusmods.com/skyrimspecialedition/mods/98373) by Lizzy of the Wildlander Team (with
-  Missives): its missives are Guild missives, ranked by the Missives difficulty list it puts each in (E to C), behind the
+- [Missives for the Good Guys](https://www.nexusmods.com/skyrimspecialedition/mods/98373) by Lizzy of the Wildlander Team: its missives are Guild missives, ranked by the Missives difficulty list it puts each in (E to C), behind the
   rank gate, on the counter's Quests tab, and a report when done. Supported with its author's permission; nothing of it
-  is included or overridden. It needs SkyPatcher, as its page says.
-- Missives for the Bad Guys, its sister mod by the same author (with Missives): the same, for the missives on its boards in
-  the Outlaw Refuges. Supported with its author's permission; nothing of it is included or overridden. It needs SkyPatcher
-  and Outlaws Refuges, as it says.
+  is included or overridden.
+- Missives for the Bad Guys, its sister mod by the same author: the same, for the missives on its boards in
+  the Outlaw Refuges. Supported with its author's permission; nothing of it is included or overridden.
 - [The Notice Board](https://www.nexusmods.com/skyrimspecialedition/mods/3218): more guild quests, shared across the
   province.
 - SkyUI: the mod's settings menu (MCM), including the uninstall button.
 - SkyrimNet: see above.
-- [CHIM](https://www.nexusmods.com/skyrimspecialedition/mods/126330): see above. Needs a CHIM from mid-2026 or later
-  (HerikaServer 3.4.2+, with server plugins installed from the mod folder).
+- [CHIM](https://www.nexusmods.com/skyrimspecialedition/mods/126330): see above.
 
 Each of these is detected when the game starts. Without one, its part of the mod is simply not there.
 
