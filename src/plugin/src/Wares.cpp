@@ -186,7 +186,7 @@ namespace AG::Wares
 			if (!f.fx.empty()) g_families.push_back(std::move(f));
 		}
 
-		// the masters a vanilla tier comes from. An enchantment overhaul adds tiers of its own under vanilla's bases (Librum:
+		// the masters a vanilla tier comes from. An enchantment overhaul adds tiers of its own under vanilla's bases (seen:
 		// Resist Magic up to 250, Carry Weight 200), and those would stretch "the strongest vanilla tier" far past vanilla;
 		// a vanilla record keeps the values the load order gives it, so an overhaul's rebalance of vanilla still counts
 		bool FromVanilla(const RE::TESForm* a_form)
