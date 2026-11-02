@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1
+
+**Fixes/Bugs**
+- Fixed the Whiterun, Windhelm, Solitude, Markarth and Riften missive boards staying empty with Missives for the Good Guys or the Bad Guys installed.
+
 ## 1.6.0
 
 **New**

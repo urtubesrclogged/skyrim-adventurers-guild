@@ -17,6 +17,7 @@
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <atomic>
+#include <cmath>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -53,6 +54,9 @@ namespace AG::MissiveWatch
 			float rate{ 3.0f };     // days between refreshes
 		};
 		std::unordered_map<std::string, BoardTimer> g_timers;
+		// Missives for the Good Guys and the Bad Guys, when installed: the list their _M_ActivatorScript finds "the nearest
+		// board" in. See FaceBoardList.
+		RE::BGSListForm*                            g_boardList{ nullptr };
 		float                                       g_dueSince{ -1.0f };  // the last registration or promotion: boards refreshed before it are due
 		std::unordered_map<RE::FormID, std::string> g_tag;  // the counter's mark for a mod's own missives ([VQE], [MH]); none for Missives' own
 		std::unordered_map<RE::FormID, int>         g_postedStage;  // a quest whose "posted on a board" stage is not 0 (Monster Hunt Missives: 10)
@@ -655,6 +659,7 @@ namespace AG::MissiveWatch
 			return;
 		}
 
+		g_boardList = dh->LookupForm<RE::BGSListForm>(0xA49, "MissivesSharedResources.esp");  // the two add-ons' board list; absent without them
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESQuestStageEvent>(Sink::Get());
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESTriggerEnterEvent>(Sink::Get());
 		RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESCellAttachDetachEvent>(Sink::Get());
@@ -706,6 +711,47 @@ namespace AG::MissiveWatch
 			return obj;
 		}
 
+		// The two add-ons' board script posts only while the board by the trigger is the nearest in their list, and it stops
+		// the whole refresh otherwise ("Missives: Player teleported"). Each walled city has a board inside (WhiterunWorld) and
+		// a twin in Tamriel at the same coordinates (Whiterun 22 units, Markarth 179), for the trigger on either side of the
+		// walls, and Papyrus GetDistance measures across worldspaces: in Whiterun the Tamriel twin is nearer from half of the
+		// trigger, and Riften's city board is not in the list at all, only its twin. So a board's trigger, as it loads, turns
+		// the entries for its twin into its own board: in place, as a script may be reading the list. Nothing to undo: the
+		// twin's trigger turns them back when the player is on that side.
+		constexpr float kTwinReach = 300.0f;
+
+		bool IsTwin(const RE::TESObjectREFR* a_board, const RE::TESObjectREFR* a_other)
+		{
+			if (!a_other || a_other == a_board) return false;
+			const auto* world = a_board->GetWorldspace();
+			const auto* other = a_other->GetWorldspace();
+			if (!world || !other || world == other) return false;
+			const auto here = a_board->GetPosition(), there = a_other->GetPosition();
+			return std::hypot(here.x - there.x, here.y - there.y) <= kTwinReach;
+		}
+
+		void FaceBoardList(RE::TESObjectREFR* a_board)
+		{
+			if (!g_boardList) return;
+			int turned = 0;
+			for (auto*& form : g_boardList->forms) {
+				if (form && IsTwin(a_board, form->As<RE::TESObjectREFR>())) {
+					form = a_board;
+					++turned;
+				}
+			}
+			if (auto* added = g_boardList->scriptAddedTempForms) {  // the same, should an add-on's list be filled by script
+				for (auto& id : *added) {
+					if (IsTwin(a_board, RE::TESForm::LookupByID<RE::TESObjectREFR>(id))) {
+						id = a_board->GetFormID();
+						++turned;
+					}
+				}
+			}
+			static int said = 0;  // the first few in the log: the list is being kept right
+			if (turned > 0 && ++said <= 5) SKSE::log::info("MissiveWatch: {} board list entry turned to the board at {}", turned, Adventurers::StableKey(a_board));
+		}
+
 		// A board's trigger has just loaded: copy its timer, and make it due if the player registered or was
 		// promoted since its last refresh - Missives then refreshes the board itself as the player walks up.
 		// On the game's thread. False if its script is not bound yet (asked again on the next frame, once).
@@ -735,6 +781,7 @@ namespace AG::MissiveWatch
 					a_trigger->GetFormID(), !last ? "LastUpdate" : "MissiveBoard", names);
 				return true;
 			}
+			FaceBoardList(board);
 			const auto key = Adventurers::StableKey(board);
 			std::lock_guard l(g_lock);
 			auto& t = g_timers[key];
