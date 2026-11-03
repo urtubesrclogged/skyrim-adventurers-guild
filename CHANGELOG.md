@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.2
+
+**Fixes/Bugs**
+- Fixed SkyrimNet 29.2 warning that the Guild's rank prompt has no render mode check.
+
 ## 1.6.1
 
 **Fixes/Bugs**
