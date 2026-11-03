@@ -1,4 +1,6 @@
-{# Adventurers Guild: this actor's standing with the Guild. Rendered for the actor's own bio and, via "dialogue_target", for
+{% if render_mode == "full" or render_mode == "thoughts" or render_mode == "transform" or render_mode == "dialogue_target" %}
+{# SkyrimNet requires the render_mode check in the first 5 lines (it warns on every load otherwise), so it comes before this comment.
+   Adventurers Guild: this actor's standing with the Guild. Rendered for the actor's own bio and, via "dialogue_target", for
    whoever they are speaking with. A liaison (the innkeeper who keeps a hold capital's Guild counter) also knows the
    counter's business and reads the player's page of the ledger. The Guild's lore lives in
    knowledge/adventurers_guild_lore.sknpack; the rules in guidelines/0511.
@@ -7,7 +9,6 @@
      AG_SkyrimNetStandingFaction  0..5 member at rank letters[n], 10..15 retired at letters[n - 10]
      AG_SkyrimNetNoteFaction      the actor's own bio line, notes[n]
      AG_SkyrimNetPartyFaction     0..4 an active member of party, at Bond tier bondWords[n]; 10 + n former member of parties[n] #}
-{% if render_mode == "full" or render_mode == "thoughts" or render_mode == "transform" or render_mode == "dialogue_target" %}
 {% if json_file_exists("AdventurersGuild/SkyrimNet/state") %}
     {% set ags = read_json("AdventurersGuild/SkyrimNet/state") %}
     {% if is_player(actorUUID) %}
