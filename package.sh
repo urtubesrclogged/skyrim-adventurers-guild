@@ -36,6 +36,14 @@ def scrubbed(path):
     head = b"".join(struct.pack(">H", len(x)) + x for x in (name, b"author", b"build"))
     return d[:16] + head + d[pos:]
 
+# The DLL names its source files in log lines; CMakeLists.txt trims them to the project, and this refuses a build where
+# any drive path survived (1.6.0 shipped 43 of them before the trim)
+import re
+dll = open(os.path.join(src, "SKSE/Plugins/AdventurersGuild.dll"), "rb").read()
+left = sorted({m.group(0).decode("latin1") for m in re.finditer(rb"\b[A-Za-z]:[/\\][ -~]{3,}", dll)})
+if left:
+    sys.exit("REFUSED - the DLL names this machine's folders:\n  " + "\n  ".join(left[:10]))
+
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
     for dp, _, fs in os.walk(src):
         for f in sorted(fs):

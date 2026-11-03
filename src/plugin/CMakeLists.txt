@@ -10,6 +10,13 @@ set(COMMONLIB_DIR "$ENV{COMMONLIB_DIR}" CACHE PATH "CommonLibVR (alandtse, ng br
 if(NOT COMMONLIB_DIR)
 	message(FATAL_ERROR "Set COMMONLIB_DIR to a CommonLibVR (alandtse, ng branch) checkout (build.ps1 passes it from local.env)")
 endif()
+# Source file names compiled into the DLL (log lines, CommonLib's checks) would carry the building machine's folders into
+# the release; trim both trees to paths relative to their roots. Before add_subdirectory, so CommonLib gets it too.
+if(MSVC)
+	file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/" AG_TRIM_SELF)
+	file(TO_NATIVE_PATH "${COMMONLIB_DIR}/" AG_TRIM_COMMONLIB)
+	add_compile_options("/d1trimfile:${AG_TRIM_SELF}" "/d1trimfile:${AG_TRIM_COMMONLIB}")
+endif()
 add_subdirectory(${COMMONLIB_DIR} CommonLibSSE EXCLUDE_FROM_ALL)
 
 add_library(AdventurersGuild SHARED src/main.cpp src/RankCore.cpp src/Adventurers.cpp src/Guild.cpp src/Counter.cpp src/SteamVRAim.cpp src/GuildCard.cpp src/Diag.cpp src/ControlsGuard.cpp src/Shop.cpp src/Papyrus.cpp src/NameHook.cpp src/LevelDisplay.cpp src/PrismaToast.cpp src/MissiveWatch.cpp src/NoticeWatch.cpp src/BountyWatch.cpp src/Dungeons.cpp src/Kills.cpp src/Loc.cpp src/Party.cpp src/ChoiceSwap.cpp src/MemberCards.cpp src/SkyrimNetData.cpp src/ChimData.cpp src/Wares.cpp)
