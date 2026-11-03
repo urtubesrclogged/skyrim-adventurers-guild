@@ -4,6 +4,7 @@
 
 **Fixes/Bugs**
 - Fixed the Whiterun, Windhelm, Solitude, Markarth and Riften missive boards staying empty with Missives for the Good Guys or the Bad Guys installed.
+- Fixed a crash when a guild card's model could not load: highlighting the card in an inventory now shows a plain note instead.
 
 ## 1.6.0
 

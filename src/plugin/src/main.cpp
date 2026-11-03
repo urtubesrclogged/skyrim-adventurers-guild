@@ -52,6 +52,7 @@ namespace
 		AG::Guild::OnGameLoaded();
 		AG::Guild::SyncSuccessors();
 		AG::MissiveWatch::OnGameLoaded();
+		AG::GuildCard::CheckArt();
 		AG::GuildCard::Sync(false);  // a member from before 1.2.0, or one who lost theirs, gets a card
 		AG::ControlsGuard::OnGameLoaded();
 		AG::Dungeons::OnGameLoaded();

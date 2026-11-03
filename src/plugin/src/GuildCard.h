@@ -15,6 +15,7 @@
 namespace AG::GuildCard
 {
 	void Install();  // at kDataLoaded: find the record, watch the Book Menu
+	void CheckArt();  // the first game loaded, game thread: art that will not load falls back to the game's note
 
 	// The card is named for the player's current rank, and the FIRST one is free: handed over at registration, or to a
 	// member from before 1.2.0 when their save loads. After that a missing card (sold, dropped, left in a chest) is

@@ -345,6 +345,29 @@ namespace AG::GuildCard
 			if (auto* art = dh->LookupForm<RE::TESObjectSTAT>(mw ? 0xCE1 : 0xCE0, kPlugin)) g_card->inventoryModel = art;
 	}
 
+	// A book's preview reads the model it asked for without checking one came back, so inventory art that will not load is
+	// a crash the moment the card is highlighted (SkyrimSE.exe+08888AF on 1.5.97). The art is a static of ours; one that fails
+	// here takes the game's own note instead, and every card using it follows. In memory only, and silent when all is well.
+	void CheckArt()
+	{
+		static bool done = false;
+		if (done || !REL::Module::IsSE()) return;  // SE only: every report is from there
+		done = true;
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		if (!dh) return;
+		for (const RE::FormID id : { 0xCE0u, 0xCE1u, 0xCE2u, 0xC7Eu, 0xC7Fu }) {
+			auto* art = dh->LookupForm<RE::TESObjectSTAT>(id, kPlugin);
+			const char* model = art ? art->GetModel() : nullptr;
+			if (!model || !*model) continue;
+			RE::NiPointer<RE::NiNode>         node;
+			RE::BSModelDB::DBTraits::ArgsType args;
+			const auto err = RE::BSModelDB::Demand(model, node, args);
+			if (node) continue;
+			SKSE::log::warn("GuildCard: {} will not load (error {}) - that card shows the game's note in the inventory", model, static_cast<int>(err));
+			art->SetModel("Clutter\\Books\\Note01\\Note01.nif");
+		}
+	}
+
 	void Stamp(const std::string& a_city)
 	{
 		{
