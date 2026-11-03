@@ -23,7 +23,7 @@ INCLUDE = [
     "config/*",
     "docs/*",
 ]
-EXCLUDE = ["docs/images/*", "docs/SCREENSHOTS.md", "config/Sound/*", "*/__pycache__/*", "*.pyc", "local.env", "*/bin/*", "*/obj/*", "*/build/*"]
+EXCLUDE = ["docs/images/*", "docs/SCREENSHOTS.md", "config/Sound/*", "*/_mock.html", "*/__pycache__/*", "*.pyc", "local.env", "*/bin/*", "*/obj/*", "*/build/*"]  # _mock.html: local test page (deploy.sh leaves it too)
 # The author's machine and identity: none of this may be published. Machine paths are listed here; the author's own
 # words to refuse (name, mail domain...) come from PRIVATE_WORDS in local.env, comma-separated, never listed here.
 words = [w.strip() for w in os.environ.get("PRIVATE_WORDS", "").split(",") if w.strip()]
