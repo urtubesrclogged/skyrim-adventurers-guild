@@ -1,0 +1,73 @@
+{
+ "_comment": "Marius's own talk about the leaderboard (drafting/board_approved.json): members only, a top choice of its own and two follow-ups, built by npcgen's talk builder in its own ID block (0x17E0). The back reply is vanilla's exact words ('Anything else?', DialogueFollower), as the other staff's are. Written by hand from board_approved.json.",
+ "groups": [
+  {
+   "stem": "BoardMarius",
+   "nodes": [
+    {
+     "id": "LBMa0",
+     "parent": null,
+     "prompt": "Any stories about the names on the leaderboard?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "See the Cold Hearth? That was us. Above us, the Frostbitten and the Horker Company, and I'll not hear a word against either.",
+        "We chased them for three years. Never caught them."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "LBMa1",
+     "parent": "LBMa0",
+     "prompt": "Tell me about your old party, what was the Cold Hearth like?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "Stubborn, mostly. We took jobs other parties turned down and finished them out of spite. Picked a few fights we shouldn't have too. Good people.",
+        "Every one of them had better footwork than the lot up in the attic."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "LBMa2",
+     "parent": "LBMa0",
+     "prompt": "What about the two above you on the leaderboard?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "The Frostbitten were the best party this hall ever had. The Horker Company were even more stubborn than the Hearth.",
+        "Between them they kept us behind, and I was just proud to be among them. Sadly, we lost the lot of them in the war... just like my own party."
+       ]
+      }
+     },
+     "lock": null
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallResidentVeteran": "Anything else?"
+    }
+   }
+  }
+ ]
+}

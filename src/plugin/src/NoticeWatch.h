@@ -15,7 +15,7 @@
 // SKSE/Plugins/AdventurersGuild/notices.json. Its boards all open one shared container, so the notices are the same
 // everywhere in the province ("Provincial Notices" on the counter, next to Missives' per-hold "Local Missives").
 //
-// Two rules, decided with the user:
+// Two rules:
 //  - Nothing the player has TAKEN is taken back. A gated notice that is only posted (still on the board) above the
 //    player's rank is taken down, as Missives postings are; it goes back up when the rank allows it.
 //  - When in doubt, do not gate. A quest is rank-gated only if the boards start it themselves (so a failed start is

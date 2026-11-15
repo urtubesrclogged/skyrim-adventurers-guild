@@ -31,6 +31,6 @@ if (!agChimSet('state', json_encode($state, JSON_UNESCAPED_UNICODE | JSON_INVALI
 }
 $answer = 'Adventurers Guild ' . AG_CHIM_VERSION . ' on the CHIM server: state stored';
 if ($hello) {
-    $answer .= '; ' . agChimSyncOghma(is_array($state['plugins'] ?? null) ? $state['plugins'] : []);
+    $answer .= '; ' . agChimSyncOghma(is_array($state['plugins'] ?? null) ? $state['plugins'] : [], (bool)($state['hallInstalled'] ?? true));
 }
 echo $answer;

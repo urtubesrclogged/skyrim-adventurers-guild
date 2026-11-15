@@ -98,6 +98,47 @@ descriptions, and twelve effects whose only purpose is a line in a cursed item's
 "But you take <mag>% more damage from fire."). Keep `<mag>`: the game fills in the number. The line follows the
 enchantment's own sentence, so it starts a new sentence.
 
+New keys for the Guild Hall's counter, which lists every hold's work, and for the filters every counter's lists now
+have:
+
+* The holds' names: `$AG_Hold_Whiterun`, `$AG_Hold_Haafingar`, `$AG_Hold_Eastmarch`, `$AG_Hold_Rift` ("The Rift"),
+  `$AG_Hold_Reach`, `$AG_Hold_Falkreath`, `$AG_Hold_Hjaalmarch`, `$AG_Hold_Pale`, `$AG_Hold_Winterhold`,
+  `$AG_Hold_Solstheim`.
+* The hall counter: `$AG_UI_HallBranch` (its subtitle), `$AG_UI_Missives` (the section that is "Local Missives" at an
+  inn), `$AG_UI_HoldPick` ("Hold:", the button that opens the holds), `$AG_UI_ChooseHold` (the line above them),
+  `$AG_UI_AllSkyrim`, `$AG_UI_HallPostDetail` (`{0}` = the rank, `{1}` = the hold, `{2}` = the town whose board it is on),
+  `$AG_UI_HallBountyDetail` (`{0}` = the rank, `{1}` = the hold), `$AG_UI_HallBoardEmpty` and `$AG_UI_HallBountyEmpty`
+  (`{0}` = the hold, or "All Skyrim"), `$AG_UI_HallBoardEmptyAll` (no hold picked) and `$AG_UI_HallBoardEmpty2` (the
+  line under both, also on the Guild Board: Missives posts a hold's work only when someone visits its board). The
+  player's own bounty in the hall's list: `$AG_UI_HallBountyYours` (taken), `$AG_UI_HallBountySlain` (`{0}` = who pays)
+  and `$AG_UI_HallBountySlainJarl` (no payer known). "A new bounty?", first in the hall's Bounties on the counter and
+  the Guild Board: `$AG_UI_NewBounty` (its title), `$AG_UI_NewBountyDetail` (the line under it: nothing about the
+  bounty is told before it is taken), and `$AG_Hall_NoBounty` (the status line when no hold could post one).
+* What only the Guild Hall does (2.0, MCM > Guild Hall): `$AG_UI_AtGuildHall` (the note on a service an inn's counter
+  shows greyed, and on its Register buttons), `$AG_Hall_OnlyThere` (the status line if one is asked for anyway),
+  `$AG_UI_FoundAtHall` and `$AG_UI_RegistryAtHall` (the Party tab at an inn: founding, and renaming or disbanding),
+  `$AG_UI_EligibleHall` (the card's promotion note naming the hall), and the alerts `$AG_Hud_ReadyHall`,
+  `$AG_Toast_ReadySubHall` and `$AG_Hud_RegOnlyHall` (the same as `$AG_Hud_Ready`, `$AG_Toast_ReadySub` and
+  `$AG_Hud_RegOnly`, sending the player to the hall's clerks). The MCM page is `$AG_MCM_Hall` and its `$AG_MCM_Hall_*`
+  keys.
+* Followers registered by hand (2.0): the Party tab's Register section, `$AG_UI_RegisterTab`, `$AG_UI_RegisterIntro`,
+  `$AG_UI_RegisterFee` (`{0}` = gold), `$AG_UI_RegisterBtn`, with `$AG_UI_FoundRegisterFirst` and
+  `$AG_UI_NoRecruitsRegister` where nobody can join a party until registered; its status lines `$AG_Party_Registered`,
+  `$AG_Party_RegGold`, `$AG_Party_RegCannot` (`{0}` = the follower) and `$AG_Party_RegNotHere`.
+* Every counter: `$AG_UI_AllRanks`, `$AG_UI_SortHigh` and `$AG_UI_SortLow` (the rank filter and the sort).
+* The Guild Board in the hall (its own page, `board.html`, sharing the counter's keys where the words are the same):
+  `$AG_UI_GBoardTitle`, `$AG_UI_GBoardYourRank`, `$AG_UI_GBoardPosted` (`{0}` = how many), `$AG_UI_GBoardEmpty`,
+  `$AG_UI_GBoardNotRegHall` (only the hall signs adventurers up), `$AG_UI_GBoardNotRegAny` (the inns do too), `$AG_UI_GBoardBack`, `$AG_UI_GBoardRank` (`{0}` = the rank letter) and
+  `$AG_UI_GBoardRowRankHold` (a bounty's line: `{0}` = the rank, `{1}` = the hold). And `$AG_Hud_BoardNoPrisma`, the
+  message shown when PrismaUI is missing.
+
+The Guild Hall has a plugin of its own, `AdventurersGuild - Guild Hall.esp` (a full plugin, not localized): translate it
+with xTranslator like `AdventurersGuild.esp`. Its text: the hall's people (the twelve NPCs' names, and Old Henriette's
+short name Henriette), its cells' names, and the clerks' dialogue (topic `AGHallClerkTopicBusiness`, the player's `I
+have guild business.` and the two clerks' replies). Their voice files are
+`Sound/Voice/AdventurersGuild - Guild Hall.esp/<VoiceType>/<name>.fuz`, named from the plugin's fixed FormIDs like the
+main plugin's. The people's SkyrimNet bios are in the SkyrimNet folder (`prompts/characters/`), plain text.
+
 ## Since 1.5.0
 
 New keys in the interface file, all optional, for the hold stamps on the Guild Card:
@@ -217,9 +258,11 @@ New text in the plugin (section 2), all of it for Show Guild Card:
 
 New keys, all optional (English is shown for any you leave out):
 
-* `$AG_UI_NoDungeonsAtRank`: shown on Intel's Dungeons tab when the hold has none at the player's rank.
+* `$AG_UI_NoDungeonsAtRank`: shown on Intel's Dungeons tab when the hold has none at the player's rank;
+  `$AG_UI_NoDungeonsAtRankHall` at the Guild Hall, showing every hold.
 * Intel's two tabs: `$AG_UI_IntelDungeons`, `$AG_UI_IntelPoi`, and the short note beside them: `$AG_UI_NoteDungeons`,
-  `$AG_UI_NotePoi`.
+  `$AG_UI_NotePoi`; at the Guild Hall, which sells every hold's, `$AG_UI_NoteDungeonsHall`, `$AG_UI_NotePoiHall`, and
+  `$AG_UI_ChooseHoldIntel` over its grid of holds.
 * Points of Interest categories: `$AG_Poi_outpost`, `$AG_Poi_orc`, `$AG_Poi_camp`, `$AG_Poi_daedric`, `$AG_Poi_stone`,
   `$AG_Poi_landmark`, `$AG_Poi_wreck`. A category someone adds to `guild.json` is keyed `$AG_Poi_<its id>`.
 * Buying one: `$AG_Poi_Bought` (place, Merit), `$AG_Log_Poi` (the ledger line: place, Merit).

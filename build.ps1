@@ -17,6 +17,11 @@ foreach ($line in Get-Content $envFile) {
 }
 function Need([string]$key) { if (-not $cfg[$key]) { throw "local.env: $key is not set" }; return $cfg[$key] }
 function NeedWin([string]$key) { return (Need $key).Replace('/', '\') }  # cmd / vcvars want backslashes
+# STATUS_HOOK (local.env, optional): the status page's bash hook; its status.py beside it is told of this build's start and end
+$st = if ($cfg["STATUS_HOOK"]) { Join-Path (Split-Path $cfg["STATUS_HOOK"]) "status.py" } else { $null }
+function St([string]$state, [string]$detail) { if ($st -and (Test-Path $st)) { try { & python $st event "AG build" $state $detail *> $null } catch {} } }
+St "start" $(if ($Only) { $Only } else { "all" })
+trap { St "fail" "$_"; break }
 
 if (-not $Only -or $Only -eq "esp") {
   # AdventurersGuild.esp with the Missives integration (Missives.esp is read, not mastered), plus missives.json
@@ -68,3 +73,4 @@ if ((-not $Only -or $Only -eq "lang") -and (Test-Path "$root\tools\make_translat
   python "$root\tools\make_translations.py"
   if ($LASTEXITCODE -ne 0) { throw "translation file generation failed" }
 }
+St "ok" $(if ($Only) { $Only } else { "all" })

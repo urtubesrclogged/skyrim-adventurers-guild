@@ -28,6 +28,34 @@ namespace AG::Kills
 		using Clock = std::chrono::steady_clock;
 		std::unordered_map<RE::FormID, Clock::time_point> g_lastHit;
 
+		// Renown's kinds of kill, by the game's own races (measured in Skyrim.esm and the DLCs, 2026-11-04). Size alone does not
+		// tell them: a giant carries no keyword of its own and shares extra-large size with Dragonborn's Lurkers, and trolls,
+		// sabre cats and cave bears are medium-sized animals. Dragons carry ActorTypeDragon, trolls ActorTypeTroll.
+		struct RaceId { RE::FormID id; const char* file; };
+		std::vector<RE::TESRace*> Races(std::initializer_list<RaceId> a_ids)
+		{
+			std::vector<RE::TESRace*> out;
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			for (auto& r : a_ids)
+				if (auto* race = dh ? dh->LookupForm<RE::TESRace>(r.id, r.file) : nullptr) out.push_back(race);
+			return out;
+		}
+		bool IsGiant(RE::TESRace* a_race)  // GiantRace, C00GiantOutsideWhiterunRace, DLC2GhostFrostGiantRace
+		{
+			static const auto giants = Races({ { 0x131F9, "Skyrim.esm" }, { 0xCAE13, "Skyrim.esm" }, { 0x1CAD8, "Dragonborn.esm" } });
+			return a_race && std::ranges::find(giants, a_race) != giants.end();
+		}
+		// an animal that is a fight, not wildlife: trolls, every bear and sabre cat, and the large animals (snow and black
+		// bears, the giant frostbite spider, netches). Mammoths, extra large as they are, stay wildlife
+		bool IsFightAnimal(RE::Actor* a_victim, RE::TESRace* a_race)
+		{
+			static const auto fights = Races({ { 0x131E7, "Skyrim.esm" }, { 0x131E8, "Skyrim.esm" }, { 0x131E9, "Skyrim.esm" },   // the bears
+			                                   { 0x13200, "Skyrim.esm" }, { 0x13202, "Skyrim.esm" }, { 0xD0B6, "Dawnguard.esm" } });  // the sabre cats
+			if (a_victim->HasKeywordString("ActorTypeTroll")) return true;
+			if (a_race && a_race->data.raceSize.get() == RE::RACE_SIZE::kLarge) return true;
+			return a_race && std::ranges::find(fights, a_race) != fights.end();
+		}
+
 		// A dungeon's boss. Vanilla also tags a settlement's owner (innkeeper, shopkeeper, jarl) with the same Boss
 		// ref type for radiant quests, so it only counts inside a clearable location.
 		bool BossPlaced(RE::Actor* a_victim)
@@ -115,7 +143,11 @@ namespace AG::Kills
 			Guild::AddReputation(rep, std::format("killed {} ({})", a_victim->GetDisplayFullName(), why));
 			auto* race = a_victim->GetRace();
 			const bool huge = race && race->data.raceSize.get() == RE::RACE_SIZE::kExtraLarge;
-			Party::OnKill(a_victim, a_killer, ThreatRank(a_victim), IsBoss(a_victim) || huge);
+			// Renown's kinds: a great beast is a dragon or a giant; the game's own animal
+			// keyword marks wildlife (a mammoth among it), except the animals that are fights (bears, trolls, sabre cats)
+			const bool beast = a_victim->HasKeywordString("ActorTypeDragon") || IsGiant(race);
+			const bool wild = a_victim->HasKeywordString("ActorTypeAnimal") && !IsFightAnimal(a_victim, race);
+			Party::OnKill(a_victim, a_killer, ThreatRank(a_victim), IsBoss(a_victim) || huge, beast, wild);
 			Guild::CountKill(IsBoss(a_victim) || huge);
 			if (IsBoss(a_victim) || huge) {
 				const auto who = a_killer == RE::PlayerCharacter::GetSingleton() ? "" : " (with help)";

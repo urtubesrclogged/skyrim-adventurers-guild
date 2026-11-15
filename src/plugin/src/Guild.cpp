@@ -9,10 +9,14 @@
 #include "Guild.h"
 
 #include "Adventurers.h"
+#include "BountyWatch.h"
 #include "Dungeons.h"
 #include "MemberCards.h"
 #include "Party.h"
+#include "LeaderBoard.h"
 #include "Counter.h"
+#include "GuildHall.h"
+#include "hall/hall.h"
 #include "MissiveWatch.h"
 #include "Loc.h"
 #include "PrismaToast.h"
@@ -50,12 +54,12 @@ namespace AG::Guild
 			float                        repPerBountyGold{ 0.1f };  // Reputation lost per gold of new bounty
 			int                          bountyFeePercent{ 5 };     // the Guild's fee for paying the player's bounties at a counter (1.5.0)
 			float                        abandonShare{ 0.5f };      // of a taken missive's Reputation, lost when it is given up
-			std::array<int, kRankCount>  reputation{ 0, 100, 300, 700, 1500, 3000 };
+			std::array<int, kRankCount>  reputation{ 0, 150, 550, 1400, 2800, 5000 };
 			int                          cap{ 2 };  // C
 			std::array<int, kRankCount>  missiveMerit{ 5, 10, 15, 25, 30, 50 };
 			std::array<int, kRankCount>  missiveRep{ 8, 15, 30, 55, 65, 75 };
 			std::array<int, kRankCount>  dungeonMerit{ 5, 10, 20, 30, 40, 50 };
-			std::array<int, kRankCount>  dungeonRep{ 10, 20, 40, 70, 110, 170 };
+			std::array<int, kRankCount>  dungeonRep{ 8, 15, 30, 55, 65, 100 };
 			KillRewards                  kills;
 			std::array<int, kRankCount>  dungeonGold{ 50, 100, 175, 275, 400, 600 };
 			std::array<int, kRankCount>  intelMerit{ 5, 8, 12, 18, 25, 35 };
@@ -102,6 +106,17 @@ namespace AG::Guild
 		std::atomic<SaveData>        g_saveData{ SaveData::kNone };  // set as a save loads; see Guild.h
 		std::array<int, 3>           g_training{};      // purchased steps: Health, Stamina, Magicka
 		int                          g_perkPoints{ 0 }; // perk points bought (1.6.0); the points themselves live in the game's save
+		// MCM > System > Reputation for ranks (1.6.3): percent of guild.json's promotion Reputation this game asks for,
+		// for a game that levels faster or slower than the vanilla curve. Kept per save, like the level of rank S.
+		constexpr int                kRepScaleDefault = 100, kRepScaleMin = 50, kRepScaleMax = 200;
+		std::atomic<int>             g_repScale{ kRepScaleDefault };
+
+		// The Reputation rank a_rank asks for in this game: guild.json's, scaled by the MCM's percent
+		int RepNeeded(int a_rank)
+		{
+			const int base = g_cfg.reputation[std::clamp(a_rank, 0, kRankCount - 1)];
+			return static_cast<int>(std::lround(base * g_repScale.load() / 100.0));
+		}
 
 		// ---- our forms ----
 		RE::TESGlobal*       g_gRank{ nullptr };
@@ -112,6 +127,7 @@ namespace AG::Guild
 		RE::TESFaction*      g_rankFaction{ nullptr };       // AG_AdventurerRankFaction: a NAMED member's rank (their own lines read it)
 		RE::TESFaction*      g_promotedFaction{ nullptr };   // AG_AdventurerPromotedFaction: rank 0 for a few days after one rises
 		RE::TESFaction*      g_liaisonFaction{ nullptr };    // AG_GuildLiaisonFaction, for SkyrimNet actions
+		RE::TESFaction*      g_hallFaction{ nullptr };       // the Guild Hall's AGHall2GuildFaction (2.0): owns the hall, so a member takes its clutter freely
 		RE::TESGlobal*       g_gReports{ nullptr };          // AG_ReportsWaitingGlobal, for SkyrimNet actions
 		RE::TESGlobal*       g_gReady{ nullptr };
 		RE::TESGlobal*       g_gRegFee{ nullptr };
@@ -136,7 +152,7 @@ namespace AG::Guild
 		// happened. The same file on another 1.6.1170 game found them all: the cause is in that install, unknown and not
 		// ours to find. So nothing here depends on that moment any more: the line's own ID is taken apart when the game
 		// reports it (RoleOfLine), and a line that is not at our IDs is recognised by its topic and kind.
-		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace, kStamp, kCardHandIn };
+		enum class Role { kNone, kRegister, kPromote, kBusiness, kReplace, kStamp, kCardHandIn, kRankings };
 		RE::TESFaction*                         g_stampEarnedFaction = nullptr;  // on a liaison whose hold's stamp is earned
 		RE::TESFaction*                         g_stampDueFaction = nullptr;     // on a stamp keeper who owes the player a stamp
 		RE::BGSPerk*                            g_stampPerk = nullptr;           // buy prices x0.85 while g_gStampDiscount is 1
@@ -152,6 +168,7 @@ namespace AG::Guild
 		int                                     g_foundAtStart = -1;
 		RE::TESQuest*        g_regQuest{ nullptr };
 		RE::TESObjectBOOK*   g_regMissive{ nullptr };
+		RE::TESObjectBOOK*   g_regMissiveHall{ nullptr };  // the same notice while registration is the Guild Hall's alone (2.0)
 		RE::TESBoundObject*  g_gold{ nullptr };
 		std::array<RE::BGSPerk*, 3>                g_appraisalPerks{};
 		std::array<std::vector<RE::SpellItem*>, 3> g_trainSpells;  // [stat][step-1]
@@ -195,6 +212,15 @@ namespace AG::Guild
 			auto* args = RE::MakeFunctionArguments(static_cast<RE::TESQuest*>(g_regQuest));
 			vm->DispatchStaticCall("AG_QuestHelper", a_fn, args, cb);
 		}
+		// the same, with where the player registers (2.0: true = the Guild Hall)
+		void CallQuestFn(const char* a_fn, bool a_hall)
+		{
+			auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+			if (!vm || !g_regQuest) return;
+			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+			auto* args = RE::MakeFunctionArguments(static_cast<RE::TESQuest*>(g_regQuest), static_cast<bool>(a_hall));
+			vm->DispatchStaticCall("AG_QuestHelper", a_fn, args, cb);
+		}
 
 		int GoldCount()
 		{
@@ -211,7 +237,7 @@ namespace AG::Guild
 			if (!g_registered || g_rank < 0 || g_rank >= kRankCount - 1) return false;
 			auto* pc = RE::PlayerCharacter::GetSingleton();
 			const int next = g_rank + 1;
-			return pc && !g_bountyActive.load() && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= MinLevel(next);
+			return pc && !g_bountyActive.load() && g_reputation >= RepNeeded(next) && pc->GetLevel() >= MinLevel(next);
 		}
 
 		// Everything a promotion needs is met, but a bounty has it on hold
@@ -220,7 +246,7 @@ namespace AG::Guild
 			if (!g_registered || g_rank < 0 || g_rank >= kRankCount - 1 || !g_bountyActive.load()) return false;
 			auto* pc = RE::PlayerCharacter::GetSingleton();
 			const int next = g_rank + 1;
-			return pc && g_reputation >= g_cfg.reputation[next] && pc->GetLevel() >= MinLevel(next);
+			return pc && g_reputation >= RepNeeded(next) && pc->GetLevel() >= MinLevel(next);
 		}
 
 		// Placement at registration: highest rank whose level floor the player meets, capped.
@@ -236,12 +262,15 @@ namespace AG::Guild
 		void DropRegistrationNote()
 		{
 			auto* pc = RE::PlayerCharacter::GetSingleton();
-			if (!pc || !g_regMissive) return;
-			const auto counts = pc->GetInventoryCounts([](RE::TESBoundObject& a_o) { return &a_o == g_regMissive; });
-			const auto it = counts.find(g_regMissive);
-			if (it == counts.end() || it->second <= 0) return;
-			pc->RemoveItem(g_regMissive, it->second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-			SKSE::log::info("Guild: the registration missive's note is taken from the player's pack (registered)");
+			if (!pc) return;
+			for (auto* note : { g_regMissive, g_regMissiveHall }) {  // whichever of the two notices the player was given
+				if (!note) continue;
+				const auto counts = pc->GetInventoryCounts([note](RE::TESBoundObject& a_o) { return &a_o == note; });
+				const auto it = counts.find(note);
+				if (it == counts.end() || it->second <= 0) continue;
+				pc->RemoveItem(note, it->second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+				SKSE::log::info("Guild: the registration missive's note is taken from the player's pack (registered)");
+			}
 		}
 
 		void DoRegister()
@@ -307,9 +336,44 @@ namespace AG::Guild
 
 		int BountyFee(int a_total) { return static_cast<int>(std::ceil(a_total * g_cfg.bountyFeePercent / 100.0)); }
 
-		void DoPromote()
+		void DoPromote(bool a_trial);
+
+		// The promotion trials (GuildHall::TrialsOn; 2.0): a promotion asked for anywhere but at
+		// the trial's end goes to the trial instead. The next rank's trial starts (the clerk's line or SkyrimNet sends the
+		// player to Willem), a trial under way is waited on, and one that Willem has passed (stage 50) is the promotion.
+		// True when the trial took the request over; false when there is no trial for it (the old promotion follows).
+		bool TrialInstead()
 		{
-			const int fee = g_cfg.promotionFee;
+			if (!GuildHall::TrialsOn()) return false;
+			int next;
+			{
+				std::lock_guard l(g_lock);
+				if (!ReadyLocked()) {
+					SKSE::log::info("Guild: promotion requested but not eligible");
+					return true;
+				}
+				next = g_rank + 1;
+			}
+			auto* q = GuildHall::TrialQuest(next);
+			if (!q) return false;
+			const auto stage = q->GetCurrentStageID();
+			if (q->IsRunning() && stage == 50) {
+				GuildHall::CallTrial(q, "Promoted");
+				return true;
+			}
+			if (q->IsRunning() && stage >= 10 && stage < 50) return true;  // under way (no notice)
+			GuildHall::CallTrial(q, "Begin");
+			Hud(Loc::T("$AG_Trial_Begun", "See Willem, the Guild Master, to start your trial."));
+			return true;
+		}
+
+		void DoPromote() { DoPromote(false); }
+
+		// a_trial: the Guild Master has passed the player's trial (AG_Native.TrialPromote, the trial quest's last stage): no fee
+		void DoPromote(bool a_trial)
+		{
+			if (!a_trial && TrialInstead()) return;
+			const int fee = a_trial ? 0 : g_cfg.promotionFee;
 			if (GoldCount() < fee) {   // the dialogue already checks; this guards other paths (DevBench, a mod calling in)
 				Hud(Loc::F("$AG_Promo_FeeNeeded", "The Guild's promotion fee is {} gold.", fee));
 				return;
@@ -368,6 +432,8 @@ namespace AG::Guild
 		// exactly the ones flagged Goodbye (15 / 15 / 103; the 1 / 1 / 26 others are not); in AG_TopicReplace the 14
 		// that act are not flagged, and are told from the other 5 by who speaks (a rep, at her counter) and by the
 		// player having the fee. That second way is what still works if a line of ours is not where its ID says.
+		// (2.0: "I have guild business." is her own line and a menu, acting on nothing; the counter is AG_TopicBusinessCounter's
+		// "Of course.", a Goodbye, and "Could I see the party rankings?" AG_TopicRankings', also a Goodbye.)
 		Role RoleOfLine(RE::FormID a_id, RE::TESObjectREFR* a_speaker)
 		{
 			std::uint32_t local = 0;
@@ -386,6 +452,21 @@ namespace AG::Guild
 			if (!info && mtm->currentTopicInfo && mtm->currentTopicInfo->GetFormID() == a_id) info = mtm->currentTopicInfo;
 			auto*       topic = info ? info->parentTopic : nullptr;
 			const char* name = topic ? topic->GetFormEditorID() : nullptr;
+			// the Guild Hall's clerks (2.0): their "I have guild business." is the hall plugin's own topic, its lines
+			// Goodbyes like ours, and their counter is the hall's (Adventurers::LiaisonCity gives GuildHall::kBranch)
+			if (name && GuildHall::IsBusinessTopic(name))
+				return toPlayer && info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd) ? Role::kBusiness : Role::kNone;
+			// ... and their register, promote, card replacement and card hand-in topics (2.0, built by the NPC session as the
+			// innkeepers' are): the same rules, by the topic's editor ID. Their lines are always said where the hall is.
+			if (const auto clerk = name ? GuildHall::ClerkTopic(name) : std::string_view{}; !clerk.empty()) {
+				if (!toPlayer) return Role::kNone;
+				const bool bye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);
+				if (clerk == "RegisterPay") return bye ? Role::kRegister : Role::kNone;
+				if (clerk == "PromotePay") return bye ? Role::kPromote : Role::kNone;
+				if (clerk == "Replace") return !bye && GoldCount() >= g_cfg.cardFee ? Role::kReplace : Role::kNone;
+				if (clerk == "CardHandIn") return Role::kCardHandIn;
+				return Role::kNone;
+			}
 			if (!name || std::strncmp(name, "AG_Topic", 8) != 0) return Role::kNone;
 			const std::string_view edid(name);
 			if (edid.starts_with("AG_TopicStampSaid")) {
@@ -396,7 +477,8 @@ namespace AG::Guild
 			const bool             goodbye = info->data.flags.any(RE::TOPIC_INFO_DATA::TOPIC_INFO_FLAGS::kStartSceneOnEnd);  // bit 0: Skyrim's "Goodbye"
 			if (edid == "AG_TopicStampAsk") return toPlayer ? Role::kStamp : Role::kNone;  // the line's own conditions say she owes one
 			if (edid == "AG_TopicCardHandIn") return toPlayer ? Role::kCardHandIn : Role::kNone;  // likewise: the player carries one
-			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusiness" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
+			if (edid == "AG_TopicRankings") return toPlayer && goodbye ? Role::kRankings : Role::kNone;  // the sheet opens as the menu closes
+			const int              acting = edid == "AG_TopicRegisterPay" ? 0 : edid == "AG_TopicPromotePay" ? 1 : edid == "AG_TopicBusinessCounter" ? 2 : edid == "AG_TopicReplace" ? 3 : -1;
 			if (acting < 0) return Role::kNone;
 			Role        role = Role::kNone;
 			std::string why;
@@ -446,8 +528,14 @@ namespace AG::Guild
 					const auto info = Adventurers::Of(actor);
 					if (info.kind == Adventurers::Kind::kMember) actor->AddToFaction(g_wandererFaction, static_cast<std::int8_t>(std::clamp(info.rank, 0, 5)));
 				}
-				// the nine Guild reps, for SkyrimNet actions' is_in_faction(currentActor, "AG_GuildLiaisonFaction")
-				if (g_liaisonFaction && !actor->IsInFaction(g_liaisonFaction) && Adventurers::IsLiaison(actor))
+				// the nine Guild reps, for SkyrimNet actions' is_in_faction(currentActor, "AG_GuildLiaisonFaction"). Not the
+				// Guild Hall's clerks (GuildHall.cpp says why); a save from before that rule has them in it: taken out again
+				if (g_liaisonFaction && GuildHall::IsClerk(actor)) {
+					if (actor->IsInFaction(g_liaisonFaction)) {
+						actor->RemoveFromFaction(g_liaisonFaction);
+						SKSE::log::info("Guild: {} taken out of the liaison faction (the hall's clerks keep their own lines)", actor->GetDisplayFullName());
+					}
+				} else if (g_liaisonFaction && !actor->IsInFaction(g_liaisonFaction) && Adventurers::IsLiaison(actor))
 					actor->AddToFaction(g_liaisonFaction, 0);
 				// hold stamps: a liaison (or a successor) and a stamp keeper carry a mark dialogue reads; kept in step from here on
 				if (auto* base = actor->GetActorBase(); base && (Adventurers::IsLiaisonBase(base->GetFormID()) || !Adventurers::StampKeeperCity(actor).empty())) {
@@ -509,7 +597,7 @@ namespace AG::Guild
 						if (!was && Registered()) GuildCard::Stamp(city);
 					});
 				} else if (role == Role::kPromote) {
-					SKSE::GetTaskInterface()->AddTask(DoPromote);
+					SKSE::GetTaskInterface()->AddTask([] { DoPromote(); });
 				} else if (role == Role::kReplace) {
 					// "Here, a fresh one.": the player's own line named the fee, so it is paid without asking again
 					SKSE::GetTaskInterface()->AddTask([city] {
@@ -518,6 +606,9 @@ namespace AG::Guild
 				} else if (role == Role::kBusiness) {
 					// the line is a Goodbye: the counter opens as the menu closes, labelled with this branch
 					Counter::OpenAfterDialogue(city, a_e->speakerRef.get());
+				} else if (role == Role::kRankings) {
+					// "Could I see the party rankings?" (2.0, an inn without the Guild Hall): the leader board's sheet, as the menu closes
+					LeaderBoard::OpenAfterDialogue();
 				}
 				return RE::BSEventNotifyControl::kContinue;
 			}
@@ -540,6 +631,7 @@ namespace AG::Guild
 				j["rank"] = g_rank;
 				j["merit"] = g_merit;
 				j["reputation"] = g_reputation;
+				j["repScale"] = g_repScale.load();
 				j["repCarry"] = g_repCarry;
 				j["regMissive"] = g_regMissiveGiven;
 				j["registeredDay"] = g_registeredDay;
@@ -578,8 +670,10 @@ namespace AG::Guild
 			j["memberCards"] = MemberCards::Save();
 			j["recruitedDays"] = Adventurers::SaveRecruitedDays();
 			j["parties"] = Party::Save();
+			j["leaderBoard"] = LeaderBoard::Save();
 			const auto s = j.dump();
 			a->WriteRecord(kRec, 2, s.data(), static_cast<std::uint32_t>(s.size()));
+			Hall::Save(a);  // the Guild Hall's outside: what it placed and hid (its own record, only with the hall installed)
 		}
 
 		void Reset()
@@ -617,17 +711,23 @@ namespace AG::Guild
 		void OnLoad(SKSE::SerializationInterface* a)
 		{
 			Reset();
+			Hall::Revert();
 			Adventurers::Revert();
 			Dungeons::Revert();
 			MissiveWatch::Revert();
 			MemberCards::Revert();
 			Party::Revert();
+			LeaderBoard::Revert();
 			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
+			g_repScale = kRepScaleDefault;
 			g_oldRankLevels = false;
 			g_saveData = SaveData::kNone;
 			std::uint32_t type, ver, len;
 			while (a->GetNextRecordInfo(type, ver, len)) {
-				if (type != kRec) continue;
+				if (type != kRec) {
+					Hall::Load(a, type, ver);  // the Guild Hall's record, when this save has one
+					continue;
+				}
 				std::string s(len, '\0');
 				const auto got = a->ReadRecordData(s.data(), len);
 				g_saveData = SaveData::kBroken;  // until every part of it has been read
@@ -643,6 +743,7 @@ namespace AG::Guild
 						g_rank = g_registered ? std::clamp(j.value("rank", 0), 0, kRankCount - 1) : -1;
 						g_merit = j.value("merit", 0);
 						g_reputation = j.value("reputation", 0);
+						g_repScale = std::clamp(j.value("repScale", kRepScaleDefault), kRepScaleMin, kRepScaleMax);  // absent before 1.6.3: 100
 						g_repCarry = j.value("repCarry", 0.0f);
 						g_regMissiveGiven = j.value("regMissive", false);
 						g_registeredDay = j.value("registeredDay", -1.0f);
@@ -701,6 +802,7 @@ namespace AG::Guild
 					MemberCards::Load(j.value("memberCards", nlohmann::json::object()));
 					Adventurers::LoadRecruitedDays(j.value("recruitedDays", nlohmann::json::object()));  // after "recruited", which clears them
 					Party::Load(j.value("parties", nlohmann::json::array()));
+					LeaderBoard::Load(j.value("leaderBoard", nlohmann::json::object()));
 					g_saveData = SaveData::kClean;
 				} catch (const std::exception& e) {
 					SKSE::log::error("Guild: co-save parse error: {}; this session takes no posted job down", e.what());
@@ -716,12 +818,15 @@ namespace AG::Guild
 		void OnRevert(SKSE::SerializationInterface*)
 		{
 			Reset();
+			Hall::Revert();
 			Adventurers::Revert();
 			Dungeons::Revert();
 			MissiveWatch::Revert();
 			MemberCards::Revert();
 			Party::Revert();
+			LeaderBoard::Revert();
 			SetSLevel(DefaultSLevel());
+			g_repScale = kRepScaleDefault;
 			g_oldRankLevels = false;
 			g_saveData = SaveData::kNone;
 		}
@@ -825,6 +930,12 @@ namespace AG::Guild
 		g_gRecentPromo = Own<RE::TESGlobal>(0x8C5);
 		g_retiredFaction = Own<RE::TESFaction>(0x8C4);
 		g_liaisonFaction = Own<RE::TESFaction>(0x8C6);
+		// the Guild Hall's own plugin (its records keep their IDs between builds)
+		if (auto* dh = RE::TESDataHandler::GetSingleton()) {
+			if (auto* f = dh->LookupForm<RE::TESFaction>(0x995, "AdventurersGuild - Guild Hall.esp"))
+				g_hallFaction = f;
+			SKSE::log::info("Guild: the Guild Hall's guild faction {}", g_hallFaction ? "found" : "not loaded (no Guild Hall plugin)");
+		}
 		g_stampEarnedFaction = Own<RE::TESFaction>(0xCEA);
 		g_stampDueFaction = Own<RE::TESFaction>(0xCEB);
 		g_stampPerk = Own<RE::BGSPerk>(0xCF5);
@@ -857,11 +968,13 @@ namespace AG::Guild
 			load("replace", Role::kReplace);
 			load("stamp", Role::kStamp);
 			load("cardhandin", Role::kCardHandIn);
+			load("rankings", Role::kRankings);
 		} catch (const std::exception& e) {
 			SKSE::log::error("Guild: dialogue.resolved.json error: {} - guild dialogue will do nothing", e.what());
 		}
 		g_regQuest = Own<RE::TESQuest>(0x810);
 		g_regMissive = Own<RE::TESObjectBOOK>(0x811);
+		g_regMissiveHall = Own<RE::TESObjectBOOK>(0xFD4);
 		g_gold = RE::TESForm::LookupByID<RE::TESBoundObject>(0x0000000F);
 		// CommonLib's GetGoldAmount() finds gold through the game's default object Gold, which a plugin overriding the
 		// Default Object Manager can leave empty: it then reads through a null pointer (a counter crash on Nexus, 1.5.0).
@@ -912,7 +1025,7 @@ namespace AG::Guild
 			// The 1.4.1 failure, seen for what it is. What the game does hold for our topics goes in the log, so the next
 			// such report says how: no lines yet (they come later), or lines under other IDs (something renumbered them).
 			SKSE::log::warn("Guild: the game gave back {} of those {} lines by their IDs at start-up. 1.4.1 and earlier did nothing for a line it could not find here; from 1.4.2 this no longer matters. For the record:", found, lines);
-			for (const RE::FormID t : { RE::FormID{ 0x816 }, RE::FormID{ 0x818 }, RE::FormID{ 0x80C }, RE::FormID{ 0x81C } }) {
+			for (const RE::FormID t : { RE::FormID{ 0x816 }, RE::FormID{ 0x818 }, RE::FormID{ 0x80D }, RE::FormID{ 0x81C } }) {
 				auto* dh = RE::TESDataHandler::GetSingleton();
 				auto* topic = dh ? dh->LookupForm<RE::TESTopic>(t, kPlugin) : nullptr;
 				if (!topic) {
@@ -1352,7 +1465,7 @@ namespace AG::Guild
 	}
 
 	// Guild Wares (1.6.0): Merit, gold and Reputation for a ware made on the spot. Reputation is spent here and nowhere
-	// else: the author's lore, a gambler's shortcut the Guild frowns on. Everything is checked before anything is taken,
+	// else: the mod's lore, a gambler's shortcut the Guild frowns on. Everything is checked before anything is taken,
 	// and the ware is made before the price is taken, so a failure costs nothing.
 	std::string BuyWare(int a_tier)
 	{
@@ -1441,8 +1554,8 @@ namespace AG::Guild
 		}
 		if (g_registered && g_rank < kRankCount - 1) {
 			const int next = g_rank + 1;
-			j["next"] = { { "letter", LetterStr(next) }, { "reputation", g_cfg.reputation[next] }, { "level", MinLevel(next) },
-				{ "prevReputation", g_cfg.reputation[g_rank] } };
+			j["next"] = { { "letter", LetterStr(next) }, { "reputation", RepNeeded(next) }, { "level", MinLevel(next) },
+				{ "prevReputation", RepNeeded(g_rank) } };
 		}
 		auto& reports = j["reports"] = nlohmann::json::array();
 		for (auto& r : g_reports) reports.push_back({ { "kind", r.kind }, { "title", r.title }, { "detail", r.detail }, { "gold", r.gold }, { "merit", r.merit }, { "rep", r.rep } });
@@ -1513,6 +1626,17 @@ namespace AG::Guild
 		if (g_gRecentPromo) g_gRecentPromo->value = static_cast<float>(recent);
 		if (g_gReports) g_gReports->value = static_cast<float>(reports);
 		if (g_gRegistered) g_gRegistered->value = registered ? 1.0f : 0.0f;
+		// A registered adventurer is one of the Guild Hall's own (until you join, taking the hall's
+		// clutter is stealing; after, it is the guild's to use), as joining the Companions makes Jorrvaskr's yours. On
+		// registration and on every load, so a save registered before 2.0 is caught up. Never taken away: only the debug
+		// rank reset unregisters.
+		if (g_hallFaction && registered)   // (on the game's own thread: SyncGlobals is also called from the counter page)
+			SKSE::GetTaskInterface()->AddTask([] {
+				if (auto* pc = RE::PlayerCharacter::GetSingleton(); pc && !pc->IsInFaction(g_hallFaction)) {
+					pc->AddToFaction(g_hallFaction, 0);
+					SKSE::log::info("Guild: the player joins the Guild Hall's guild faction");
+				}
+			});
 		if (g_gReady) g_gReady->value = ready ? 1.0f : 0.0f;
 		if (g_gRegFee) g_gRegFee->value = static_cast<float>(g_cfg.fee);
 		if (g_gPromoFee) g_gPromoFee->value = static_cast<float>(g_cfg.promotionFee);
@@ -1520,8 +1644,13 @@ namespace AG::Guild
 		if (g_replaceTopic)
 			g_replaceTopic->fullName = Loc::F("$AG_Dlg_ReplaceCard", "I've lost my guild card. I need a replacement. ({} gold)", g_cfg.cardFee);
 		if (announce) {
-			Hud(Loc::F("$AG_Hud_Ready", "You are eligible for promotion to Rank {}. Any innkeeper can hear your case.", Letter(next)));
-			PrismaToast::Show(Loc::T("$AG_Toast_Ready", "PROMOTION READY"), Loc::F("$AG_Toast_ReadySub", "Rank {} awaits · a guild liaison can hear your case", Letter(next)),
+			// promotion is the Guild Hall's alone while MCM > Guild Hall says so (and the hall is installed): it is named
+			const bool hall = GuildHall::OnlyAtHall(GuildHall::Only::kPromotion);
+			Hud(hall ? Loc::F("$AG_Hud_ReadyHall", "You are eligible for promotion to Rank {}. The clerks at the Guild Hall can hear your case.", Letter(next))
+			         : Loc::F("$AG_Hud_Ready", "You are eligible for promotion to Rank {}. Any innkeeper can hear your case.", Letter(next)));
+			PrismaToast::Show(Loc::T("$AG_Toast_Ready", "PROMOTION READY"),
+				hall ? Loc::F("$AG_Toast_ReadySubHall", "Rank {} awaits · the clerks at the Guild Hall can hear your case", Letter(next))
+				     : Loc::F("$AG_Toast_ReadySub", "Rank {} awaits · a guild liaison can hear your case", Letter(next)),
 				std::format("tex/rank_{}.png", Letter(next)), PrismaToast::Priority::kImportant, PrismaToast::Cue::kPromotionReady);
 		}
 	}
@@ -1535,9 +1664,12 @@ namespace AG::Guild
 			give = !g_regMissiveGiven;
 			g_regMissiveGiven = true;
 		}
-		if (give && g_regMissive) {
-			RE::PlayerCharacter::GetSingleton()->AddObjectToContainer(g_regMissive, nullptr, 1, nullptr);
-			CallQuestFn("StartRegistrationQuest");
+		// while registration is the Guild Hall's alone (2.0), the notice and the quest's objective name the hall
+		const bool hall = GuildHall::OnlyAtHall(GuildHall::Only::kRegistration);
+		auto*      note = hall && g_regMissiveHall ? g_regMissiveHall : g_regMissive;
+		if (give && note) {
+			RE::PlayerCharacter::GetSingleton()->AddObjectToContainer(note, nullptr, 1, nullptr);
+			CallQuestFn("StartRegistrationQuestFor", hall);
 			Hud(Loc::T("$AG_Hud_RegNotice", "A Guild notice is pinned to the board. You take a copy."));
 			SKSE::log::info("Guild: registration missive handed out");
 		} else {
@@ -1547,7 +1679,9 @@ namespace AG::Guild
 			const auto                                   now = std::chrono::steady_clock::now();
 			if (last.time_since_epoch().count() == 0 || now - last >= std::chrono::minutes(5)) {
 				last = now;
-				Hud(Loc::T("$AG_Hud_RegOnly", "Missives are for registered adventurers. Any innkeeper can sign you up."));
+				Hud(GuildHall::OnlyAtHall(GuildHall::Only::kRegistration)
+						? Loc::T("$AG_Hud_RegOnlyHall", "Missives are for registered adventurers. The clerks at the Guild Hall can sign you up.")
+						: Loc::T("$AG_Hud_RegOnly", "Missives are for registered adventurers. Any innkeeper can sign you up."));
 			}
 		}
 	}
@@ -1701,6 +1835,10 @@ namespace AG::Guild
 	{
 		auto* pc = RE::PlayerCharacter::GetSingleton();
 		if (!pc) return {};
+		// (2.0) not in the Guild Hall: removing the mod takes its cells away, and the save would put the player in none
+		if (GuildHall::PlayerInHall())
+			return Loc::T("$AG_Uninstall_InHall", "Not inside the Guild Hall. Leave the hall first (its cellars and the strongroom too), then prepare for uninstall.");
+		const auto [trials, hallFollowers] = GuildHall::PrepareUninstall();   // the hall's promotion trials, and a hall NPC who follows you
 		g_dormant = true;
 		ApplyAbilities();  // Appraisal perks and training abilities, the way they were given
 		// anything else of ours on the player (a sweep, whatever version granted it)
@@ -1711,6 +1849,8 @@ namespace AG::Guild
 		for (auto* perk : g_appraisalPerks)
 			if (perk && pc->HasPerk(perk)) pc->RemovePerk(perk);
 		const int companions = Party::StripForUninstall();
+		BountyWatch::StopHallBounties();  // the Guild Hall's own bounties: their holds would stay marked as taken without us
+		MissiveWatch::PrepareUninstallHall();  // the Guild Hall's Missives board, and what is posted on it
 		int items = 0;
 		for (auto& [obj, data] : pc->GetInventory([](RE::TESBoundObject& o) { return Ours(&o); })) {
 			if (data.first <= 0) continue;
@@ -1721,7 +1861,7 @@ namespace AG::Guild
 			std::lock_guard l(g_lock);
 			LogLocked(Loc::T("$AG_Log_Uninstall", "Prepared for uninstall: the Guild's abilities were taken back."), false);
 		}
-		SKSE::log::info("Guild: prepared for uninstall ({} companions, {} items)", companions, items);
+		SKSE::log::info("Guild: prepared for uninstall ({} companions, {} items, {} trials, {} hall followers)", companions, items, trials, hallFollowers);
 		return Loc::F("$AG_Uninstall_Done", "Done. The Guild's abilities are gone from you and {} companion(s), and {} Guild item(s) were removed. "
 			"Now save, quit, and remove Adventurers Guild. (Changed your mind? Use Cancel Uninstall.)", companions, items);
 	}
@@ -1785,10 +1925,24 @@ namespace AG::Guild
 	}
 
 	int CardFee() { return g_cfg.cardFee; }
+	int RegistrationFee() { return g_cfg.fee; }
+
+	void RegistrationRouteChanged()
+	{
+		{
+			std::lock_guard l(g_lock);
+			if (g_registered || !g_regMissiveGiven) return;  // no quest to point anywhere
+		}
+		CallQuestFn("PointRegistrationQuest", GuildHall::OnlyAtHall(GuildHall::Only::kRegistration));
+	}
 	int StampDungeons() { return g_cfg.stampDungeons; }
 	int CardReturnReputation() { return g_cfg.memberCardRep; }
 	float CardReplaceDays() { return g_cfg.memberCardDays; }
-	int ReputationFor(int a_rank) { return g_cfg.reputation[std::clamp(a_rank, 0, kRankCount - 1)]; }
+	int ReputationFor(int a_rank) { return RepNeeded(a_rank); }
+
+	int  RepScale() { return g_repScale.load(); }
+	int  RepScaleDefault() { return kRepScaleDefault; }
+	void SetRepScale(int a_percent) { g_repScale = std::clamp(a_percent, kRepScaleMin, kRepScaleMax); }
 
 	std::string CityName(const std::string& a_city)
 	{
@@ -1843,7 +1997,7 @@ namespace AG::Guild
 		j["promotionReady"] = ReadyLocked();
 		if (g_rank < kRankCount - 1) {
 			const int next = g_rank + 1;
-			j["next"] = { { "rank", LetterStr(next) }, { "reputationShort", std::max(0, g_cfg.reputation[next] - g_reputation) },
+			j["next"] = { { "rank", LetterStr(next) }, { "reputationShort", std::max(0, RepNeeded(next) - g_reputation) },
 				{ "levelShort", std::max(0, MinLevel(next) - level) } };
 		}
 		int gold = 0, merit = 0, rep = 0;
@@ -1880,6 +2034,7 @@ namespace AG::Guild
 	{
 		if (!Adventurers::IsLiaison(a_liaison)) return "not a Guild rep";
 		if (Registered()) return "already registered";
+		if (!GuildHall::Allows(GuildHall::Only::kRegistration, Adventurers::LiaisonCity(a_liaison))) return "refused: registration is the Guild Hall's";
 		DoRegister();
 		if (Registered()) GuildCard::Stamp(Adventurers::LiaisonCity(a_liaison));
 		return Registered() ? "registered" : "not registered (fee)";
@@ -1889,7 +2044,15 @@ namespace AG::Guild
 	{
 		if (!Adventurers::IsLiaison(a_liaison)) return "not a Guild rep";
 		if (!PromotionReady()) return "not eligible";
+		if (!GuildHall::Allows(GuildHall::Only::kPromotion, Adventurers::LiaisonCity(a_liaison))) return "refused: promotion is the Guild Hall's";
 		const int before = Rank();
+		if (GuildHall::TrialsOn() && GuildHall::TrialQuest(before + 1)) {
+			auto* q = GuildHall::TrialQuest(before + 1);
+			const bool passed = q->IsRunning() && q->GetCurrentStageID() == 50;
+			const bool underway = q->IsRunning() && q->GetCurrentStageID() >= 10 && q->GetCurrentStageID() < 50;
+			DoPromote();
+			return passed ? "the trial passed: promoting" : underway ? "the trial is under way with the Guild Master (Willem)" : "trial started: the player is to see the Guild Master (Willem)";
+		}
 		DoPromote();
 		return Rank() > before ? "promoted" : "not promoted (fee)";
 	}
@@ -1913,6 +2076,7 @@ namespace AG::Guild
 
 	void DebugRegister() { DoRegister(); }
 	void DebugPromote() { DoPromote(); }
+	void TrialPromote() { DoPromote(true); }
 
 	// MCM > Debug: the rank the player's level alone gives (the highest whose level floor it meets, no registration
 	// cap), with exactly the Reputation that rank starts at. For a character whose record no longer fits: a save
@@ -1954,7 +2118,7 @@ namespace AG::Guild
 		if (!g_registered || !pc) return Loc::T("$AG_RankReset_NotRegistered", "You are not registered with the Adventurers Guild. Register at any hold capital's inn first.");
 		const int level = pc->GetLevel(), rank = RankForLevel(level);
 		return Loc::F("$AG_RankReset_Confirm", "You are level {}. This sets your guild rank to {} and your Reputation to {}, replacing rank {} and {} Reputation. Merit, Appraisal and training are not touched. Continue?",
-			level, Letter(rank), g_cfg.reputation[rank], Letter(g_rank), g_reputation);
+			level, Letter(rank), RepNeeded(rank), Letter(g_rank), g_reputation);
 	}
 
 	std::string RecalculateRank()
@@ -1966,7 +2130,7 @@ namespace AG::Guild
 			if (!g_registered || !pc) return Loc::T("$AG_RankReset_NotRegistered", "You are not registered with the Adventurers Guild. Register at any hold capital's inn first.");
 			level = pc->GetLevel();
 			rank = RankForLevel(level);
-			rep = g_cfg.reputation[rank];
+			rep = RepNeeded(rank);
 			g_rank = rank;
 			g_reputation = rep;
 			g_repCarry = 0.0f;

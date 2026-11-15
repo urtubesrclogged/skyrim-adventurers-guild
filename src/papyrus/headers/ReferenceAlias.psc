@@ -2,3 +2,4 @@
    The game's own script is what runs. /;
 ScriptName ReferenceAlias Extends Alias Hidden
 ObjectReference Function GetReference() native
+Function ForceRefTo(ObjectReference akNewRef) native

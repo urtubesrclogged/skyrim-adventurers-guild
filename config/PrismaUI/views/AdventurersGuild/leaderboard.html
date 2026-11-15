@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Adventuring Parties of the Guild in Skyrim</title>
+<!--
+  The Guild Hall's party leader board (2.0): every party the Guild's ledger in Skyrim holds, in one list ranked by
+  Renown, on one sheet of the reader's note paper pinned to the Guild Board's wood and kept by hand like a ledger. The
+  parties in the field name their leader and run on from the year they were founded; the disbanded are written fainter,
+  with the years they were active and how they ended. The first three are rubricated (red numerals, a red rule under
+  the third). The title is
+  the board's alone; the paper carries the clerk's dated line.
+  Same rules and bridge as board.html: nothing scrolls (eleven parties a sheet, paged), every hit target is >= 52px;
+  data from AdventurersGuild.dll (LeaderBoard.cpp) through window.agSetData(json), the player's language through
+  window.agStrings; agClose out. Party names in Cyrodiil (AG's own font, SIL OFL 1.1: fonts/Cyrodiil-OFL.txt).
+-->
+<style>
+  :root {
+    --ink: #eadfc4; --muted: #a99c82; --bronze: #c29a5b; --bronze-dim: rgba(194, 154, 91, 0.38);
+    --iron-hi: #413b33; --iron-lo: #262320; --wax: #8e2b1f; --rubric: #7a2416;
+    --pen: #2b1c0e; --pen-faded: #5d4a33; --pen-pale: #7d6a50;
+    --serif: "Palatino Linotype", "Book Antiqua", Palatino, Constantia, Georgia, serif;
+  }
+  @font-face { font-family: "Cyrodiil"; src: url(fonts/Cyrodiil.otf) format("opentype"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "Cyrodiil"; src: url(fonts/Cyrodiil-Italic.otf) format("opentype"); font-weight: 400; font-style: italic; }
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-font-smoothing: antialiased; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: rgba(4, 3, 2, 0.6); font-family: var(--serif); color: var(--ink); }
+  h1, .sub { padding-top: 4px; margin-top: -4px; }
+  #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #panel { position: relative; width: 1280px; height: 780px; flex: none; display: flex; flex-direction: column;
+           background: url(tex/board/oak.jpg) center / 1280px auto, #4a3524;
+           border: 2px solid #15130f; outline: 1px solid var(--bronze-dim); outline-offset: -8px;
+           box-shadow: 0 0 80px rgba(0, 0, 0, 0.8), inset 0 0 120px rgba(0, 0, 0, 0.7); }
+  .stud { position: absolute; width: 14px; height: 14px; transform: rotate(45deg); background: var(--bronze); z-index: 3;
+          box-shadow: 0 0 0 2px #15130f, inset 0 0 3px rgba(0, 0, 0, 0.6); }
+  .stud.tl { top: 1px; left: 1px; } .stud.tr { top: 1px; right: 1px; } .stud.bl { bottom: 1px; left: 1px; } .stud.br { bottom: 1px; right: 1px; }
+  .band { background: linear-gradient(rgba(12, 9, 6, 0.72), rgba(12, 9, 6, 0.6)); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); }
+  header { display: flex; align-items: center; gap: 16px; padding: 18px 30px 14px; }
+  .seal { height: 92px; width: auto; flex: none; margin: -4px 0 -10px; }
+  header > div.t { min-width: 0; flex: 1; }
+  h1 { font-size: 29px; font-weight: 400; color: var(--bronze); letter-spacing: 0.05em; font-variant: small-caps; text-shadow: 0 2px 0 #000;
+       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { font-size: 16px; color: var(--muted); margin-top: 2px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .coin { border: 1px solid var(--bronze-dim); padding: 6px 14px; text-align: center; min-width: 110px; background: rgba(0, 0, 0, 0.28); flex: none; }
+  .coin .k { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant: small-caps; letter-spacing: 0.08em; }
+  .coin .v { font-size: 24px; color: var(--ink); }
+  .btn { font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 20px; color: var(--ink);
+         min-height: 52px; min-width: 52px; padding: 0 18px; cursor: pointer; white-space: nowrap; flex: none; border: 1px solid var(--bronze-dim);
+         background: linear-gradient(var(--iron-hi), var(--iron-lo)); box-shadow: inset 0 1px 0 rgba(255, 235, 190, 0.08), 0 2px 4px rgba(0, 0, 0, 0.6); }
+  .btn:hover { border-color: var(--bronze); color: #fff6df; }
+  .btn[disabled] { opacity: 0.35; cursor: default; border-color: rgba(255, 255, 255, 0.08); }
+  #close { width: 56px; padding: 0; font-size: 26px; font-variant: normal; }
+  /* the pager: on the wood beside the sheet (the header holds the title), only when the list runs past one sheet */
+  .pager { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; width: 120px; flex: none; margin-left: 14px; }
+  .pager:empty { display: none; }
+  .pager .btn { width: 116px; padding: 0 8px; }
+  .pager .pg { font-variant: small-caps; letter-spacing: 0.06em; color: var(--ink); font-size: 17px; text-align: center; text-shadow: 0 2px 0 #000; }
+
+  #field { position: relative; flex: 1; min-height: 0; margin: 14px 18px 18px; padding: 14px 18px;
+           background: url(tex/board/planks.jpg) center / cover; box-shadow: inset 0 0 0 2px #120c07, inset 0 0 50px rgba(0, 0, 0, 0.75);
+           display: flex; align-items: stretch; justify-content: center; }
+  /* the sheet: pinned to the planks, a hair off square, as a clerk would pin it */
+  #sheet { position: relative; width: 1120px; flex: 0 1 1120px; min-width: 0; background: url(tex/skin/sheet.png) center / 100% 100% no-repeat;
+           transform: rotate(-0.35deg); filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55)); padding: 24px 74px 18px; color: var(--pen); }
+  .pin { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #9a8a72, #3b3328 70%);
+         box-shadow: 0 2px 3px rgba(0, 0, 0, 0.6); z-index: 2; }
+  .pin.a { top: 16px; left: 50%; } .pin.b { bottom: 20px; left: 40px; } .pin.c { bottom: 26px; right: 48px; }
+  .head { text-align: center; margin: 4px 0 6px; }
+  .head .as { font-family: "Cyrodiil", var(--serif); font-style: italic; font-size: 20px; color: var(--pen-faded); }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  col.no { width: 64px; } col.party { width: 38%; } col.yr { width: 150px; } col.n { width: 120px; }
+  th { font-style: italic; font-weight: 400; font-size: 15px; color: var(--pen-pale); text-align: left; padding: 2px 8px 0; }
+  th.n, td.n { text-align: right; }
+  td { font-style: italic; font-size: 21px; padding: 0 8px; height: 40px; border-bottom: 1px solid rgba(70, 50, 28, 0.16); white-space: nowrap;
+       overflow: hidden; text-overflow: ellipsis; }
+  td.no { color: var(--pen-faded); font-style: normal; font-size: 19px; }
+  td.party { font-family: "Cyrodiil", var(--serif); font-style: normal; font-size: 23px; }
+  /* the first three, rubricated as a scribe marks the head of a list: the numeral bold and in red ink, a red rule under the third */
+  tr.top td.no { color: var(--rubric); font-weight: 700; font-size: 22px; }
+  tr.top td.n { font-weight: 700; }
+  tr.third td { border-bottom: 1.5px solid rgba(122, 36, 22, 0.55); }
+  td.lead { color: var(--pen); }
+  td.yr { color: var(--pen-faded); }
+  td.n { font-style: normal; font-size: 23px; overflow: visible; }
+  tr:nth-child(odd) td { transform: translateX(1px); }
+  tr:nth-child(3n) td { transform: translateX(-2px) rotate(-0.15deg); }
+  .gone td, .gone td.party { color: var(--pen-faded); }
+  .note { font-size: 16px; color: var(--pen-pale); font-style: italic; }
+  /* a party the Guild struck out (the Golden Hand after Caralion's treachery): name and Renown with a line through them
+     in the keeper's ink, as a clerk strikes an entry in a ledger, left where it stands */
+  .struck { text-decoration: line-through; text-decoration-color: var(--pen); text-decoration-thickness: 2px; }
+  .you td.party::before { content: "\2767"; color: var(--wax); font-family: var(--serif); font-size: 18px; margin-right: 6px; }
+  .empty { font-style: italic; font-size: 21px; color: var(--pen-faded); text-align: center; margin-top: 60px; }
+
+  /* controller / keyboard highlight + button hints (flat Skyrim; never shown in VR), as board.html */
+  body.pad .padfocus, body.kbnav .padfocus { outline: 3px solid var(--bronze); outline-offset: 2px; color: #fff6df;
+                                             box-shadow: 0 0 14px rgba(194, 154, 91, 0.55); }
+  .padhints { display: none; position: absolute; right: 40px; bottom: 4px; align-items: center; gap: 16px; font-size: 16px; color: #d8c8a6;
+              font-variant: small-caps; letter-spacing: 0.06em; text-shadow: 0 1px 2px #000; z-index: 4; }
+  body.pad .padhints { display: flex; }
+  .padhints .key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px;
+                   margin-right: 6px; border: 1px solid var(--bronze); border-radius: 13px; color: var(--ink);
+                   font-size: 14px; font-variant: normal; letter-spacing: 0; background: rgba(0, 0, 0, 0.55); }
+  .padhints .key.sq { border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="panel">
+  <i class="stud tl"></i><i class="stud tr"></i><i class="stud bl"></i><i class="stud br"></i>
+  <div class="band"><header>
+    <img class="seal" src="tex/emblem.png" alt="" />
+    <div class="t"><h1 data-t="$AG_UI_LBTitle">The Adventuring Parties of the Guild in Skyrim</h1><div class="sub" data-t="$AG_UI_LBSub">The Guild Hall · Riverwood</div></div>
+    <div class="coin"><div class="k" data-t="$AG_UI_LBYourParty">Your Party</div><div class="v" id="yours">—</div></div>
+    <button class="btn" id="close" data-action="close">&#x2715;</button>
+  </header></div>
+  <div id="field"><div id="sheet">
+    <i class="pin a"></i><i class="pin b"></i><i class="pin c"></i>
+    <div class="head"><div class="as" id="asof"></div></div>
+    <table><colgroup><col class="no"><col class="party"><col><col class="yr"><col class="n"></colgroup><thead><tr><th></th><th data-t="$AG_UI_LBParty">Party</th><th data-t="$AG_UI_LBLedBy">Led by</th><th data-t="$AG_UI_LBActive">Active</th><th class="n" data-t="$AG_UI_LBRenown">Renown</th></tr></thead><tbody id="list"></tbody></table>
+  </div><div class="pager" id="pager"></div></div>
+  <div class="padhints" id="hints"></div>
+</div></div>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const PER = 11;   // a sheet's parties
+let STR = {};
+function t(key, en, ...args) {
+  const s = STR[key] != null ? STR[key] : en;
+  return args.length ? s.replace(/\{(\d+)\}/g, (m, i) => (args[i] != null ? args[i] : m)) : s;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const roman = (n) => [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]
+  .reduce((s, [v, r]) => { while (n >= v) { s += r; n -= v; } return s; }, "");
+window.agStrings = (json) => {
+  try { STR = (typeof json === "string") ? JSON.parse(json) : (json || {}); } catch (e) { STR = {}; }
+  for (const el of document.querySelectorAll("[data-t]")) if (STR[el.dataset.t] != null) el.textContent = STR[el.dataset.t];
+  render();
+};
+
+/* data, from the DLL, already ranked: { asOf, yours (the player's active party's place, 0 with none),
+     rows: [{ name, renown, from, gone, yours, leader? (active), to?, note? (disbanded), struck? (struck out) }] } */
+let data = { rows: [] }, pg = 0;
+function render() {
+  const rows = data.rows || [], pages = Math.max(1, Math.ceil(rows.length / PER));
+  if (pg >= pages) pg = pages - 1;
+  $("asof").textContent = data.asOf || "";
+  $("yours").textContent = data.yours ? roman(data.yours) : "—";
+  const shown = rows.slice(pg * PER, pg * PER + PER);
+  $("list").innerHTML = shown.length ? shown.map((p, k) => {
+    const i = pg * PER + k;
+    const cls = [p.gone ? "gone" : "", p.yours ? "you" : "", i < 3 ? "top" : "", i === 2 ? "third" : ""].join(" ");
+    const years = p.gone ? (p.to && p.to !== p.from ? `4E ${p.from}–${p.to}` : `4E ${p.from}`) : `4E ${p.from} –`;
+    const st = (s) => p.struck ? `<span class="struck">${s}</span>` : s;
+    return `<tr class="${cls}"><td class="no">${roman(i + 1)}.</td><td class="party">${st(esc(p.name))}</td>` +
+      `<td class="${p.gone ? "note" : "lead"}">${esc(p.gone ? (p.note || "") : (p.leader || ""))}</td><td class="yr">${esc(years)}</td>` +
+      `<td class="n">${st(String(p.renown))}</td></tr>`;
+  }).join("") : `<tr><td colspan="5" class="empty">${esc(t("$AG_UI_LBEmpty", "No party has been written in yet."))}</td></tr>`;
+  $("pager").innerHTML = pages > 1 ?
+    `<button class="btn" data-page="-1" ${pg ? "" : "disabled"}>${esc(t("$AG_UI_Prev", "‹ Prev"))}</button>
+     <span class="pg">${esc(t("$AG_UI_PageOf", "Page {0} of {1}", pg + 1, pages))}</span>
+     <button class="btn" data-page="1" ${pg < pages - 1 ? "" : "disabled"}>${esc(t("$AG_UI_Next", "Next ›"))}</button>` : "";
+  $("hints").innerHTML = `<span><span class="key">B</span>${esc(t("$AG_UI_PadBack", "Back"))}</span>` +
+    (pages > 1 ? `<span><span class="key sq">LT</span><span class="key sq">RT</span>${esc(t("$AG_UI_PadPages", "Pages"))}</span>` : "");
+  paint();
+}
+window.agSetData = (json) => { try { data = (typeof json === "string") ? JSON.parse(json) : json; } catch (e) { return; } render(); };
+/* the board opening (the page stays loaded between reads): back to the first sheet */
+window.agOpened = () => { pg = 0; };
+let isFlat = false;
+window.agFlat = (v) => { isFlat = !!v; fitPanel(); };
+/* where the sheet is kept (2.0): the Guild Hall's board, or, with no hall installed, the copy an inn's counter shows */
+window.agHall = (on) => {
+  const s = document.querySelector(".t .sub");
+  s.dataset.t = on ? "$AG_UI_LBSub" : "$AG_UI_LBSubInns";
+  s.textContent = on ? t("$AG_UI_LBSub", "The Guild Hall · Riverwood") : t("$AG_UI_LBSubInns", "The Adventurers Guild · Skyrim");
+};
+function fitPanel() {
+  const p = $("panel"), fit = Math.min(innerWidth / p.offsetWidth, innerHeight / p.offsetHeight);
+  let k = Math.min(1, fit);
+  if (isFlat) { const up = Math.min(innerWidth / 1920, innerHeight / 1080); if (up > 1) k = Math.min(up, fit); }
+  p.style.transform = k !== 1 ? `scale(${k})` : "";
+}
+addEventListener("resize", fitPanel);
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-page],[data-action]");
+  if (!b || b.disabled) return;
+  if (b.dataset.page) { pg += +b.dataset.page; render(); return; }
+  if (b.dataset.action === "close" && window.agClose) window.agClose("");
+});
+
+/* ---------------- controller / keyboard (as board.html): the DLL forwards the pad's buttons (window.agPad) and the last
+   device used (window.agInputMode). Here only the pager and the close button take a press: LT / RT turn the sheet,
+   B or Escape closes the board. */
+let padOn = false, focusKey = null;
+function navOn() { return padOn || document.body.classList.contains("kbnav"); }
+function targets() { return [...document.querySelectorAll("header button, #pager button")].filter((b) => !b.disabled && b.offsetParent !== null); }
+function keyOf(b) { return b.id || (b.dataset.page && "page:" + b.dataset.page) || b.textContent.trim(); }
+function current() { return focusKey ? targets().find((b) => keyOf(b) === focusKey) || null : null; }
+function mark(b) { document.querySelectorAll(".padfocus").forEach((el) => el.classList.remove("padfocus")); if (b) b.classList.add("padfocus"); }
+function focusFirst() { const b = targets()[0]; focusKey = b ? keyOf(b) : null; mark(b); }
+function paint() { if (!navOn()) { mark(null); return; } const c = current(); if (!c) focusFirst(); else mark(c); }
+function move(d) {
+  const all = targets(), c = current(); if (!all.length) return;
+  const i = c ? all.indexOf(c) : -1, j = Math.min(all.length - 1, Math.max(0, i + d));
+  focusKey = keyOf(all[j]); mark(all[j]);
+}
+function turnPage(d) { const b = document.querySelector('#pager button[data-page="' + d + '"]'); if (b && !b.disabled) b.click(); }
+function back() { if (window.agClose) window.agClose(""); }
+window.agInputMode = (pad) => {
+  padOn = !!pad;
+  document.body.classList.toggle("pad", padOn);
+  if (padOn) document.body.classList.remove("kbnav");
+  paint();
+};
+window.agPad = (btn) => {
+  if (!padOn) window.agInputMode(true);
+  if (btn === "left" || btn === "up") move(-1);
+  else if (btn === "right" || btn === "down") move(1);
+  else if (btn === "a") { const c = current(); if (c) c.click(); }
+  else if (btn === "b") back();
+  else if (btn === "lt" || btn === "rt" || btn === "lb" || btn === "rb") turnPage(btn === "lt" || btn === "lb" ? -1 : 1);
+};
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); back(); return; }
+  const dirs = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 };
+  if (dirs[e.key] != null) {
+    e.preventDefault();
+    if (!document.body.classList.contains("kbnav")) { document.body.classList.add("kbnav"); if (!current()) { focusFirst(); return; } }
+    move(dirs[e.key]);
+  } else if (e.key === "Enter" || e.key === " ") { const c = current(); if (c && navOn()) { e.preventDefault(); c.click(); } }
+  else if (e.key === "q" || e.key === "Q") turnPage(-1);
+  else if (e.key === "e" || e.key === "E") turnPage(1);
+});
+document.addEventListener("mousemove", () => {
+  if (document.body.classList.contains("kbnav")) { document.body.classList.remove("kbnav"); if (!padOn) mark(null); }
+});
+fitPanel();
+render();
+</script>
+</body>
+</html>

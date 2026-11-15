@@ -10,6 +10,7 @@
 #include "Counter.h"
 #include "Guild.h"
 #include "GuildCard.h"
+#include "GuildHall.h"
 #include "Party.h"
 #include "Loc.h"
 #include "PrismaToast.h"
@@ -223,21 +224,32 @@ namespace AG::Dungeons
 
 		// Rough direction and distance from the settlement the player is standing in (its map marker), e.g.
 		// "half a day's walk northeast". Empty when there is no common worldspace to measure in.
-		std::string Bearing(RE::TESObjectREFR* a_marker)
+		std::string Bearing(RE::TESObjectREFR* a_marker, bool a_fromHall = false)
 		{
-			auto* pc = RE::PlayerCharacter::GetSingleton();
-			auto* here = pc ? pc->GetCurrentLocation() : nullptr;
-			RE::TESObjectREFR* from = nullptr;
-			for (auto* l = here; l && !from; l = l->parentLoc) {
-				if (auto* m = MarkerOf(l)) from = m;
-			}
 			// City worldspaces (WhiterunWorld, ...) sit on Tamriel's coordinates, so compare root worldspaces.
 			auto root = [](RE::TESWorldSpace* w) {
 				while (w && w->parentWorld) w = w->parentWorld;
 				return w;
 			};
-			if (!from || !a_marker || !a_marker->GetWorldspace() || root(from->GetWorldspace()) != root(a_marker->GetWorldspace())) return {};
-			const auto d = a_marker->GetPosition() - from->GetPosition();
+			RE::TESWorldSpace* world = nullptr;
+			RE::NiPoint3       start;
+			if (a_fromHall) {   // the hall's cells have no location: measured from where it stands
+				world = RE::TESForm::LookupByID<RE::TESWorldSpace>(0x3C);   // Tamriel
+				start = { GuildHall::kSiteX, GuildHall::kSiteY, 0.0f };
+			} else {
+				auto* pc = RE::PlayerCharacter::GetSingleton();
+				auto* here = pc ? pc->GetCurrentLocation() : nullptr;
+				RE::TESObjectREFR* from = nullptr;
+				for (auto* l = here; l && !from; l = l->parentLoc) {
+					if (auto* m = MarkerOf(l)) from = m;
+				}
+				if (from) {
+					world = root(from->GetWorldspace());
+					start = from->GetPosition();
+				}
+			}
+			if (!world || !a_marker || !a_marker->GetWorldspace() || world != root(a_marker->GetWorldspace())) return {};
+			const auto d = a_marker->GetPosition() - start;
 			const float dist = std::sqrt(d.x * d.x + d.y * d.y);
 			static const char* dirs[] = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" };
 			static const char* dirKeys[] = { "$AG_Dir_E", "$AG_Dir_NE", "$AG_Dir_N", "$AG_Dir_NW", "$AG_Dir_W", "$AG_Dir_SW", "$AG_Dir_S", "$AG_Dir_SE" };
@@ -256,16 +268,16 @@ namespace AG::Dungeons
 			int                rank;
 		};
 
-		std::vector<IntelLead> Leads()
+		std::vector<IntelLead> Leads(bool a_everyHold)
 		{
 			std::vector<IntelLead> out;
 			auto* pc = RE::PlayerCharacter::GetSingleton();
-			auto* hold = HoldOf(pc ? pc->GetCurrentLocation() : nullptr);
+			auto* hold = a_everyHold ? nullptr : HoldOf(pc ? pc->GetCurrentLocation() : nullptr);
 			auto* dh = RE::TESDataHandler::GetSingleton();
-			if (!hold || !dh) return out;
+			if ((!hold && !a_everyHold) || !dh) return out;
 			BuildZones();
 			for (auto* l : dh->GetFormArray<RE::BGSLocation>()) {
-				if (!l || DungeonOf(l) != l || l->IsCleared() || !Under(l, hold)) continue;
+				if (!l || DungeonOf(l) != l || l->IsCleared() || (hold && !Under(l, hold))) continue;
 				auto* m = MarkerOf(l);
 				auto* md = MapData(m);
 				if (!md || md->flags.any(RE::MapMarkerData::Flag::kVisible)) continue;   // already on the map
@@ -346,7 +358,11 @@ namespace AG::Dungeons
 				else
 					Toast(Loc::T("$AG_Toast_Cleared", "DUNGEON CLEARED"), Loc::F("$AG_Toast_ClearedReportPlain", "{} · report to the Guild for your reward", name), -1, PrismaToast::Priority::kImportant, PrismaToast::Cue::kComplete);
 				Guild::Notify("AG_DungeonCleared", name, static_cast<float>(rank));
-				Party::OnDungeonCleared(rank);
+				// an outdoor camp pays the party less Renown than a dungeon: the game's own
+				// location types mark them
+				const bool camp = a_dungeon->HasKeywordString("LocTypeBanditCamp") || a_dungeon->HasKeywordString("LocTypeGiantCamp") ||
+				                  a_dungeon->HasKeywordString("LocTypeForswornCamp");
+				Party::OnDungeonCleared(rank, camp);
 				if (Counter::IsOpen()) Counter::Refresh();
 			}
 			// not registered: no notice (1.1.0; it used to show the rank and that the Guild pays for clears)
@@ -578,19 +594,22 @@ namespace AG::Dungeons
 		g_current = nullptr;
 	}
 
-	nlohmann::json IntelServices(int a_merit, bool a_registered)
+	nlohmann::json IntelServices(int a_merit, bool a_registered, bool a_everyHold)
 	{
 		auto rows = nlohmann::json::array();
 		const int guild = Guild::Rank();   // like missives: only work at or below the player's rank (none before registering)
-		for (auto& lead : Leads()) {
+		for (auto& lead : Leads(a_everyHold)) {
 			if (lead.rank > guild) continue;
+			const auto city = a_everyHold ? CounterCityOf(lead.loc) : std::string();
+			if (a_everyHold && city.empty()) continue;   // in no hold: no filter would find it
 			const int cost = Guild::IntelMerit(lead.rank);
 			std::string note = !a_registered ? Loc::T("$AG_Note_RegisterFirst", "Register first") : (a_merit < cost ? Loc::T("$AG_Note_NoMerit", "Not enough Merit") : "");
-			const auto where = Bearing(lead.marker);
+			const auto where = Bearing(lead.marker, a_everyHold);
 			rows.push_back({ { "section", Loc::T("$AG_Sec_Intel", "Intel") }, { "sectionId", "Intel" }, { "id", std::format("intel:{:08X}", lead.loc->GetFormID()) },
 				{ "group", "dungeon" }, { "name", Name(lead.loc) }, { "tier", std::string(1, Letter(lead.rank)) },
 				{ "desc", where.empty() ? Kind(lead.loc) : Loc::F("$AG_Intel_Desc", "{} · {}", Kind(lead.loc), where) },
 				{ "cost", cost }, { "available", note.empty() }, { "note", note } });
+			if (a_everyHold) rows.back()["city"] = city;
 		}
 		return rows;
 	}
@@ -740,17 +759,17 @@ namespace AG::Dungeons
 		g_poisBuilt = false;
 	}
 
-	nlohmann::json PoiServices(int a_merit, bool a_registered)
+	nlohmann::json PoiServices(int a_merit, bool a_registered, bool a_everyHold)
 	{
 		auto rows = nlohmann::json::array();
 		auto* pc = RE::PlayerCharacter::GetSingleton();
-		auto* hold = HoldOf(pc ? pc->GetCurrentLocation() : nullptr);
-		if (!hold) return rows;
+		auto* hold = a_everyHold ? nullptr : HoldOf(pc ? pc->GetCurrentLocation() : nullptr);
+		if (!hold && !a_everyHold) return rows;
 		BuildPois();
 		std::vector<const Poi*> here;
 		for (auto& p : g_pois) {
 			auto* md = MapData(p.marker);
-			if (p.hold != hold || !md || md->flags.any(RE::MapMarkerData::Flag::kVisible)) continue;   // elsewhere, or already on the map
+			if ((hold && p.hold != hold) || !md || md->flags.any(RE::MapMarkerData::Flag::kVisible)) continue;   // elsewhere, or already on the map
 			if (p.marker->IsDisabled()) continue;   // switched off: the map cannot show it
 			here.push_back(&p);
 		}
@@ -758,11 +777,14 @@ namespace AG::Dungeons
 		for (auto* p : here) {
 			auto&      cat = g_poiCats[p->category];
 			const auto note = !a_registered ? Loc::T("$AG_Note_RegisterFirst", "Register first") : (a_merit < cat.merit ? Loc::T("$AG_Note_NoMerit", "Not enough Merit") : "");
-			const auto where = Bearing(p->marker);
+			const auto city = a_everyHold ? CounterCityOf(p->hold) : std::string();
+			if (a_everyHold && city.empty()) continue;   // in no hold: no filter would find it
+			const auto where = Bearing(p->marker, a_everyHold);
 			rows.push_back({ { "section", Loc::T("$AG_Sec_Intel", "Intel") }, { "sectionId", "Intel" }, { "group", "poi" },
 				{ "id", std::format("poi:{:08X}", p->marker->GetFormID()) }, { "name", PoiName(p->marker) },
 				{ "desc", where.empty() ? CategoryName(cat) : Loc::F("$AG_Intel_Desc", "{} · {}", CategoryName(cat), where) },
 				{ "cost", cat.merit }, { "available", note.empty() }, { "note", note } });
+			if (a_everyHold) rows.back()["city"] = city;
 		}
 		return rows;
 	}

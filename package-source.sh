@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Zips the published source of Adventurers Guild into release/Adventurers Guild <version> - Source.zip.
 # An explicit include list (not "everything minus ignores"), so nothing new slips in by accident, followed by a
-# privacy gate: the zip is refused if any file in it names this machine's paths or the author's personal details.
+# privacy gate: the zip is refused if any file in it names this machine's paths or any personal details.
 #   bash package-source.sh     (version from project(VERSION) in src/plugin/CMakeLists.txt; or pass one)
 set -e
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,7 +24,7 @@ INCLUDE = [
     "docs/*",
 ]
 EXCLUDE = ["docs/images/*", "docs/SCREENSHOTS.md", "config/Sound/*", "*/_mock.html", "*/__pycache__/*", "*.pyc", "local.env", "*/bin/*", "*/obj/*", "*/build/*"]  # _mock.html: local test page (deploy.sh leaves it too)
-# The author's machine and identity: none of this may be published. Machine paths are listed here; the author's own
+# The build machine and its owner's identity: none of this may be published. Machine paths are listed here; the private
 # words to refuse (name, mail domain...) come from PRIVATE_WORDS in local.env, comma-separated, never listed here.
 words = [w.strip() for w in os.environ.get("PRIVATE_WORDS", "").split(",") if w.strip()]
 PRIVATE = re.compile("|".join([r"C:[/\\]mods", r"C:[/\\]Users", r"/c/Users", r"C:[/\\]dev[/\\]", r"FUS v5", r"Librum"]

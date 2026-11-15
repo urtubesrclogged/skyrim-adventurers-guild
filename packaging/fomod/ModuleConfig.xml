@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The installer (FOMOD, schema 5.0). The core always installs; the Guild Hall page is a choice of exactly one:
+     the dedicated Guild Hall (the default), or no standalone hall, for players who have trouble with where it stands.
+     The second installs no files; it only sets the installer flag "GuildHall" to "None" (a plugin needs files or flags).
+     Nothing in the mod reads the choice: AG's DLL looks for the hall's plugin at run time.
+     package.sh builds the archive this describes: "00 Core", "01 Guild Hall" and "docs" beside this fomod folder;
+     packaging/fomod_check.py works out what each choice installs and checks it against the build. -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+	<moduleName>Adventurers Guild</moduleName>
+	<requiredInstallFiles>
+		<folder source="00 Core" destination="" />
+		<folder source="docs" destination="docs/Adventurers Guild" />
+	</requiredInstallFiles>
+	<installSteps order="Explicit">
+		<installStep name="Guild Hall">
+			<optionalFileGroups order="Explicit">
+				<group name="Guild Hall" type="SelectExactlyOne">
+					<plugins order="Explicit">
+						<plugin name="Dedicated Guild Hall">
+							<description>The Adventurers Guild's own hall next to Riverwood with its staff and residents, all voiced. Without it, the Guild works from the inn counters alone. To add it later, run this installer again.</description>
+							<files>
+								<folder source="01 Guild Hall" destination="" />
+							</files>
+							<conditionFlags>
+								<flag name="GuildHall">Dedicated</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Recommended" />
+							</typeDescriptor>
+						</plugin>
+						<plugin name="No Standalone Guild Hall">
+							<description>For players who have issues with the guild hall's placement. The Guild works from the inn counters alone. To add the hall later, run this installer again.</description>
+							<conditionFlags>
+								<flag name="GuildHall">None</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional" />
+							</typeDescriptor>
+						</plugin>
+					</plugins>
+				</group>
+			</optionalFileGroups>
+		</installStep>
+	</installSteps>
+</config>

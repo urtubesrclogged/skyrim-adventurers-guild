@@ -5,6 +5,7 @@ bool Function IsCompleted() native
 bool Function IsRunning() native
 Function SetObjectiveCompleted(int aiObjective, bool abCompleted = true) native
 Function SetObjectiveDisplayed(int aiObjective, bool abDisplayed = true, bool abForce = false) native
+bool Function IsObjectiveDisplayed(int aiObjective) native
 bool Function SetStage(int aiStage) native
 bool Function Start() native
 Function Stop() native

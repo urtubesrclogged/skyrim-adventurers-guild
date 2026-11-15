@@ -127,10 +127,40 @@ Sub-tabs, paged (VR: never scroll): Party | Recruit | Affinity | Analysis | Hist
 - **History:** every former and fallen member of every party (✝ and where they fell), newest first, paged; each row
   names its party (and whether it was disbanded).
 
+## The leader board (2.0, the Guild Hall; built, not yet tested in game)
+- A small pinned board in Services (HallSpike leaderboard/: its NIF and paper), opened by activating it: its own
+  PrismaUI page (leaderboard.html, LeaderBoard.cpp). One list ranked by Renown points (as SkyrimNet's, below), active and
+  disbanded together: the active with their leader and founding year, the disbanded fainter with their years and how
+  they ended; the first three in red; eleven a sheet, paged. The title is the board's; the paper carries the clerk's
+  dated line.
+- Its parties: the player's (every one in the ledger), the Guild's old ones at the scores they ended on (from the
+  Frostbitten's 698 down; spaced along a typical player's Renown, so the top falls near the end of a 100-hour
+  playthrough; "Disbanded (Great War)", "Disbanded (Civil War)", MIA, KIA), two active parties the player never meets
+  (guild.json `leaderBoard.unseen`), and the rival, Caralion's Golden Hand (`leaderBoard.rival`). The three climb with
+  the player's own party, not the calendar: each starts where it is, gains a share of what the player's best party
+  gains (none moves before the player has a party), and stops at a cap below the top three. The Golden Hand's share is
+  set by `catchAt`: the player catches him at exactly that Renown (300), whatever their pace. When his quest ends him
+  his Renown freezes: struck out, "dishonored", after his treachery (1 he fell, 2 he left Skyrim); "disbanded" if he
+  died before it (3). The co-save keeps whether the player passed him, and his end and frozen score.
+- For Caralion's quest: AG_LB_PassedRival (AdventurersGuild.esp 0xFDD) goes to 1 for good, with the mod event
+  `AG_LeaderBoard_PassedRival`, the first time the player's active party ranks above the Golden Hand;
+  AG_Native.LeaderBoardRank(), LeaderBoardRivalRank(), LeaderBoardEndRival(1 / 2 / 3), DebugLeaderBoard().
+- For the hall folk's lines about the board (dialogue conditions read globals): AG_LB_PartyRenownGlobal (0xFDE, the
+  Renown of the player's best party) and AG_LB_PlayerPlaceGlobal (0xFDF, its place, 0 with none), set every half minute.
+- SkyrimNet: lore `ag_leader_board` (CHIM: the same topic).
+
 ## SkyrimNet (built)
-- **Renown** (guild.json `party.renown`): points from the party's record (3 per dungeon and missive, 5 per elite (boss or huge foe),
-  0.2 per kill, 1 per day together). At 15 the party is "talked about in the holds": every NPC's view of the player then
-  names the party, its members, its deeds and its fallen. At 60 it is "famous across Skyrim". Guild reps (the liaison
+- **Renown** (guild.json `party.renown`): points from the party's record (as balanced in 2.0: 3 per dungeon but
+  1 per outdoor camp (the game's bandit, giant and Forsworn camp location types); 3 per missive, notice or Jarl's bounty;
+  5 per dragon or giant (the dragon keyword; the giant races, which carry no keyword: Dragonborn's Lurkers, the same
+  size, are ordinary kills; a dungeon's boss no longer: the clear already is its death); 0.2 per kill but 0.1 per
+  wildlife, the game's animal keyword, mammoths included, except the animals that are fights (trolls, every bear and
+  sabre cat, and the large animals; trolls, sabre cats and cave bears are medium sized in the game, so size alone does
+  not tell them); 1 per day together). About 8.4 an hour with the party along. A save from before 2.0 kept no beasts,
+  camps or wildlife: its great kills stand in for the beasts, and the fame each party had under 1.x's levels (15 and 60)
+  is kept as a floor, so a party famous before the update stays famous. At 85 (about 10 hours) the party is "talked about in the holds": every NPC's view of
+  the player then names the party, its members, its deeds and its fallen. At 380 (about 45 hours) it is "famous across
+  Skyrim". Guild reps (the liaison
   block, with the full record) and the party's own members always know it.
 - Decorator `ag_party(actor)`: the player's party (name, membersText, fallenText, bondTier, days, dungeons, missives,
   greatBeasts, renown) plus the actor's own tie (member / former, which party, their Bond with the player).

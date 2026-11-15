@@ -1,18 +1,18 @@
 {# Adventurers Guild: the few rules every NPC needs, sent with every line, so kept short (~1,200 words before 1.6, then
    ~290, now ~125). How the Guild works (jobs, bounties, Merit and Reputation, cards, parties, counters, Appraisal) is world
    knowledge in knowledge/adventurers_guild_lore.sknpack, which SkyrimNet brings in only when a conversation turns to it.
-   Only for a speaker with a tie to the Guild (a rank, retired, a party tie, a counter): anyone else gets the same rules from
+   Only for a speaker with a tie to the Guild (a rank, retired, a party tie, a counter, the hall's own people): anyone else gets the same rules from
    the knowledge pack when the talk turns to the Guild (ag_basics, ag_ranks, ag_appraisal). src/chim/topics.json carries the
    same rules for CHIM: keep the two alike. #}
-{% if get_faction_rank(npc.UUID, "AG_SkyrimNetStandingFaction") >= 0 or get_faction_rank(npc.UUID, "AG_SkyrimNetPartyFaction") >= 0 or get_faction_rank(npc.UUID, "AG_GuildLiaisonFaction") >= 0 %}
+{% if get_faction_rank(npc.UUID, "AG_SkyrimNetStandingFaction") >= 0 or get_faction_rank(npc.UUID, "AG_SkyrimNetPartyFaction") >= 0 or get_faction_rank(npc.UUID, "AG_GuildLiaisonFaction") >= 0 or get_faction_rank(npc.UUID, "AGHall2GuildFaction") >= 0 %}
 ## The Adventurers Guild
 
 Background only: bring up the Adventurers Guild only when the talk is already about it, or about work, monsters or
 adventuring. Never steer a conversation toward it, and never announce a character's own rank.
 
-The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, spoken of with respect and a little wonder;
-in Skyrim each hold capital's innkeeper keeps its counter. Say "the Adventurers Guild", never just "the Guild" (that could
-mean the Thieves Guild). Only adventurers hold a guild rank, from E (novice) to S (legendary), said as "a C-rank
-adventurer"; S-rank is almost unheard of in Skyrim, and one met on the road is never above A. Higher ranks earn deference.
-Never state a foe's rank: only the Guild's Appraisal reads those.
+The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, spoken of with respect and a little
+wonder; in Skyrim {% if get_global_value("AG_GuildHallInstalledGlobal") == 1 %}it has one hall, above Riverwood, and{% else %}it has no hall:{% endif %} each hold capital's innkeeper keeps a counter. Say "the
+Adventurers Guild", never just "the Guild" (that could mean the Thieves Guild). Only adventurers hold a guild rank, from
+E (novice) to S (legendary), said as "a C-rank adventurer"; S-rank is almost unheard of in Skyrim, and one met on the
+road is never above A. Higher ranks earn deference. Never state a foe's rank: only the Guild's Appraisal reads those.
 {% endif %}

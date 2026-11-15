@@ -1,0 +1,1466 @@
+{
+"meshes/clutter/dining set/basicfork01.nif": {
+"lo": [
+-2.7,
+-9.93,
+-0.97
+],
+"hi": [
+2.7,
+24.49,
+0.97
+]
+},
+"meshes/clutter/dining set/basicknife01.nif": {
+"lo": [
+-2.26,
+-9.47,
+-0.97
+],
+"hi": [
+0.77,
+23.35,
+0.97
+]
+},
+"meshes/clutter/dining set/basictankard01.nif": {
+"lo": [
+-5.22,
+-5.22,
+0.0
+],
+"hi": [
+5.22,
+8.32,
+12.16
+]
+},
+"meshes/clutter/dining set/basicwoodenbowl01.nif": {
+"lo": [
+-12.25,
+-12.25,
+-0.0
+],
+"hi": [
+12.25,
+12.25,
+8.0
+]
+},
+"meshes/clutter/dining set/basicwoodenplate01.nif": {
+"lo": [
+-21.0,
+-10.5,
+0.0
+],
+"hi": [
+21.0,
+10.5,
+4.01
+]
+},
+"meshes/clutter/common/broom.nif": {
+"lo": [
+-7.88,
+-10.46,
+-59.62
+],
+"hi": [
+7.88,
+10.46,
+59.62
+]
+},
+"meshes/clutter/bucket01.nif": {
+"lo": [
+-17.6,
+-18.91,
+0.0
+],
+"hi": [
+17.6,
+18.91,
+30.0
+]
+},
+"meshes/clutter/candles/candlehorntable01.nif": {
+"lo": [
+-8.98,
+-18.36,
+0.0
+],
+"hi": [
+8.98,
+18.36,
+19.63
+]
+},
+"meshes/clutter/kitchen/castironpotmedium01.nif": {
+"lo": [
+-15.0,
+-19.8,
+0.0
+],
+"hi": [
+15.0,
+19.8,
+15.0
+]
+},
+"meshes/clutter/kitchen/castironpotsmall01.nif": {
+"lo": [
+-33.33,
+-10.0,
+0.0
+],
+"hi": [
+10.0,
+10.0,
+12.5
+]
+},
+"meshes/clutter/common/flagon01.nif": {
+"lo": [
+-5.63,
+-7.25,
+0.01
+],
+"hi": [
+5.63,
+6.34,
+21.84
+]
+},
+"meshes/clutter/food/apple01.nif": {
+"lo": [
+-5.64,
+-5.59,
+-0.28
+],
+"hi": [
+5.45,
+5.58,
+12.43
+]
+},
+"meshes/clutter/ingredients/beefmeat.nif": {
+"lo": [
+-11.75,
+-12.18,
+-1.11
+],
+"hi": [
+14.9,
+10.34,
+9.87
+]
+},
+"meshes/clutter/food/bread01a.nif": {
+"lo": [
+-12.06,
+-6.26,
+-0.0
+],
+"hi": [
+12.06,
+6.26,
+5.14
+]
+},
+"meshes/clutter/food/bread01b.nif": {
+"lo": [
+-6.03,
+-6.26,
+-0.0
+],
+"hi": [
+6.03,
+6.26,
+5.14
+]
+},
+"meshes/plants/cabbage01.nif": {
+"lo": [
+-12.03,
+-10.61,
+-10.34
+],
+"hi": [
+11.0,
+12.36,
+10.67
+]
+},
+"meshes/clutter/ingredients/carrot01.nif": {
+"lo": [
+-3.71,
+-5.48,
+-10.16
+],
+"hi": [
+3.98,
+4.43,
+23.3
+]
+},
+"meshes/clutter/food/cheesewedge02.nif": {
+"lo": [
+-3.2,
+-4.76,
+0.0
+],
+"hi": [
+3.2,
+4.76,
+8.5
+]
+},
+"meshes/clutter/food/cheesewheel02a.nif": {
+"lo": [
+-9.5,
+-9.36,
+0.0
+],
+"hi": [
+9.5,
+9.36,
+8.5
+]
+},
+"meshes/clutter/deadanimals/pheasantmeat01.nif": {
+"lo": [
+-5.21,
+-7.03,
+-0.0
+],
+"hi": [
+5.87,
+7.26,
+3.68
+]
+},
+"meshes/plants/gourd01.nif": {
+"lo": [
+-14.12,
+-21.66,
+-14.04
+],
+"hi": [
+13.2,
+19.91,
+12.34
+]
+},
+"meshes/clutter/food/nuttybread01.nif": {
+"lo": [
+-5.36,
+-17.29,
+-4.03
+],
+"hi": [
+4.79,
+14.99,
+5.14
+]
+},
+"meshes/plants/leek01.nif": {
+"lo": [
+-8.74,
+-6.17,
+-18.5
+],
+"hi": [
+5.64,
+6.06,
+12.16
+]
+},
+"meshes/clutter/ingredients/mead01.nif": {
+"lo": [
+-3.24,
+-3.24,
+0.03
+],
+"hi": [
+3.24,
+3.24,
+21.93
+]
+},
+"meshes/clutter/ingredients/pie01.nif": {
+"lo": [
+-13.04,
+-13.0,
+-4.77
+],
+"hi": [
+12.97,
+13.09,
+1.54
+]
+},
+"meshes/plants/potato01.nif": {
+"lo": [
+-5.64,
+-5.65,
+-9.37
+],
+"hi": [
+6.01,
+5.65,
+9.66
+]
+},
+"meshes/clutter/deadanimals/rabbitmeat01.nif": {
+"lo": [
+-7.08,
+-6.84,
+-0.0
+],
+"hi": [
+7.08,
+6.84,
+3.7
+]
+},
+"meshes/clutter/food/cookedsalmonsteak01.nif": {
+"lo": [
+-4.48,
+-7.81,
+-1.13
+],
+"hi": [
+4.48,
+7.81,
+1.13
+]
+},
+"meshes/clutter/ingredients/tomato.nif": {
+"lo": [
+-4.34,
+-4.23,
+-3.6
+],
+"hi": [
+4.24,
+4.28,
+3.37
+]
+},
+"meshes/clutter/ingredients/venison.nif": {
+"lo": [
+-19.18,
+-18.63,
+-1.62
+],
+"hi": [
+19.18,
+18.63,
+15.82
+]
+},
+"meshes/clutter/wine/winebottle01b.nif": {
+"lo": [
+-8.65,
+-8.23,
+-0.0
+],
+"hi": [
+8.65,
+8.23,
+27.65
+]
+},
+"meshes/clutter/wine/winebottle02b.nif": {
+"lo": [
+-7.03,
+-6.69,
+-0.0
+],
+"hi": [
+7.03,
+6.69,
+29.96
+]
+},
+"meshes/plants/garlic01.nif": {
+"lo": [
+-4.69,
+-4.63,
+-2.62
+],
+"hi": [
+4.64,
+4.6,
+4.56
+]
+},
+"meshes/clutter/glazedgoblet01.nif": {
+"lo": [
+-5.43,
+-5.43,
+0.0
+],
+"hi": [
+5.43,
+5.43,
+14.97
+]
+},
+"meshes/clutter/deadanimals/hanginganimalsring02.nif": {
+"lo": [
+-19.2,
+-18.91,
+0.0
+],
+"hi": [
+19.2,
+18.91,
+49.05
+]
+},
+"meshes/plants/hangingelvesear01.nif": {
+"lo": [
+-13.26,
+-5.03,
+-57.33
+],
+"hi": [
+13.85,
+16.2,
+15.1
+]
+},
+"meshes/plants/hanginggarlicbraid01.nif": {
+"lo": [
+-7.0,
+-7.29,
+-46.67
+],
+"hi": [
+7.08,
+8.71,
+0.18
+]
+},
+"meshes/clutter/deadanimals/hangingrabbit01.nif": {
+"lo": [
+-20.21,
+-21.91,
+-50.56
+],
+"hi": [
+-9.59,
+-5.55,
+11.1
+]
+},
+"meshes/clutter/kettle01.nif": {
+"lo": [
+-27.19,
+-26.77,
+0.11
+],
+"hi": [
+26.77,
+26.77,
+40.34
+]
+},
+"meshes/clutter/containers/miscsack02largeflat.nif": {
+"lo": [
+-22.98,
+-20.15,
+-7.43
+],
+"hi": [
+22.98,
+20.15,
+7.43
+]
+},
+"meshes/clutter/containers/miscsacklargeflat01.nif": {
+"lo": [
+-20.84,
+-24.83,
+-28.34
+],
+"hi": [
+20.65,
+31.38,
+33.96
+]
+},
+"meshes/clutter/common/rag01.nif": {
+"lo": [
+-6.63,
+-12.42,
+-1.44
+],
+"hi": [
+7.47,
+12.54,
+1.21
+]
+},
+"meshes/clutter/ingredients/saltpile.nif": {
+"lo": [
+-6.73,
+-6.18,
+-2.97
+],
+"hi": [
+6.73,
+6.18,
+2.97
+]
+},
+"meshes/clutter/meadery/spigot01.nif": {
+"lo": [
+-3.38,
+-8.04,
+-0.0
+],
+"hi": [
+3.38,
+8.04,
+2.6
+]
+},
+"meshes/clutter/kitchen/woodenladle01.nif": {
+"lo": [
+-28.73,
+-3.75,
+-3.52
+],
+"hi": [
+3.69,
+3.75,
+7.52
+]
+},
+"meshes/clutter/books/basicbook01.nif": {
+"lo": [
+-9.24,
+-11.65,
+-2.01
+],
+"hi": [
+9.34,
+11.65,
+2.12
+]
+},
+"meshes/clutter/books/basicbook03.nif": {
+"lo": [
+-9.24,
+-11.65,
+-2.01
+],
+"hi": [
+9.34,
+11.65,
+2.12
+]
+},
+"meshes/clutter/books/basicbook06.nif": {
+"lo": [
+-9.24,
+-11.65,
+-1.91
+],
+"hi": [
+9.34,
+11.65,
+2.0
+]
+},
+"meshes/clutter/books/book02lowpoly02.nif": {
+"lo": [
+-11.85,
+-15.15,
+-3.3
+],
+"hi": [
+11.95,
+15.15,
+3.42
+]
+},
+"meshes/clutter/books/journallowpoly01.nif": {
+"lo": [
+-6.22,
+-9.36,
+-0.83
+],
+"hi": [
+6.64,
+8.77,
+1.0
+]
+},
+"meshes/clutter/books/note01.nif": {
+"lo": [
+-8.42,
+-5.45,
+-0.25
+],
+"hi": [
+8.42,
+5.45,
+0.25
+]
+},
+"meshes/clutter/silver/silvercandlestick01.nif": {
+"lo": [
+-10.02,
+-9.87,
+0.0
+],
+"hi": [
+10.02,
+9.87,
+49.5
+]
+},
+"meshes/clutter/silver/silvercandlestick02.nif": {
+"lo": [
+-24.2,
+-9.87,
+0.0
+],
+"hi": [
+24.01,
+9.87,
+49.75
+]
+},
+"meshes/clutter/silver/silvercandlestick03.nif": {
+"lo": [
+-10.02,
+-9.87,
+0.0
+],
+"hi": [
+10.02,
+9.87,
+37.12
+]
+},
+"meshes/clutter/silver/silverjug01.nif": {
+"lo": [
+-13.28,
+-13.08,
+0.0
+],
+"hi": [
+16.89,
+13.08,
+41.94
+]
+},
+"meshes/clutter/silver/silvergoblet01.nif": {
+"lo": [
+-7.18,
+-7.18,
+0.0
+],
+"hi": [
+7.18,
+7.18,
+19.29
+]
+},
+"meshes/clutter/silver/silverplate01.nif": {
+"lo": [
+-19.89,
+-19.69,
+0.0
+],
+"hi": [
+19.89,
+19.69,
+4.13
+]
+},
+"meshes/clutter/silver/silverbowl01.nif": {
+"lo": [
+-18.29,
+-18.29,
+0.0
+],
+"hi": [
+18.29,
+18.29,
+14.92
+]
+},
+"meshes/clutter/common/candlelanternwithcandle01.nif": {
+"lo": [
+-9.07,
+-8.92,
+-1.66
+],
+"hi": [
+9.23,
+8.43,
+41.58
+]
+},
+"meshes/clutter/common/inkwell01.nif": {
+"lo": [
+-3.7,
+-3.7,
+-0.0
+],
+"hi": [
+3.7,
+3.7,
+8.15
+]
+},
+"meshes/clutter/common/quill01.nif": {
+"lo": [
+-0.45,
+-2.77,
+-15.87
+],
+"hi": [
+0.45,
+2.77,
+15.87
+]
+},
+"meshes/clutter/quest/tgparchment01.nif": {
+"lo": [
+-27.58,
+-2.97,
+-2.63
+],
+"hi": [
+27.58,
+2.97,
+2.63
+]
+},
+"meshes/clutter/basket01.nif": {
+"lo": [
+-17.42,
+-17.16,
+0.0
+],
+"hi": [
+17.42,
+17.16,
+31.06
+]
+},
+"meshes/clutter/basket03.nif": {
+"lo": [
+-17.42,
+-17.16,
+0.0
+],
+"hi": [
+17.42,
+17.16,
+31.68
+]
+},
+"meshes/clutter/basketclosed01.nif": {
+"lo": [
+-17.42,
+-17.16,
+0.0
+],
+"hi": [
+17.42,
+17.16,
+35.38
+]
+},
+"meshes/clutter/common/strongbox01.nif": {
+"lo": [
+-14.35,
+-9.55,
+0.05
+],
+"hi": [
+14.35,
+9.55,
+20.01
+]
+},
+"meshes/plants/coinbagsmall.nif": {
+"lo": [
+-4.82,
+-5.09,
+0.24
+],
+"hi": [
+5.17,
+5.27,
+13.93
+]
+},
+"meshes/clutter/upperclass/uppernightstand01.nif": {
+"lo": [
+-21.43,
+-19.71,
+0.0
+],
+"hi": [
+21.43,
+19.71,
+31.5
+]
+},
+"meshes/clutter/upperclass/uppertable01.nif": {
+"lo": [
+-98.0,
+-57.98,
+0.0
+],
+"hi": [
+98.0,
+57.98,
+59.18
+]
+},
+"meshes/clutter/upperclass/uppershelf02.nif": {
+"lo": [
+-67.68,
+-27.0,
+0.0
+],
+"hi": [
+67.63,
+27.0,
+77.87
+]
+},
+"meshes/furniture/noble/noblecrate01.nif": {
+"lo": [
+-68.45,
+-24.85,
+0.18
+],
+"hi": [
+68.45,
+24.85,
+26.37
+]
+},
+"meshes/clutter/glazedpot02.nif": {
+"lo": [
+-16.55,
+-16.55,
+0.0
+],
+"hi": [
+16.55,
+16.55,
+42.22
+]
+},
+"meshes/clutter/dining set/basicplate02.nif": {
+"lo": [
+-19.91,
+-19.6,
+0.0
+],
+"hi": [
+19.88,
+19.6,
+3.81
+]
+},
+"meshes/clutter/deadanimals/salmonmeat01.nif": {
+"lo": [
+-4.48,
+-4.49,
+0.0
+],
+"hi": [
+4.48,
+4.49,
+2.27
+]
+},
+"meshes/clutter/food/cheesewheel01a.nif": {
+"lo": [
+-15.79,
+-15.79,
+0.0
+],
+"hi": [
+15.79,
+15.79,
+15.79
+]
+},
+"meshes/clutter/food/cheesewedge01.nif": {
+"lo": [
+-7.61,
+-7.89,
+0.0
+],
+"hi": [
+7.61,
+7.89,
+7.74
+]
+},
+"meshes/clutter/basket04.nif": {
+"lo": [
+-17.42,
+-17.16,
+0.0
+],
+"hi": [
+17.42,
+17.16,
+47.74
+]
+},
+"meshes/clutter/basket05.nif": {
+"lo": [
+-25.34,
+-24.95,
+0.0
+],
+"hi": [
+25.34,
+24.95,
+36.0
+]
+},
+"meshes/clutter/bucket02a.nif": {
+"lo": [
+-18.2,
+-18.48,
+-0.0
+],
+"hi": [
+18.2,
+18.48,
+46.29
+]
+},
+"meshes/clutter/firewood/firewoodpilesmall01.nif": {
+"lo": [
+-31.78,
+-33.62,
+-1.16
+],
+"hi": [
+23.23,
+33.62,
+27.3
+]
+},
+"meshes/clutter/firewood/firewoodpilemedium01.nif": {
+"lo": [
+-47.28,
+-64.1,
+-1.65
+],
+"hi": [
+43.58,
+33.82,
+52.43
+]
+},
+"meshes/clutter/woodfires/spitpotclosedloose01.nif": {
+"lo": [
+-15.93,
+-15.69,
+-7.18
+],
+"hi": [
+15.93,
+15.69,
+15.0
+]
+},
+"meshes/clutter/containers/miscsacklarge.nif": {
+"lo": [
+-19.08,
+-26.15,
+-28.34
+],
+"hi": [
+18.29,
+29.7,
+41.82
+]
+},
+"meshes/clutter/containers/miscsack02large.nif": {
+"lo": [
+-8.9,
+-15.49,
+-26.12
+],
+"hi": [
+9.76,
+15.18,
+21.97
+]
+},
+"meshes/clutter/containers/miscsack02small.nif": {
+"lo": [
+-8.2,
+-11.18,
+-16.47
+],
+"hi": [
+8.2,
+11.18,
+16.47
+]
+},
+"meshes/clutter/common/cratesmall01.nif": {
+"lo": [
+-25.61,
+-37.69,
+-24.26
+],
+"hi": [
+25.61,
+39.35,
+24.26
+]
+},
+"meshes/clutter/common/cratesmall02.nif": {
+"lo": [
+-27.27,
+-41.05,
+-21.41
+],
+"hi": [
+27.27,
+42.77,
+21.23
+]
+},
+"meshes/clutter/common/cratesmalllong01.nif": {
+"lo": [
+-25.61,
+-71.65,
+-24.26
+],
+"hi": [
+25.61,
+71.65,
+24.26
+]
+},
+"meshes/clutter/barrel01.nif": {
+"lo": [
+-27.85,
+-27.85,
+0.0
+],
+"hi": [
+27.85,
+27.85,
+80.0
+]
+},
+"meshes/clutter/deadanimals/hangingrabbit02.nif": {
+"lo": [
+-21.75,
+-15.1,
+-37.32
+],
+"hi": [
+-13.47,
+-2.05,
+9.12
+]
+},
+"meshes/clutter/deadanimals/hangingpheasant02.nif": {
+"lo": [
+-25.18,
+-16.21,
+-51.52
+],
+"hi": [
+-11.91,
+-2.75,
+4.53
+]
+},
+"meshes/plants/hangingfrostmirriam01.nif": {
+"lo": [
+-20.8,
+-20.5,
+-48.14
+],
+"hi": [
+20.97,
+14.65,
+8.45
+]
+},
+"meshes/furniture/noble/noblewallshelf01.nif": {
+"lo": [
+-48.72,
+-34.54,
+96.79
+],
+"hi": [
+48.7,
+0.0,
+131.42
+]
+},
+"meshes/architecture/whiterun/wrinteriors/wrwallshelf01.nif": {
+"lo": [
+-75.19,
+-19.65,
+-16.56
+],
+"hi": [
+75.19,
+19.65,
+16.23
+]
+},
+"meshes/clutter/books/basicbook03a.nif": {
+"lo": [
+-9.24,
+-11.65,
+-2.01
+],
+"hi": [
+9.34,
+11.65,
+2.12
+]
+},
+"meshes/clutter/books/basicbook04.nif": {
+"lo": [
+-9.24,
+-11.65,
+-2.01
+],
+"hi": [
+9.34,
+11.65,
+2.12
+]
+},
+"meshes/clutter/books/basicbook04a.nif": {
+"lo": [
+-9.24,
+-11.65,
+-2.01
+],
+"hi": [
+9.34,
+11.65,
+2.12
+]
+},
+"meshes/clutter/books/basicbook05.nif": {
+"lo": [
+-9.24,
+-11.65,
+-1.91
+],
+"hi": [
+9.34,
+11.65,
+2.0
+]
+},
+"meshes/clutter/books/basicbook05a.nif": {
+"lo": [
+-9.24,
+-11.65,
+-1.91
+],
+"hi": [
+9.34,
+11.65,
+2.0
+]
+},
+"meshes/clutter/books/book02lowpoly.nif": {
+"lo": [
+-11.85,
+-15.15,
+-3.15
+],
+"hi": [
+11.95,
+15.15,
+3.23
+]
+},
+"meshes/clutter/common/scroll01.nif": {
+"lo": [
+-16.24,
+-4.13,
+-4.14
+],
+"hi": [
+16.24,
+4.13,
+4.14
+]
+},
+"meshes/clutter/common/scroll03.nif": {
+"lo": [
+-15.17,
+-4.13,
+-3.54
+],
+"hi": [
+15.17,
+4.13,
+3.54
+]
+},
+"meshes/clutter/bones/humanskullfullstatic.nif": {
+"lo": [
+-6.23,
+-8.82,
+-8.86
+],
+"hi": [
+6.23,
+8.82,
+9.36
+]
+},
+"meshes/clutter/soulgem/soulgemlesser01.nif": {
+"lo": [
+-2.81,
+-3.89,
+-9.78
+],
+"hi": [
+2.81,
+3.89,
+9.78
+]
+},
+"meshes/clutter/soulgem/soulgempetty01.nif": {
+"lo": [
+-1.4,
+-2.47,
+-8.26
+],
+"hi": [
+4.18,
+2.54,
+9.01
+]
+},
+"meshes/clutter/books/note02.nif": {
+"lo": [
+-8.42,
+-5.45,
+-0.25
+],
+"hi": [
+8.42,
+5.45,
+0.25
+]
+},
+"meshes/clutter/books/note03.nif": {
+"lo": [
+-8.42,
+-5.45,
+-0.25
+],
+"hi": [
+8.42,
+5.45,
+0.25
+]
+},
+"meshes/clutter/books/note04.nif": {
+"lo": [
+-8.42,
+-5.45,
+-0.25
+],
+"hi": [
+8.42,
+5.45,
+0.25
+]
+},
+"meshes/clutter/ingredients/sweetroll01.nif": {
+"lo": [
+-9.36,
+-9.89,
+0.26
+],
+"hi": [
+9.36,
+9.89,
+15.19
+]
+},
+"meshes/clutter/glazedcup01.nif": {
+"lo": [
+-5.66,
+-5.66,
+0.0
+],
+"hi": [
+5.66,
+5.66,
+10.14
+]
+},
+"meshes/clutter/glazedjugsmall01.nif": {
+"lo": [
+-12.34,
+-12.34,
+0.0
+],
+"hi": [
+12.34,
+12.34,
+28.88
+]
+},
+"meshes/clutter/coin01.nif": {
+"lo": [
+-2.78,
+-2.78,
+0.0
+],
+"hi": [
+2.78,
+2.78,
+0.31
+]
+},
+"meshes/plants/coinbagmed.nif": {
+"lo": [
+-7.07,
+-7.94,
+0.22
+],
+"hi": [
+7.81,
+7.88,
+17.72
+]
+},
+"meshes/plants/coinbaglarge.nif": {
+"lo": [
+-8.85,
+-9.5,
+-0.19
+],
+"hi": [
+9.58,
+8.89,
+22.29
+]
+},
+"meshes/dungeons/mines/ore/ingotsilver.nif": {
+"lo": [
+-12.52,
+-5.53,
+-2.7
+],
+"hi": [
+12.52,
+5.53,
+2.7
+]
+},
+"meshes/clutter/quest/tgrbusinessledger.nif": {
+"lo": [
+-30.57,
+-19.41,
+-2.81
+],
+"hi": [
+30.57,
+19.41,
+2.81
+]
+},
+"meshes/clutter/upperclass/upperbench01.nif": {
+"lo": [
+-86.87,
+-17.51,
+0.0
+],
+"hi": [
+87.5,
+17.51,
+78.74
+]
+},
+"meshes/clutter/deadanimals/mountedmaleelk.nif": {
+"lo": [
+-114.98,
+-0.56,
+-49.53
+],
+"hi": [
+114.98,
+95.47,
+87.72
+]
+},
+"meshes/clutter/bones/mountedantlers.nif": {
+"lo": [
+-111.54,
+-32.23,
+-55.53
+],
+"hi": [
+111.54,
+32.23,
+55.53
+]
+},
+"meshes/architecture/whiterun/wrclutter/wrintshield02.nif": {
+"lo": [
+-16.54,
+-51.8,
+-51.71
+],
+"hi": [
+-0.66,
+51.8,
+51.71
+]
+},
+"meshes/architecture/whiterun/wrclutter/wrintshield03.nif": {
+"lo": [
+-16.31,
+-51.66,
+-51.66
+],
+"hi": [
+0.0,
+51.66,
+51.66
+]
+},
+"meshes/architecture/whiterun/wrclutter/wrintshield04.nif": {
+"lo": [
+-14.43,
+-51.48,
+-51.42
+],
+"hi": [
+0.31,
+51.48,
+51.42
+]
+}
+}

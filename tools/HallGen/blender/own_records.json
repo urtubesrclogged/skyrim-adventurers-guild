@@ -1,0 +1,107 @@
+{
+  "_doc": "The hall's own records that the placement gate places but the vanilla masters lack (Hall2.cs makes them; keep in step). Merged into records.json by the gates.",
+  "AGHall2PoolSeat": {
+    "type": "Furniture",
+    "obnd": [
+      -75,
+      -16,
+      33,
+      75,
+      16,
+      38
+    ],
+    "name": "Bath Ledge"
+  },
+  "AGHall2SecretRoomNote": {
+    "type": "Book",
+    "obnd": [
+      -8,
+      -5,
+      0,
+      8,
+      5,
+      0
+    ],
+    "name": "Note"
+  },
+  "AGHall2Banner330": {
+    "type": "Static",
+    "obnd": [
+      -57,
+      -26,
+      -343,
+      57,
+      1,
+      13
+    ],
+    "name": ""
+  },
+  "AGHall2Chain805": {
+    "type": "Static",
+    "obnd": [
+      -2,
+      -2,
+      0,
+      2,
+      2,
+      805
+    ]
+  },
+  "AGHall2Chain308": {
+    "type": "Static",
+    "obnd": [
+      -2,
+      -2,
+      0,
+      2,
+      2,
+      308
+    ]
+  },
+  "AGHall2Chain421": {
+    "type": "Static",
+    "obnd": [
+      -2,
+      -2,
+      0,
+      2,
+      2,
+      421
+    ]
+  },
+  "AGHall2BannerCloth": {
+    "type": "MoveableStatic",
+    "obnd": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "AGHall2WritingChair": {
+    "type": "Furniture",
+    "obnd": [
+      -62,
+      -20,
+      0,
+      62,
+      64,
+      98
+    ],
+    "name": "Chair"
+  },
+  "AGHall2UrnStatic": {
+    "type": "Static",
+    "obnd": [
+      -15,
+      -15,
+      0,
+      15,
+      15,
+      33
+    ],
+    "name": null
+  }
+}

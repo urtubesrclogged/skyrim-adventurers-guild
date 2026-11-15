@@ -32,6 +32,9 @@ namespace AG::MissiveWatch
 	// (hex string, e.g. "0x0201A2B3"), bypassing a real Missives board turn-in.
 	void DebugComplete(const std::string& a_formIdHex);
 	void DebugBoard();
+	void DebugHallRoll();  // the Guild Hall rolls every hold now (the player in the great hall)
+	// Prepare to Uninstall: the Guild Hall's Missives board taken away, with what is posted on it
+	void PrepareUninstallHall();
 
 	// Withdraw (Missives' own stage 110) every posted, not-yet-accepted missive above the player's guild
 	// rank. Postings made before the rank gate applied would otherwise linger until Missives' random
@@ -50,6 +53,10 @@ namespace AG::MissiveWatch
 	// The guild counter's view of the local board: missives currently posted (running, stage 0) in the
 	// hold whose capital is a_city, at or below the player's rank. [{id, tier, title}]
 	nlohmann::json Postings(const std::string& a_city);
+	// The Guild Hall's view: every hold's posted missives at or below the player's rank, wherever the player is.
+	// [{id, tier, title, tag, hold, city}]: hold is Missives' hold name (Whiterun, Haafingar, Eastmarch, Rift, ...), city the
+	// town whose board it hangs on.
+	nlohmann::json AllPostings();
 	int            InProgress();  // missives the player has taken and not yet finished
 	// The posting's note as the player would read it: its text with every <Alias=...> filled in from the
 	// quest instance, book markup removed. {id, tier, title, posted, text}

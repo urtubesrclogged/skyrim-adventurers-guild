@@ -3,13 +3,26 @@
     "format_version": 3,
     "name": "Adventurers Guild",
     "description": "Lore of the Adventurers Guild in Tamriel and Skyrim, known to each NPC according to who they are.",
-    "version": "1.13.2",
+    "version": "1.16.2",
     "entries": [
       {
         "key": "ag_basics",
         "display_name": "The Adventurers Guild",
-        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. In Skyrim it has no guildhall: its members gather at the Guild counter in the inn of each hold capital, where the innkeeper signs up newcomers, buys the trophies of a good hunt and hears cases for promotion, and hands out the Guild's work. It is spoken of with respect and a little wonder, and always as the Adventurers Guild, never just \"the Guild\", which could mean the Thieves Guild.",
-        "condition_expr": "",
+        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. Its home in Skyrim is the Guild Hall on the road above Riverwood, the one hall the Guild keeps in the province, where its Guild Master keeps the Guild's records and its members eat, train and sleep between jobs. Every hold capital's inn keeps a Guild counter too, where the innkeeper buys the trophies of a good hunt, pays out the Guild's reports and hands out its work. It is spoken of with respect and a little wonder, and always as the Adventurers Guild, never just \"the Guild\", which could mean the Thieves Guild.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.8,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_basics_nohall",
+        "display_name": "The Adventurers Guild",
+        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. In Skyrim it keeps no hall of its own: its counters stand in the inns of the hold capitals, where the innkeeper buys the trophies of a good hunt, pays out the Guild's reports and hands out its work. It is spoken of with respect and a little wonder, and always as the Adventurers Guild, never just \"the Guild\", which could mean the Thieves Guild.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 0",
         "always_inject": false,
         "importance": 0.8,
         "type": "KNOWLEDGE",
@@ -35,8 +48,8 @@
       {
         "key": "ag_counters",
         "display_name": "Where the Guild keeps its counters",
-        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlehearth Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. Across the water, the Retching Netch in Raven Rock (Geldis Sadri) keeps the one counter on Solstheim.",
-        "condition_expr": "",
+        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlehearth Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. Across the water, the Retching Netch in Raven Rock (Geldis Sadri) keeps the one counter on Solstheim. And the Guild Hall above Riverwood keeps a counter of its own, kept by its two clerks, Margot Belleau by day and Nessa in the evening: the one counter that hands out every hold's work.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
         "type": "KNOWLEDGE",
@@ -44,6 +57,228 @@
           "guild",
           "inns",
           "counters"
+        ]
+      },
+      {
+        "key": "ag_counters_nohall",
+        "display_name": "Where the Guild keeps its counters",
+        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlehearth Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. Across the water, the Retching Netch in Raven Rock (Geldis Sadri) keeps the one counter on Solstheim.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "inns",
+          "counters"
+        ]
+      },
+      {
+        "key": "ag_where_registration_hall",
+        "display_name": "Joining the Adventurers Guild",
+        "content": "Newcomers join the Adventurers Guild only at the Guild Hall above Riverwood, where its clerks register them for a fee. The innkeepers who keep the Guild's counters no longer sign anyone up: they send a would-be adventurer to the hall. A member's followers are registered there too, each for the same fee.",
+        "condition_expr": "get_global_value(\"AG_HallRegistrationGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_registration_inns",
+        "display_name": "Joining the Adventurers Guild",
+        "content": "Newcomers join the Adventurers Guild at any Guild counter, for a fee: at the Guild Hall above Riverwood, or at the inn counter of a hold capital. A member's followers can be registered at any counter too, each for the same fee.",
+        "condition_expr": "get_global_value(\"AG_HallRegistrationGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_promotion_hall",
+        "display_name": "Guild promotions",
+        "content": "Cases for promotion are heard only at the Guild Hall above Riverwood, by its clerks. An innkeeper who keeps a Guild counter sends an adventurer who is due a promotion to the hall.",
+        "condition_expr": "get_global_value(\"AG_HallPromotionGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_promotion_inns",
+        "display_name": "Guild promotions",
+        "content": "Any Guild counter hears a case for promotion: the clerks at the Guild Hall above Riverwood, or an innkeeper who keeps a hold's counter.",
+        "condition_expr": "get_global_value(\"AG_HallPromotionGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_training_hall",
+        "display_name": "Where the Guild trains",
+        "content": "The Guild's training, Appraisal and the drills and perk training alike, is given only at the Guild Hall above Riverwood.",
+        "condition_expr": "get_global_value(\"AG_HallTrainingGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_training_inns",
+        "display_name": "Where the Guild trains",
+        "content": "The Guild's training, Appraisal and the drills and perk training alike, is given at every Guild counter: the inns' as well as the Guild Hall above Riverwood's.",
+        "condition_expr": "get_global_value(\"AG_HallTrainingGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_boxes_hall",
+        "display_name": "Where Guild Boxes are sold",
+        "content": "Guild Boxes are sold only at the Guild Hall above Riverwood, from the Guild's vaults.",
+        "condition_expr": "get_global_value(\"AG_HallBoxesGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_boxes_inns",
+        "display_name": "Where Guild Boxes are sold",
+        "content": "Guild Boxes are sold at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "condition_expr": "get_global_value(\"AG_HallBoxesGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_library_hall",
+        "display_name": "The Guild Library",
+        "content": "The Guild Library's skill books are sold only at the Guild Hall above Riverwood.",
+        "condition_expr": "get_global_value(\"AG_HallLibraryGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_library_inns",
+        "display_name": "The Guild Library",
+        "content": "The Guild Library's skill books are sold at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "condition_expr": "get_global_value(\"AG_HallLibraryGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_tomes_hall",
+        "display_name": "Guild spell tomes",
+        "content": "The Guild sells its spell tomes only at the Guild Hall above Riverwood.",
+        "condition_expr": "get_global_value(\"AG_HallTomesGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_tomes_inns",
+        "display_name": "Guild spell tomes",
+        "content": "The Guild sells its spell tomes at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "condition_expr": "get_global_value(\"AG_HallTomesGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_augments_hall",
+        "display_name": "Where Guild Augments are sold",
+        "content": "Guild Augments are sold only at the Guild Hall above Riverwood.",
+        "condition_expr": "get_global_value(\"AG_HallAugmentsGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_augments_inns",
+        "display_name": "Where Guild Augments are sold",
+        "content": "Guild Augments are sold at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "condition_expr": "get_global_value(\"AG_HallAugmentsGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_parties_hall",
+        "display_name": "Founding a party",
+        "content": "A party is founded, renamed or disbanded only at the Guild Hall above Riverwood, where the Guild keeps its ledger of parties. Members join and leave a party at any Guild counter.",
+        "condition_expr": "get_global_value(\"AG_HallPartiesGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_where_parties_inns",
+        "display_name": "Founding a party",
+        "content": "A party is founded, renamed, disbanded, joined or left at any Guild counter.",
+        "condition_expr": "get_global_value(\"AG_HallPartiesGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.6,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "adventurers"
         ]
       },
       {
@@ -62,7 +297,7 @@
       {
         "key": "ag_promotion",
         "display_name": "Merit, Reputation and promotion",
-        "content": "Adventurers Guild members earn two things for their work. Merit is spent: on the Guild's services at its counters, and it is what the Guild pays for monster trophies. Reputation is never spent: it is an adventurer's standing, and what a case for promotion is judged on. Guild jobs and dungeons reported at a counter earn both; dangerous kills earn Reputation. Once an adventurer's Reputation and experience are enough, any Guild counter will hear their case for promotion, for a fee. Past C-rank, a rank means a proven record.",
+        "content": "Adventurers Guild members earn two things for their work. Merit is spent: on the Guild's services at its counters, and it is what the Guild pays for monster trophies. Reputation is never spent: it is an adventurer's standing, and what a case for promotion is judged on. Guild jobs and dungeons reported at a counter earn both; dangerous kills earn Reputation. Once an adventurer's Reputation and experience are enough, the Guild will hear their case for promotion, for a fee. Past C-rank, a rank means a proven record.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,
@@ -169,8 +404,8 @@
       {
         "key": "ag_dwindling",
         "display_name": "Why so few adventurers remain",
-        "content": "Skyrim has few adventurers left, and not for want of work: the roads, barrows and caves are as dangerous as ever. The losses came in waves. Many of the Adventurers Guild's registered members died fighting the Aldmeri Dominion in the Great War, when the Legion called them up as auxiliaries. More were lost or set aside in the civil war. And since the Thalmor got hold of the Guild's ledgers, adventurers on its books keep disappearing. Underneath it all, the Guild always had an uphill fight in Skyrim, against the Companions and without halls of its own.",
-        "condition_expr": "",
+        "content": "Skyrim has few adventurers left, and not for want of work: the roads, barrows and caves are as dangerous as ever. The losses came in waves. Many of the Adventurers Guild's registered members died fighting the Aldmeri Dominion in the Great War, when the Legion called them up as auxiliaries. More were lost or set aside in the civil war. And since the Thalmor got hold of the Guild's ledgers, adventurers on its books keep disappearing. Underneath it all, the Guild always had an uphill fight in Skyrim, against the Companions, and its hall stood empty from the Great War until a year ago.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
         "always_inject": false,
         "importance": 0.9,
         "type": "KNOWLEDGE",
@@ -180,6 +415,67 @@
           "history",
           "adventurers"
         ]
+      },
+      {
+        "key": "ag_dwindling_nohall",
+        "display_name": "Why so few adventurers remain",
+        "content": "Skyrim has few adventurers left, and not for want of work: the roads, barrows and caves are as dangerous as ever. The losses came in waves. Many of the Adventurers Guild's registered members died fighting the Aldmeri Dominion in the Great War, when the Legion called them up as auxiliaries. More were lost or set aside in the civil war. And since the Thalmor got hold of the Guild's ledgers, adventurers on its books keep disappearing. Underneath it all, the Guild always had an uphill fight in Skyrim, against the Companions, and it never had a hall of its own in the province.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.9,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "war",
+          "history",
+          "adventurers"
+        ]
+      },
+      {
+        "key": "ag_hall_folk",
+        "display_name": "Who's who at the Guild Hall",
+        "condition_expr": "(is_in_faction(actorUUID, \"AGHall2GuildFaction\") or is_in_faction(actorUUID, \"TownRiverwoodFaction\") or is_in_faction(actorUUID, \"JobInnkeeperFaction\") or is_in_faction(actorUUID, \"AG_AdventurerRankFaction\") or is_in_faction(actorUUID, \"AG_WanderingAdventurerFaction\") or is_in_faction(actorUUID, \"PotentialFollowerFaction\")) and get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.7,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "hall",
+          "riverwood",
+          "willem"
+        ],
+        "content": "The Guild Hall above Riverwood is run by its Guild Master, Willem, a scarred Nord and retired A-rank who came home from the Great War with the hall's first company and reopened the hall a year ago. Merila Andalen, a Dunmer, is his assistant and keeps the hall's records and library. Two Breton clerks keep the Guild counter: brisk Margot Belleau from early morning and young Nessa from midday into the evening. Cassius Varro, an Imperial who hears every rumour, keeps the tavern's bar. The hall's counter is the one Guild counter in Skyrim that sees every hold's work, where an inn's counter knows only its own hold's. Brynja, a Nord farm girl, serves the tavern, and Old Henriette, who cooked for the first company, runs the kitchen. Four members live in the attic: Ghrulek, a loud Orc warrior of C-rank; Ylva, a quiet B-rank ranger from the Pale; Zhasim, a Khajiit scout who stays D-rank on purpose; and Marius Crassus, the old company's sergeant, a retired A-rank. The best room belongs to Caralion of Cloudrest, a rich young Altmer of C-rank whom nobody likes and whose gold keeps the roof up."
+      },
+      {
+        "key": "ag_guild_board",
+        "display_name": "The Guild Board",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "hall",
+          "board",
+          "work"
+        ],
+        "content": "In the great hall of the Guild Hall above Riverwood hangs the Guild Board, where the Guild posts the work of every hold in Skyrim at once: the missives on the hold capitals' boards, each Jarl's bounty, and the notices passed from town to town. A member reads a posting there and takes it on the spot, as long as it suits their rank. The clerks at the hall's counter keep the same list and will hand out any hold's work across the counter. The inns' counters only know their own hold's. The hall posts each hold's missives itself every few days, and at once when a member is registered or promoted, and a hold's own board adds more when someone stops there to read it; a Jarl's bounty reaches the hall once a steward or innkeeper has put it up, and an adventurer's own bounty, taken and not yet paid, stays on the clerks' list until it is. The hall can also put up a Jarl's bounty itself, for a hold that has none posted: a member who asks for a new bounty is handed the Jarl's letter, and only the letter says which hold, which target and where. The clerks do not know the target before it is read, and the bounty is paid by that hold's Jarl or steward, as any Jarl's bounty is."
+      },
+      {
+        "key": "ag_leader_board",
+        "display_name": "The parties' leader board",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.4,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "hall",
+          "parties",
+          "board",
+          "renown"
+        ],
+        "content": "In Services at the Guild Hall above Riverwood, on the wall between the two front windows, hangs the parties' leader board: one sheet kept by hand by the clerk Merila Andalen and brought up to date as word comes in. It lists every adventuring party the Adventurers Guild's ledger in Skyrim holds, active and disbanded together, ranked by renown, which is how far a party's name has travelled through its deeds: cleared barrows and missives, great beasts, and days on the road together. Active parties are written with their leader and the year they were founded, disbanded ones with the years they were active and how they ended; the first three are written in red. At the top stand three parties of the hall's first company, the Frostbitten first of all; they disbanded when the company marched to the Great War in 4E 174 and were never formed again. Two newer parties, Stendarr's Mercenaries and the Winterhold Four, broke up over the civil war this year. The Grey Lanterns and Stormbringers are active parties that work far from Riverwood. The Golden Hand is Caralion of Cloudrest's party, founded in 4E 200, and it is climbing the sheet faster than any party in the field. A member's own party is written in as soon as it is founded."
       },
       {
         "key": "ag_rumor_thalmor",
@@ -198,7 +494,7 @@
       {
         "key": "ag_founding",
         "display_name": "The Guild's founding",
-        "content": "The Adventurers Guild was chartered in the Imperial City in 4E 170 by Emperor Titus Mede II. Its heart is the Wayfarers' Hall in the Market District, where the Registrar-General seals the names of legends.",
+        "content": "The Adventurers Guild was chartered in the Imperial City in 4E 17 by Emperor Titus Mede I, the first of the Mede emperors. Its heart is the Wayfarers' Hall in the Market District, where the Registrar-General seals the names of legends.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.4,
@@ -212,7 +508,7 @@
       {
         "key": "ag_history",
         "display_name": "History of the Adventurers Guild",
-        "content": "Emperor Titus Mede II chartered the Adventurers Guild in 4E 170, two years after his coronation, to turn the Empire's roving swords to good use: hunting the monsters and bandits the Legion could not reach, and standing ready when the Empire called. It took up the freelance work of the old Fighters Guild, but opened its doors to anyone with courage, man or mer, and let them rise by their deeds alone. From the Wayfarers' Hall in the Imperial City its Registrar-General ranks adventurers and seals the names of legends. In the Great War the Legion called up the Guild's adventurers as auxiliaries, and many died heroes at the Imperial City and the Red Ring; Skyrim sent more than its share.",
+        "content": "Emperor Titus Mede I chartered the Adventurers Guild in 4E 17, the year he took the Ruby Throne and ended the Stormcrown Interregnum, to turn the Empire's masterless swords to good use: hunting the monsters and bandits the Legion could not reach, and standing ready when the Empire called. It took up the freelance work of the old Fighters Guild, but opened its doors to anyone with courage, man or mer, and let them rise by their deeds alone. From the Wayfarers' Hall in the Imperial City its Registrar-General ranks adventurers and seals the names of legends. In the Great War the Legion called up the Guild's adventurers as auxiliaries, and many died heroes at the Imperial City and the Red Ring; Skyrim sent more than its share.",
         "condition_expr": "is_in_faction(actorUUID, \"CollegeofWinterholdFaction\") or is_in_faction(actorUUID, \"BardSingerFaction\") or is_in_faction(actorUUID, \"JobJarlFaction\") or is_in_faction(actorUUID, \"JobStewardFaction\")",
         "always_inject": false,
         "importance": 0.7,
@@ -226,16 +522,32 @@
       },
       {
         "key": "ag_compromise",
-        "display_name": "Why the Guild has no halls in Skyrim",
-        "content": "When the Adventurers Guild came to Skyrim, within a few years of its charter, the Jarls would grant no land to an Imperial-chartered guild and the Companions claimed Skyrim's glory as their own. High King Istlod brokered a compromise: the Guild may keep a counter in the inn of each hold capital and nothing more, no halls and no officers with authority in a hold, which is why Skyrim has no Guild Masters. It suited the adventurers well enough: the Guild lives where the ale, the stories and the work are. The innkeepers serve as its reps, signing up newcomers and hearing cases for promotion, and the Guild's jobs go up on the Jarls' missive boards.",
-        "condition_expr": "is_in_faction(actorUUID, \"CollegeofWinterholdFaction\") or is_in_faction(actorUUID, \"BardSingerFaction\") or is_in_faction(actorUUID, \"JobJarlFaction\") or is_in_faction(actorUUID, \"JobStewardFaction\") or is_in_faction(actorUUID, \"JobInnkeeperFaction\") or is_in_faction(actorUUID, \"CompanionsFaction\")",
+        "display_name": "Skyrim's Guild Hall",
+        "content": "Each province has one central hall of the Adventurers Guild. When the Guild came to Skyrim in 4E 168, under a charter from Titus Mede II in the year of his crowning, the Jarls would grant no land inside their capitals to an Imperial-chartered guild, and the Companions claimed the cities' glory. High King Istlod settled it: one hall, outside the hold capitals, on the road above Riverwood, and a counter in the inn of each hold capital, where the innkeepers serve as the Guild's reps. The hall's first company marched to the Great War as Legion auxiliaries and few came home; the hall stood shut for twenty-five years while the counters kept the Guild alive. Willem, a retired A-rank and one of the six who came back, reopened it in 4E 200.",
+        "condition_expr": "(is_in_faction(actorUUID, \"CollegeofWinterholdFaction\") or is_in_faction(actorUUID, \"BardSingerFaction\") or is_in_faction(actorUUID, \"JobJarlFaction\") or is_in_faction(actorUUID, \"JobStewardFaction\") or is_in_faction(actorUUID, \"JobInnkeeperFaction\") or is_in_faction(actorUUID, \"CompanionsFaction\")) and get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
         "always_inject": false,
         "importance": 0.7,
         "type": "KNOWLEDGE",
         "tags": [
           "guild",
           "history",
-          "jarls"
+          "jarls",
+          "hall"
+        ]
+      },
+      {
+        "key": "ag_compromise_nohall",
+        "display_name": "Skyrim's Guild Hall",
+        "content": "Each province has a central hall of the Adventurers Guild, save Skyrim. When the Guild came to Skyrim in 4E 168, under a charter from Titus Mede II in the year of his crowning, the Jarls would grant no land to an Imperial-chartered guild, and the Companions claimed the cities' glory. High King Istlod settled it: no hall in Skyrim, and a counter in the inn of each hold capital, where the innkeepers serve as the Guild's reps.",
+        "condition_expr": "(is_in_faction(actorUUID, \"CollegeofWinterholdFaction\") or is_in_faction(actorUUID, \"BardSingerFaction\") or is_in_faction(actorUUID, \"JobJarlFaction\") or is_in_faction(actorUUID, \"JobStewardFaction\") or is_in_faction(actorUUID, \"JobInnkeeperFaction\") or is_in_faction(actorUUID, \"CompanionsFaction\")) and get_global_value(\"AG_GuildHallInstalledGlobal\") == 0",
+        "always_inject": false,
+        "importance": 0.7,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "history",
+          "jarls",
+          "hall"
         ]
       },
       {
@@ -283,7 +595,7 @@
       {
         "key": "ag_stormcloak",
         "display_name": "A Stormcloak's view of the Guild",
-        "content": "To a Stormcloak the Adventurers Guild is an Imperial instrument: its charter comes from the Emperor who signed the White-Gold Concordat, and its registers ended up in Thalmor hands, which only proves the Empire sells Nords to the elves. Ulfric tolerates the Guild's counter at Candlehearth Hall because trolls care nothing for politics.",
+        "content": "To a Stormcloak the Adventurers Guild is an Imperial instrument: its charter in Skyrim comes from the Emperor who signed the White-Gold Concordat, and its registers ended up in Thalmor hands, which only proves the Empire sells Nords to the elves. Ulfric tolerates the Guild's counter at Candlehearth Hall because trolls care nothing for politics.",
         "condition_expr": "is_in_faction(actorUUID, \"CWSonsFaction\")",
         "always_inject": false,
         "importance": 0.8,
@@ -338,7 +650,7 @@
       {
         "key": "ag_parties",
         "display_name": "Adventuring parties",
-        "content": "Adventurers of the Adventurers Guild often band together as a party, registered at an Adventurers Guild counter under a name of their own choosing. The Adventurers Guild writes each party into its ledger: who marched with it, who left, and who fell. A party shares its road, its dangers and its glory, and a good party name is worn with pride, shouted in a tavern toast and painted on a shield.",
+        "content": "Adventurers of the Adventurers Guild often band together as a party, registered with the Adventurers Guild under a name of their own choosing. The Adventurers Guild writes each party into its ledger: who marched with it, who left, and who fell. A party shares its road, its dangers and its glory, and a good party name is worn with pride, shouted in a tavern toast and painted on a shield.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.6,
@@ -381,7 +693,7 @@
       {
         "key": "ag_appraisal",
         "display_name": "Appraisal",
-        "content": "Adventurers Guild members learn Appraisal: the skill of sizing up what stands in front of them and analyzing the threat it poses, measured as a rank. The Guild teaches it at its counters, for Merit, in three levels. The first reads fellow adventurers, ordinary folk, the beasts of the wild and how dangerous a barrow or cave is. The second reads the things of legend: trolls, draugr, vampires, dragons, Dwemer machines. The third is rare, and it alone can measure the deadliest threats, those of rank A and S; to anyone less practised such a foe is simply beyond measure, which is warning enough. No one states the rank of a foe they could not read.",
+        "content": "Adventurers Guild members learn Appraisal: the skill of sizing up what stands in front of them and analyzing the threat it poses, measured as a rank. The Guild teaches it, for Merit, in three levels. The first reads fellow adventurers, ordinary folk, the beasts of the wild and how dangerous a barrow or cave is. The second reads the things of legend: trolls, draugr, vampires, dragons, Dwemer machines. The third is rare, and it alone can measure the deadliest threats, those of rank A and S; to anyone less practised such a foe is simply beyond measure, which is warning enough. No one states the rank of a foe they could not read.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -410,7 +722,7 @@
       {
         "key": "ag_augments",
         "display_name": "Guild Augments and tomes",
-        "content": "The Adventurers Guild's counters sell Guild Augments for Merit: a preparation taken before a job that lasts one day. There are five: Packhorse for carrying more, Haggler for better prices, Quick Study for learning faster, Hardy against disease and poison, and Vigor for more health, stamina and magicka. An adventurer may hold one at a time. The counters also sell spell tomes. A member may buy tomes of their own rank, and of one rank above at twice the Merit; anything higher is not offered.",
+        "content": "The Adventurers Guild sells Guild Augments for Merit: a preparation taken before a job that lasts one day. There are five: Packhorse for carrying more, Haggler for better prices, Quick Study for learning faster, Hardy against disease and poison, and Vigor for more health, stamina and magicka. An adventurer may hold one at a time. The Guild also sells spell tomes. A member may buy tomes of their own rank, and of one rank above at twice the Merit; anything higher is not offered.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -425,7 +737,7 @@
       {
         "key": "ag_training",
         "display_name": "Guild Training",
-        "content": "The Adventurers Guild's counters sell training for Merit. The Guild's drills make a member hardier: more health, stamina or magicka for good, though each stat's training is capped by the rank they have reached, and each lesson costs more than the last. From D-rank up, a member may also buy perk training: a veteran's lesson in a technique, worth what a hard-won step in experience would teach them. One lesson for each rank from D to S, five in all, and it is never cheap: 100 Merit for the first, up to 500 for the last. Rank is earned by Reputation, so only a member with real standing gets the most of it.",
+        "content": "The Adventurers Guild sells training for Merit. The Guild's drills make a member hardier: more health, stamina or magicka for good, though each stat's training is capped by the rank they have reached, and each lesson costs more than the last. From D-rank up, a member may also buy perk training: a veteran's lesson in a technique, worth what a hard-won step in experience would teach them. One lesson for each rank from D to S, five in all, and it is never cheap: 100 Merit for the first, up to 500 for the last. Rank is earned by Reputation, so only a member with real standing gets the most of it.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -440,7 +752,7 @@
       {
         "key": "ag_wares",
         "display_name": "Guild Boxes",
-        "content": "The Adventurers Guild's counters sell Guild Boxes from the Guild's vaults: a strongbox opened on the spot, with a weapon, a piece of armour or a jewel inside, enchanted for whoever buys it, paid for in Merit, gold and Reputation. A Guild Box holds a modest enchantment and is sold from D-rank; a Blessed Box a strong one, from C-rank; a Cursed Box, a sealed tomb chest sold from B-rank, an enchantment stronger than any found in the wild, and a curse that comes with it: slower healing, or a weakness to fire, frost, shock or magic, for as long as it is worn or held. The Guild sells them but frowns on them: a member who buys their power is taking a gambler's shortcut, and it costs them standing. Old hands tease anyone who shows off a cursed blade.",
+        "content": "The Adventurers Guild sells Guild Boxes from its vaults: a strongbox opened on the spot, with a weapon, a piece of armour or a jewel inside, enchanted for whoever buys it, paid for in Merit, gold and Reputation. A Guild Box holds a modest enchantment and is sold from D-rank; a Blessed Box a strong one, from C-rank; a Cursed Box, a sealed tomb chest sold from B-rank, an enchantment stronger than any found in the wild, and a curse that comes with it: slower healing, or a weakness to fire, frost, shock or magic, for as long as it is worn or held. The Guild sells them but frowns on them: a member who buys their power is taking a gambler's shortcut, and it costs them standing. Old hands tease anyone who shows off a cursed blade.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -456,8 +768,23 @@
       {
         "key": "ag_intel",
         "display_name": "What the Guild's scouts know",
-        "content": "The Adventurers Guild keeps scouts, and sells what they know at its counters for Merit. Mostly that is where a hold's dungeons lie and how dangerous each one is. But the scouts also mark places that are no dungeon at all and still worth an adventurer's while: an Orc stronghold, a standing stone, a Daedric shrine, a hunters' shack, a lodge of the Vigilants of Stendarr, a landmark, a wreck on the shore. An innkeeper who keeps a counter will put any of them on an adventurer's map.",
-        "condition_expr": "",
+        "content": "The Adventurers Guild keeps scouts, and sells what they know at its counters for Merit. Mostly that is where a hold's dungeons lie and how dangerous each one is. But the scouts also mark places that are no dungeon at all and still worth an adventurer's while: an Orc stronghold, a standing stone, a Daedric shrine, a hunters' shack, a lodge of the Vigilants of Stendarr, a landmark, a wreck on the shore. An innkeeper who keeps a counter will put any of that hold's on an adventurer's map; the clerks at the Guild Hall know every hold's.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
+        "always_inject": false,
+        "importance": 0.5,
+        "type": "KNOWLEDGE",
+        "tags": [
+          "guild",
+          "intel",
+          "scouts",
+          "map"
+        ]
+      },
+      {
+        "key": "ag_intel_nohall",
+        "display_name": "What the Guild's scouts know",
+        "content": "The Adventurers Guild keeps scouts, and sells what they know at its counters for Merit. Mostly that is where a hold's dungeons lie and how dangerous each one is. But the scouts also mark places that are no dungeon at all and still worth an adventurer's while: an Orc stronghold, a standing stone, a Daedric shrine, a hunters' shack, a lodge of the Vigilants of Stendarr, a landmark, a wreck on the shore. An innkeeper who keeps a counter will put any of that hold's on an adventurer's map.",
+        "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 0",
         "always_inject": false,
         "importance": 0.5,
         "type": "KNOWLEDGE",
@@ -516,7 +843,7 @@
       {
         "key": "ag_conduct",
         "display_name": "An adventurer's good name",
-        "content": "The Adventurers Guild does not much care what its members get up to outside its work, until they are caught at it. The Guild works in each hold by the leave of its Jarl and will not have that put at risk, so a price on an adventurer's head in a hold reaches the Guild's ledger: it costs the adventurer Reputation, and no innkeeper will hear a case for promotion while it stands. Paying the fine or serving the time settles it, and any Guild counter will pay off every hold's bounty at once for a small fee. An adventurer who takes a Guild job and walks away from it loses standing too. The Guild never strips a rank once earned.",
+        "content": "The Adventurers Guild does not much care what its members get up to outside its work, until they are caught at it. The Guild works in each hold by the leave of its Jarl and will not have that put at risk, so a price on an adventurer's head in a hold reaches the Guild's ledger: it costs the adventurer Reputation, and the Guild will hear no case for promotion while it stands. Paying the fine or serving the time settles it, and any Guild counter will pay off every hold's bounty at once for a small fee. An adventurer who takes a Guild job and walks away from it loses standing too. The Guild never strips a rank once earned.",
         "condition_expr": "",
         "always_inject": false,
         "importance": 0.5,
@@ -545,7 +872,7 @@
       {
         "key": "ag_liaison_duties",
         "display_name": "Keeping a Guild counter",
-        "content": "As the Adventurers Guild's licensed liaison at this inn's counter: registers new adventurers for a fee, buys monster trophies for Merit, pays out adventurers' reports (gold, Merit and Reputation), sells the Guild's services for Merit (intel on dungeons and on other places worth knowing, Appraisal, training, library books) and Guild Boxes from the vaults (strongboxes of enchanted gear, some of it cursed, that cost a member Reputation too), and hears cases for promotion. The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go. Knows why the Guild's ranks have grown so thin in Skyrim, and speaks of the disappearances carefully, never where a Thalmor might hear.",
+        "content": "As the Adventurers Guild's licensed liaison at this inn's counter: buys monster trophies for Merit, pays out adventurers' reports (gold, Merit and Reputation), hands out the hold's Guild work, sells the Guild's intel on dungeons and on other places worth knowing, replaces lost guild cards, and does whatever else of the Guild's business the Guild leaves to its inns. The innkeepers who keep a Guild counter are its proud reps: warm, practical hosts who have seen many adventurers come and go. Knows why the Guild's ranks have grown so thin in Skyrim, and speaks of the disappearances carefully, never where a Thalmor might hear.",
         "condition_expr": "get_faction_rank(actorUUID, \"AG_GuildLiaisonFaction\") >= 0",
         "always_inject": false,
         "importance": 0.8,

@@ -177,6 +177,24 @@
   .qsec button { font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 19px; height: 52px;
                  padding: 0 18px; color: var(--muted); background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(194, 154, 91, 0.16); cursor: pointer; }
   .qsec button.on { color: var(--ink); border-color: var(--bronze); background: rgba(194, 154, 91, 0.10); }
+  /* the filter row under a list's sections: the hold (the hall), the ranks posted there, the sort */
+  .qfilter { display: flex; align-items: center; gap: 10px; height: 52px; margin-bottom: 8px; }
+  .qfilter .qsec button.r { padding: 0; width: 52px; font-variant: normal; font-size: 21px; }
+  .qfilter .qhold { min-width: 0; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+  .qfilter .qhold .v { color: var(--bronze); }
+  /* the hall's hold picker: every hold at once, over the list, one tap to any */
+  .qfilter .qhold.open { border-color: var(--bronze); color: #fff6df; background: linear-gradient(#4d4436, #2c2823); }
+  /* the hold picker: a panel hanging from the Hold button (its caret points at it), every hold at once, one tap to any */
+  .holdpop { position: relative; border: 1px solid var(--bronze); background: rgba(20, 17, 14, 0.97); padding: 12px 16px 16px;
+             box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8); }
+  .holdpop::before { content: ""; position: absolute; top: -9px; left: 60px; width: 16px; height: 16px; transform: rotate(45deg);
+                     background: rgba(20, 17, 14, 0.97); border-left: 1px solid var(--bronze); border-top: 1px solid var(--bronze); }
+  .holdpop .h { font-size: 16px; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+  .holdgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .holdgrid .btn { height: 62px; font-size: 21px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .holdgrid .btn .n { font-size: 17px; color: var(--muted); font-variant: normal; letter-spacing: 0; }
+  .holdgrid .btn.on { border-color: var(--bronze); color: #fff6df; background: linear-gradient(#4d4436, #2c2823); }
+  .holdgrid .btn.none { color: var(--dim); }
   .notebox { display: flex; gap: 24px; height: 470px; }
   .note { flex: 1; background: url(tex/parchment.png), #d8c9a2; color: var(--paper-ink); padding: 26px 36px; overflow: hidden;
           box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(110, 80, 40, 0.45); }
@@ -204,6 +222,8 @@
   .itabs button { flex: none; font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 17px; height: 30px; padding: 0 16px;
                   color: var(--muted); background: rgba(0, 0, 0, 0.25); border: 1px solid var(--bronze-dim); cursor: pointer; white-space: nowrap; }
   .itabs button.on { color: var(--ink); border-color: var(--bronze); background: rgba(194, 154, 91, 0.10); }
+  .itabs .ihold { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .itabs .ihold .v { color: var(--bronze); }
   .itabs .inote { flex: 1; min-width: 0; margin-left: 8px; font-size: 16px; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .item .title .chip { display: inline-block; width: 28px; height: 28px; line-height: 26px; text-align: center; margin-right: 8px;
                        border: 1px solid var(--bronze-dim); color: var(--bronze); font-size: 17px; vertical-align: 1px; font-style: normal; }
@@ -215,6 +235,7 @@
   .item .foot { margin-top: auto; display: flex; align-items: center; gap: 10px; }
   .item .cost { font-size: 17px; color: var(--bronze); }
   .item .why { font-size: 14px; color: var(--warn); font-style: italic; flex: 1; text-align: right; }
+  .row .why { font-size: 16px; color: var(--warn); font-style: italic; margin-right: 14px; }  /* a row's reason it can't be done here */
   .item .btn { min-height: 48px; font-size: 18px; margin-left: auto; }
   /* a Guild Box asked about before it is bought: the question in the description's place, Cancel then Buy */
   .item .detail.ask { font-size: 19px; color: var(--ink); }
@@ -347,7 +368,7 @@
      and the shadow it casts. Images: tools/make_skin_assets.py, cut from the game's own textures (not in the source
      repository). The head of the Guild Card - name, rank, registration - is set in Cyrodiil (Neale Davidson,
      SIL OFL 1.1: fonts/Cyrodiil-OFL.txt); everything else keeps the page's typeface.
-     The board and its fittings are as they were. Tried and dropped (author, 2026-10-09): a second skin behind an MCM
+     The board and its fittings are as they were. Tried and dropped: a second skin behind an MCM
      toggle; a board of planks, leather or iron plate; knotwork bands; nail heads; the map of Tamriel faded into the
      sheet; textures generated from noise.
      ==================================================================================================================== */
@@ -369,7 +390,7 @@
   /* something bought at the counter that is running out (a Guild Augment): in green ink, with the hours it has left */
   .chips span.timed { color: #2f4a1c; border-color: rgba(47, 74, 28, 0.75); background: rgba(70, 104, 40, 0.14); }
   .cardstats .stat { border-left-color: rgba(52, 32, 12, 0.35); }
-  /* The wax: larger than it was (author). The page adds NOTHING to it - no shadow, no glow, no change of tone: all of
+  /* The wax: larger than it was. The page adds NOTHING to it - no shadow, no glow, no change of tone: all of
      how it sits on the sheet is in the image (tools/make_seal.py, "seating it on the sheet"), made for this paper. */
   .seal-wax { width: 136px; height: 136px; right: 14px; top: 6px; }
   /* Hold stamps (1.5.0): a hold's crest inked on the card at that hold's counter (tools/make_stamps.py). They sit where
@@ -466,7 +487,8 @@ const metal = (l) => METAL_EN[l] ? t("$AG_UI_Metal" + l, METAL_EN[l]) : "";
 let data = { registered: false, letter: "-", merit: 0, reputation: 0, reports: [], services: [], history: [],
              missives: [0,0,0,0,0,0], trophies: { items: [], total: 0, bonus: 0 }, appraisal: 0, training: [0,0,0] };
 let tab = "card", section = null, qsec = null, note = null, isec = "dungeon";
-const page = { quests: 0, board: 0, notices: 0, trophies: 0, records: 0, services: 0, party: 0, recruit: 0, ledger: 0, founders: 0, traits: 0 };
+let qhold = "@all", qrank = "", qsort = "high", holdPick = false;   /* the Quests lists' filters (the hold: the hall only) */
+const page = { quests: 0, board: 0, notices: 0, bounties: 0, trophies: 0, records: 0, services: 0, party: 0, recruit: 0, register: 0, ledger: 0, founders: 0, traits: 0 };
 
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function day(d) {
@@ -586,7 +608,8 @@ function cardFigures(c) {
       <div class="req ${lvlOk ? "ok" : ""}"><span class="lbl">${esc(t("$AG_UI_MinLevel", "Min Level"))}</span>
         <div class="bar"><div class="fill" style="width:${pct(c.level, 1, n.level)}%"></div></div>
         <span class="num">${c.level} / ${n.level}</span></div>
-      ${c.ready ? `<div class="note-ok">${esc(t("$AG_UI_Eligible", "Eligible for promotion — speak to the innkeeper."))}</div>` : ""}
+      ${c.ready ? `<div class="note-ok">${esc(data.promotionAtHall ? t("$AG_UI_EligibleHall", "Eligible for promotion — see the clerks at the Guild Hall.")
+                                                 : t("$AG_UI_Eligible", "Eligible for promotion — speak to the innkeeper."))}</div>` : ""}
       ${c.blocked ? `<div class="note-hold">${esc(c.bountyWhere ? t("$AG_UI_PromoHoldWhere", "Promotion on hold — clear your bounty first: {0}.", c.bountyWhere)
                                                        : t("$AG_UI_PromoHold", "Promotion on hold — clear your bounty first."))}</div>` : ""}`;
   }
@@ -672,6 +695,36 @@ function renderCard() {
     </div></div>`;
 }
 
+/* A list's filters. The hall lists every hold: a hold button opens the grid of holds. Every counter: the ranks posted in
+   what is listed (all at or below the player's: the rank gate keeps the rest off) and the sort, a Jarl's bounty first. */
+const RANKS = "EDCBAS";
+function holdName(k) { const h = (data.holds || []).find((x) => x.key === k); return h ? h.name : t("$AG_UI_AllSkyrim", "All Skyrim"); }
+function qfiltered(list, byHold) {
+  let out = byHold && qhold !== "@all" ? list.filter((x) => x.hold === qhold) : list;
+  const have = RANKS.split("").filter((r) => out.some((x) => x.tier === r));
+  if (qrank && !have.includes(qrank)) qrank = "";
+  out = out.filter((x) => !qrank || x.tier === qrank);
+  const rk = (x) => RANKS.indexOf(x.tier || "E");
+  return { list: out.slice().sort((a, b) => qsort === "high" ? rk(b) - rk(a) : rk(a) - rk(b)), have };
+}
+function qfilterRow(have, byHold) {
+  return `<div class="qfilter">` +
+    (byHold ? `<button class="btn qhold ${holdPick ? "open" : ""}" data-qpick="1">${esc(t("$AG_UI_HoldPick", "Hold:"))} <span class="v">${esc(holdName(qhold))}</span> ${holdPick ? "&#x25B4;" : "&#x25BE;"}</button>` : "") +
+    `<div class="qsec"><button data-qrank="" class="${qrank ? "" : "on"}">${esc(t("$AG_UI_AllRanks", "All ranks"))}</button>` +
+    have.map((r) => `<button class="r ${qrank === r ? "on" : ""}" data-qrank="${r}">${r}</button>`).join("") + `</div>` +
+    `<div class="qsec"><button data-qsort="1">${esc(qsort === "high" ? t("$AG_UI_SortHigh", "Highest rank first") : t("$AG_UI_SortLow", "Lowest rank first"))}</button></div></div>`;
+}
+/* the player's own bounty in the hall's list: taken, or slain and waiting on the reward */
+function hallBountyState(x) {
+  return x.state === "slain" ? (x.payer ? t("$AG_UI_HallBountySlain", "Slain: collect the reward from {0}", x.payer) : t("$AG_UI_HallBountySlainJarl", "Slain: collect the reward from the Jarl"))
+    : t("$AG_UI_HallBountyYours", "Yours: taken");
+}
+function holdGrid(list, head) {
+  const n = (k) => k === "@all" ? list.length : list.filter((x) => x.hold === k).length;
+  const all = [{ key: "@all", name: t("$AG_UI_AllSkyrim", "All Skyrim") }, ...(data.holds || [])];
+  return `<div class="holdpop"><div class="h">${esc(head || t("$AG_UI_ChooseHold", "Choose a hold to see only its postings."))}</div><div class="holdgrid">${all.map((h) => `<button class="btn ${h.key === qhold ? "on" : ""} ${n(h.key) ? "" : "none"}" data-qhold="${esc(h.key)}"><span>${esc(h.name)}</span><span class="n">${n(h.key)}</span></button>`).join("")}</div></div>`;
+}
+
 function renderQuests() {
   /* Up to four sub-tabs: Bounties (the game's own Jarls' bounties: one per hold at a time, so one row or a line saying
      there is none; always there, it needs no other mod), Local Missives (Missives, this hold's board), Provincial
@@ -684,20 +737,43 @@ function renderQuests() {
   if (!qsec || !has[qsec]) qsec = reports.length ? "reports" : offered ? "bounties" : has.board ? "board" : has.notices ? "notices" : "bounties";
   const where = data.branch || "local";
   const tabBtn = (id, label, n) => has[id] ? `<button data-qsec="${id}" class="${qsec === id ? "on" : ""}">${esc(label)}${n ? ` (${n})` : ""}</button>` : "";
-  const tabs = `<div class="qsec">${tabBtn("bounties", t("$AG_UI_Bounties", "Bounties"), offered ? 1 : 0)}${tabBtn("board", t("$AG_UI_LocalMissives", "Local Missives"), posts.length)}${tabBtn("notices", t("$AG_UI_ProvincialNotices", "Provincial Notices"), notices.length)}${tabBtn("reports", t("$AG_UI_ReadyHandIn", "Ready to Hand-in"), reports.length)}</div>`;
+  const tabs = `<div class="qsec">${tabBtn("bounties", t("$AG_UI_Bounties", "Bounties"), data.hall ? (data.bounties || []).filter((x) => x.state === "offer").length : offered ? 1 : 0)}${tabBtn("board", data.hall ? t("$AG_UI_Missives", "Missives") : t("$AG_UI_LocalMissives", "Local Missives"), posts.length)}${tabBtn("notices", t("$AG_UI_ProvincialNotices", "Provincial Notices"), notices.length)}${tabBtn("reports", t("$AG_UI_ReadyHandIn", "Ready to Hand-in"), reports.length)}</div>`;
   const isNotices = qsec === "notices", isBounties = qsec === "bounties";
   if ((qsec === "board" || isNotices || isBounties) && note) {
-    const n = note, still = isBounties ? !!(offered && bounty.id === n.id) : (isNotices ? notices : posts).some((x) => x.id === n.id);
-    const meta = isBounties ? t("$AG_UI_BountyMeta", "Jarl's Bounty · Rank {0} · posted for {1}", n.tier || "?", where)
+    const n = note, still = isBounties ? (data.hall ? (data.bounties || []).some((x) => x.id === n.id && x.state === "offer") : !!(offered && bounty.id === n.id))
+      : (isNotices ? notices : posts).some((x) => x.id === n.id);
+    const hp = data.hall ? [...posts, ...(data.bounties || [])].find((x) => x.id === n.id) : null;
+    const meta = isBounties ? t("$AG_UI_BountyMeta", "Jarl's Bounty · Rank {0} · posted for {1}", n.tier || "?", hp ? hp.holdName : where)
       : isNotices ? t("$AG_UI_NoticeMeta", "Guild Notice · Rank {0} · posted across the province", n.tier || "?")
-      : t("$AG_UI_NoteMeta", "Guild Missive · Rank {0} · {1} board", n.tier || "?", where) + (n.tag ? ` · [${n.tag}]` : "");
+      : (hp && !hp.city ? t("$AG_UI_HallPostFor", "Guild Missive · Rank {0} · posted for {1}", n.tier || "?", hp.holdName)  /* posted in the hall itself */
+                        : t("$AG_UI_NoteMeta", "Guild Missive · Rank {0} · {1} board", n.tier || "?", hp ? hp.city : where)) + (n.tag ? ` · [${n.tag}]` : "");
     const heading = isBounties ? t("$AG_UI_JarlsBounty", "Jarl's Bounty") : isNotices ? t("$AG_UI_GuildNotice", "Guild Notice") : t("$AG_UI_GuildMissive", "Guild Missive");
     const reading = isBounties ? t("$AG_UI_ReadingBounty", "Reading the Jarl's letter…") : isNotices ? t("$AG_UI_ReadingNotice", "Reading the notice…") : t("$AG_UI_Reading", "Reading the missive…");
     return `<div class="notebox"><div class="note"><h3>${esc(n.title || heading)}</h3>
         <div class="meta">${esc(meta)}</div>
         <div class="text">${n.text ? esc(n.text) : esc(reading)}</div></div>
       <div class="noteside"><button class="btn" data-back="1">${esc(t("$AG_UI_Back", "‹ Back"))}</button>
-        ${still ? `<button class="btn" data-action="accept:${esc(n.id)}">${esc(t("$AG_UI_Take", "Take"))}</button>` : `<div class="empty" style="padding:10px 0;font-size:16px">${esc(t("$AG_UI_NoLonger", "No longer posted."))}</div>`}</div></div>`;
+        ${still ? `<button class="btn" data-action="accept:${esc(n.id)}">${esc(t("$AG_UI_Take", "Take"))}</button>` : `<div class="empty" style="padding:10px 0;font-size:16px">${esc(isBounties && hp && hp.state !== "offer" ? hallBountyState(hp) : t("$AG_UI_NoLonger", "No longer posted."))}</div>`}</div></div>`;
+  }
+  if (isBounties && data.hall) {
+    /* every hold's bounty: posted ones to take, and the player's own (taken, or slain and waiting on the reward) as a
+       town counter shows it, first and without a Take */
+    const all = data.bounties || [];
+    const { list: sorted, have } = qfiltered(all, true);
+    const list = [...sorted.filter((x) => x.state !== "offer"), ...sorted.filter((x) => x.state === "offer")];
+    const top = `<div class="bar-top">${tabs}<span class="sum caps"><b>${list.filter((x) => x.state === "offer").length}</b> ${esc(t("$AG_UI_Posted", "posted"))}</span></div>${qfilterRow(have, true)}`;
+    if (holdPick) return top + holdGrid(all);
+    /* "A new bounty?": a Jarl's bounty for a hold with none posted, first whatever the
+       filters, and nothing shown before it is taken, as the steward's "I'm looking for work" */
+    const fresh = `<div class="row tight"><span class="tier">?</span><div class="body"><div class="title">${esc(t("$AG_UI_NewBounty", "A new bounty?"))}</div>
+        <div class="detail">${esc(t("$AG_UI_JarlsBounty", "Jarl's Bounty"))} · ${esc(t("$AG_UI_NewBountyDetail", "for a hold with none posted; the letter tells the rest"))}</div></div>
+        <button class="btn" data-action="newbounty">${esc(t("$AG_UI_Take", "Take"))}</button></div>`;
+    if (!list.length) return top + (data.newBounty ? fresh : "") + `<div class="empty">${esc(t("$AG_UI_HallBountyEmpty", "No Jarl has a bounty posted for {0} right now.", holdName(qhold)))}</div>`;
+    const { items, pages } = paged("bounties", data.newBounty ? [{ fresh: true }, ...list] : list, ROWS);
+    return top + items.map((x) => x.fresh ? fresh : `<div class="row tight"><span class="tier">${esc(x.tier)}</span><div class="body"><div class="title">${esc(x.title)}</div>
+        <div class="detail">${esc(t("$AG_UI_HallBountyDetail", "Jarl's Bounty · Rank {0} · {1}", x.tier, x.holdName))}${x.state === "offer" ? "" : esc(" · " + hallBountyState(x))}</div></div>
+        <button class="btn" data-note="${esc(x.id)}">${esc(t("$AG_UI_Details", "Details"))}</button>${x.state === "offer" ? `<button class="btn" data-action="accept:${esc(x.id)}">${esc(t("$AG_UI_Take", "Take"))}</button>` : ""}</div>`).join("") +
+      pager("bounties", pages);
   }
   if (isBounties) {
     // One bounty to a hold. Posted and untaken: a row to read and take. Taken already: who has it is the player, and
@@ -718,25 +794,35 @@ function renderQuests() {
   if (qsec === "board") {
     /* Missives refreshes a board when the player walks up to it and its timer has run out. Due: go to the board. Not
        yet: how long until it is. Only this town's board. A hint below the list, as on the other tabs. */
-    const bs = data.boardStatus || null;
+    const bs = data.hall ? null : data.boardStatus || null;
     const span = (h) => h >= 48 ? t("$AG_UI_InDays", "{0} days", Math.round(h / 24)) : h >= 24 ? t("$AG_UI_InOneDay", "a day")
       : h > 1 ? t("$AG_UI_InHours", "{0} hours", h) : t("$AG_UI_InOneHour", "an hour");
     const state = !bs ? "" : bs.due
       ? `<div class="boardhint">${esc(t("$AG_UI_BoardDue", "New postings are waiting at the {0} missive board. Visit it to see them here.", bs.name || where))}</div>`
       : `<div class="boardhint">${esc(t("$AG_UI_BoardNext", "The {0} missive board posts new work in {1}.", bs.name || where, span(bs.hours)))}</div>`;
-    if (!posts.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_BoardEmpty", "Nothing is posted on the {0} board for your rank right now.", where))}<br/>${esc(t("$AG_UI_BoardEmpty2", "New missives go up every few days, when the board is next refreshed."))}</div>${state}`;
-    const { items, pages } = paged("board", posts, ROWS);
-    return `<div class="bar-top">${tabs}<span class="sum caps"><b>${posts.length}</b> ${esc(t("$AG_UI_Posted", "posted"))}</span></div>` +
-      items.map((x) => `<div class="row"><span class="tier">${esc(x.tier)}</span><div class="body"><div class="title">${esc(x.title)}${x.tag ? ` <span class="srctag">[${esc(x.tag)}]</span>` : ""}</div>
-        <div class="detail">${esc(t("$AG_UI_PostDetail", "Guild Missive · Rank {0} · posted on the {1} board", x.tier, where))}</div></div>
+    if (!posts.length && !data.hall) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_BoardEmpty", "Nothing is posted on the {0} board for your rank right now.", where))}<br/>${esc(t("$AG_UI_BoardEmpty2", "New missives go up every few days, when the board is next refreshed."))}</div>${state}`;
+    const { list, have } = qfiltered(posts, !!data.hall);
+    const { items, pages } = paged("board", list, ROWS);
+    const top = `<div class="bar-top">${tabs}<span class="sum caps"><b>${list.length}</b> ${esc(t("$AG_UI_Posted", "posted"))}</span></div>${qfilterRow(have, !!data.hall)}`;
+    if (data.hall && holdPick) return top + holdGrid(posts);
+    return top +
+      /* the hall: it posts each hold's work when that hold is due (2.0, MissiveWatch HallRoll), and a town's board adds its own
+         when the player stands at it */
+      (list.length ? "" : `<div class="empty">${esc(qhold === "@all" ? t("$AG_UI_HallBoardEmptyAll", "Nothing is posted on any board for your rank right now.")
+                                                                     : t("$AG_UI_HallBoardEmpty", "Nothing is posted in {0} for your rank right now.", holdName(qhold)))}<br/>${esc(t("$AG_UI_HallBoardEmpty2", "The hall posts each hold's work every few days, and a town's board adds its own when someone stops to read it."))}</div>`) +
+      items.map((x) => `<div class="row tight"><span class="tier">${esc(x.tier)}</span><div class="body"><div class="title">${esc(x.title)}${x.tag ? ` <span class="srctag">[${esc(x.tag)}]</span>` : ""}</div>
+        <div class="detail">${esc(data.hall ? (x.city ? t("$AG_UI_HallPostDetail", "Guild Missive · Rank {0} · {1} · posted on the {2} board", x.tier, x.holdName, x.city)
+                                                      : t("$AG_UI_HallPostFor", "Guild Missive · Rank {0} · posted for {1}", x.tier, x.holdName))
+                                           : t("$AG_UI_PostDetail", "Guild Missive · Rank {0} · posted on the {1} board", x.tier, where))}</div></div>
         <button class="btn" data-note="${esc(x.id)}">${esc(t("$AG_UI_Details", "Details"))}</button><button class="btn" data-action="accept:${esc(x.id)}">${esc(t("$AG_UI_Take", "Take"))}</button></div>`).join("") +
       pager("board", pages) + state;
   }
   if (isNotices) {
     if (!notices.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoticesEmpty", "No notices are posted for your rank right now."))}<br/>${esc(t("$AG_UI_NoticesEmpty2", "Notices are the same on every board in the province; new ones go up as old ones are taken."))}</div>`;
-    const { items, pages } = paged("notices", notices, ROWS);
-    return `<div class="bar-top">${tabs}<span class="sum caps"><b>${notices.length}</b> ${esc(t("$AG_UI_Posted", "posted"))}</span></div>` +
-      items.map((x) => `<div class="row"><span class="tier">${esc(x.tier)}</span><div class="body"><div class="title">${esc(x.title)}</div>
+    const { list, have } = qfiltered(notices, false);
+    const { items, pages } = paged("notices", list, ROWS);
+    return `<div class="bar-top">${tabs}<span class="sum caps"><b>${list.length}</b> ${esc(t("$AG_UI_Posted", "posted"))}</span></div>${qfilterRow(have, false)}` +
+      items.map((x) => `<div class="row tight"><span class="tier">${esc(x.tier)}</span><div class="body"><div class="title">${esc(x.title)}</div>
         <div class="detail">${esc(t("$AG_UI_NoticeDetail", "Guild Notice · Rank {0} · posted across the province", x.tier))}</div></div>
         <button class="btn" data-note="${esc(x.id)}">${esc(t("$AG_UI_Details", "Details"))}</button><button class="btn" data-action="accept:${esc(x.id)}">${esc(t("$AG_UI_Take", "Take"))}</button></div>`).join("") +
       pager("notices", pages);
@@ -773,27 +859,31 @@ function renderServices() {
   if (!sections.includes(section)) section = sections[0];
   /* Intel has two tabs: dungeons and points of interest (rows carry group "dungeon" / "poi") */
   const intel = section === "Intel";
-  const { items, pages } = paged("services", all.filter((x) => sid(x) === section && (!intel || (x.group || "dungeon") === isec)), CARDS);
+  /* the hall's counter sells every hold's: a hold button as the Quests lists have, the hold on each card while all are shown */
+  const everyHold = intel && !!data.hall;
+  const listed = all.filter((x) => sid(x) === section && (!intel || (x.group || "dungeon") === isec));
+  const { items, pages } = paged("services", everyHold && qhold !== "@all" ? listed.filter((x) => x.hold === qhold) : listed, CARDS);
   /* the strip of tabs carries its own short note, in the note line's place (the cards keep their height) */
   const note = intel ? "" : SECTION_NOTES[section] ? SECTION_NOTES[section]() : "";
-  const inote = isec === "poi" ? t("$AG_UI_NotePoi", "Undiscovered places in this hold that are not dungeons.") : t("$AG_UI_NoteDungeons", "Undiscovered dungeons in this hold appropriate for your rank.");
+  const inote = everyHold ? (isec === "poi" ? t("$AG_UI_NotePoiHall", "Undiscovered places that are not dungeons.") : t("$AG_UI_NoteDungeonsHall", "Undiscovered dungeons for your rank."))
+    : isec === "poi" ? t("$AG_UI_NotePoi", "Undiscovered places in this hold that are not dungeons.") : t("$AG_UI_NoteDungeons", "Undiscovered dungeons in this hold appropriate for your rank.");
   /* an empty Dungeons tab is usually the rank rule (intel is sold at or below the player's rank), so say so */
-  const emptyNote = intel && isec === "dungeon" ? t("$AG_UI_NoDungeonsAtRank", "No dungeons found for your rank in this hold.") : t("$AG_UI_NothingOffered", "Nothing on offer.");
+  const emptyNote = intel && isec === "dungeon" ? (everyHold && qhold === "@all" ? t("$AG_UI_NoDungeonsAtRankHall", "No dungeons found for your rank.") : t("$AG_UI_NoDungeonsAtRank", "No dungeons found for your rank in this hold.")) : t("$AG_UI_NothingOffered", "Nothing on offer.");
   /* a Guild Box is asked about first (a stray press under its notice bought a second one, in game 2026-10-27): its Buy
      turns the card into "Buy Cursed Box?" with Cancel highlighted, as Disband does */
   const asks = (x) => x.id.startsWith("ware:");
-  const itabs = intel ? `<div class="itabs"><button data-isec="dungeon" class="${isec === "dungeon" ? "on" : ""}">${esc(t("$AG_UI_IntelDungeons", "Dungeons"))}</button><button data-isec="poi" class="${isec === "poi" ? "on" : ""}">${esc(t("$AG_UI_IntelPoi", "Points of Interest"))}</button><span class="inote">${esc(inote)}</span></div>` : "";
+  const itabs = intel ? `<div class="itabs"><button data-isec="dungeon" class="${isec === "dungeon" ? "on" : ""}">${esc(t("$AG_UI_IntelDungeons", "Dungeons"))}</button><button data-isec="poi" class="${isec === "poi" ? "on" : ""}">${esc(t("$AG_UI_IntelPoi", "Points of Interest"))}</button>${everyHold ? `<button class="ihold ${holdPick ? "on" : ""}" data-qpick="1">${esc(t("$AG_UI_HoldPick", "Hold:"))} <span class="v">${esc(holdName(qhold))}</span> ${holdPick ? "&#x25B4;" : "&#x25BE;"}</button>` : ""}<span class="inote">${esc(inote)}</span></div>` : "";
   return `<div class="svc"><div class="sections">${sections.map((s) => `<button data-section="${esc(s)}" class="${s === section ? "on" : ""}">${esc(label[s])}</button>`).join("")}</div>
-    <div class="gridwrap">${itabs}${note ? `<div class="secnote">${esc(note)}</div>` : ""}<div class="grid">${!items.length ? `<div class="empty">${esc(emptyNote)}</div>` : ""}${items.map((x) => `<div class="item ${x.available ? "" : "off"}">
+    <div class="gridwrap">${itabs}${note ? `<div class="secnote">${esc(note)}</div>` : ""}${everyHold && holdPick ? holdGrid(listed, t("$AG_UI_ChooseHoldIntel", "Choose a hold to see only what the scouts know of it.")) : `<div class="grid">${!items.length ? `<div class="empty">${esc(emptyNote)}</div>` : ""}${items.map((x) => `<div class="item ${x.available ? "" : "off"}">
       <div class="title">${x.tier ? `<span class="chip">${esc(x.tier)}</span>` : ""}${esc(x.name)}</div>${sconfirm === x.id && x.available
         ? `<div class="detail ask">${esc(t("$AG_UI_BuyQ", "Buy {0}?", x.name))}</div>`
-        : `<div class="detail">${esc(x.desc)}</div>`}
+        : `<div class="detail">${esc(everyHold && qhold === "@all" && x.holdName ? `${x.holdName} · ${x.desc}` : x.desc)}</div>`}
       <div class="foot">${x.cost ? `<span class="cost">${esc(t("$AG_UI_NMerit", "{0} merit", x.cost))}</span>` : ""}${x.rep ? `<span class="cost">${esc(t("$AG_UI_NRep", "{0} rep", x.rep))}</span>` : ""}${x.gold ? `<span class="cost">${esc(t("$AG_UI_NGold", "{0} gold", x.gold))}</span>` : ""}<span class="why">${esc(x.note || "")}</span>
         ${!x.available ? "" : sconfirm === x.id
           ? `<button class="btn" data-sconfirm="">${esc(t("$AG_UI_Cancel", "Cancel"))}</button><button class="btn" data-action="service:${esc(x.id)}">${esc(t("$AG_UI_Buy", "Buy"))}</button>`
           : asks(x) ? `<button class="btn" data-sconfirm="${esc(x.id)}">${esc(t("$AG_UI_Buy", "Buy"))}</button>`
-          : `<button class="btn" data-action="service:${esc(x.id)}">${esc(x.gold && !x.cost ? t("$AG_UI_Pay", "Pay") : t("$AG_UI_Buy", "Buy"))}</button>`}</div></div>`).join("")}</div></div></div>` +
-    pager("services", pages);
+          : `<button class="btn" data-action="service:${esc(x.id)}">${esc(x.gold && !x.cost ? t("$AG_UI_Pay", "Pay") : t("$AG_UI_Buy", "Buy"))}</button>`}</div></div>`).join("")}</div>`}</div></div>` +
+    (everyHold && holdPick ? "" : pager("services", pages));
 }
 
 /* ---------- party (docs/PARTIES.md) ----------
@@ -812,6 +902,10 @@ const pick = new Set();  /* founding members chosen on the found screen (FormID 
 let isVR = false;
 window.agVR = (v) => { isVR = !!v; render(); };
 window.agKeyboardText = (text) => { if (text != null) draft = String(text).slice(0, (data.party || {}).nameMax || 32); render(); };
+/* Which page host draws this page ("prisma" or "magelight"), from the DLL on every open. Magelight UI's headset keyboard
+   types into the field itself, a run of letters at a time, so the Prisma UI commit rule below must not apply there. */
+let host = "prisma";
+window.agHost = (h) => { host = String(h); };
 function nameField(id, verb, label, off) {
   const max = (data.party || {}).nameMax || 32;
   const field = isVR
@@ -826,15 +920,17 @@ function statusCell(m) {
   return m.following ? `<span class="status here">${esc(t("$AG_UI_WithYou", "With you"))}</span>` : `<span class="status away">${esc(t("$AG_UI_Away", "Away"))}</span>`;
 }
 function renderParty() {
-  const P = data.party || {}, act = P.active, elig = P.eligible || [], ledger = P.ledger || [];
+  const P = data.party || {}, act = P.active, elig = P.eligible || [], ledger = P.ledger || [], toReg = P.toRegister || [];
   if (!P.registered) return `<div class="empty">${esc(t("$AG_UI_PartyNeedReg", "Only registered adventurers may found a party."))}</div>`;
   const tabs = `<div class="qsec psecs">
       <button data-psec="party" class="${psec === "party" ? "on" : ""}">${esc(t("$AG_UI_PartyTab", "Party"))}</button>
+      ${toReg.length ? `<button data-psec="register" class="${psec === "register" ? "on" : ""}">${esc(t("$AG_UI_RegisterTab", "Register"))} (${toReg.length})</button>` : ""}
       ${act ? `<button data-psec="recruit" class="${psec === "recruit" ? "on" : ""}">${esc(t("$AG_UI_RecruitTab", "Recruit"))}${elig.length ? ` (${elig.length})` : ""}</button>` : ""}
       ${act ? `<button data-psec="traits" class="${psec === "traits" ? "on" : ""}"><span class="lbl">${esc(t("$AG_UI_AffinityTab", "Affinity"))}</span>${newTraits(act) ? `<span class="sbadge">${newTraits(act)}</span>` : ""}</button>` : ""}
       ${act ? `<button data-psec="analysis" class="${psec === "analysis" ? "on" : ""}">${esc(t("$AG_UI_AnalysisTab", "Analysis"))}</button>` : ""}
       <button data-psec="history" class="${psec === "history" ? "on" : ""}">${esc(t("$AG_UI_HistoryTab", "History"))}</button></div>`;
   if (!act && (psec === "recruit" || psec === "analysis" || psec === "traits")) psec = "party";
+  if (psec === "register" && !toReg.length) psec = "party";
   if (psec !== "traits") newThisVisit.clear();
   /* "Recruit to <party>": callers pass t(key, en, PH) so the keys stay visible to make_translations.py */
   const PH = "\u0001", partyHead = (text) => act ? `<div class="subsum">${esc(text).replace(PH, `<b>${esc(act.name)}</b>`)}</div>` : "";
@@ -846,6 +942,18 @@ function renderParty() {
       (act.traits || []).filter((x) => x.active).length);
     return `<div class="bar-top">${tabs}${pager("traits", pages).replace('class="pager"', 'class="pager inline"')}</div>` +
       partyHead(t("$AG_UI_AffinityOf", "Affinity of {0}", PH) + " · " + activeN) + renderTraits(act, cards);
+  }
+  /* followers at your side who are not Guild members (registered by hand, 2.0): registered where you would be */
+  if (psec === "register") {
+    const here = data.followerRegister !== false;
+    const { items, pages } = paged("register", toReg, ROWS);
+    return `<div class="bar-top">${tabs}<span class="sum caps">${esc(t("$AG_UI_RegisterFee", "{0} gold each", P.registerFee || 0))}</span></div>
+      <div class="subsum">${esc(t("$AG_UI_RegisterIntro", "Followers at your side who are not Guild members. Once registered, they hold a Guild rank and can join a party."))}</div>` +
+      items.map((x) => `<div class="row"><span class="tier">?</span><div class="body"><div class="title">${esc(x.name)}</div>
+        <div class="detail">${esc(t("$AG_UI_LevelN", "Level {0}", x.level))}</div></div>
+        ${here ? `<button class="btn" data-action="party:register:${esc(x.id)}">${esc(t("$AG_UI_RegisterBtn", "Register"))}</button>`
+               : `<span class="why">${esc(t("$AG_UI_AtGuildHall", "At the Guild Hall"))}</span><button class="btn" disabled>${esc(t("$AG_UI_RegisterBtn", "Register"))}</button>`}</div>`).join("") +
+      pager("register", pages);
   }
   if (psec === "analysis") return `<div class="bar-top tall">${tabs}<div class="pfilter"><button class="btn" data-pfollow="1">${esc(onlyHere
       ? t("$AG_UI_PresentOnlyOn", "✓ Present Only") : t("$AG_UI_PresentOnlyOff", "Present Only"))}</button>
@@ -872,8 +980,12 @@ function renderParty() {
     /* a party of one is not a party: pick at least one follower adventurer at your side as a founding member */
     for (const id of [...pick]) if (!elig.some((x) => x.id === id)) pick.delete(id);
     const intro = `<p>${esc(t("$AG_UI_FoundText", "Register a party with the Adventurers Guild and lead the followers who fight at your side. The Guild keeps its name, its members and their deeds on the ledger."))}</p>`;
+    /* the party registry is the Guild Hall's alone (MCM > Guild Hall): an inn's counter says where */
+    if (data.partyRegistry === false)
+      return `<div class="bar-top">${tabs}</div><div class="found">${intro}<p style="color:var(--warn)">${esc(t("$AG_UI_FoundAtHall", "Parties are founded at the Guild Hall."))}</p></div>`;
     if (!elig.length)
-      return `<div class="bar-top">${tabs}</div><div class="found">${intro}<p style="color:var(--warn)">${esc(t("$AG_UI_FoundNeedsCompanion", "A party needs at least one companion. Come back with a follower who is a Guild adventurer."))}</p></div>`;
+      return `<div class="bar-top">${tabs}</div><div class="found">${intro}<p style="color:var(--warn)">${esc(toReg.length ? t("$AG_UI_FoundRegisterFirst", "A party needs at least one companion who is a Guild adventurer. Register your followers first.")
+        : t("$AG_UI_FoundNeedsCompanion", "A party needs at least one companion. Come back with a follower who is a Guild adventurer."))}</p></div>`;
     const { items, pages } = paged("founders", elig, 3);
     return `<div class="bar-top">${tabs}<span class="sum caps">${esc(t("$AG_UI_FoundersN", "{0} founding members chosen", pick.size))}</span></div>
       <div class="found" style="margin-top:0">${intro}${nameField("pname", "found", t("$AG_UI_FoundBtn", "Found Party ({0} gold)", P.fee || 0), pick.size === 0)}</div>` +
@@ -885,7 +997,8 @@ function renderParty() {
 
   if (psec === "recruit") {
     const room = (P.max || 0) - act.members.length;
-    if (!elig.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoRecruits", "No adventurer travelling with you is free to join."))}<br/>${esc(t("$AG_UI_NoRecruits2", "Any follower who is a Guild adventurer can join your party while they travel with you."))}</div>`;
+    if (!elig.length) return `<div class="bar-top">${tabs}</div><div class="empty">${esc(t("$AG_UI_NoRecruits", "No adventurer travelling with you is free to join."))}<br/>${esc(toReg.length ? t("$AG_UI_NoRecruitsRegister", "Followers who are not Guild members can join once they are registered (Register).")
+      : t("$AG_UI_NoRecruits2", "Any follower who is a Guild adventurer can join your party while they travel with you."))}</div>`;
     const { items, pages } = paged("recruit", elig, ROWS);
     return `<div class="bar-top">${tabs}<span class="sum caps">${esc(t("$AG_UI_PartyRoom", "{0} of {1} places filled", act.members.length, P.max || 0))}</span></div>` + partyHead(t("$AG_UI_RecruitTo", "Recruit to {0}", PH)) +
       items.map((x) => `<div class="row"><span class="tier">${esc(x.letter)}</span><div class="body"><div class="title">${esc(x.name)}</div>
@@ -904,7 +1017,8 @@ function renderParty() {
         <div class="pmeta">${esc(blessingText(act))}</div></div>
         <div class="bond ${act.present ? "" : "dormant"}">${pips(act.tier)}<div class="tiername">${esc(act.present ? t("$AG_UI_PartyBondX", "Party Bond: {0}", tierName(act.tier))
           : t("$AG_UI_PartyBondDormant", "Party Bond: {0} · dormant, no companion with you", tierName(act.tier)))}</div></div></div>`;
-  const tools = pconfirm ? "" : `<span style="display:flex;gap:10px"><button class="btn" data-pedit="rename">${esc(t("$AG_UI_Rename", "Rename"))}</button>
+  const tools = pconfirm ? "" : data.partyRegistry === false ? `<span class="sum caps">${esc(t("$AG_UI_RegistryAtHall", "Rename or disband at the Guild Hall"))}</span>`
+    : `<span style="display:flex;gap:10px"><button class="btn" data-pedit="rename">${esc(t("$AG_UI_Rename", "Rename"))}</button>
         <button class="btn" data-pconfirm="1">${esc(t("$AG_UI_Disband", "Disband"))}</button></span>`;
   /* Under the banner and the affinity line there are 328px: four full rows (74px) fill them when everyone fits on one
      page. A bigger party needs the pager's 60px at the foot, so its rows are 66px (class "tight"). */
@@ -1106,6 +1220,7 @@ function render() {
   /* Solstheim is Morrowind's: the Raven Rock counter, and the Guild Card read on the island */
   $("where").textContent = data.region === "Morrowind"
     ? (data.branch ? t("$AG_UI_BranchMorrowind", "Morrowind Region · {0} Branch", data.branch) : t("$AG_UI_RegionMorrowind", "Morrowind Region"))
+    : data.hall ? t("$AG_UI_HallBranch", "Skyrim Region · The Guild Hall")
     : (data.branch ? t("$AG_UI_Branch", "Skyrim Region · {0} Branch", data.branch) : t("$AG_UI_Region", "Skyrim Region"));
   const counts = { quests: (data.reports || []).length, trophies: ((data.trophies || {}).items || []).length,
                    party: (((data.party || {}).active || {}).traits || []).filter((x) => x.new).length };
@@ -1131,6 +1246,9 @@ window.agSetData = (json) => {
   try { data = (typeof json === "string") ? JSON.parse(json) : json; } catch (e) { return; }
   render();
 };
+/* A counter opening (the page stays loaded between visits): the lists' filters start over, so a hold picked at one
+   clerk's counter does not leave the next one's list empty */
+window.agOpened = () => { qhold = "@all"; qrank = ""; holdPick = false; };
 window.agStatus = (text) => { $("status").textContent = text || ""; };
 window.agDetails = (json) => {
   let d; try { d = (typeof json === "string") ? JSON.parse(json) : json; } catch (e) { return; }
@@ -1164,8 +1282,13 @@ $("main").addEventListener("click", (e) => {
     render(); return;
   }
   if (sconfirm && b.dataset.action === "service:" + sconfirm) { focusKey = "sconfirm:" + sconfirm; sconfirm = null; render(); }
-  if (b.dataset.isec) { isec = b.dataset.isec; page.services = 0; render(); return; }
-  if (b.dataset.qsec) { qsec = b.dataset.qsec; note = null; render(); return; }
+  if (b.dataset.isec) { isec = b.dataset.isec; page.services = 0; holdPick = false; render(); return; }
+  if (b.dataset.qsec) { qsec = b.dataset.qsec; note = null; holdPick = false; qrank = ""; render(); return; }
+  const firstPage = () => { page.board = page.notices = page.bounties = page.services = 0; };
+  if (b.dataset.qpick) { holdPick = !holdPick; render(); return; }
+  if (b.dataset.qhold) { qhold = b.dataset.qhold; holdPick = false; firstPage(); render(); return; }
+  if (b.dataset.qrank !== undefined) { qrank = b.dataset.qrank; firstPage(); render(); return; }
+  if (b.dataset.qsort) { qsort = qsort === "high" ? "low" : "high"; firstPage(); render(); return; }
   if (b.dataset.note) { noteReturn = keyOf(b); note = { id: b.dataset.note }; render(); if (window.agAction) window.agAction("details:" + b.dataset.note); return; }
   if (b.dataset.back) { back(); return; }
   if (b.dataset.psec) { psec = b.dataset.psec; pedit = null; pconfirm = false; render(); return; }
@@ -1187,7 +1310,7 @@ let vrCommitted = false;
 $("main").addEventListener("input", (e) => {
   if (e.target.id !== "pname") return;
   draft = e.target.value;
-  if (e.inputType === "insertText" && e.data && e.data.length > 1) { vrCommitted = true; setTimeout(() => e.target.blur(), 0); }
+  if (host !== "magelight" && e.inputType === "insertText" && e.data && e.data.length > 1) { vrCommitted = true; setTimeout(() => e.target.blur(), 0); }
 });
 /* ---------------- controller / keyboard navigation ----------------
    PrismaUI hands the page the mouse and keyboard but not a controller, so the DLL forwards the pad's buttons
@@ -1202,7 +1325,7 @@ function targets() {
 function keyOf(b) {
   const d = b.dataset;
   return b.id || (d.tab && "tab:" + d.tab) || d.action || (d.note && "note:" + d.note) || (d.page && "page:" + d.page) ||
-    (d.section && "sec:" + d.section) || (d.qsec && "qsec:" + d.qsec) || (d.psec && "psec:" + d.psec) ||
+    (d.section && "sec:" + d.section) || (d.qsec && "qsec:" + d.qsec) || (d.qhold && "qhold:" + d.qhold) || (d.qrank !== undefined && "qrank:" + d.qrank) || (d.qsort && "qsort") || (d.qpick && "qpick") || (d.psec && "psec:" + d.psec) ||
     (d.pkeyboard && "pkeyboard") || (d.pfollow && "pfollow") || (d.pick && "pick:" + d.pick) || (d.psubmit && "psubmit:" + d.psubmit) || (d.pedit != null && "pedit:" + d.pedit) || (d.pconfirm != null && "pconfirm:" + d.pconfirm) ||
     (d.sconfirm != null && "sconfirm:" + d.sconfirm) ||
     (d.back && "back") || b.textContent.trim();

@@ -192,6 +192,11 @@ namespace AG::MemberCards
 		RE::TESTopic*   g_handInTopic = nullptr;   // AG_TopicCardHandIn: the player's line, worded for one card or several
 		RE::TESFaction* g_checked = nullptr;       // AG_CardCheckedFaction: a dead body that has been asked for a lost card
 		RE::TESGlobal*  g_gCase = nullptr;         // AG_CardCaseGlobal: the weightiest of them (1 alive, 2 dead, 3 fallen party member, 4 worn only)
+		// AGHallCardOwnerGlobal, in the Guild Hall's plugin (2.0): when that weightiest card is one of the hall folk's (dead or
+		// fallen), their NPC's local ID there (Caralion 0x8042), so the clerks can answer for someone they knew; 0 otherwise
+		// Null without the hall.
+		RE::TESGlobal*  g_gOwner = nullptr;
+		constexpr std::string_view kHall = "AdventurersGuild - Guild Hall.esp";
 		RE::TESBoundObject* g_mead = nullptr;
 		RE::TESBoundObject* g_sujamma = nullptr;
 		std::unordered_set<RE::FormID>  g_noDrinks;  // representatives (by base) who stand nobody a round
@@ -559,6 +564,7 @@ namespace AG::MemberCards
 		}
 		g_gCarried = dh->LookupForm<RE::TESGlobal>(0xCF9, kPlugin);
 		g_gCase = dh->LookupForm<RE::TESGlobal>(0xCFA, kPlugin);
+		g_gOwner = dh->LookupForm<RE::TESGlobal>(0x0096C0, kHall);
 		g_checked = dh->LookupForm<RE::TESFaction>(0xCFB, kPlugin);
 		g_handInTopic = dh->LookupForm<RE::TESTopic>(0xCFF, kPlugin);
 		g_mead = Drink(dh->LookupForm(0x034C5D, "Skyrim.esm"));       // Nord Mead
@@ -702,12 +708,19 @@ namespace AG::MemberCards
 		if (!g_personal || !g_gCarried || !g_gCase) return;
 		Bloody(RE::PlayerCharacter::GetSingleton());  // the cards of the dead the player carries look it
 		int total = 0, weight = 0;
+		std::uint32_t hallOwner[4]{};  // per case (2 dead, 3 fallen): the first of the hall folk's cards in it
 		for (auto& c : Scan()) {
 			total += c.count;
 			if (c.worn) continue;
 			RE::Actor* owner = nullptr;
 			const auto fate = FateOf(c, owner);
-			weight = std::max(weight, fate == Fate::kFallen ? 3 : fate == Fate::kDead ? 2 : 1);
+			const int  w = fate == Fate::kFallen ? 3 : fate == Fate::kDead ? 2 : 1;
+			weight = std::max(weight, w);
+			if (w >= 2 && !hallOwner[w] && c.key.starts_with(kHall) && c.key.size() > kHall.size() && c.key[kHall.size()] == '|') {
+				try {
+					hallOwner[w] = static_cast<std::uint32_t>(std::stoul(c.key.substr(kHall.size() + 1), nullptr, 16));
+				} catch (...) {}
+			}
 			if (fate == Fate::kAlive && owner) Replace(owner, c.item, true);
 		}
 		g_gCarried->value = static_cast<float>(total);
@@ -717,6 +730,7 @@ namespace AG::MemberCards
 			if (line != g_handInTopic->fullName.c_str()) g_handInTopic->fullName = line;
 		}
 		g_gCase->value = static_cast<float>(total == 0 ? 0 : weight == 0 ? 4 : weight);
+		if (g_gOwner) g_gOwner->value = static_cast<float>(weight >= 2 ? hallOwner[weight] : 0);
 	}
 
 	int Carried()

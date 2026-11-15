@@ -1,0 +1,422 @@
+{
+ "_comment": "The four adventurers' own conversations. Written by residents_talk_export.py from drafting/residents_answers_approved.json: edit that. rank: the lowest rank that hears the answer; lock: the reply below it; says version 'opened:<quest>': the answer once that quest is completed, at any rank.",
+ "groups": [
+  {
+   "stem": "SelfGhrulek",
+   "nodes": [
+    {
+     "id": "GH0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentOrc": {
+       "": [
+        "Ghrulek, a warrior out of Largashbur in the Rift! The Guild calls me C-rank, and I earned it one job at a time. Why do I live here?",
+        "Because nobody in Skyrim cooks like Henriette!"
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "GH1",
+     "parent": "GH0",
+     "prompt": "Why did you leave Largashbur?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentOrc": {
+       "": [
+        "The Code of Malacath. A grown son challenges the chief, or he leaves. Shagrol was a good chief, and I would not raise my axe against him.",
+        "So I left, as young Orcs do, to make my own name. If I go back, I must fight whoever sits in his place. This hall is my clan now."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "GH2",
+     "parent": "GH0",
+     "prompt": "What kind of work do you take?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentOrc": {
+       "": [
+        "Warrior's work. Giants, bandit chiefs, anything too big for the others to take. Give me a fight that comes straight at me. No tricks, no hiding."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "GH3",
+     "parent": "GH1",
+     "prompt": "What became of Shagrol?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentOrc": {
+       "": [
+        "Dead. Yamarz killed him in combat and took Largashbur, or so the story goes. I'm not sure how a weakling like Yamarz could do such a thing though."
+       ],
+       "opened:DA06": [
+        "You've been to Largashbur, so you know the rest. Heard Yamarz is dead, Malacath's curse is lifted, and Gularzob leads them now.",
+        "You're a brother to me for doing that."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallResidentOrc": [
+       "That's a story for someone who's been through more than you. Come back with a few more kills behind you."
+      ]
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallResidentOrc": "What is it?"
+    }
+   }
+  },
+  {
+   "stem": "SelfYlva",
+   "nodes": [
+    {
+     "id": "YL0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentRanger": {
+       "": [
+        "Not much to say. Pale-born and raised to hunt. I take work others won't, and I take it because it pays."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "YL1",
+     "parent": "YL0",
+     "prompt": "Who taught you to track?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentRanger": {
+       "": [
+        "My mother. She had me tracking wolves and other prey before I was twelve."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "YL1a",
+     "parent": "YL1",
+     "prompt": "Does she still hunt?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentRanger": {
+       "": [
+        "She's dead. A legendary sabre cat tore her apart, out in the wilds. My father raised me after."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "YL2",
+     "parent": "YL0",
+     "prompt": "Why the Guild, and not something like a guard?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentRanger": {
+       "": [
+        "Guards stand where they're told for a pittance. The Guild pays by the job, and I pick the jobs. I took this path because I hunt for myself."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "YL3",
+     "parent": "YL1a",
+     "prompt": "Have you ever gone after it?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentRanger": {
+       "": [
+        "Once or twice. I know its trail and no one has collected the bounty on it yet. When the time's right, I'll claim it. For the coin."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallResidentRanger": [
+       "That's none of your business with such a low rank."
+      ]
+     }
+    },
+    {
+     "id": "YL4",
+     "parent": "YL0",
+     "prompt": "You don't talk about the guild like the others here.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentRanger": {
+       "": [
+        "Why, because I treat a job like an actual job? That's all this guild is.",
+        "The sooner you learn that heroics and glory are for the dead and good coin is for the living the better."
+       ]
+      }
+     },
+     "lock": null
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallResidentRanger": "Fine. What?"
+    }
+   }
+  },
+  {
+   "stem": "SelfZhasim",
+   "nodes": [
+    {
+     "id": "ZH0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentScout": {
+       "": [
+        "This one came out of Elsweyr with a caravan of his own once. Now he walks Skyrim scouting for the Guild.",
+        "A good nose, a good memory, and every road in Skyrim. That is Zhasim."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "ZH1",
+     "parent": "ZH0",
+     "prompt": "What became of your caravan?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentScout": {
+       "": [
+        "For years, this one's little caravan walked every pass in Skyrim. Then bandits came down from the rocks and broke it apart.",
+        "Still, he learned every road doing it, so it was not all bad. Mostly bad. But not all."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "ZH2",
+     "parent": "ZH0",
+     "prompt": "How do you find these places?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentScout": {
+       "": [
+        "Khajiit follows his nose, the wind and the drunk talk of hunters. A path too worn for goats, smoke where no farm stands. Something is always there.",
+        "Then he sells it to Merila, and it goes on her map."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "ZH3",
+     "parent": "ZH1",
+     "prompt": "What did they take?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentScout": {
+       "": [
+        "Most things, this one could buy again. Not the claw. An iron claw, his ancestor's, carried in a war long ago and handed down to him.",
+        "The bandits took it, and he has not seen it since."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallResidentScout": [
+       "Not yet, friend. Walk a few more roads for the Guild, and I will tell it."
+      ]
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallResidentScout": "What do you need?"
+    }
+   }
+  },
+  {
+   "stem": "SelfMarius",
+   "nodes": [
+    {
+     "id": "MC0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "Old soldier, old adventurer, A-rank by the end. I came north to help start this hall. When the Legion called the company up, I was its sergeant.",
+        "Brought home what I could. Now I sit in the attic and correct everyone's footwork."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "MC1",
+     "parent": "MC0",
+     "prompt": "Where did you learn to fight?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "In the Legion, same as most. I earned respect and honor there and lost it all by running my mouth to the wrong commander.",
+        "I walked out in disgrace, but the Guild still took me in. Best trade I ever made."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "MC2",
+     "parent": "MC0",
+     "prompt": "What was the war like?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "Mud and waiting, mostly. Then the fighting, and I'd sooner not talk about it. Ask me something else."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "MC3",
+     "parent": "MC0",
+     "prompt": "An old A-rank, sleeping in the attic?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "And where should I sleep? Some cottage by a river, waiting to die? This hall's the only home I've had since the war.",
+        "I moved in the day it reopened, and I'd like to see someone try to move me out."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "MC4",
+     "parent": "MC1",
+     "prompt": "What did you say to him?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentVeteran": {
+       "": [
+        "I told him, to his face and in front of his soldiers, that his order would get them killed. I was right and it did. They all died for nothing.",
+        "The indignant bastard had me blamed for his failure instead."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallResidentVeteran": [
+       "That's not a story for green ears. Come back when you've seen a few things."
+      ]
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallResidentVeteran": "Need something?"
+    }
+   }
+  }
+ ]
+}

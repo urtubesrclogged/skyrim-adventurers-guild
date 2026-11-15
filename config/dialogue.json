@@ -1,9 +1,16 @@
 {
  "_comment": "All Adventurers Guild innkeeper dialogue. tools/EspGen turns this into dialogue records (INFO FormIDs are pinned in dialogue.ids.json, which voice files are named after - never renumber). The voice pipeline reads the same file. Keep lines short: they will be voiced.",
- "_liaisons": "Optional 'whenGlobal': {global, <role>: lines} replaces a role's lines while that global is 1 (the DLL keeps it: AG_MissivesSolstheimGlobal = Raven Rock has the missive board of Missives - Worldspace Additions). The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers the ranks that have none), 'businessExtra' (more business lines for any rank) and 'businessByRankExtra' (one more for a rank); the game picks at random among the business lines that fit, 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask). 'successor' {of, quest, alias, ref, cell}: this NPC keeps the counter once the liaison they follow is dead, whoever runs the inn (with the Unofficial Patch Mikael takes the Bannered Mare over, not Ysolda). quest + alias = the hold's Dialogue quest and its Innkeeper alias ('Plugin|0xID', number): the game swaps the backup in when the innkeeper dies, which is how the DLL knows. ref = the successor's own reference; cell = the inn: they do Guild business only there, and 'away' is what they say anywhere else. The DLL adds them to AG_GuildLiaisonFaction, and every line of theirs waits for that.",
+ "_liaisons": "Optional 'whenGlobal': {global, <role>: lines} replaces a role's lines while that global is 1 (the DLL keeps it: AG_MissivesSolstheimGlobal = Raven Rock has the missive board of Missives - Worldspace Additions). The Guild keeps a counter only at the inn of each hold capital, the towns that have a Missives board. Only these innkeepers register, promote and open the counter. While registration / promotion is the Guild Hall's alone (2.0, MCM > Guild Hall, AG_HallRegistrationGlobal / AG_HallPromotionGlobal), no innkeeper offers it (no new lines outside the hall for now); an optional 'registerHall' / 'promoteHall' line (also inside 'afterQuest') would answer instead, sending the player to the hall. Optional per liaison: '<role>Ask' (their own fee ask), 'businessByRank' (business line by the player's rank: C, B, A, S; the plain 'business' line covers the ranks that have none), 'businessExtra' (more business lines for any rank) and 'businessByRankExtra' (one more for a rank); the game picks at random among the business lines that fit, 'afterQuest' {quest, <role>: lines} (replaces those lines once the quest is completed). 'replace': what they say handing over a replacement guild card (the topic is only offered to a member who carries no card; the fee is in the player's line, so there is no ask). 'successor' {of, quest, alias, ref, cell}: this NPC keeps the counter once the liaison they follow is dead, whoever runs the inn (with the Unofficial Patch Mikael takes the Bannered Mare over, not Ysolda). quest + alias = the hold's Dialogue quest and its Innkeeper alias ('Plugin|0xID', number): the game swaps the backup in when the innkeeper dies, which is how the DLL knows. ref = the successor's own reference; cell = the inn: they do Guild business only there, and 'away' is what they say anywhere else. The DLL adds them to AG_GuildLiaisonFaction, and every line of theirs waits for that.",
  "liaisons": [
   {
-   "npc": "Hulda", "businessExtra": ["Sit yourself down, adventurer. The stew can mind itself for a minute.", "You've the look of someone with work on their mind. Out with it, then."], "businessByRankExtra": {"S": "The whole room went quiet when you came in, love. They'll pretend it didn't. What do you need?"},
+   "npc": "Hulda",
+   "businessExtra": [
+    "Sit yourself down, adventurer. The stew can mind itself for a minute.",
+    "You've the look of someone with work on their mind. Out with it, then."
+   ],
+   "businessByRankExtra": {
+    "S": "The whole room went quiet when you came in, love. They'll pretend it didn't. What do you need?"
+   },
    "city": "Whiterun",
    "inn": "the Bannered Mare",
    "register": "Welcome to the Adventurers Guild! Here's your guild card. The Companions will sneer, but the Guild pays on time, and the work's never dull.",
@@ -11,25 +18,23 @@
    "promoteAsk": "Let's see what the ledger says about you. Well, well! You've earned your next rank. There's just the Guild's fee to make it official.",
    "promote": "There, love. Congratulations. Here's your new card; now go and eat something hot before the next job finds you. It always does.",
    "about": [
-    "Whiterun sits at the crossroads of Skyrim, so every job in the hold comes through my door first.",
-    "The Companions take the jobs that make a good song. Adventurers take the ones that need doing. Farmers know the difference.",
-    "Every stool in here had an adventurer on it, before the wars. I'd like to see that again before I hang up my apron."
+    "The Companions take the jobs that make a good song. Adventurers take the ones that need doing. Farmers know the difference."
    ],
    "registerAsk": "Looking to join the Adventurers Guild? Good, we could use new blood. There's a small fee to put your name down, that's all.",
-   "businessByRank": {
-    "C": "Sit, love. You've the look of someone who's walked in off the plains. Tell me the giants are still keeping to their fires.",
-    "B": "I kept your stool by the fire. Had to turn a Battle-Born off it twice. Worth it to see his face.",
-    "A": "The caravans ask for you by name before they'll take the north road. I tell them an adventurer like that doesn't come cheap, and they pay it.",
-    "S": "An S-rank at the Bannered Mare. Whiterun will talk about this for a year. What can I do for you?"
-   },
    "stampedFirst": "There you are, love. Whiterun's horse, right on your card. Show it around the shops. Some of them go easier on an adventurer whom the hold knows.",
-   "cardHandIn": { "alive": "Someone's guild card? Good of you, love. I'll see it gets back to them. They'll be glad of it.", "dead": "Ah. Then they won't be needing it. I'll close their page in the ledger and send word to their kin. Thank you for bringing it home.", "fallen": "One of yours. I'm sorry, love, truly. I'll see the ledger put right and their family told. Sit. These are on the house, for those of you still standing.", "worn": "I can't make out a name on this. Still, a card should come home. I'll send it on to the Adventurers Guild. Thank you.", "drinks": true },
-   "stamped": "There you are, love. Whiterun's horse, right on your card. You earned that one out there.",
-   "replaceStamped": "Lost it already? Here, a fresh one, and I've put Whiterun's horse back on it. The other holds you'll have to ask yourself.",
+   "cardHandIn": {
+    "dead": "Ah. Then they won't be needing it. I'll close their page in the ledger and send word to their kin. Thank you for bringing it home.",
+    "fallen": "One of yours. I'm sorry, love, truly. I'll see the ledger put right and their family told. Sit. These are on the house, for those of you still standing.",
+    "worn": "I can't make out a name on this. Still, a card should come home. I'll send it on to the Adventurers Guild. Thank you.",
+    "drinks": true
+   },
    "replace": "Lost it already? Happens to the best of them. Here, a fresh one. Try to keep this one out of the mead."
   },
   {
-   "npc": "Ysolda", "businessExtra": ["Let me set this down. There. An adventurer's time is worth more than mine, so go ahead.", "Tell me you've brought something back. I love it when adventurers bring things back."],
+   "npc": "Ysolda",
+   "businessExtra": [
+    "Tell me you've brought something back. I love it when adventurers bring things back."
+   ],
    "city": "Whiterun",
    "inn": "the Bannered Mare",
    "successor": {
@@ -42,28 +47,26 @@
    "registerAsk": "Joining the Adventurers Guild? Smart. There's a small fee, and it's the best coin you'll spend this year.",
    "register": "Welcome to the Adventurers Guild! Here's your guild card. You bring in the work, I'll see we both profit by it.",
    "business": "Guild business? My favorite kind. What are you bringing me?",
-   "businessByRank": {
-    "C": "A regular! Regulars are how a merchant gets rich. What do you need?",
-    "B": "A B-rank adventurer at my counter. You're good for trade, you know. People come in just to say they saw you.",
-    "A": "An A-rank, at my counter! The good mead's on me. Call it an investment.",
-    "S": "An S-rank adventurer, at my counter. I couldn't buy a sign this good. Anything you need, ask."
-   },
    "promoteAsk": "Let me look at your record. Oh, that's a healthy one. You've earned your next rank. There's the Guild's fee, and then it's yours.",
    "promote": "Congratulations! I've updated your guild card. A higher rank means better-paying work. For both of us.",
    "about": [
-    "The Khajiit caravans taught me this: know what's on the road before anyone else does. Every job in the hold comes through the Bannered Mare first.",
-    "Bandits are bad for trade, and so are trolls. Every missive an adventurer finishes puts coin back in Whiterun's market.",
-    "Hulda kept this counter for years and never charged what it was worth. I mean to do right by her, and turn a profit doing it."
+    "Bandits are bad for trade, and so are trolls. Every missive an adventurer finishes puts coin back in Whiterun's market."
    ],
    "stampedFirst": "Whiterun's stamp, on your card. Show it when you shop here. A merchant who knows what it means might find you a better price. I would.",
-   "cardHandIn": { "alive": "A lost guild card? Its owner will want that back. I'll see it reaches them. Honesty is good business.", "dead": "Oh. I see. I'll mark the ledger and have word sent to their family. Nobody warns you about this part of the counter.", "fallen": "They travelled with you? I'm sorry. I'll settle the ledger and write to their kin myself. Buy yourselves some drinks and I'll see their name is remembered properly.", "worn": "There's no reading this one. I'll send it to the Adventurers Guild all the same. Somebody there may know it.", "drinks": false },
-   "stamped": "Whiterun's stamp, on your card. That'll open a few purses around here. Mine included.",
-   "replaceStamped": "Replacements cost, I'm afraid. Here you are, and Whiterun's stamp comes with it. No extra charge.",
-   "replace": "Lost your guild card? Replacements cost, I'm afraid. A merchant can't give away stock. Here you are.",
-   "away": "Guild business? Not out here. I keep the Adventurers Guild's counter at the Bannered Mare. Come and find me when I'm there."
+   "cardHandIn": {
+    "dead": "Oh. I see. I'll mark the ledger and have word sent to their family. Nobody warns you about this part of the counter.",
+    "fallen": "They travelled with you? I'm sorry. I'll settle the ledger and write to their kin myself. Buy yourselves some drinks and I'll see their name is remembered properly.",
+    "worn": "There's no reading this one. I'll send it to the Adventurers Guild all the same. Somebody there may know it.",
+    "drinks": false
+   },
+   "replace": "Lost your guild card? Replacements cost, I'm afraid. A merchant can't give away stock. Here you are."
   },
   {
-   "npc": "CorpulusVinius", "businessExtra": ["Ah, back in one piece! That's worth a toast later. Business first, eh?", "For an adventurer, friend, I always have time. The wine will keep."], "businessByRankExtra": {"S": "The Blue Palace sends down to ask if you're in the city, you know. I tell them an adventurer's business is their own. So, what is it?"},
+   "npc": "CorpulusVinius",
+   "businessExtra": [
+    "Ah, back in one piece! That's worth a toast later. Business first, eh?",
+    "For an adventurer, friend, I always have time. The wine will keep."
+   ],
    "city": "Solitude",
    "inn": "the Winking Skeever",
    "register": "Welcome to the Adventurers Guild! Here's your guild card. Solitude's never short of work, and now you're first in line.",
@@ -72,24 +75,23 @@
    "promote": "Congratulations, friend. Here's your new card. Tonight you sit, relax, and let somebody else's troubles wait at the door.",
    "about": [
     "Solitude's the capital, so the work is as often a noble's quiet problem as a wolf on the road. Both pay. The noble pays better.",
-    "The coast north of here is wrecks, horkers and men who'd rather their cargo wasn't found. An adventurer who can keep quiet does well in Haafingar.",
     "I've poured for adventurers who walked up the Embassy road and never came back for their change. I still have it, if they do."
    ],
    "registerAsk": "An adventurer wanting to sign on? Splendid! Solitude always has work for a capable blade. The Guild asks a small fee to join.",
-   "businessByRank": {
-    "C": "Ah, our rising star. Solitude's merchants have started asking for you by name.",
-    "B": "The dockhands were laying wagers on what you'd bring back this time. I had my coin on you coming back at all. Easiest money I ever made.",
-    "A": "Our A-rank! Half of Solitude wants to hire you and the other half wants to meet you. Your card?",
-    "S": "An S-rank in the Winking Skeever. I'll have Sorex frame your signature. What do you need?"
-   },
    "stampedFirst": "There, friend. Solitude's wolf, on your card. Show it around the shops. You may find the prices kinder.",
-   "cardHandIn": { "alive": "A guild card, and not yours? I'll get it back to its owner, friend. They'll thank you for it.", "dead": "Ah, that's a sad thing to carry. I'll close the ledger and see their family hears it gently. Thank you, friend.", "fallen": "One of your own? I'm sorry, friend. Leave the ledger and the letters to me. Sit, all of you. These are on the house.", "worn": "No name left on it. Well. I'll send it along to the Adventurers Guild. Better here than in a ditch.", "drinks": true },
-   "stamped": "There, friend. Solitude's wolf, on your card. Wear it proudly.",
-   "replaceStamped": "Careless, but easily mended. There, a new card, with Solitude's wolf stamped on it again.",
+   "cardHandIn": {
+    "dead": "Ah, that's a sad thing to carry. I'll close the ledger and see their family hears it gently. Thank you, friend.",
+    "fallen": "One of your own? I'm sorry, friend. Leave the ledger and the letters to me. Sit, all of you. These are on the house.",
+    "worn": "No name left on it. Well. I'll send it along to the Adventurers Guild. Better here than in a ditch.",
+    "drinks": true
+   },
    "replace": "Lost your card? Careless, but easily mended. There you are, good as new."
   },
   {
-   "npc": "SorexVinius", "businessExtra": ["Oh, good, an adventurer. I was worried I might get to sit down.", "Go on, then. Whatever it is, it's bound to be more interesting than wiping tables."],
+   "npc": "SorexVinius",
+   "businessExtra": [
+    "Oh, good, an adventurer. I was worried I might get to sit down."
+   ],
    "city": "Solitude",
    "inn": "the Winking Skeever",
    "successor": {
@@ -102,54 +104,51 @@
    "registerAsk": "Joining the Adventurers Guild? Your funeral. There's a small fee first. There's always a fee.",
    "register": "Welcome to the Adventurers Guild. Here's your guild card. Try not to die before your first job. It's bad for business.",
    "business": "Guild business? Fine. Let's get it over with.",
-   "businessByRank": {
-    "C": "You again. Still alive, I see. What do you need?",
-    "B": "A B-rank adventurer. My father would have fawned over you. I'll just ask what you want.",
-    "A": "An A-rank, at the Winking Skeever. Drink's on me. Don't tell anyone, I've a reputation.",
-    "S": "An S-rank. Huh. I didn't think I could still be impressed. What do you need?"
-   },
    "promoteAsk": "Let's see the ledger. Well, look at that. You've earned your next rank. The Guild wants its fee first, naturally.",
    "promote": "Congratulations. I've updated your guild card. Go on, look pleased with yourself.",
    "about": [
-    "I ran errands for the old man my whole life. Now the Winking Skeever's mine, and so is the Adventurers Guild's counter. Be careful what you wish for.",
-    "Solitude's missives are mostly wolves on the road and smugglers on the coast. Nobles pay well to have their problems go away quietly.",
-    "Half the adventurers who sign this ledger never come back to it. The other half drink here. I make coin either way."
+    "I ran errands for the old man my whole life. Now the Winking Skeever's mine, and so is the Adventurers Guild's counter. Be careful what you wish for."
    ],
    "stampedFirst": "Solitude's wolf. On your card. Flash it at the merchants. A few of them go soft for a stamped card. Don't ask me why.",
-   "cardHandIn": { "alive": "Someone lost their guild card. Shocking. Fine, I'll see they get it back. Try not to make a habit of finding these.", "dead": "Dead, then. Right. I'll strike the name and send the letter. My father used to do this part. I see why he drank.", "fallen": "They were with you? I'm sorry. I mean that. I'll deal with the ledger. Drinks are on the house. Don't tell anyone I said so.", "worn": "I can't read a word of this. I'll send it up the line. Someone at the Adventurers Guild is paid to squint.", "drinks": true },
-   "stamped": "Solitude's wolf. On your card. Try not to look so surprised you earned it.",
-   "replaceStamped": "Of course you lost it. Here. I've stamped the wolf on it again, so that's one less thing for you to forget.",
-   "replace": "Lost your guild card already? Of course you did. Here. That's coming out of your pocket, not mine.",
-   "away": "Not here. The Adventurers Guild's counter is at the Winking Skeever. So am I, most days."
+   "cardHandIn": {
+    "dead": "Dead, then. Right. I'll strike the name and send the letter. My father used to do this part. I see why he drank.",
+    "fallen": "They were with you? I'm sorry. I mean that. I'll deal with the ledger. Drinks are on the house. Don't tell anyone I said so.",
+    "worn": "I can't read a word of this. I'll send it up the line. Someone at the Adventurers Guild is paid to squint.",
+    "drinks": true
+   },
+   "replace": "Lost your guild card already? Of course you did. Here. That's coming out of your pocket, not mine."
   },
   {
-   "npc": "Elda", "businessExtra": ["Stamp the snow off first. Right. What does an adventurer want with me today?", "You're back, and with all your fingers. More than some manage. Go on, then."], "businessByRankExtra": {"S": "They talk about you at the docks and in the palace both. Not much manages that in Windhelm. What do you need, adventurer?"},
+   "npc": "Elda",
+   "businessExtra": [
+    "Stamp the snow off first. Right. What does an adventurer want with me today?",
+    "You're back, and with all your fingers. More than some manage. Go on, then."
+   ],
    "city": "Windhelm",
-   "inn": "Candlelight Hall",
+   "inn": "Candlehearth Hall",
    "register": "Here's your guild card. You're an adventurer now, same as the ones who tramp snow up my stairs. Wipe your boots like they don't.",
    "business": "Come in out of the wind. If it's Adventurers Guild business, I'm listening. If it's a drink, the great room's upstairs.",
    "promoteAsk": "Moving up, you reckon. I hear things at this bar. Carters, guards, hunters off the steam fields. They've been saying your name. That'll do me. There's the fee.",
    "promote": "It's done. You'll find the work gets colder and the pay gets better. That's Eastmarch for you.",
    "about": [
     "Eastmarch work is trolls on the roads and ice wraiths off the mountains. Nothin' fancy. Nothin' magic, neither, and I'll thank you to keep it so.",
-    "Come back cold and you'll get the fire, bread and a bed. Come back bleeding and you'll get the same, but you'll mop the floor after.",
-    "Half the adventurers who drank under that candle went off to the Great War. Nords died by the thousands. I still set out more bread than I've mouths for."
+    "Come back cold and you'll get the fire, bread and a bed. Come back bleeding and you'll get the same, but you'll mop the floor after."
    ],
    "registerAsk": "Adventurer, is it? Eastmarch eats them. Trolls on the roads, wraiths off the ice. If you still want in, the Adventurers Guild takes a fee.",
-   "businessByRank": {
-    "C": "Back off the road with all your fingers. Get by the fire before you drip on my floor.",
-    "B": "There's bread just out, and the bed on the ground floor's aired. I don't do that for everyone, so don't go telling it about.",
-    "A": "A lad upstairs was halfway through his sabre cat story when you walked in. Stopped dead. Nobody wants to tell one in front of you.",
-    "S": "That candle upstairs has burned a hundred and sixty-three years for one great warrior. First time I've thought it might have some company."
-   },
    "stampedFirst": "The bear of Eastmarch, on your card. Don't smudge it. Show it to the traders, and some might charge you less. Not much else warms this city.",
-   "cardHandIn": { "alive": "Not your card, is it? Give it here. I'll see the fool who lost it gets it back.", "dead": "Dead, then. I'll mark the ledger and send word to whoever's left. Windhelm has had practice at that.", "fallen": "One of yours. That's a hard road home. I'll see to the ledger and the letter. I don't pour for free, but sit by the fire and drink as long as you need.", "worn": "I can't read the name. Snow's had it, or blood. I'll send it on to the Adventurers Guild.", "drinks": false },
-   "stamped": "The bear of Eastmarch, on your card. Don't smudge it.",
-   "replaceStamped": "Here's another, and it'll cost you. The bear's on it already. The rest you can chase down yourself.",
+   "cardHandIn": {
+    "dead": "Dead, then. I'll mark the ledger and send word to whoever's left. Windhelm has had practice at that.",
+    "fallen": "One of yours. That's a hard road home. I'll see to the ledger and the letter. I don't pour for free, but sit by the fire and drink as long as you need.",
+    "worn": "I can't read the name. Snow's had it, or blood. I'll send it on to the Adventurers Guild.",
+    "drinks": false
+   },
    "replace": "Down a troll's gullet, I hope, and not just the back of a bed. Here's another, and it'll cost you."
   },
   {
-   "npc": "Nils", "businessExtra": ["Oh, it's you! Come, come. I've a pot on, but it'll keep. What can I do?", "Adventurer's work, is it? Let me wipe my hands, and I'm all yours."],
+   "npc": "Nils",
+   "businessExtra": [
+    "Adventurer's work, is it? Let me wipe my hands, and I'm all yours."
+   ],
    "city": "Windhelm",
    "inn": "Candlehearth Hall",
    "successor": {
@@ -162,28 +161,26 @@
    "registerAsk": "Looking to join the Adventurers Guild? Good for you, good for you. There's a small fee, I'm sorry to say.",
    "register": "Welcome to the Adventurers Guild! Here's your guild card. Mind yourself out there, and come back for a hot meal.",
    "business": "Guild business? Sit down by the fire, and we'll see to it.",
-   "businessByRank": {
-    "C": "There you are. I kept the stew warm. Now, what can I do for you?",
-    "B": "A B-rank adventurer in Candlehearth Hall. Elda would never have believed it. What do you need?",
-    "A": "An A-rank! Sit, sit. The best cut's yours tonight, no charge.",
-    "S": "An S-rank adventurer, by my fire. I'll be telling this one till I'm in the ground. Anything you need."
-   },
    "promoteAsk": "Let me find my spectacles. There. Why, you've earned your next rank! There's the Guild's fee, and then it's done.",
    "promote": "Congratulations! I've updated your guild card. I'm proud of you, I truly am.",
    "about": [
-    "I was only ever the cook. Elda kept the Adventurers Guild's counter, and now it's fallen to me. I do my best by it.",
-    "Windhelm's cold, and the work's colder. Ice wraiths, trolls on the roads. Eat before you go out.",
-    "Adventurers keep this city fed. When the roads are clear, the carts get through. People forget that."
+    "Windhelm's cold, and the work's colder. Ice wraiths, trolls on the roads. Eat before you go out."
    ],
    "stampedFirst": "There now. Windhelm's bear, on your card. Show it at the market, mind. Some of the merchants take a little off for it.",
-   "cardHandIn": { "alive": "Oh, somebody's guild card! They'll be so relieved. I'll make sure it finds them. Thank you.", "dead": "Oh dear. I am sorry. I'll write it in the ledger and send word to their family. Thank you for bringing it.", "fallen": "They were one of yours? Oh, I'm so sorry. I'll see to everything. Now sit, please. A drink for each of you, and not a coin.", "worn": "I can't make out the name at all. I'll send it on to the Adventurers Guild. Somebody ought to have it.", "drinks": true },
-   "stamped": "There now. Windhelm's bear, on your card. I pressed it twice, to be sure.",
-   "replaceStamped": "Never mind, never mind. Here's a new one, and I've put the bear on it again for you.",
-   "replace": "Lost your guild card? Never mind, never mind. Here's a new one. Keep it somewhere dry.",
-   "away": "Oh, not out here. Come by Candlehearth Hall and I'll see to your Guild business there."
+   "cardHandIn": {
+    "dead": "Oh dear. I am sorry. I'll write it in the ledger and send word to their family. Thank you for bringing it.",
+    "fallen": "They were one of yours? Oh, I'm so sorry. I'll see to everything. Now sit, please. A drink for each of you, and not a coin.",
+    "worn": "I can't make out the name at all. I'll send it on to the Adventurers Guild. Somebody ought to have it.",
+    "drinks": true
+   },
+   "replace": "Lost your guild card? Never mind, never mind. Here's a new one. Keep it somewhere dry."
   },
   {
-   "npc": "Keerava", "businessExtra": ["Make it quick, adventurer. I've a room full of people who don't tip.", "You, I don't mind seeing. You pay for your drinks. What do you need?"],
+   "npc": "Keerava",
+   "businessExtra": [
+    "Make it quick, adventurer. I've a room full of people who don't tip.",
+    "You, I don't mind seeing. You pay for your drinks. What do you need?"
+   ],
    "city": "Riften",
    "inn": "the Bee and Barb",
    "register": "Welcome to the Guild. Here's your card. Keep your hands out of other people's pockets and you'll do fine.",
@@ -192,24 +189,23 @@
    "promote": "Congratulations. Your guild card's updated. Try to stay alive long enough to enjoy it.",
    "about": [
     "The Rift's got more bandits than honest folk, and the Black-Briars like it that way.",
-    "If a missive looks too easy in Riften, read it twice. Someone's usually getting paid to look away.",
-    "Adventurers have been vanishing since the war. Nobody says who's doing it. Everybody knows."
+    "If a missive looks too easy in Riften, read it twice. Someone's usually getting paid to look away."
    ],
    "registerAsk": "You want to join the Adventurers Guild? Good. Riften needs honest blades more than most. There's a fee, of course.",
-   "businessByRank": {
-    "C": "Back in one piece. That's more than most manage. What's the business?",
-    "B": "Our veteran. Talen, keep the good stuff behind the bar for this one. What do you need?",
-    "A": "An A-rank in Riften. Even the Thieves Guild knows better than to pick your pockets. Business?",
-    "S": "An S-rank in the Bee and Barb. Even the Black-Briars will mind their manners. Business?"
-   },
    "stampedFirst": "There. Riften's mark, on your card. Show it to the merchants. A few might take less off you than they take off everyone else.",
-   "cardHandIn": { "alive": "A guild card that isn't yours, and you're handing it in? In Riften? I'll see it gets back to them.", "dead": "Dead. I'll close their page and send word to their kin. One less honest blade in the Rift.", "fallen": "One of yours. I'm sorry. I'll see to the ledger and the letter. Talen, drinks for this table. On the house.", "worn": "No name I can read. I'll send it on to the Adventurers Guild. It didn't deserve the canal.", "drinks": true },
-   "stamped": "There. Riften's mark, on your card. You earned it, which is more than most in this city can say.",
-   "replaceStamped": "Lost, or lifted? Here's a new one. Riften's daggers are on it already. Nobody can lift what you've earned.",
+   "cardHandIn": {
+    "dead": "Dead. I'll close their page and send word to their kin. One less honest blade in the Rift.",
+    "fallen": "One of yours. I'm sorry. I'll see to the ledger and the letter. Talen, drinks for this table. On the house.",
+    "worn": "No name I can read. I'll send it on to the Adventurers Guild. It didn't deserve the canal.",
+    "drinks": true
+   },
    "replace": "Lost, or lifted? In Riften it's usually lifted. Here's a new one. Keep it somewhere your purse isn't."
   },
   {
-   "npc": "TalenJei", "businessExtra": ["You have returned safely. That pleases me. What does the adventurer need?", "One moment. There. The drinks can wait, and you have my full attention."],
+   "npc": "TalenJei",
+   "businessExtra": [
+    "One moment. There. The drinks can wait, and you have my full attention."
+   ],
    "city": "Riften",
    "inn": "the Bee and Barb",
    "successor": {
@@ -222,28 +218,26 @@
    "registerAsk": "You wish to join the Adventurers Guild? That is good. There is a small fee, as is the custom.",
    "register": "Welcome to the Adventurers Guild. Here is your guild card. Keerava kept this counter with care. I will do the same.",
    "business": "Guild business? Of course. I am at your service.",
-   "businessByRank": {
-    "C": "You return. It is good to see a familiar face at this counter. What do you need?",
-    "B": "A B-rank adventurer. You honor the Bee and Barb. How may I serve you?",
-    "A": "An A-rank, in Riften. I will mix you something special. It is on the house.",
-    "S": "An S-rank adventurer. The Hist itself must have guided you here. Ask anything of me."
-   },
    "promoteAsk": "Allow me to consult the ledger. Yes. You have earned your next rank. There is the Guild's fee, and then it is yours.",
    "promote": "Congratulations. I have updated your guild card. Keerava would have been pleased.",
    "about": [
-    "This was Keerava's counter. I keep it in her memory, as I keep the Bee and Barb.",
-    "In Riften, not every job is posted on a board. The Adventurers Guild's work is honest. That is rarer here than it should be.",
-    "The Rift is full of bears, bandits and worse. An adventurer with a clear head lives longer. I will say no more about the mead."
+    "In Riften, not every job is posted on a board. The Adventurers Guild's work is honest. That is rarer here than it should be."
    ],
    "stampedFirst": "It is done. Riften's daggers are on your card. Show it to the merchants here. Some may ask a fairer price of you.",
-   "cardHandIn": { "alive": "A guild card, and you return it. That is honest. I will see that it reaches its owner.", "dead": "Then they are gone. I will close the ledger and send word to their family. Thank you for carrying it here.", "fallen": "One of your own. I am sorry for your loss. I will see to the ledger. Please, sit. These drinks are on the house.", "worn": "The name cannot be read. I will send it to the Adventurers Guild. It should not be left in the mud.", "drinks": true },
-   "stamped": "It is done. Riften's daggers are on your card. You have done this hold much good.",
-   "replaceStamped": "Here is another. I have stamped Riften's mark on it again. That, at least, no thief can take.",
-   "replace": "You have lost your guild card? In Riften, check your pockets twice. Here is another.",
-   "away": "Not here. I keep the Adventurers Guild's counter at the Bee and Barb. Find me there."
+   "cardHandIn": {
+    "dead": "Then they are gone. I will close the ledger and send word to their family. Thank you for carrying it here.",
+    "fallen": "One of your own. I am sorry for your loss. I will see to the ledger. Please, sit. These drinks are on the house.",
+    "worn": "The name cannot be read. I will send it to the Adventurers Guild. It should not be left in the mud.",
+    "drinks": true
+   },
+   "replace": "You have lost your guild card? In Riften, check your pockets twice. Here is another."
   },
   {
-   "npc": "Kleppr", "businessExtra": ["An adventurer! Good, good. Frabbi, watch the bar. No? Fine. I'll do both.", "Step over here by the hearth, friend. The stone carries every word in this city."],
+   "npc": "Kleppr",
+   "businessExtra": [
+    "An adventurer! Good, good. Frabbi, watch the bar. No? Fine. I'll do both.",
+    "Step over here by the hearth, friend. The stone carries every word in this city."
+   ],
    "city": "Markarth",
    "inn": "the Silver-Blood Inn",
    "register": "Welcome to the Guild. Your card, friend. Mind the Silver-Bloods, they own this inn and the Guild's rent too.",
@@ -252,24 +246,24 @@
    "promote": "Congratulations. Your guild card's updated. Wear the new rank carefully in this city.",
    "about": [
     "The Reach is Forsworn country. The Guild pays well out here, because not everyone comes back.",
-    "Anything you hear in Markarth, the Silver-Bloods heard first. Remember that.",
-    "We lost a lot of good adventurers to the wars. The ones left are the stubborn kind. That's the kind I like."
+    "Anything you hear in Markarth, the Silver-Bloods heard first. Remember that."
    ],
    "registerAsk": "Joining the Guild? Welcome, friend. Quietly now, this is the Silver-Bloods' inn. There's a small fee to sign on.",
-   "businessByRank": {
-    "C": "You're making a name for yourself, friend. Carefully, now. What is it?",
-    "B": "A veteran. The Silver-Bloods have noticed you. Let's keep this quiet.",
-    "A": "One of the Guild's finest, in Markarth. The Silver-Bloods are nervous. I rather like it. What is it?",
-    "S": "An S-rank, here. Thonar himself asked if you'd drink with him. Business first?"
-   },
    "stampedFirst": "There. Markarth's ram, on your card. Show it at the stalls, not to the Silver-Bloods. A merchant might charge you less for it.",
-   "cardHandIn": { "alive": "Someone's guild card? Good, good. I'll get it back to them before anyone asks questions. Thank you.", "dead": "Dead? In the Reach, I'm not surprised. I'll strike the name and write to the family. Quietly.", "fallen": "One of yours. I'm sorry, friend. I'll handle the ledger. Here, drinks for your people. On the house. Don't tell Frabbi.", "worn": "I can't read it. Half of what's found in the Reach is like that. I'll send it on to the Adventurers Guild.", "drinks": true },
-   "stamped": "There. Markarth's ram, on your card. Don't wave it at the Silver-Bloods.",
-   "replaceStamped": "There, a new one, with Markarth's ram stamped back on. Quietly, now.",
+   "cardHandIn": {
+    "dead": "Dead? In the Reach, I'm not surprised. I'll strike the name and write to the family. Quietly.",
+    "fallen": "One of yours. I'm sorry, friend. I'll handle the ledger. Here, drinks for your people. On the house. Don't tell Frabbi.",
+    "worn": "I can't read it. Half of what's found in the Reach is like that. I'll send it on to the Adventurers Guild.",
+    "drinks": true
+   },
    "replace": "Lost your card? In Markarth that's the least of what people lose. There, a new one."
   },
   {
-   "npc": "ValgaVinicia", "businessExtra": ["Oh, you're back! And upright. Lovely. What can I do for you, dear?", "Is it business, dear? Good. It's been all funerals and no news in here today."],
+   "npc": "ValgaVinicia",
+   "businessExtra": [
+    "Oh, you're back! And upright. Lovely. What can I do for you, dear?",
+    "Is it business, dear? Good. It's been all funerals and no news in here today."
+   ],
    "city": "Falkreath",
    "inn": "the Dead Man's Drink",
    "register": "Welcome to the Guild. Here's your card. Falkreath has more graves than guests, so try not to add to them.",
@@ -277,25 +271,26 @@
    "promoteAsk": "Let's see if the ledger has you marked for promotion or the graveyard. Promotion! Good for you. Pay the fee and I'll write it in.",
    "promote": "Congratulations! Your guild card's updated. And you're still breathing. Rare, for Falkreath.",
    "about": [
-    "Half the missives in Falkreath end at the graveyard. The other half end there later.",
-    "The woods are thick with wolves and worse. Bring back proof of the hunt, and the Guild pays.",
-    "Falkreath's cemetery is full of adventurers from the Great War. The Guild never forgets them."
+    "Half the missives in Falkreath end at the graveyard. The other half end there later."
    ],
    "registerAsk": "Signing on with the Guild? Brave of you. Falkreath will keep you busy. There's just a small fee first.",
    "businessByRank": {
-    "C": "Still breathing? Good for you. What's the business?",
-    "B": "You've outlived most of the adventurers who drank here. Sit down. What do you need?",
-    "A": "A-rank, and still breathing. Falkreath's never seen the like. What do you need?",
-    "S": "An S-rank. The undertaker's going to be disappointed. What can I do for you?"
+    "B": "You've outlived most of the adventurers who drank here. Sit down. What do you need?"
    },
    "stampedFirst": "There you are, dear. Falkreath's stag, on your card. Show it at the shops. Folk here might give you a better price.",
-   "cardHandIn": { "alive": "Oh, somebody's guild card. I'll see they get it back, dear. They'll be so pleased.", "dead": "Oh. Another for the graveyard, then. I'll close the ledger and write to their family. Thank you, dear.", "fallen": "Oh, one of yours. I'm so sorry, dear. Falkreath knows that grief. I'll see to the ledger. These are on the house, all of them.", "worn": "I can't read the name, dear. I'll send it to the Adventurers Guild all the same. Someone may be waiting on it.", "drinks": true },
-   "stamped": "There you are, dear. Falkreath's stag, on your card. Earned above ground, too.",
-   "replaceStamped": "No harm done. Here's a new card, dear, and I've put Falkreath's stag back on it.",
+   "cardHandIn": {
+    "dead": "Oh. Another for the graveyard, then. I'll close the ledger and write to their family. Thank you, dear.",
+    "fallen": "Oh, one of yours. I'm so sorry, dear. Falkreath knows that grief. I'll see to the ledger. These are on the house, all of them.",
+    "worn": "I can't read the name, dear. I'll send it to the Adventurers Guild all the same. Someone may be waiting on it.",
+    "drinks": true
+   },
    "replace": "Oh, you've lost it? No harm done. Here's a new card, dear."
   },
   {
-   "npc": "Jonna", "businessExtra": ["You came back out of the marsh. Not everybody does. What do you need, adventurer?", "It's a quiet night, same as every night. I've got all the time you want."],
+   "npc": "Jonna",
+   "businessExtra": [
+    "You came back out of the marsh. Not everybody does. What do you need, adventurer?"
+   ],
    "city": "Morthal",
    "inn": "the Moorside Inn",
    "register": "Welcome to the Guild! Here's your card. Morthal's lucky to have you.",
@@ -303,25 +298,27 @@
    "promoteAsk": "Let me check the ledger. Morthal doesn't see many rise this far, but you have. There's a small fee, then it's official.",
    "promote": "Congratulations! I've updated your guild card. Morthal's proud of you, even if it won't say so.",
    "about": [
-    "Things come out of the marsh fog that don't belong in any bestiary. The Guild pays well for every one of them.",
-    "Ever since Hroggar's house burned, people have been whispering. Vampires, some say.",
-    "There used to be more of you. The war, and then, people just stopped coming back. Be careful out there."
+    "Things come out of the marsh fog that don't belong in any bestiary. The Guild pays well for every one of them."
    ],
    "registerAsk": "The Guild? Out here? Well, Morthal could certainly use the help. There's a small fee to join.",
    "businessByRank": {
-    "C": "You've been busy out there, haven't you? Morthal notices. What is it?",
-    "B": "Our veteran's back! The whole town's safer for it. What do you need?",
-    "A": "Morthal's own hero, back at my counter. What can I do for you?",
-    "S": "An S-rank, in Morthal. I never thought I'd see the day. What can I do for you?"
+    "C": "You've been busy out there, haven't you? Morthal notices. What is it?"
    },
    "stampedFirst": "There. Morthal's mark, on your card. Show it to the shopkeepers. They might ask less of someone who's done this town some good.",
-   "cardHandIn": { "alive": "A guild card? Let me keep it safe. I'll see it gets back to whoever lost it.", "dead": "Gone, then. I'll mark the ledger and send word to their people. Morthal has lost enough, but thank you for bringing it.", "fallen": "One of yours? I'm sorry. Truly. I'll take care of the ledger. Sit down, all of you. The drinks are on the house.", "worn": "The marsh has eaten the name off it. I'll send it to the Adventurers Guild anyway.", "drinks": true },
-   "stamped": "There. Morthal's mark, on your card. This town owes you more than a stamp, but it's what I have.",
-   "replaceStamped": "Here's a new card, and Morthal's mark is on it again. The marsh can't have that one.",
+   "cardHandIn": {
+    "dead": "Gone, then. I'll mark the ledger and send word to their people. Morthal has lost enough, but thank you for bringing it.",
+    "fallen": "One of yours? I'm sorry. Truly. I'll take care of the ledger. Sit down, all of you. The drinks are on the house.",
+    "worn": "The marsh has eaten the name off it. I'll send it to the Adventurers Guild anyway.",
+    "drinks": true
+   },
    "replace": "Lost in the marsh, I'd wager. Half of Morthal's belongings are. Here's a new card."
   },
   {
-   "npc": "Thoring", "businessExtra": ["Adventurer. Good. Karita's songs can wait, and so can the dishes. What is it?", "You've come in off the ice with something on your mind. Let's hear it."],
+   "npc": "Thoring",
+   "businessExtra": [
+    "Adventurer. Good. Karita's songs can wait, and so can the dishes. What is it?",
+    "You've come in off the ice with something on your mind. Let's hear it."
+   ],
    "city": "Dawnstar",
    "inn": "the Windpeak Inn",
    "register": "There, you're in. Here's your guild card. Nobody sleeps in Dawnstar lately anyway, might as well work.",
@@ -330,16 +327,9 @@
    "promote": "Congratulations. Your guild card's updated. Maybe now you'll sleep better than the rest of us.",
    "about": [
     "The Pale's all ice and mines and giants. Miners post more work than anyone.",
-    "And the nightmares. Everyone in town's having them. If the Guild can fix that, I'll pay the bounty myself.",
-    "Fewer adventurers every year. The wars, and worse. Glad you're here."
+    "And the nightmares. Everyone in town's having them. If the Guild can fix that, I'll pay the bounty myself."
    ],
    "registerAsk": "Joining the Guild? Good. Dawnstar needs all the help it can get. Just the fee, and you're in.",
-   "businessByRank": {
-    "C": "You've done good work around here. Karita's even written a verse about it. What is it?",
-    "B": "A veteran, here in Dawnstar. The miners will be glad to hear it. Go on.",
-    "A": "One of the Guild's best, in Dawnstar. The Pale's lucky to have you. Go on.",
-    "S": "An S-rank. At my counter. Nobody in Dawnstar's going to believe me. What do you need?"
-   },
    "afterQuest": {
     "quest": "DA16",
     "_comment": "Waking Nightmare (Vaermina's nightmares on Dawnstar): once it is completed, these replace the lines that talk about them.",
@@ -348,18 +338,24 @@
     "promote": "Congratulations. Your guild card's updated. Drinks are on the house, now that we're all sleeping again.",
     "about": [
      "The Pale's all ice and mines and giants. Miners post more work than anyone.",
-     "The nightmares are over, thank the gods. Now it's just the giants and the cold.",
-     "Fewer adventurers every year. The wars, and worse. Glad you're here."
+     "The nightmares are over, thank the gods. Now it's just the giants and the cold."
     ]
    },
    "stampedFirst": "There. Dawnstar's star, on your card. Show it around the shops. Some of them might go easier on your purse.",
-   "cardHandIn": { "alive": "Someone's guild card. I'll get it back to them. One less thing to lose sleep over.", "dead": "Dead. I'll close their page and send the letter. I've written too many of those.", "fallen": "One of your own. I'm sorry. I'll see to the ledger. Karita, drinks for these adventurers. On the house.", "worn": "I can't read a name on it. I'll send it on to the Adventurers Guild. Somebody should.", "drinks": true },
-   "stamped": "There. Dawnstar's star, on your card. You've earned some rest. Wish I could stamp that too.",
-   "replaceStamped": "It happens. Here's a new one, and Dawnstar's star is back on it. The ledger remembers.",
+   "cardHandIn": {
+    "dead": "Dead. I'll close their page and send the letter. I've written too many of those.",
+    "fallen": "One of your own. I'm sorry. I'll see to the ledger. Karita, drinks for these adventurers. On the house.",
+    "worn": "I can't read a name on it. I'll send it on to the Adventurers Guild. Somebody should.",
+    "drinks": true
+   },
    "replace": "Lost your card? It happens. Here's a new one, and the ledger still knows your name."
   },
   {
-   "npc": "Dagur", "businessExtra": ["A customer and an adventurer, both at once! That's a busy day in Winterhold. What do you need?", "Come and warm up first. Then you can tell me what the Adventurers Guild can do for you."],
+   "npc": "Dagur",
+   "businessExtra": [
+    "A customer and an adventurer, both at once! That's a busy day in Winterhold. What do you need?",
+    "Come and warm up first. Then you can tell me what the Adventurers Guild can do for you."
+   ],
    "city": "Winterhold",
    "inn": "the Frozen Hearth",
    "register": "Welcome to the Guild! Your card. The counter's the only thing in Winterhold still standing that isn't the College.",
@@ -367,25 +363,24 @@
    "promoteAsk": "Haran, where did we put that book? Ah, you've earned a promotion! The Guild just wants its fee first.",
    "promote": "Congratulations! Your guild card's updated. Most exciting thing to happen here since the Collapse.",
    "about": [
-    "Winterhold was a great city once, before the Collapse. Now it's the College and my inn.",
-    "Mages post the strangest missives. Ice wraith teeth, frost salts, things from the ruins.",
-    "The Guild's not what it was before the war. It could be again, with the right people."
+    "Mages post the strangest missives. Ice wraith teeth, frost salts, things from the ruins."
    ],
    "registerAsk": "Want to join the Guild? Winterhold could use some excitement. There's a small fee to sign you up.",
-   "businessByRank": {
-    "C": "Back again? The mages keep asking whether you're free. What is it?",
-    "B": "A veteran in Winterhold. Most exciting thing since the Collapse. What do you need?",
-    "A": "One of the Guild's best, in Winterhold. The College keeps asking after you. What do you need?",
-    "S": "An S-rank, here. Even the Arch-Mage will want to meet you. How can I be of service?"
-   },
    "stampedFirst": "There! Winterhold's crown, on your card. Show it to the merchants. There aren't many, but they might charge you less.",
-   "cardHandIn": { "alive": "Somebody's guild card! Wonderful, I'll see it gets back to them. That's the most business I've had all week.", "dead": "Oh. That's a shame. I'll mark the ledger and write to their family. Winterhold knows about losing people.", "fallen": "One of yours? I'm sorry, friend. I'll take care of the ledger. Haran! Drinks for everyone here. On the house.", "worn": "No name left on it. The cold does that. I'll send it to the Adventurers Guild all the same.", "drinks": true },
-   "stamped": "There! Winterhold's crown, on your card. Not many earn that. Not many try.",
-   "replaceStamped": "Here's another, friend, and Winterhold's crown is stamped on it again. That part didn't vanish.",
+   "cardHandIn": {
+    "dead": "Oh. That's a shame. I'll mark the ledger and write to their family. Winterhold knows about losing people.",
+    "fallen": "One of yours? I'm sorry, friend. I'll take care of the ledger. Haran! Drinks for everyone here. On the house.",
+    "worn": "No name left on it. The cold does that. I'll send it to the Adventurers Guild all the same.",
+    "drinks": true
+   },
    "replace": "Lost your card? Things have a way of vanishing in Winterhold. Here's another, friend."
   },
   {
-   "npc": "DLC2RRGeldisSadri", "businessExtra": ["A job done, and a story to go with it. That's my favorite kind of customer.", "Let me finish pouring this. There. Now, what does the adventurer need from Geldis?"], "businessByRankExtra": {"S": "Do you know what an S-rank adventurer does for a cornerclub's trade? Neither do I. You're the first. Let's find out."},
+   "npc": "DLC2RRGeldisSadri",
+   "businessExtra": [
+    "A job done, and a story to go with it. That's my favorite kind of customer.",
+    "Let me finish pouring this. There. Now, what does the adventurer need from Geldis?"
+   ],
    "city": "Raven Rock",
    "inn": "the Retching Netch",
    "register": "I know everyone in Raven Rock, and they know me. Now they'll know you too. It's in the ledger. Take your guild card, adventurer.",
@@ -393,29 +388,22 @@
    "promoteAsk": "Sit. I want to read this page properly. Azura knows I've poured for people who did less and bragged more. The Adventurers Guild takes its fee, and I get to write in the new letter.",
    "promote": "There. I've changed the letter on your guild card. I've changed it in the story I tell about you, too.",
    "about": [
-    "Councilor Morvayn wouldn't hear of the Adventurers Guild for years. Then the ash spawn came over the Bulwark, and he sent Adril to my bar with a pen.",
-    "There's no missive board here. People with a problem tell their barkeep, and their barkeep tells an adventurer. It's an older system.",
-    "Names come over from Windhelm on the Northern Maiden. Adventurers the mainland says are on their way. I keep a second page for the ones who never walk through my door. It's longer than I'd like."
+    "There's no missive board here. People with a problem tell their barkeep, and their barkeep tells an adventurer. It's an older system."
    ],
    "whenGlobal": {
     "global": "AG_MissivesSolstheimGlobal",
     "about": [
-     "Councilor Morvayn wouldn't hear of the Adventurers Guild for years. Then the ash spawn came over the Bulwark, and he sent Adril to my bar with a pen.",
-     "There's a missive board up by Morvayn Manor now. Half of Raven Rock still tells their barkeep first, and their barkeep tells an adventurer. It's an older system.",
-     "Names come over from Windhelm on the Northern Maiden. Adventurers the mainland says are on their way. I keep a second page for the ones who never walk through my door. It's longer than I'd like."
+     "There's a missive board up by Morvayn Manor now. Half of Raven Rock still tells their barkeep first, and their barkeep tells an adventurer. It's an older system."
     ]
    },
    "registerAsk": "You want to sign with the Adventurers Guild in Raven Rock? Most people who land here are trying to leave. I like you already, outlander. There's a fee. There's always a fee.",
-   "businessByRank": {
-    "C": "The Redoran Guard asked me who you were. I told them C-rank adventurer, and they stopped asking. What do you need?",
-    "B": "Captain Veleth reads my ledger now, did you know? He stops at your page. B-rank. What'll it be?",
-    "A": "I've started telling people an A-rank adventurer drinks here. It's good for business. Don't make a liar of me.",
-    "S": "I've got a story about an S-rank adventurer who walked into my cornerclub. True story, friend. I'm still in the middle of it."
-   },
    "stampedFirst": "House Redoran's mark, on your card. Show it to Raven Rock's traders. Some will take a little off for a face the town can vouch for.",
-   "cardHandIn": { "alive": "A guild card with someone else's name? There's a story in that. I'll see it finds its owner.", "dead": "Ah. Then this is where their story ends. I'll close the ledger and send word to their kin. I'll tell it kindly.", "fallen": "One of yours, sera? I am sorry. I'll see to the ledger. Sit. The sujamma is on the house, and we'll drink to them.", "worn": "No name I can read. Ash does that. I'll send it on to the Adventurers Guild, and wonder whose it was.", "drinks": true },
-   "stamped": "House Redoran's mark, on your card. Now that's a story I'll be telling at this bar.",
-   "replaceStamped": "Then it's the fee. Here, and I've pressed the Redoran mark on it again. The story of how you earned it, I kept.",
+   "cardHandIn": {
+    "dead": "Ah. Then this is where their story ends. I'll close the ledger and send word to their kin. I'll tell it kindly.",
+    "fallen": "One of yours, sera? I am sorry. I'll see to the ledger. Sit. The sujamma is on the house, and we'll drink to them.",
+    "worn": "No name I can read. Ash does that. I'll send it on to the Adventurers Guild, and wonder whose it was.",
+    "drinks": true
+   },
    "replace": "A lost guild card always comes with a story, and I collect those. No? Then it's the fee, and I'll make one up for you."
   }
  ],
@@ -428,18 +416,6 @@
    ],
    "line": "Guild business goes through Hulda. She's the Guild's rep here.",
    "whileAlive": "Hulda"
-  },
-  {
-   "npcs": [
-    "Mikael"
-   ],
-   "whenDead": "Hulda",
-   "whileAlive": "Ysolda",
-   "unlessInFaction": {
-    "ref": "Skyrim.esm|0x01A69A",
-    "faction": "JobInnkeeperFaction"
-   },
-   "line": "I got the inn, but Ysolda got the Guild gig. Go find her if you have Guild business."
   },
   {
    "npcs": [
@@ -487,13 +463,6 @@
   },
   {
    "npcs": [
-    "Karita"
-   ],
-   "whenDead": "Thoring",
-   "line": "Father kept the Adventurers Guild's counter. I'm working on my certification, I am. One day this will be the finest counter in Skyrim. Until then, you'll want another hold."
-  },
-  {
-   "npcs": [
     "Haran"
    ],
    "whenDead": "Dagur",
@@ -520,7 +489,8 @@
    "npcs": [
     "Orgnar"
    ],
-   "line": "Guild business goes to the Bannered Mare in Whiterun. Hulda's the Guild's rep. Half a day north."
+   "line": "Guild business goes to one of the city inns. The Bannered Mare in Whiterun is the nearest one from here.",
+   "lineHall": "Guild business? Up the hill. They've a whole hall for it."
   },
   {
    "npcs": [
@@ -551,7 +521,7 @@
    "npcs": [
     "Iddra"
    ],
-   "line": "You want Windhelm for that. Candlelight Hall keeps the Guild's counter."
+   "line": "No Guild counter in Kynesgrove. Ask in Windhelm."
   },
   {
    "npcs": [
@@ -569,18 +539,44 @@
    "npcs": [
     "AmbarysRendar"
    ],
-   "line": "The Guild keeps its counter at Candlelight Hall. Nords prefer their business kept among Nords."
+   "line": "The Guild keeps its counter at Candlehearth Hall. Nords prefer their business kept among Nords."
   }
  ],
  "_generic": "Any other innkeeper, including ones added by other mods (anyone in JobInnkeeperFaction), unless they are travelling with the player as a follower.",
  "generic": "The Adventurers Guild keeps its counters in the hold capitals, near the missive boards. You won't find one out here.",
+ "genericHall": "No Guild counter here. Try the guild hall in Riverwood, or an inn in one of the hold capitals.",
  "_stampKeepers": "Hold stamps (1.5.0). 'stamped' on a liaison: what she says, unasked, as her counter closes after she has stamped the card (an Idle line the DLL has her say, locked by AG_StampSayGlobal). 'replaceStamped': her reply to the replacement request when her hold's stamp is earned (the new card is stamped at once). stampKeepers: whoever takes over an inn whose counter closed with its liaison keeps the liaison's stamp and puts it on a card on request, nothing else; 'of' is the dead liaison. The DLL marks the keeper (AG_StampDueFaction) while the stamp is earned, not on the card, and the card is in hand.",
  "stampKeepers": [
-  { "npc": "Frabbi", "of": "Kleppr", "city": "Markarth", "lineFirst": "Kleppr's stamp? Under the bar, with the rest of his clutter. There. Markarth's ram. Show it at the stalls, someone might charge you less. That's all I do for the Adventurers Guild, mind.", "line": "Kleppr's stamp? It's under the bar. There. Markarth's ram, on your card. That is all I do for the Adventurers Guild." },
-  { "npc": "Karita", "of": "Thoring", "city": "Dawnstar", "lineFirst": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star. Show it at the shops. Father said it was worth more than the ink.", "line": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star." },
-  { "npc": "Haran", "of": "Dagur", "city": "Winterhold", "lineFirst": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card. Show it to the merchants. They might ask a little less of you.", "line": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card." },
-  { "npc": "Lurbuk", "of": "Jonna", "city": "Morthal", "lineFirst": "Jonna left me the inn, and the stamp. There! Morthal's mark! Show it to the merchants. Sometimes they give a better price. I asked. Many times.", "line": "Jonna left me the inn, and the stamp. Some say I am better with the stamp than the lute. There! Morthal's mark!" },
-  { "npc": "Narri", "of": "ValgaVinicia", "city": "Falkreath", "lineFirst": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag. Show it around the shops. A merchant might be sweeter to you for it.", "line": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag, and it suits you." }
+  {
+   "npc": "Frabbi",
+   "of": "Kleppr",
+   "city": "Markarth",
+   "line": "Kleppr's stamp? It's under the bar. There. Markarth's ram, on your card. That is all I do for the Adventurers Guild."
+  },
+  {
+   "npc": "Karita",
+   "of": "Thoring",
+   "city": "Dawnstar",
+   "line": "Father's stamp. I couldn't bring myself to put it away. Hold your card flat. There. Dawnstar's star."
+  },
+  {
+   "npc": "Haran",
+   "of": "Dagur",
+   "city": "Winterhold",
+   "line": "Dagur's stamp is still here. He'd want it used. There, Winterhold's crown, on your card."
+  },
+  {
+   "npc": "Lurbuk",
+   "of": "Jonna",
+   "city": "Morthal",
+   "line": "Jonna left me the inn, and the stamp. Some say I am better with the stamp than the lute. There! Morthal's mark!"
+  },
+  {
+   "npc": "Narri",
+   "of": "ValgaVinicia",
+   "city": "Falkreath",
+   "line": "Valga's stamp? I kept it. Come closer, this needs a steady hand. There. Falkreath's stag, and it suits you."
+  }
  ],
  "_cardHandIn": "Other adventurers' guild cards (1.5.0, MemberCards.cpp). On a liaison, cardHandIn: her reply when cards are handed in at the counter, by the weightiest of them (AG_CardCaseGlobal: 1 the owner lives, 2 is dead, 3 fell as one of the player's party, 4 only worn cards); drinks = whether she stands the party a round for the third.",
  "_prompts": "What the player says.",
@@ -590,25 +586,48 @@
   "_orcsPrompt": "The player's line at an Orc stronghold, in both places it appears. Only rank A and up are offered it, so it says so: being 'with the Guild' is not what gets anyone past this gate.",
   "orcsPrompt": "I'm a high-rank adventurer. (Show Guild Card)",
   "college": {
-   "E": ["The Adventurers Guild? May I see your card?", "Newly stamped, I see. Forgive me, I took you for another sightseer. The Adventurers Guild vouches for its own, and that will serve in place of a test."],
-   "other": ["The Adventurers Guild? May I see your card?", "A ranked adventurer. Forgive me. I should not ask you to prove yourself on a doorstep."]
+   "E": [
+    "The Adventurers Guild? May I see your card?",
+    "Newly stamped, I see. Forgive me, I took you for another sightseer. The Adventurers Guild vouches for its own, and that will serve in place of a test."
+   ],
+   "other": [
+    "The Adventurers Guild? May I see your card?",
+    "A ranked adventurer. Forgive me. I should not ask you to prove yourself on a doorstep."
+   ]
   },
   "treasury": "Oh, you're with the Adventurers Guild! I'm so sorry, I didn't realize. The Silver-Bloods hold the lease on your counter, so that's family business. Head right in.",
   "orcs": "That card says you have bled for your rank, outlander. Malacath honors strength that is proven. You are no Orc, but you have earned a place at our fire. Enter.",
-  "orcVoices": ["MaleOrc", "FemaleOrc"],
+  "orcVoices": [
+   "MaleOrc",
+   "FemaleOrc"
+  ],
   "_added": "riften: the north gate guard, in place of '(Persuade)' for a member whose Speech would not pass it. whiterun: the gate guard, in the place of the Riverwood line for a member Riverwood did not send. robber: the roadside thief, in place of '(Intimidate)' by Guild rank alone, B backs off, A and S beg; 'voices' are the voice types the encounter can use.",
-  "riften": ["The Adventurers Guild? Show me your card.", "Huh. That's the real thing. Sorry. Forget I said anything about a tax, adventurer. Let me get that gate unlocked."],
-  "whiterun": ["Adventurers Guild? Let's see your card, then.", "Stamped and sealed. Beg your pardon, adventurer. My orders are to keep strangers out, not the Adventurers Guild. Go on in."],
+  "riften": [
+   "The Adventurers Guild? Show me your card.",
+   "Huh. That's the real thing. Sorry. Forget I said anything about a tax, adventurer. Let me get that gate unlocked."
+  ],
+  "whiterun": [
+   "Adventurers Guild? Let's see your card, then.",
+   "Stamped and sealed. Beg your pardon, adventurer. My orders are to keep strangers out, not the Adventurers Guild. Go on in."
+  ],
   "robber": {
    "prompt": "You're robbing a ranked adventurer of the Adventurers Guild. Walk away.",
    "B": "A ranked adventurer? Right. Wrong traveler. No harm done, eh? On your way.",
    "AS": "Gods, I didn't know! I've heard what your kind does to giants. Please, I'm sorry. Don't kill me!",
-   "voices": ["MaleNord", "MaleKhajiit", "MaleArgonian", "MaleDarkElf", "FemaleDarkElf"]
+   "voices": [
+    "MaleNord",
+    "MaleKhajiit",
+    "MaleArgonian",
+    "MaleDarkElf",
+    "FemaleDarkElf"
+   ]
   }
  },
  "prompts": {
   "register": "I'd like to register with the Adventurers Guild.",
   "business": "I have guild business.",
+  "counter": "Let me see the counter.",
+  "rankings": "Could I see the party rankings?",
   "promote": "I'd like to apply for promotion.",
   "about": "What's Guild work like around here?",
   "registerPay": "Here's the fee. (<Global=AG_RegisterFee> gold)",

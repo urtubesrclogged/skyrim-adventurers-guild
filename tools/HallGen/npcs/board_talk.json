@@ -1,0 +1,44 @@
+{
+ "_comment": "The party leaderboard in the Guild talk (tools/hall-private/npcs/drafting/board_approved.json). Each node is a new choice under an existing node of guild_talk.json ('under'), built in its own ID block after Caralion's quest so no recorded line moves. says: NPC -> spoken parts.",
+ "nodes": [
+  {
+   "id": "LBW2",
+   "under": "W4",
+   "prompt": "Who were the Frostbitten?",
+   "says": {
+    "AGHallGuildMaster": [
+     "They were the best of us. They'd go where no one else would, in snow up to their chests, and come back laughing.",
+     "I heard they played no small part in reclaiming the imperial city during the war, but in the end, they never came home."
+    ]
+   }
+  },
+  {
+   "id": "LBM0",
+   "under": "M0",
+   "prompt": "What about adventuring parties?",
+   "says": {
+    "AGHallAssistant": [
+     "A leaderboard of every party registered with the Guild, ranked by renown.",
+     "A party's reputation comes from their work: cleared dungeons, missives, notices, and bounties, and creatures worth mentioning.",
+     "I update the sheet regularly myself, so it is accurate."
+    ]
+   }
+  },
+  {
+   "id": "LBC0",
+   "under": "C5a",
+   "prompt": "What about other parties in Skyrim?",
+   "says": {
+    "AGHallClerkDay": [
+     "Every party registered with the Guild is on a leaderboard next to the counter, ranked by renown.",
+     "A few are out on the roads right now but others broke apart when the civil war started.",
+     "Take a look and see how your own party compares if you're in one."
+    ],
+    "AGHallClerkEvening": [
+     "Every one of them is ranked by Merila on her leaderboard. You can find it near the windows by my counter.",
+     "I know them all by heart. The legendary Frostbitten are my favorite..."
+    ]
+   }
+  }
+ ]
+}

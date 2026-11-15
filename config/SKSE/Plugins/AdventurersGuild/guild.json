@@ -16,7 +16,7 @@
 
 	"_promotion": "Promotion to rank N needs guild Reputation >= reputation[N] AND the level of that rank. Reputation is standing: earned from missives, dungeon reports and kills, never spent. The levels are not set here: they follow the level of rank S (MCM > System > Level for rank S; [Ranks] in AdventurersGuild.ini for a new game), the same table that ranks threats, dungeons and other adventurers, so a rank-X adventurer is at least a rank-X threat. Apply at any innkeeper once eligible.",
 	"promotion": {
-		"reputation": [0, 100, 300, 700, 1500, 3000]
+		"reputation": [0, 150, 550, 1400, 2800, 5000]
 	},
 
 	"_party": "Adventuring parties (docs/PARTIES.md). fee: gold to found a party at a counter. maxMembers: companions besides the player, at most 9 (a party is never more than 10, however many followers a follower mod allows). nameMaxLength: characters in a party name. bondTiers: the Bond (0-100, averaged over active members) at which Strangers, Companions, Comrades, Sworn and Legend start.",
@@ -24,8 +24,13 @@
 	"party": { "fee": 100, "maxMembers": 9, "nameMaxLength": 32, "bondTiers": [0, 15, 35, 60, 85],
 		"bond": { "perFieldHour": 0.06, "maxTickHours": 0.5, "kill": [0.05, 0.1, 0.2, 0.35, 0.5, 0.8], "bigKill": 3, "killDailyCap": 5,
 			"dungeon": [1, 1.5, 2, 3, 4, 5], "missive": [1, 1.5, 2.5, 4, 5, 6], "diminish": 150 },
-		"_renown": "How far the party's name travels (SkyrimNet: who has heard of it). Points: 3 per dungeon cleared and per missive, 5 per great beast or boss, 0.2 per kill, 1 per day in the field together. At renown[0] NPCs everywhere know the party's name ('talked about in the holds'); at renown[1] it is famous across Skyrim. Guild reps and the party's own members always know it.",
-		"renown": [15, 60] },
+		"_renown": "How far the party's name travels (SkyrimNet: who has heard of it). Points (as balanced in 2.0): 3 per dungeon cleared but 1 per outdoor camp (bandit, giant, Forsworn), 3 per missive, notice or Jarl's bounty, 5 per dragon or giant, 0.2 per kill but 0.1 per wildlife (mammoths too), 1 per day in the field together: about 8.4 an hour with the party along. At renown[0] (about 10 hours) NPCs everywhere know the party's name ('talked about in the holds'); at renown[1] (about 45 hours) it is famous across Skyrim. Guild reps and the party's own members always know it.",
+		"renown": [85, 380] },
+
+	"_leaderBoard": "The Guild Hall's leader board (2.0): every party ranked by renown points (as party.renown counts them). The parties still climbing are paced by the player's own party (the Renown of the best party they have registered), not the calendar: none moves until the player has a party. Each: start (its Renown before that), share (what it gains for each point the player's party gains) or catchAt (the player's Renown at which the player catches it exactly; it sets the share), and cap (it never climbs past it: below the top three, the Cold Hearth's 433). unseen: the two active parties the player never meets, in order (the Grey Lanterns, Stormbringers). rival: Caralion's Golden Hand; its Renown freezes when his quest ends him.",
+	"leaderBoard": {
+		"unseen": [ { "start": 289, "share": 0.25, "cap": 407 }, { "start": 143, "share": 0.2, "cap": 331 } ],
+		"rival": { "start": 121, "catchAt": 300, "cap": 419 } },
 
 	"_conduct": "What costs Reputation. Only what the holds know: when your bounty in a hold RISES the Guild hears of it and takes repPerBountyGold of Reputation for each gold of it (0.1: a 40 gold assault costs 4, a 1000 gold murder 100). A rise too small to cost a whole point is carried over to the next, so many petty thefts cost what one theft of the same total does. A crime nobody witnessed costs nothing. While you have a bounty anywhere, promotion is on hold; paying it or serving the time lifts that. A rank is never taken away, but Reputation can fall below what the next promotion needs. abandonShare: giving up or failing a missive or notice you TOOK costs this share of the Reputation it would have paid. bountyFeePercent (1.5.0): the Guild's fee on top of the bounties when you pay them all at a counter (Services > Bounties); no jail, and stolen goods are kept.",
 	"conduct": { "repPerBountyGold": 0.1, "abandonShare": 0.5, "bountyFeePercent": 5 },
@@ -58,7 +63,7 @@
 
 	"_dungeonMerit": "Paid for reporting a cleared dungeon, by the dungeon's threat rank (once per dungeon per save, quest or not).",
 	"dungeonMerit": { "E": 5,  "D": 10, "C": 20, "B": 30, "A": 40,  "S": 50 },
-	"dungeonRep":   { "E": 10, "D": 20, "C": 40, "B": 70, "A": 110, "S": 170 },
+	"dungeonRep":   { "E": 8, "D": 15, "C": 30, "B": 55, "A": 65, "S": 100 },
 	"_dungeonGold": "Gold the Guild pays for the same report.",
 	"dungeonGold": { "E": 50, "D": 100, "C": 175, "B": 275, "A": 400, "S": 600 },
 	"_intelMerit": "Merit to buy a dungeon's location at the counter (Services > Intel), by its threat rank. Only dungeons at or below the player's guild rank are listed.",

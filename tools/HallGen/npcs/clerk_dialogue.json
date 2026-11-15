@@ -1,0 +1,275 @@
+{
+	"_comment": "The Guild Hall clerks' lines. npcgen builds them into the hall's plugin: one player topic, 'I have guild business.' (AG's own prompt), and each clerk's reply opens the Guild counter (AG_TIF_GuildBusiness -> AG_Native.ActionOpenCounter), so it shows the hall's view. business = the plain line (ranks E-D, and any rank without its own line); extra = any rank; byRank = the player's rank. Keys are stable: they pin each line's INFO ID, which names its voice file.",
+	"prompt": "I have guild business.",
+	"clerks": {
+		"AGHallClerkDay": {
+			"business": "Hello, hello! Come for more work, or are you ready to hand a job in?",
+			"extra": [
+				"Good to see you. Now then, what are we doing today?",
+				"Welcome back! What can I do for you, I'm all ears."
+			],
+			"byRank": {
+				"C": "There's a familiar face. Got a report for me or a trophy to sell?",
+				"B": "One of my favourites! How can I help you today?",
+				"A": "Pride of the hall, as ever. What can I do for you?",
+				"S": "Skyrim's finest adventurer at my counter. How can the Guild help you?"
+			}
+		},
+		"AGHallClerkEvening": {
+			"business": "Welcome! Looking for something? I'll help however I can.",
+			"extra": [
+				"Of course! Something to hand in, or a new job?",
+				"It's nice to see you again. What can I help with?"
+			],
+			"byRank": {
+				"C": "Hello again! You're a welcome sight. How can I help?",
+				"B": "Welcome back! I'll be quick, I promise. How can I help?",
+				"A": "Oh! It's you! Right, yes. What can I do for you?",
+				"S": "Oh, welcome back! It's an honor, truly. Please let me know what I can do for you."
+			}
+		}
+	},
+	"_topics": "The clerks' guild business at the hall counter (2.0): register, promote, card replacement and card hand-in, as the innkeepers' (AG config/dialogue.json), built by npcgen into AGHallClerkTopicRegister/RegisterPay/RegisterLater, Promote/PromotePay/PromoteLater, Replace and CardHandIn, in their own ID block. registerAsk / promoteAsk name the fee; register / promote are said once it is paid (they act: AG's DLL registers or promotes); *Later answer Not now.; *Nofee when the player has not the gold; replace acts (a new card) and does not end the conversation; cardHandIn:<case> by AG_CardCaseGlobal (alive 1, dead 2, fallen 3, worn 4). cardHandIn:<editor ID>: her own line for one of the hall folk she knew (Willem and the five residents), when that dead or fallen member's card comes in (AGHallCardOwnerGlobal, set by AG's DLL).",
+	"topics": {
+		"AGHallClerkDay": {
+			"registerAsk": "Ah, a recruit! I do love this part. There's just the Guild's fee, and then we'll get you your card.",
+			"register": "There. Your guild card, and welcome to the Adventurers Guild. I'm Margot by the way, it's a pleasure to meet you. Be safe out there and if you come back with a story, I'll want every word of it.",
+			"registerLater": "No rush. The Guild isn't going anywhere.",
+			"registerNofee": "Not quite enough coin. Bring the full amount and we'll do it properly.",
+			"promoteAsk": "I've heard what you've been up to, you know. And from the sounds of it, the rank's yours. There's only the fee first.",
+			"promote": "It's done. Here's your updated card, and I'll be telling people about this one. Congratulations!",
+			"promoteLater": "Fair enough. You've earned it and the promotion will be here when you're ready.",
+			"promoteNofee": "Short of coin? It happens. Come back with the fee, and we'll see it done.",
+			"replace": "Lost to a troll, or to a card game? Never mind. Here's a new one.",
+			"replaceNofee": "I'd love to, but the Guild charges for a new card. Bring me enough gold and I'll issue you a replacement.",
+			"cardHandIn:alive": "Thank you. They'll be glad to have this back, and a little embarrassed.",
+			"cardHandIn:dead": "I'll take it, and thank you. We'll try to let their family know as well.",
+			"cardHandIn:fallen": "Oh, no. I'm sorry. Leave it with me. Their kin will be told if you haven't already let them know yourself. Your fallen party member will be remembered here.",
+			"cardHandIn:worn": "Worn right through. Still, I know most of our people by now. I'll try to work out whose it was.",
+			"cardHandIn:AGHallGuildMaster": "Willem's card. Give it to me, please. Whoever writes his name in the book, it should be me.",
+			"cardHandIn:AGHallResidentVeteran": "Marius's. He came home from a war, and from every job after it. I'll write this one in my best hand.",
+			"cardHandIn:AGHallResidentRanger": "Ylva's. She took the hunts no one else would. I'll see her pay goes where she'd want it, if I can work out where that is.",
+			"cardHandIn:AGHallResidentOrc": "Ghrulek's. It'll be a quiet hall without him. Someone else will have to buy the rounds now, and nobody will do it as loudly.",
+			"cardHandIn:AGHallResidentScout": "Zhasim's. He knew every road in Skyrim. I'll ask Merila to mark the last one he walked.",
+			"cardHandIn:AGHallResidentNoble": "Caralion's. I won't pretend I'll miss him. But I'll write it in the book properly, the same as anyone's."
+		},
+		"AGHallClerkEvening": {
+			"registerAsk": "Really? Oh, good! There's just a small fee to sign you on. Is that all right?",
+			"register": "Done! Your very own guild card. Here you go. Oh, I'm so glad for you. Good luck, welcome to the guild, and be careful.",
+			"registerLater": "Of course. Come back any time, really.",
+			"registerNofee": "Oh. It's the fee, I'm afraid. I'm sorry. Can you come back with enough to cover it?",
+			"promoteAsk": "Yes! Yes, you've earned it. It only needs the fee, and I'll update your card.",
+			"promote": "There! Your new card. Congratulations, truly. Thank you for letting me be the one to do it.",
+			"promoteLater": "Take your time! It's yours whenever you want it.",
+			"promoteNofee": "I wish I could waive it, I really do. Come back when you have the fee?",
+			"replace": "Here you are, a fresh card. Any stamps will need doing again, I'm sorry. Come back if you ever need another one.",
+			"replaceNofee": "I can't without the fee, and I hate saying no. When you have it, I'll make one.",
+			"cardHandIn:alive": "Oh, they must be missing this. Thank you. I'll see they get it.",
+			"cardHandIn:dead": "I'm sorry. Thank you, thank you for not leaving this out there. I'll see their family knows.",
+			"cardHandIn:fallen": "Oh by the gods, they were in your party weren't they?... I'm so sorry. Please, let me take care of it. You've done enough.",
+			"cardHandIn:worn": "Poor thing, it's been through a lot. I'll ask around; someone here might know whose it was. Thanks for bringing it in.",
+			"cardHandIn:AGHallGuildMaster": "That's Willem's. He's the one who took me on... I'm sorry. I need a moment before I can write it down.",
+			"cardHandIn:AGHallResidentVeteran": "Marius? He told me my footwork was a disgrace, every single time. I'm going to miss that.",
+			"cardHandIn:AGHallResidentRanger": "Ylva... No. She was the best of all of them. I'm going to keep practising. Somebody has to.",
+			"cardHandIn:AGHallResidentOrc": "Ghrulek? He was always so loud. I don't know what the hall sounds like without him.",
+			"cardHandIn:AGHallResidentScout": "Zhasim's? He always made me laugh. Even on the late shift. Especially then.",
+			"cardHandIn:AGHallResidentNoble": "Caralion's? I never liked him. I still didn't want this. I'll see it's written down."
+		}
+	},
+	"_replies": "The clerks' replies to \"I have guild business.\": one of three at random, then the counter opens. With them, the clerks' business / extra / byRank lines become her greeting when the player clicks on her during her shift (npcgen: AGHallClerkTopicHello).",
+	"replies": {
+		"AGHallClerkDay": [
+			"Right, to business.",
+			"There. The counter is all yours.",
+			"Let's get started then."
+		],
+		"AGHallClerkEvening": [
+			"Just a moment... there.",
+			"Here, take your time.",
+			"Gladly. Let me get everything."
+		]
+	},
+	"_voiceTypes": "A voice type of the clerk's own (Margot first, as a test): her takes live under it (move_voice.py), and vanilla's generic lines reach her in her own voice (vanilla_lines.json).",
+	"voiceTypes": {
+		"AGHallClerkDay": "AGHallMargotVoice",
+		"AGHallClerkEvening": "AGHallEliseVoice"
+	},
+	"_greetings": "Her own click greetings off shift (helloOff) and to someone not yet a member (helloNew), and her goodbyes, in place of vanilla's. A walk-by still gets vanilla's walk-by hellos, in her voice.",
+	"greetings": {
+		"AGHallClerkDay": {
+			"helloOff": [
+				"Hello, you. Something on your mind?",
+				"I'm off duty, but I don't mind talking with you.",
+				"Hey there. How are you doing?"
+			],
+			"helloNew": [
+				"Hello! Here to join, or just passing through?",
+				"Not a member yet, are you? The Guild's always recruiting."
+			],
+			"goodbye": [
+				"Off you go, then. Good luck and stay safe out there!",
+				"Mind the roads.",
+				"Good hunting, Adventurer.",
+				"Come back in one piece."
+			]
+		},
+		"AGHallClerkEvening": {
+			"helloOff": [
+				"Oh! Sorry, I was miles away. Hello.",
+				"Hello! It's nice to see you away from the counter. Have you been anywhere exciting recently?",
+				"I'm not working right now, but ask me anything you like."
+			],
+			"helloNew": [
+				"Thinking of joining the guild? I'd love to sign you up.",
+				"Oh, hello! You look like an adventurer. Come to join?"
+			],
+			"goodbye": [
+				"Good luck! I mean it.",
+				"Be careful, please.",
+				"Tell me everything next time you're back!",
+				"Mara keep you safe!"
+			]
+		}
+	},
+	"_about": "The clerks' answers to AG's own 'What's Guild work like around here?' at the hall: one of three at random.",
+	"about": {
+		"AGHallClerkDay": [
+			"Better than High Rock, I'll tell you that. In Wayrest it was all escort work. Here? Barrows, giants, trolls. Proper adventuring.",
+			"Busy! Draugr at Dustman's Cairn, sabre cats in the hills, giants on the plains. Pick your poison.",
+			"I heard there's a tower crossing, out along the White River where bandits charge a toll to cross the bridge. I'd love one of ours to end that."
+		],
+		"AGHallClerkEvening": [
+			"Bleak Falls Barrow looms right over Riverwood. People ask about it all the time. I tell them to take torches. Lots of torches. Oh and good armor... and weapons of course! And potions too!",
+			"Bandits, mostly. Embershard Mine's full of them, just off the road, and there are more at Halted Stream Camp. Please don't go alone.",
+			"Trolls and frostbite spiders in the hills, and giants out on the plains. I saw one from the road once. It was as big as a house!"
+		]
+	},
+	"_idles": "What each clerk says to herself when the player is in her line of sight, in her waking hours: one of six at random, each waiting four game hours, with a 1% chance a line so she speaks about every four minutes.",
+	"idles": {
+		"AGHallClerkDay": [
+			"Skyrim's next S-rank. Could walk in any time.",
+			"Wayrest was never this lively.",
+			"Somebody's bound to come back with a troll story.",
+			"Now, who's still out on the road?",
+			"Every member's best day, and their worst. I know both.",
+			"Divines watch over the new ones."
+		],
+		"AGHallClerkEvening": [
+			"One day I'll have my own stories to tell.",
+			"So many places I haven't seen.",
+			"Imagine walking into a dragon's lair.",
+			"Next time, I won't freeze up.",
+			"I should practise more.",
+			"I wonder if that story was true."
+		]
+	},
+	"_afterHours": "Off shift, her one answer to 'I have guild business.' (and to a non-member's join): otherClerk while the other clerk works, closed 22-6. Neither opens the counter.",
+	"afterHours": {
+		"AGHallClerkDay": {
+			"otherClerk": "Nessa has the counter now. Go on, she'll look after you.",
+			"closed": "Sorry, not at this hour. The counter opens again at six."
+		},
+		"AGHallClerkEvening": {
+			"otherClerk": "Sorry! I don't start until midday. Margot can help you right now though.",
+			"closed": "We've closed, I'm sorry. Could you come back at six?"
+		}
+	},
+	"_chats": "The counter exchanges: scenes between the clerks while their shifts overlap, 12-16, each at most once a game day. needs: people the exchange names; it plays only while they are alive and in the hall.",
+	"chats": [
+		{
+			"lines": [
+				{
+					"npc": "AGHallClerkDay",
+					"text": "You're hovering again."
+				},
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "Sorry! I just like hearing them come in."
+				},
+				{
+					"npc": "AGHallClerkDay",
+					"text": "I know, love. So do I."
+				}
+			],
+			"needs": []
+		},
+		{
+			"lines": [
+				{
+					"npc": "AGHallClerkDay",
+					"text": "Have you eaten?"
+				},
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "Not yet. Later, I promise."
+				},
+				{
+					"npc": "AGHallClerkDay",
+					"text": "Henriette will have your hide. Go on, I'll mind the counter."
+				}
+			],
+			"needs": [
+				"AGHallCook"
+			]
+		},
+		{
+			"lines": [
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "Caralion called me 'girl' again."
+				},
+				{
+					"npc": "AGHallClerkDay",
+					"text": "Did he, now. Then be very polite to him. It drives him mad."
+				},
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "I'll try."
+				}
+			],
+			"needs": [
+				"AGHallResidentNoble"
+			]
+		},
+		{
+			"lines": [
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "Zhasim showed me a new cave on Merila's map."
+				},
+				{
+					"npc": "AGHallClerkDay",
+					"text": "And now you want to go."
+				},
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "Don't you?"
+				}
+			],
+			"needs": [
+				"AGHallResidentScout"
+			]
+		},
+		{
+			"lines": [
+				{
+					"npc": "AGHallClerkDay",
+					"text": "Straighten up. You're the Guild's face, remember."
+				},
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "Do I look all right?"
+				},
+				{
+					"npc": "AGHallClerkDay",
+					"text": "Lovely, but distracted like your mind is somewhere else."
+				},
+				{
+					"npc": "AGHallClerkEvening",
+					"text": "Oh sorry! You're right, I'm here and focused now!"
+				}
+			],
+			"needs": []
+		}
+	]
+}

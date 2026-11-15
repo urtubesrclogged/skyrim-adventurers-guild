@@ -84,9 +84,11 @@ namespace AG::Names
 			const auto info = Adventurers::Of(actor);
 			const bool covert = info.kind == Adventurers::Kind::kHidden && appraisal >= 3;
 			const bool guild = info.kind == Adventurers::Kind::kMember || info.kind == Adventurers::Kind::kRetired || covert;
-			// translated once (names are formatted every frame): "Lydia (C, retired)"
-			static const std::string kRetired = Loc::T("$AG_Name_Retired", ", retired"), kCovert = Loc::T("$AG_Name_Covert", ", covert");
-			const char* retired = info.kind == Adventurers::Kind::kRetired ? kRetired.c_str() : covert ? kCovert.c_str() : "";
+			// translated once (names are formatted every frame): "Lydia (C, retired)", the hall's own "Willem (A, Guild Master)"
+			static const std::string kRetired = Loc::T("$AG_Name_Retired", ", retired"), kCovert = Loc::T("$AG_Name_Covert", ", covert"),
+				kGuildMaster = Loc::T("$AG_Name_GuildMaster", ", Guild Master");
+			const char* retired = info.kind == Adventurers::Kind::kRetired ? (Adventurers::IsGuildMaster(actor) ? kGuildMaster.c_str() : kRetired.c_str()) :
+				covert ? kCovert.c_str() : "";
 			if (kind == SiteKind::kPrompt) {
 				if (!guild || !g_showGuild.load(std::memory_order_relaxed)) return name;
 				return Intern(std::format("{} ({}{})", name, Letter(info.rank), retired));

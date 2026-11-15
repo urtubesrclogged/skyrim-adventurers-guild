@@ -1,67 +1,38 @@
 #!/usr/bin/env bash
-# Zips the deployed Adventurers Guild mod folder into release/Adventurers Guild <version>.zip, ready to install in
-# any mod manager (the archive root is the Data folder: AdventurersGuild.esp, SKSE/, Scripts/, ...).
-# Run deploy.sh first: this packages exactly what was deployed and tested, minus MO2's own meta.ini.
-#   bash package.sh            (version from project(VERSION) in src/plugin/CMakeLists.txt; or pass one)
-set -e
-R="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[ -f "$R/local.env" ] || { echo "local.env not found: copy local.env.example to local.env and set your paths" >&2; exit 1; }
-while IFS= read -r line || [ -n "$line" ]; do   # KEY=VALUE lines (values may contain spaces); # comments skipped
-	case "$line" in '#'*|'') continue ;; esac
-	export "${line%%=*}=${line#*=}"
-done < "$R/local.env"
-# AG_MOD_DIR (environment) overrides local.env for one run, e.g. to stage a test build outside the mod manager
+# Packages Adventurers Guild as one FOMOD archive, release/Adventurers Guild <label>.zip in the main checkout, for any mod manager:
+#   fomod/          the installer (packaging/fomod: info.xml with the label filled in, and ModuleConfig.xml)
+#   00 Core/        always installed: exactly what deploy.sh puts in an install
+#   01 Guild Hall/  the one option, ticked by default: the hall's build (build/hall), less its build-only files
+#   docs/           installed to Data/docs/Adventurers Guild/: the README, changelog, licences, notices and translator's guide
+# It packages what build.sh last built and deployed (its snapshot, build/build-src, and build/hall), and refuses unless core + hall
+# match the deployed folder you tested (MOD_DIR in local.env, or AG_MOD_DIR) file for file. So: commit, bash build.sh, test, then
+#   bash package.sh [<label>]    (no label: the built version with its pre-release label, project(VERSION) + AG_VERSION_LABEL in
+#                                 CMakeLists.txt, e.g. 2.0.0-alpha.1; a label given must be that, or that and "-<more>" for a test)
+# After packaging, packaging/fomod_check.py reads the archive's installer, works out what each choice installs and checks it.
+set -euo pipefail
+R="$(cd "$(dirname "${BASH_SOURCE[0]}")" && { pwd -W 2>/dev/null || pwd; })"
+source "$R/tools/HallGen/env.sh"   # local.env (the environment wins), HALL_BUILD
+S="$R/build/build-src"
+[ -e "$S/.git" ] || { echo "no build snapshot (build/build-src): run bash build.sh first" >&2; exit 1; }
 M="${AG_MOD_DIR:-${MOD_DIR:?local.env: MOD_DIR is not set}}"
-V="${1:-$(sed -n 's/^project(AdventurersGuild VERSION \([0-9.]*\).*/\1/p' "$R/src/plugin/CMakeLists.txt")}"
-cmp -s "$R/src/plugin/build/AdventurersGuild.dll" "$M/SKSE/Plugins/AdventurersGuild.dll" || { echo "deployed DLL differs from the build - run deploy.sh first" >&2; exit 1; }
-cmp -s "$R/build/esp/AdventurersGuild.esp" "$M/AdventurersGuild.esp" || { echo "deployed ESP differs from the build - run deploy.sh first" >&2; exit 1; }
-mkdir -p "$R/release"
-python - "$M" "$R/release/Adventurers Guild $V.zip" "$R" <<'PY'
-import os, sys, zipfile
-src, out, root = sys.argv[1], sys.argv[2], sys.argv[3]
-n = 0
-# A compiled script's header records where and by whom it was compiled: the source path, the user name and the computer
-# name. None of that may be published, so each .pex goes in with the script's own file name and neutral names instead.
-# (Skyrim .pex: big-endian; magic, version, game, compile time, then three strings of a 16-bit length and the bytes.)
-def scrubbed(path):
-    import struct
-    d = open(path, "rb").read()
-    if d[:4] != bytes.fromhex("fa57c0de"):
-        sys.exit(f"{path}: not a Skyrim .pex")
-    pos = 16
-    for _ in range(3):
-        (k,) = struct.unpack(">H", d[pos:pos + 2])
-        pos += 2 + k
-    name = os.path.basename(path)[:-4].encode() + b".psc"
-    head = b"".join(struct.pack(">H", len(x)) + x for x in (name, b"author", b"build"))
-    return d[:16] + head + d[pos:]
-
-# The DLL names its source files in log lines; CMakeLists.txt trims them to the project, and this refuses a build where
-# any drive path survived (1.6.0 shipped 43 of them before the trim)
-import re
-dll = open(os.path.join(src, "SKSE/Plugins/AdventurersGuild.dll"), "rb").read()
-left = sorted({m.group(0).decode("latin1") for m in re.finditer(rb"\b[A-Za-z]:[/\\][ -~]{3,}", dll)})
-if left:
-    sys.exit("REFUSED - the DLL names this machine's folders:\n  " + "\n  ".join(left[:10]))
-
-with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
-    for dp, _, fs in os.walk(src):
-        for f in sorted(fs):
-            rel = os.path.relpath(os.path.join(dp, f), src).replace("\\", "/")
-            # docs/ comes from the repository below: a mod folder that was itself installed from a release zip holds an
-            # older copy, which went into the 1.4.0 archive twice before this line (once stale)
-            if rel == "meta.ini" or rel.startswith("docs/"):
-                continue
-            if rel.lower().endswith(".pex"):
-                z.writestr(rel, scrubbed(os.path.join(dp, f)))
-            else:
-                z.write(os.path.join(dp, f), rel)
-            n += 1
-    # the translator's guide, the licenses and credits travel with the mod (docs/ at the archive root; not in Data)
-    for f, arc in [("docs/TRANSLATING.md", "docs/TRANSLATING.md"), ("LICENSE", "docs/LICENSE.txt"),
-                   ("EXCEPTIONS.md", "docs/EXCEPTIONS.md"), ("CHANGELOG.md", "docs/CHANGELOG.md"), ("docs/DOWNLOAD_README.txt", "docs/README.txt"),
-                   ("ASSETS.md", "docs/ASSETS.md"), ("THIRD_PARTY_NOTICES.md", "docs/THIRD_PARTY_NOTICES.md")]:
-        z.write(os.path.join(root, f), arc)
-        n += 1
-print(f"{out}: {n} files, {os.path.getsize(out) / 1e6:.1f} MB")
-PY
+[ -d "$M" ] || { echo "the deployed folder $M does not exist" >&2; exit 1; }
+num="$(sed -n 's/^project(AdventurersGuild VERSION \([0-9.]*\).*/\1/p' "$S/src/plugin/CMakeLists.txt")"
+pre="$(sed -n 's/^set(AG_VERSION_LABEL "\(.*\)")$/\1/p' "$S/src/plugin/CMakeLists.txt")"   # (the DLL says $num$pre in its log)
+built="$num$pre"; label="${1:-$built}"
+case "$label" in "$built"|"$built"-*) ;; *) echo "the label $label does not start with the built version $built (src/plugin/CMakeLists.txt)" >&2; exit 1 ;; esac
+source "$R/tools/HallGen/lock.sh"; build_lock "package.sh $label"; trap build_unlock EXIT   # (no build may change the outputs meanwhile)
+commit="$(git -C "$S" rev-parse --short HEAD)"
+echo "== packaging $label from the build of $commit ($(git -C "$S" log -1 --format=%s | cut -c1-70))"
+st="$R/build/package"; rm -rf "$st"; mkdir -p "$st"
+# the core: deploy.sh itself, run on the snapshot's outputs into a staging folder, so the core is what an install gets
+AG_STAGE=1 AG_SRC="$S" AG_MOD_DIR="$st/00 Core" bash "$R/deploy.sh" > "$st/deploy.log" 2>&1 \
+	|| { tail -5 "$st/deploy.log"; echo "PACKAGING STOPPED: staging the core (log: $st/deploy.log)" >&2; exit 1; }
+# the zip goes in the MAIN checkout's release/, whichever folder this runs from: AG is one project, and its releases
+# live in one release folder
+main="$(cd "$(git -C "$R" rev-parse --git-common-dir)/.." && { pwd -W 2>/dev/null || pwd; })"
+mkdir -p "$main/release"
+out="$main/release/Adventurers Guild $label.zip"
+python "$R/packaging/package.py" --stage "$st" --hall "$HALL_BUILD" --deployed "$M" --src "$S" --fomod "$R/packaging/fomod" \
+	--label "$label" --version "$num" --out "$out" || { echo "PACKAGING STOPPED" >&2; rm -f "$out"; exit 1; }
+python "$R/packaging/fomod_check.py" "$out" "$st" || { echo "PACKAGED, BUT THE INSTALLER CHECK FAILED: $out" >&2; exit 1; }
+echo "PACKAGED $out ($commit)"

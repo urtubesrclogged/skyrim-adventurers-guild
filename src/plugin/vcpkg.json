@@ -2,8 +2,10 @@
   "name": "adventurers-guild",
   "version-string": "1.5.1",
   "dependencies": [
+    "clipper2",
     "directxmath",
     "directxtk",
+    "earcut-hpp",
     "fmt",
     "nlohmann-json",
     "rapidcsv",

@@ -4,7 +4,7 @@
 	"_members": "Guild members from the start: anyone who can be a follower or hired. Custom followers usually add PotentialFollowerFaction; ones that don't are caught when they first become your teammate.",
 	"members": { "factions": ["PotentialFollowerFaction", "PotentialHireling", "CurrentHireling", "CurrentFollowerFaction"] },
 
-	"_named": "Named NPCs the Guild has on its books whatever their factions say. npcs = editor IDs (resolved by tools/EspGen). level = the least level they have in game (raised in memory when the game loads, no record is edited), which also sets their rank: 24 is C. retiredWhen = a location, a keyword on it and the value that means they have taken another service (Sinmir is made captain of the guard when the Stormcloaks hold Whiterun: CWOwner 2); until then they are an active member. rank = the Guild rank they START at. One who has travelled with the player holds the higher of it and the rank of their level from then on, and never drops (Uthgerd, D, makes C at level 24); one who never has keeps it. note / retiredNote = a line for their SkyrimNet bio.",
+	"_named": "Named NPCs the Guild has on its books whatever their factions say. npcs = editor IDs (resolved by tools/EspGen). level = the least level they have in game (raised in memory when the game loads, no record is edited), which also sets their rank: 24 is C. retiredWhen = a location, a keyword on it and the value that means they have taken another service (Sinmir is made captain of the guard when the Stormcloaks hold Whiterun: CWOwner 2); until then they are an active member. rank = the Guild rank they START at. One who has travelled with the player holds the higher of it and the rank of their level from then on, and never drops (Uthgerd, D, makes C at level 24); one who never has keeps it. note / retiredNote = a line for their SkyrimNet bio. retired: true = retired whatever the world does (the Guild Hall's Willem and Marius). guildMaster: true = the name label says Guild Master in place of retired (Willem). An npcs entry may be a key, \"Plugin.esp|0x008030\", for a plugin EspGen cannot read as a master (the Guild Hall's own); it is passed through and skipped when that plugin is not loaded.",
 	"named": [
 		{
 			"npcs": ["Sinmir"],
@@ -39,10 +39,50 @@
 			"note": "A sellsword and Guild adventurer who waits for patrons at the Retching Netch in Raven Rock. He calls himself the best swordsman in all Morrowind and takes Guild work when it pays. He grew up in Blacklight, spent years in Windhelm's Gray Quarter, and has had enough of Solstheim's ash."
 		},
 		{
-			"npcs": ["DLC1Gunmar"],
-			"registered": { "year": 188, "month": 10, "day": 3 },
+			"_who": "The Guild Hall's people (2.0): in the hall's own plugin, named by key (EspGen passes Plugin|0xID through).",
+			"npcs": ["AdventurersGuild - Guild Hall.esp|0x008030"],
+			"registered": { "year": 171, "month": 4, "day": 2 },
+			"level": 60,
+			"rank": "A",
+			"retired": true,
+			"guildMaster": true,
+			"retiredNote": "Guild Master of the Adventurers Guild in Skyrim, who reopened its hall above Riverwood; a retired A-rank, one of six of the hall's first company who came home from the Great War. He no longer goes out with adventuring parties and turns down any offer to join one."
+		},
+		{
+			"npcs": ["AdventurersGuild - Guild Hall.esp|0x008040"],
+			"registered": { "year": 170, "month": 9, "day": 11 },
+			"level": 60,
+			"rank": "A",
+			"retired": true,
+			"retiredNote": "A retired A-rank: the sergeant of the Guild Hall's first company in the Great War, who brought home what was left of it. Lives in the hall's attic, done with the road for good: he will not join an adventuring party or follow anyone."
+		},
+		{
+			"npcs": ["AdventurersGuild - Guild Hall.esp|0x00803C"],
+			"registered": { "year": 193, "month": 1, "day": 19 },
+			"level": 40,
 			"rank": "B",
-			"note": "A Nord beast hunter and smith of the Dawnguard who has carried an Adventurers Guild card for years and never gave it up. He hunted trolls and bears on Guild missives before Isran called him back, and still thinks of himself as an adventurer first."
+			"note": "A B-rank ranger from the Pale who lives in the Guild Hall's attic and takes the monster hunts no one else will."
+		},
+		{
+			"npcs": ["AdventurersGuild - Guild Hall.esp|0x00803A"],
+			"registered": { "year": 197, "month": 5, "day": 8 },
+			"level": 24,
+			"rank": "C",
+			"note": "A C-rank Orc warrior who lives in the Guild Hall's attic; half his pay goes home to his stronghold."
+		},
+		{
+			"npcs": ["AdventurersGuild - Guild Hall.esp|0x00803E"],
+			"registered": { "year": 196, "month": 8, "day": 27 },
+			"level": 12,
+			"rank": "D",
+			"note": "A Khajiit scout who sells the Guild the whereabouts of places, and stays a D-rank on purpose."
+		},
+		{
+			"npcs": ["AdventurersGuild - Guild Hall.esp|0x008042"],
+			"registered": { "year": 200, "month": 6, "day": 15 },
+			"level": 24,
+			"rank": "C",
+			"note": "A C-rank who bought his rank with hired swords' deeds, and most members know it; lives in the Guild Hall's best room. He leads his own party, the Golden Hand, and will not join anyone else's."
 		}
 	],
 
@@ -60,7 +100,13 @@
 		{ "npcs": ["Karita"], "whenDead": { "npcs": ["Thoring"] }, "note": "Her father Thoring kept Dawnstar's Adventurers Guild counter at the Windpeak Inn, and it closed when he died. Dawnstar has no Guild counter now; she sends adventurers to another hold capital. The counter's stamp is still behind the bar, though: she will put Dawnstar's crest on the guild card of an adventurer who has earned it, and that is all she does for the Adventurers Guild." },
 		{ "npcs": ["Haran"], "whenDead": { "npcs": ["Dagur"] }, "note": "Her husband Dagur kept Winterhold's Adventurers Guild counter at the Frozen Hearth, and it closed when he died. Winterhold has no Guild counter now; she sends adventurers to another hold capital. The counter's stamp is still behind the bar, though: she will put Winterhold's crest on the guild card of an adventurer who has earned it, and that is all she does for the Adventurers Guild." },
 		{ "npcs": ["Lurbuk"], "whenDead": { "npcs": ["Jonna"] }, "note": "Jonna kept Morthal's Adventurers Guild counter at the Moorside Inn, and it closed when she died. Morthal has no Guild counter now; he sends adventurers to another hold capital. The counter's stamp is still behind the bar, though: he will put Morthal's crest on the guild card of an adventurer who has earned it, and that is all he does for the Adventurers Guild." },
-		{ "npcs": ["Narri"], "whenDead": { "npcs": ["ValgaVinicia"] }, "note": "Valga kept Falkreath's Adventurers Guild counter at Dead Man's Drink, and it closed when she died. Falkreath has no Guild counter now; she sends adventurers to another hold capital. The counter's stamp is still behind the bar, though: she will put Falkreath's crest on the guild card of an adventurer who has earned it, and that is all she does for the Adventurers Guild." }
+		{ "npcs": ["Narri"], "whenDead": { "npcs": ["ValgaVinicia"] }, "note": "Valga kept Falkreath's Adventurers Guild counter at Dead Man's Drink, and it closed when she died. Falkreath has no Guild counter now; she sends adventurers to another hold capital. The counter's stamp is still behind the bar, though: she will put Falkreath's crest on the guild card of an adventurer who has earned it, and that is all she does for the Adventurers Guild." },
+		{ "_who": "The Guild Hall's staff (2.0: they refuse to join a party; Nessa until her quest)", "npcs": ["AdventurersGuild - Guild Hall.esp|0x008034"], "note": "The Guild Hall's barkeeper, not an adventurer: he does not join adventuring parties or travel with anyone." },
+		{ "_who": "The Guild Hall's staff (2.0: they refuse to join a party; Nessa until her quest)", "npcs": ["AdventurersGuild - Guild Hall.esp|0x008038"], "note": "The Guild Hall tavern's server: she does not join adventuring parties or go out on the road with adventurers." },
+		{ "_who": "The Guild Hall's staff (2.0: they refuse to join a party; Nessa until her quest)", "npcs": ["AdventurersGuild - Guild Hall.esp|0x008036"], "note": "The Guild Hall's old cook, long past the road: she does not join adventuring parties or travel with anyone." },
+		{ "_who": "The Guild Hall's staff (2.0: they refuse to join a party; Nessa until her quest)", "npcs": ["AdventurersGuild - Guild Hall.esp|0x008000"], "note": "The Guild Hall's day clerk: her place is behind the counter, and she does not join adventuring parties or go out with adventurers." },
+		{ "_who": "The Guild Hall's staff (2.0: they refuse to join a party; Nessa until her quest)", "npcs": ["AdventurersGuild - Guild Hall.esp|0x00800E"], "note": "The Guild Hall's evening clerk, never yet registered herself: she is not ready to go out with a party, and for now turns down any offer to join one." },
+		{ "_who": "The Guild Hall's staff (2.0: they refuse to join a party; Nessa until her quest)", "npcs": ["AdventurersGuild - Guild Hall.esp|0x008032"], "note": "The Guild Hall's assistant to the Guild Master, who keeps its books and letters: she does not join adventuring parties or travel with adventurers. She welcomes each new member to the hall once and shows them around; the bunk just inside the attic door, by the window, and its chest belong to the player." }
 	],
 
 	"_wanderers": "Adventurers met on the road. They are Guild members with a rank from their level. npcPrefix: the game's own wandering adventurers, every NPC whose editor ID starts so (tools/EspGen lists them). npcMatch (1.5.0): regular expressions on editor IDs, for the adventurers the game leaves dead in its dungeons (dunRebelsCairnAdventurer and the like): fallen members, whose bodies carry their card. names: any other mod's generic (not unique) person whose name has one of these words is one too (Immersive Encounters, Extended Encounters, Wyrmstooth ...), unless it also has one of notNames or they are in one of the 'not' factions. note: the line every wandering adventurer gets in their SkyrimNet bio. Mercenaries, sellswords and hired thugs are deliberately not here: Skyrim has those too.",
@@ -75,7 +121,7 @@
 
 	"_joinOnRecruit": "Followers whose story makes guild membership unlikely until they travel with you. They register when first recruited.",
 	"joinOnRecruit": {
-		"_npcs": "Named NPCs treated the same way (Erik the Slayer is for hire, but only becomes an adventurer when the player takes him along; Frea of the Skaal and Talvas of Tel Mithryn would never sign up on their own). The Dawnguard's followers likewise: Celann was a Vigilant, Durak hunts vampires for his own reasons, Agmaer nearly signed as an E-rank before he heard of the Dawnguard, Ingjard handed her card back when she joined Isran, and Beleval was a bandit. Gunmar, who never stopped being a member, is under named.",
+		"_npcs": "Named NPCs treated the same way (Erik the Slayer is for hire, but only becomes an adventurer when the player takes him along; Frea of the Skaal and Talvas of Tel Mithryn would never sign up on their own). The Dawnguard's followers likewise: Celann was a Vigilant, Durak hunts vampires for his own reasons, Agmaer nearly signed as an E-rank before he heard of the Dawnguard, Ingjard handed her card back when she joined Isran, and Beleval was a bandit.",
 		"npcs": ["HirelingErikTheSlayer", "DLC2Frea", "DLC2Talvas", "DLC1Celann", "DLC1Durak", "DLC1Agmaer", "DLC1Ingjard", "DLC1Beleval"],
 		"factions": [
 			"CompanionsFaction", "PlayerHousecarlFaction",

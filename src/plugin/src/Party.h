@@ -20,15 +20,21 @@ namespace AG::Party
 	std::string Found(std::string a_name, const std::vector<RE::Actor*>& a_founders);
 	std::string Rename(std::string a_name);
 	std::string Disband();
+	std::string DebugSetRenown(float a_target);       // DevBench: the active party's Renown set to this
 	std::string Add(RE::Actor* a_actor);                // an eligible follower (see Eligible)
 	std::string Remove(const std::string& a_key);       // an active member, by Adventurers::StableKey
+	// A follower at the player's side who is not a Guild member, registered at a counter for the registration fee (2.0:
+	// while MCM > Guild Hall registers followers by hand; the counter checks it may register at all)
+	std::string RegisterFollower(RE::Actor* a_actor);
 
 	void OnDeath(RE::Actor* a_actor);                   // Kills' death sink: an active member falls
 
 	// Bond and the party's record (docs/PARTIES.md). Each counts only with a member present (following, loaded, near).
 	void Register();                                    // at kDataLoaded: the field-time tick
-	void OnKill(RE::Actor* a_victim, RE::Actor* a_killer, int a_rank, bool a_big);  // a foe credited to the player's side
-	void OnDungeonCleared(int a_rank);
+	// a foe credited to the player's side. big: a boss or an extra-large foe (Bond's bonus); beast: a dragon or giant
+	// (extra large, not wildlife: Renown's); wild: wildlife, mammoths included (Renown's half kill)
+	void OnKill(RE::Actor* a_victim, RE::Actor* a_killer, int a_rank, bool a_big, bool a_beast, bool a_wild);
+	void OnDungeonCleared(int a_rank, bool a_camp);     // camp: an outdoor camp (bandit, giant, Forsworn): less Renown
 	void OnMissiveCompleted(int a_rank);
 
 	// Bond blessing + Party Traits (traits.json, AG_PartyBlessing): re-evaluated every few seconds and after party changes.
@@ -48,6 +54,9 @@ namespace AG::Party
 	bool           IsFallen(const std::string& a_key);   // fell as a member of one of the player's parties (Adventurers::StableKey)
 	int            LivingActiveCount();                 // active members of the party who are not dead (0 without a party)
 	nlohmann::json CounterData();                       // the counter's Party tab
+	// the leader board's rows of the player's own (LeaderBoard): every party, oldest first, with its name, founded and
+	// disbanded (days passed; disbanded -1 while active) and its Renown points
+	nlohmann::json Standings();
 	std::string    Dump();                              // DevBench
 	// SkyrimNet ag_party(actor): the player's party (name, members, Bond, renown) and this actor's own tie to a party.
 	std::string    SkyrimNetJson(RE::Actor* a_actor);

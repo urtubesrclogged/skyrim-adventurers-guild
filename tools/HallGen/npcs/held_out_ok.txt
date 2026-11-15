@@ -1,0 +1,3 @@
+# Sets of lines npcgen may hold out of a build without stopping the merge (merge_npcs.sh's hold gate, 2026-11-06).
+# One per line: the set's name exactly as the warning prints it before "held out" (e.g. "promotion trials"), a tab, why.
+# Keep this empty unless lines are knowingly waiting for their recordings; take an entry out once they ship.

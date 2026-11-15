@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guild Board</title>
+<!--
+  The Guild Hall's board (2.0): every hold's postings, read and taken in one place. The hall counter's Quests list (its
+  header, sections, filter row, rows and pager, the same CSS and the same data) laid on the board's wood: the oak frame
+  and the plank field are cut from the 3D board's maps (tex/board/, made by the board session's make_ui_tex.py), and
+  each row is a strip of the reader's note paper with its torn edges (tex/board/strip.png), written in ink.
+  Same rules and bridge as counter.html: nothing scrolls (six rows a page, paged), every hit target is >= 52px;
+  data from AdventurersGuild.dll through window.agSetData(json), a notice's full text through window.agDetails(json);
+  buttons call agAction ("details:<id>", "take:<id>") and agClose.
+-->
+<style>
+  :root {
+    --ink: #eadfc4; --muted: #a99c82; --dim: #7d7361; --bronze: #c29a5b; --bronze-dim: rgba(194, 154, 91, 0.38);
+    --iron-hi: #413b33; --iron-lo: #262320; --wax: #8e2b1f; --paper-ink: #3a2c1b; --paper-muted: #6e5a40;
+    --serif: "Palatino Linotype", "Book Antiqua", Palatino, Constantia, Georgia, serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-font-smoothing: antialiased; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: rgba(4, 3, 2, 0.6); font-family: var(--serif); color: var(--ink); }
+  .caps { font-variant: small-caps; letter-spacing: 0.08em; }
+  h1, .sub, nav button, .qsec button, .notice .ti, .notice .pl { padding-top: 4px; margin-top: -4px; }  /* head-room for accents, as counter.html */
+
+  #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  /* the board's oak round everything; the counter's frame line and bronze studs on it */
+  #panel { position: relative; width: 1280px; height: 780px; flex: none; display: flex; flex-direction: column;
+           background: url(tex/board/oak.jpg) center / 1280px auto, #4a3524;
+           border: 2px solid #15130f; outline: 1px solid var(--bronze-dim); outline-offset: -8px;
+           box-shadow: 0 0 80px rgba(0, 0, 0, 0.8), inset 0 0 120px rgba(0, 0, 0, 0.7); }
+  .stud { position: absolute; width: 14px; height: 14px; transform: rotate(45deg); background: var(--bronze); z-index: 3;
+          box-shadow: 0 0 0 2px #15130f, inset 0 0 3px rgba(0, 0, 0, 0.6); }
+  .stud.tl { top: 1px; left: 1px; } .stud.tr { top: 1px; right: 1px; } .stud.bl { bottom: 1px; left: 1px; } .stud.br { bottom: 1px; right: 1px; }
+
+  /* the counter's header and tab strip, on a darkened band of the oak so they read as they do on the counter's stone */
+  .band { background: linear-gradient(rgba(12, 9, 6, 0.72), rgba(12, 9, 6, 0.6)); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); }
+  header { display: flex; align-items: center; gap: 20px; padding: 18px 30px 14px; }
+  .seal { height: 92px; width: auto; flex: none; margin: -4px 0 -10px; }
+  header > div.t { min-width: 0; flex: 1; }
+  h1 { font-size: 29px; font-weight: 400; color: var(--bronze); letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+       text-shadow: 0 2px 0 #000, 0 -1px 0 rgba(255, 235, 190, 0.12); }
+  .sub { font-size: 16px; color: var(--muted); margin-top: 2px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .coin { border: 1px solid var(--bronze-dim); padding: 6px 14px; text-align: center; min-width: 110px; background: rgba(0, 0, 0, 0.28); flex: none; }
+  .coin .k { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .coin .v { font-size: 24px; color: var(--ink); }
+  .btn { font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 20px; color: var(--ink);
+         min-height: 52px; padding: 0 22px; cursor: pointer; white-space: nowrap; flex: none; border: 1px solid var(--bronze-dim);
+         background: linear-gradient(var(--iron-hi), var(--iron-lo));
+         box-shadow: inset 0 1px 0 rgba(255, 235, 190, 0.08), 0 2px 4px rgba(0, 0, 0, 0.6); }
+  .btn:hover { border-color: var(--bronze); color: #fff6df; }
+  .btn[disabled] { opacity: 0.35; cursor: default; border-color: rgba(255, 255, 255, 0.08); }
+  #close { width: 56px; padding: 0; font-size: 26px; font-variant: normal; }
+
+  /* the field: the board's planks, the counter's section buttons along its top, its pager along its foot */
+  #field { position: relative; flex: 1; min-height: 0; margin: 14px 18px 18px; padding: 12px 18px 0;
+           background: url(tex/board/planks.jpg) center / cover; box-shadow: inset 0 0 0 2px #120c07, inset 0 0 50px rgba(0, 0, 0, 0.75); }
+  .bar { display: flex; align-items: center; gap: 10px; height: 52px; margin-bottom: 8px; }
+  .qfilter { display: flex; align-items: center; gap: 10px; height: 52px; }
+  .qhold { min-width: 0; max-width: 300px; overflow: hidden; text-overflow: ellipsis; padding: 0 18px; }
+  .qhold .v { color: var(--bronze); }
+  .qhold.open { border-color: var(--bronze); color: #fff6df; background: linear-gradient(#4d4436, #2c2823); }
+  /* the hold picker: a panel hanging from the Hold button, over the notices (as on the hall counter) */
+  .holdpop { position: absolute; left: 18px; right: 18px; top: 136px; z-index: 4; border: 1px solid var(--bronze); background: rgba(20, 15, 10, 0.97);
+             padding: 12px 16px 16px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8); }
+  .holdpop::before { content: ""; position: absolute; top: -9px; left: 60px; width: 16px; height: 16px; transform: rotate(45deg);
+                     background: rgba(20, 15, 10, 0.97); border-left: 1px solid var(--bronze); border-top: 1px solid var(--bronze); }
+  .holdpop .h { font-size: 16px; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+  .holdgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .holdgrid .btn { height: 62px; font-size: 21px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .holdgrid .btn .n { font-size: 17px; color: var(--muted); font-variant: normal; letter-spacing: 0; }
+  .holdgrid .btn.on { border-color: var(--bronze); color: #fff6df; background: linear-gradient(#4d4436, #2c2823); }
+  .holdgrid .btn.none { color: var(--dim); }
+  .qsec { display: flex; gap: 8px; flex: 0 1 auto; min-width: 0; }
+  .qsec button { font-family: var(--serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 19px; height: 52px; min-width: 52px; white-space: nowrap;
+                 padding: 0 16px; color: var(--muted); background: rgba(12, 9, 6, 0.62); border: 1px solid rgba(194, 154, 91, 0.22); cursor: pointer; }
+  .qsec button.on { color: var(--ink); border-color: var(--bronze); background: rgba(40, 30, 18, 0.78); }
+  .qsec button.r { padding: 0; width: 52px; font-variant: normal; font-size: 21px; }
+  .bar .count { margin-left: auto; font-size: 17px; color: #d8c8a6; font-variant: small-caps; letter-spacing: 0.08em; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+  /* the counter's list, each row on a strip of the note leaf's torn paper (tex/board/strip.png), in ink */
+  .rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .row { position: relative; height: 64px; display: flex; align-items: center; gap: 16px; padding: 0 18px 0 16px; color: var(--paper-ink);
+         filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.85)) drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.5)); }
+  /* the strip behind, mirrored on alternate rows so its marks do not line up down the list */
+  .row::before { content: ""; position: absolute; inset: -2px 0; z-index: -1; background: url(tex/board/strip.png) center / 100% 100% no-repeat; }
+  .row:nth-child(2n)::before { transform: scaleX(-1); }
+  .row:nth-child(3n)::before { transform: scaleY(-1); }
+  .row .tier { width: 44px; height: 44px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 22px;
+               border: 1px solid rgba(58, 44, 27, 0.55); color: var(--paper-ink); background: rgba(90, 66, 36, 0.10); }
+  .row .tier.wax { color: var(--wax); border-color: rgba(142, 43, 31, 0.6); }
+  .row .body { flex: 1; min-width: 0; }
+  .row .title { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 4px; margin-top: -4px; }
+  .row .detail { font-size: 15px; color: var(--paper-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+  .row .detail .j { color: var(--wax); font-style: normal; font-variant: small-caps; letter-spacing: 0.05em; }
+  .empty { margin: 110px auto 0; width: 560px; text-align: center; font-size: 22px; font-style: italic; color: #e2d2b0; text-shadow: 0 2px 3px #000; }
+  .foot { position: absolute; left: 18px; right: 18px; bottom: 0; height: 64px; display: flex; align-items: center; gap: 14px; }
+  .foot #status { flex: 1; min-width: 0; font-size: 17px; font-style: italic; color: #f0dfb8; text-shadow: 0 1px 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .foot .pg { font-size: 18px; color: #d8c8a6; min-width: 120px; text-align: center; text-shadow: 0 1px 2px #000; }
+
+  /* a notice taken down to read: the counter's own leaf, its text in full */
+  #reader { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 18px;
+            background: rgba(6, 4, 2, 0.62); z-index: 5; }
+  #reader.on { display: flex; }
+  .leaf { position: relative; width: 900px; height: 508px; padding: 36px 56px 30px; color: var(--paper-ink);
+          background: url(tex/skin/note.png) center / 100% 100% no-repeat;
+          filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) drop-shadow(2px 8px 10px rgba(0, 0, 0, 0.6)); display: flex; flex-direction: column; }
+  .leaf h3 { font-size: 28px; font-weight: 400; padding-right: 90px; padding-top: 4px; }
+  .leaf .meta { font-size: 16px; color: var(--paper-muted); font-style: italic; margin: 4px 0 16px; }
+  .leaf .text { font-size: 20px; line-height: 1.45; font-style: italic; white-space: pre-line; overflow: hidden; flex: 1; }
+  .leaf .stamp { position: absolute; top: 26px; right: 46px; width: 84px; height: 84px; transform: rotate(-10deg); }
+  .rbar { display: flex; gap: 16px; }
+
+  /* controller / keyboard highlight + button hints (flat Skyrim; never shown in VR), as counter.html */
+  body.pad .padfocus, body.kbnav .padfocus { outline: 3px solid var(--bronze); outline-offset: 2px; color: #fff6df;
+                                             box-shadow: 0 0 14px rgba(194, 154, 91, 0.55); }
+  .padhints { display: none; align-items: center; gap: 16px; flex: none; font-size: 16px; color: #d8c8a6; font-variant: small-caps;
+              letter-spacing: 0.06em; text-shadow: 0 1px 2px #000; }
+  body.pad .padhints { display: flex; }
+  .padhints .key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px;
+                   margin-right: 6px; border: 1px solid var(--bronze); border-radius: 13px; color: var(--ink);
+                   font-size: 14px; font-variant: normal; letter-spacing: 0; background: rgba(0, 0, 0, 0.55); }
+  .padhints .key.sq { border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="panel">
+  <i class="stud tl"></i><i class="stud tr"></i><i class="stud bl"></i><i class="stud br"></i>
+  <div class="band">
+    <header>
+      <img class="seal" src="tex/emblem.png" alt="" />
+      <div class="t"><h1 class="caps" data-t="$AG_UI_GBoardTitle">The Guild Board</h1><div class="sub" id="sub"></div></div>
+      <div class="coin"><div class="k caps" data-t="$AG_UI_GBoardYourRank">Your Rank</div><div class="v" id="rank">-</div></div>
+      <button class="btn" id="close" data-action="close">&#x2715;</button>
+    </header>
+  </div>
+  <section id="field"></section>
+  <div id="reader"></div>
+</div></div>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const PER = 6, RANKS = "EDCBAS";
+/* the player's language, as counter.html: every "$AG_" string the DLL sends; each call carries its English */
+let STR = {};
+function t(key, en, ...args) {
+  const s = STR[key] != null ? STR[key] : en;
+  return args.length ? s.replace(/\{(\d+)\}/g, (m, i) => (args[i] != null ? args[i] : m)) : s;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+window.agStrings = (json) => {
+  try { STR = (typeof json === "string") ? JSON.parse(json) : (json || {}); } catch (e) { STR = {}; }
+  for (const el of document.querySelectorAll("[data-t]")) if (STR[el.dataset.t] != null) el.textContent = STR[el.dataset.t];
+  render();
+};
+
+/* data: the hall counter's own (one source in the DLL for both): { letter, holds: [{ key, name }],
+     postings: [{ id, tier, title, hold, holdName, city, place, sketch? }],   (Missives, every hold)
+     bounties: [{ id, tier, title, hold, holdName, place, state }],          (the Jarls', one a hold; "offer" = posted)
+     newBounty: bool,                                                        ("A new bounty?" can be taken)
+     notices: [{ id, tier, title, place, sketch? }] | null,                  (The Notice Board, province-wide)
+     boards: { missives, notices } }                                        (which sections there are) */
+let data = { letter: "", holds: [], postings: [], bounties: [], notices: null, boards: { missives: true, notices: false } };
+let qsec = "board", qhold = "@all", qrank = "", qsort = "high", holdPick = false, pg = 0, open = null;
+
+function holdName(k) { const h = (data.holds || []).find((x) => x.key === k); return h ? h.name : t("$AG_UI_AllSkyrim", "All Skyrim"); }
+function sections() {
+  const b = data.boards || {};
+  return [{ id: "bounties", name: t("$AG_UI_Bounties", "Bounties"), items: (data.bounties || []).filter((x) => x.state === "offer").map((x) => ({ ...x, kind: "bounty" })), byHold: true },
+          b.missives !== false && { id: "board", name: t("$AG_UI_Missives", "Missives"), items: data.postings || [], byHold: true },
+          b.notices && { id: "notices", name: t("$AG_UI_ProvincialNotices", "Provincial Notices"), items: data.notices || [], byHold: false }].filter(Boolean);
+}
+function rowHtml(p, sec) {
+  /* "A new bounty?": a Jarl's bounty for a hold with none posted, nothing shown before it is
+     taken, as the steward's "I'm looking for work" */
+  if (p.fresh) return `<div class="row"><span class="tier wax">?</span><div class="body"><div class="title">${esc(t("$AG_UI_NewBounty", "A new bounty?"))}</div>
+      <div class="detail"><span class="j">${esc(t("$AG_UI_JarlsBounty", "Jarl's Bounty"))}</span> · ${esc(t("$AG_UI_NewBountyDetail", "for a hold with none posted; the letter tells the rest"))}</div></div>
+    <button class="btn" data-action="newbounty">${esc(t("$AG_UI_Take", "Take"))}</button></div>`;
+  const allHolds = sec.byHold && qhold === "@all";
+  const detail = p.kind === "bounty" ? `<span class="j">${esc(t("$AG_UI_JarlsBounty", "Jarl's Bounty"))}</span> · ${esc(t("$AG_UI_GBoardRowRankHold", "Rank {0} · {1}", p.tier, allHolds ? p.holdName : (p.place || p.holdName)))}`
+    : sec.id === "notices" ? esc(t("$AG_UI_NoticeDetail", "Guild Notice · Rank {0} · posted across the province", p.tier))
+    : !p.city ? esc(t("$AG_UI_HallPostFor", "Guild Missive · Rank {0} · posted for {1}", p.tier, p.holdName)) /* posted in the hall itself */
+    : esc(t("$AG_UI_HallPostDetail", "Guild Missive · Rank {0} · {1} · posted on the {2} board", p.tier, p.holdName, p.city));
+  return `<div class="row"><span class="tier ${p.kind === "bounty" ? "wax" : ""}">${esc(p.tier)}</span><div class="body"><div class="title">${esc(p.title)}</div>
+      <div class="detail">${detail}</div></div>
+    <button class="btn" data-note="${esc(p.id)}">${esc(t("$AG_UI_Details", "Details"))}</button><button class="btn" data-take="${esc(p.id)}">${esc(t("$AG_UI_Take", "Take"))}</button></div>`;
+}
+function render() {
+  $("rank").textContent = data.letter || "-";
+  $("sub").textContent = t("$AG_UI_HallBranch", "Skyrim Region · The Guild Hall");
+  const S = sections();
+  if (!S.some((x) => x.id === qsec)) qsec = S.some((x) => x.id === "board") ? "board" : S[0].id;
+  const sec = S.find((x) => x.id === qsec);
+  let items = sec.byHold && qhold !== "@all" ? sec.items.filter((p) => p.hold === qhold) : sec.items;
+  const have = RANKS.split("").filter((r) => items.some((p) => p.tier === r));
+  if (qrank && !have.includes(qrank)) qrank = "";
+  items = items.filter((p) => !qrank || p.tier === qrank);
+  const rk = (p) => RANKS.indexOf(p.tier || "E");
+  items = items.slice().sort((a, b) => qsort === "high" ? rk(b) - rk(a) : rk(a) - rk(b));
+  const n = items.length;
+  if (sec.id === "bounties" && data.newBounty) items = [{ id: "@new", fresh: true }, ...items];  // first, whatever the filters
+  const pages = Math.max(1, Math.ceil(items.length / PER));
+  pg = Math.min(pg, pages - 1);
+  const shown = items.slice(pg * PER, pg * PER + PER);
+  const bar = `<div class="bar"><div class="qsec">${S.map((x) => `<button data-qsec="${x.id}" class="${x.id === qsec ? "on" : ""}">${esc(x.name)}${x.items.length ? ` (${x.items.length})` : ""}</button>`).join("")}</div>
+    <span class="count">${esc(t("$AG_UI_GBoardPosted", "{0} posted", n))}</span></div>`;
+  const filt = `<div class="qfilter">` +
+    (sec.byHold ? `<button class="btn qhold ${holdPick ? "open" : ""}" data-qpick="1">${esc(t("$AG_UI_HoldPick", "Hold:"))} <span class="v">${esc(holdName(qhold))}</span> ${holdPick ? "&#x25B4;" : "&#x25BE;"}</button>` : "") +
+    `<div class="qsec"><button data-qrank="" class="${qrank ? "" : "on"}">${esc(t("$AG_UI_AllRanks", "All ranks"))}</button>` +
+    have.map((r) => `<button class="r ${qrank === r ? "on" : ""}" data-qrank="${r}">${r}</button>`).join("") + `</div>` +
+    `<div class="qsec"><button data-qsort="1">${esc(qsort === "high" ? t("$AG_UI_SortHigh", "Highest rank first") : t("$AG_UI_SortLow", "Lowest rank first"))}</button></div></div>`;
+  const cnt = (k) => k === "@all" ? sec.items.length : sec.items.filter((p) => p.hold === k).length;
+  const pick = holdPick && sec.byHold ? `<div class="holdpop"><div class="h">${esc(t("$AG_UI_ChooseHold", "Choose a hold to see only its postings."))}</div><div class="holdgrid">` +
+    [{ key: "@all", name: t("$AG_UI_AllSkyrim", "All Skyrim") }, ...(data.holds || [])].map((h) =>
+      `<button class="btn ${h.key === qhold ? "on" : ""} ${cnt(h.key) ? "" : "none"}" data-qhold="${esc(h.key)}"><span>${esc(h.name)}</span><span class="n">${cnt(h.key)}</span></button>`).join("") + `</div></div>` : "";
+  const foot = `<div class="foot"><div id="status"></div>` + (pages > 1 ?
+    `<button class="btn" data-page="-1" ${pg ? "" : "disabled"}>${esc(t("$AG_UI_Prev", "‹ Prev"))}</button>
+     <span class="pg caps">${esc(t("$AG_UI_PageOf", "Page {0} of {1}", pg + 1, pages))}</span>
+     <button class="btn" data-page="1" ${pg < pages - 1 ? "" : "disabled"}>${esc(t("$AG_UI_Next", "Next ›"))}</button>` : "") +
+    `<div class="padhints"><span><span class="key">✚</span>${esc(t("$AG_UI_PadMove", "Move"))}</span><span><span class="key">A</span>${esc(t("$AG_UI_PadSelect", "Select"))}</span>
+      <span><span class="key">B</span>${esc(t("$AG_UI_PadBack", "Back"))}</span><span><span class="key sq">LB</span><span class="key sq">RB</span>${esc(t("$AG_UI_PadTabs", "Tabs"))}</span>` +
+    (pages > 1 ? `<span><span class="key sq">LT</span><span class="key sq">RT</span>${esc(t("$AG_UI_PadPages", "Pages"))}</span>` : "") + `</div></div>`;
+  $("field").innerHTML = bar + filt + (items.length ? `<div class="rows">${shown.map((p) => rowHtml(p, sec)).join("")}</div>`
+       : `<div class="empty">${esc(data.registered === false ? (data.regHallOnly !== false
+                                ? t("$AG_UI_GBoardNotRegHall", "The Guild's work is for registered adventurers. The clerks at the counter here will sign you up.")
+                                : t("$AG_UI_GBoardNotRegAny", "The Guild's work is for registered adventurers. The clerks at the counter here, or any innkeeper, will sign you up."))
+                                                            : t("$AG_UI_GBoardEmpty", "Nothing posted for you here today. Try another hold, or come back after the next courier."))}` +
+           /* Missives posts a hold's work only on its own board, while someone stands at it */
+           (data.registered !== false && sec.id === "board" ? `<br/>${esc(t("$AG_UI_HallBoardEmpty2", "The hall posts each hold's work every few days, and a town's board adds its own when someone stops to read it."))}` : "") + `</div>`) + foot + pick;
+  fitText();
+  renderReader();
+}
+/* a label too long for its tab (a long hold name, another language) steps down to 90% of its size, never smaller (VR
+   legibility); past that its own CSS cuts it with an ellipsis. As counter.html's fitText. */
+function fitText() {
+  for (const el of document.querySelectorAll(".qsec button, .qhold, h1")) {
+    el.style.fontSize = ""; el.style.letterSpacing = "";
+    if (el.scrollWidth <= el.clientWidth) continue;
+    el.style.letterSpacing = "0";
+    const base = parseFloat(getComputedStyle(el).fontSize);
+    for (let k = 0.97; k >= 0.9 && el.scrollWidth > el.clientWidth; k -= 0.01) el.style.fontSize = (base * k) + "px";
+  }
+}
+function find(id) { for (const x of sections()) for (const p of x.items) if (p.id === id) return { p, l: x }; return null; }
+function renderReader() {
+  const r = $("reader");
+  if (!open) { r.classList.remove("on"); r.innerHTML = ""; paint(); return; }
+  const f = find(open.id), p = f ? f.p : open;
+  const meta = [p.holdName, p.place, p.tier ? t("$AG_UI_GBoardRank", "Rank {0}", p.tier) : ""].filter(Boolean).join(" · ");
+  r.innerHTML = `<div class="leaf">${p.tier ? `<img class="stamp" src="tex/board/rank_${esc(p.tier)}.png">` : ""}
+      <h3>${esc(open.title || p.title)}</h3><div class="meta">${esc(meta)}</div>
+      <div class="text">${esc(open.text || "...")}</div></div>
+    <div class="rbar"><button class="btn" data-take="${esc(open.id)}">${esc(t("$AG_UI_Take", "Take"))}</button>
+      <button class="btn" data-action="back">${esc(t("$AG_UI_GBoardBack", "Back to the board"))}</button></div>`;
+  r.classList.add("on");
+  paint();
+}
+
+window.agSetData = (json) => { try { data = (typeof json === "string") ? JSON.parse(json) : json; } catch (e) { return; } render(); };
+/* the board opening (the page stays loaded between reads): the list starts over, on every hold and every rank */
+window.agOpened = () => { qhold = "@all"; qrank = ""; holdPick = false; pg = 0; open = null; };
+window.agDetails = (json) => {
+  let d; try { d = (typeof json === "string") ? JSON.parse(json) : json; } catch (e) { return; }
+  if (open && d && d.id === open.id) { open = d; if (!open.text) open.text = t("$AG_UI_Unreadable", "(The missive's text could not be read.)"); renderReader(); }
+};
+window.agStatus = (text) => { const s = $("status"); if (s) s.textContent = text || ""; };
+let isFlat = false;
+window.agFlat = (v) => { isFlat = !!v; fitPanel(); };
+function fitPanel() {
+  const p = $("panel"), fit = Math.min(innerWidth / p.offsetWidth, innerHeight / p.offsetHeight);
+  let k = Math.min(1, fit);
+  if (isFlat) { const up = Math.min(innerWidth / 1920, innerHeight / 1080); if (up > 1) k = Math.min(up, fit); }
+  p.style.transform = k !== 1 ? `scale(${k})` : "";
+}
+addEventListener("resize", fitPanel);
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-qsec],[data-qpick],[data-qhold],[data-qrank],[data-qsort],[data-page],[data-note],[data-take],[data-action]");
+  if (!b || b.disabled) return;
+  if (b.dataset.qsec) { qsec = b.dataset.qsec; qrank = ""; holdPick = false; pg = 0; open = null; render(); return; }
+  if (b.dataset.qpick) { holdPick = !holdPick; if (holdPick) focusKey = "qhold:" + qhold; render(); return; }
+  if (b.dataset.qhold) { qhold = b.dataset.qhold; holdPick = false; pg = 0; focusKey = "qpick"; render(); return; }
+  if (b.dataset.qrank !== undefined) { qrank = b.dataset.qrank; pg = 0; render(); return; }
+  if (b.dataset.qsort) { qsort = qsort === "high" ? "low" : "high"; pg = 0; render(); return; }
+  if (b.dataset.page) { pg += +b.dataset.page; render(); return; }
+  if (b.dataset.note) { noteReturn = keyOf(b); focusKey = "take:" + b.dataset.note; open = { id: b.dataset.note }; renderReader(); if (window.agAction) window.agAction("details:" + b.dataset.note); return; }
+  if (b.dataset.take) { if (window.agAction) window.agAction("take:" + b.dataset.take); open = null; renderReader(); return; }
+  if (b.dataset.action === "newbounty") { if (window.agAction) window.agAction("newbounty"); return; }
+  if (b.dataset.action === "back") { back(); return; }
+  if (b.dataset.action === "close") { open = null; if (window.agClose) window.agClose(""); }
+});
+
+/* ---------------- controller / keyboard navigation (as counter.html) ----------------
+   PrismaUI hands the page the mouse and keyboard but not a controller, so the DLL forwards the pad's buttons
+   (window.agPad) and says which device was used last (window.agInputMode). A highlight moves between the visible
+   buttons by screen position; the notice being read and the hold panel keep it inside them while they are up.
+   Remembered by a stable key, so it survives re-renders. Arrow keys + Enter do the same. */
+let padOn = false, focusKey = null, noteReturn = null;
+function navOn() { return padOn || document.body.classList.contains("kbnav"); }
+function targets() {
+  const sel = open ? "#reader button" : holdPick ? ".holdpop button, [data-qpick]" : "#close, #field button";
+  return [...document.querySelectorAll(sel)].filter((b) => !b.disabled && b.offsetParent !== null);
+}
+function keyOf(b) {
+  const d = b.dataset;
+  return b.id || d.action || (d.qsec && "qsec:" + d.qsec) || (d.qpick && "qpick") || (d.qhold && "qhold:" + d.qhold) ||
+    (d.qrank !== undefined && "qrank:" + d.qrank) || (d.qsort && "qsort") || (d.page && "page:" + d.page) ||
+    (d.note && "note:" + d.note) || (d.take && "take:" + d.take) || b.textContent.trim();
+}
+function current() { return focusKey ? targets().find((b) => keyOf(b) === focusKey) || null : null; }
+function mark(b) {
+  document.querySelectorAll(".padfocus").forEach((el) => el.classList.remove("padfocus"));
+  if (b) b.classList.add("padfocus");
+}
+function focusFirst() {  // the first notice's Details, else the first button there is
+  const all = targets(), b = all.find((x) => x.dataset.note) || all.find((x) => x.closest(".qsec")) || all[0];
+  focusKey = b ? keyOf(b) : null;
+  mark(b);
+}
+function paint() {  // after a re-render: keep the highlight, or move it to the first button if its target is gone
+  if (!navOn()) { mark(null); return; }
+  const c = current();
+  if (!c) focusFirst(); else mark(c);
+}
+function center(el) { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+function move(dir) {
+  const c = current();
+  if (!c) { focusFirst(); return; }
+  const p = center(c), vert = dir === "up" || dir === "down";
+  let best = null, bestScore = Infinity;
+  for (const b of targets()) {
+    if (b === c) continue;
+    const q = center(b), dx = q.x - p.x, dy = q.y - p.y;
+    const ahead = dir === "up" ? -dy : dir === "down" ? dy : dir === "left" ? -dx : dx;
+    if (ahead <= 4) continue;
+    const score = ahead + 2.5 * (vert ? Math.abs(dx) : Math.abs(dy));
+    if (score < bestScore) { bestScore = score; best = b; }
+  }
+  if (best) { focusKey = keyOf(best); mark(best); }
+}
+function stepSection(d) {  // LB / RB: the sections, as the counter's tabs
+  if (open) return;
+  const S = sections(), i = S.findIndex((x) => x.id === qsec);
+  qsec = S[(i + d + S.length) % S.length].id; qrank = ""; holdPick = false; pg = 0;
+  focusKey = null; render();
+}
+function turnPage(d) {
+  if (open || holdPick) return;
+  const b = document.querySelector('#field .foot button[data-page="' + d + '"]');
+  if (b && !b.disabled) b.click();
+}
+/* B, Escape or Tab steps back: the notice being read, then the hold panel, then the board itself (as the counter) */
+function back() {
+  if (open) { open = null; if (noteReturn) focusKey = noteReturn; renderReader(); }
+  else if (holdPick) { holdPick = false; focusKey = "qpick"; render(); }
+  else if (window.agClose) window.agClose("");
+}
+window.agInputMode = (pad) => {
+  padOn = !!pad;
+  document.body.classList.toggle("pad", padOn);
+  if (padOn) document.body.classList.remove("kbnav");
+  paint();
+};
+window.agPad = (btn) => {
+  if (!padOn) window.agInputMode(true);
+  const dir = btn === "up" || btn === "down" || btn === "left" || btn === "right";
+  if (!current()) { focusFirst(); if (dir || btn === "a") return; }  // the first press only shows where you are
+  if (dir) move(btn);
+  else if (btn === "a") { const c = current(); if (c) c.click(); }
+  else if (btn === "b") back();
+  else if (btn === "lb" || btn === "rb") stepSection(btn === "lb" ? -1 : 1);
+  else if (btn === "lt" || btn === "rt") turnPage(btn === "lt" ? -1 : 1);
+};
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); back(); return; }
+  const dirs = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
+  if (dirs[e.key]) {
+    e.preventDefault();
+    if (!document.body.classList.contains("kbnav")) {
+      document.body.classList.add("kbnav");
+      if (!current()) { focusFirst(); return; }
+    }
+    move(dirs[e.key]);
+  } else if (e.key === "Enter" || e.key === " ") {
+    const c = current();
+    if (c && navOn()) { e.preventDefault(); c.click(); }
+  } else if (e.key === "q" || e.key === "Q") stepSection(-1);
+  else if (e.key === "e" || e.key === "E") stepSection(1);
+});
+document.addEventListener("mousemove", () => {  // the mouse takes over: drop the keyboard highlight
+  if (document.body.classList.contains("kbnav")) { document.body.classList.remove("kbnav"); if (!padOn) mark(null); }
+});
+fitPanel();
+render();
+</script>
+</body>
+</html>

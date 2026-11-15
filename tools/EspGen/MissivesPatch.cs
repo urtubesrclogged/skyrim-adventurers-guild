@@ -25,7 +25,7 @@ static class MissivesPatch
     public const string MissivesVersion = "2.03";  // confirmed via tools/nexus.sh mod 17576
     public static readonly ModKey Missives = ModKey.FromNameAndExtension("Missives.esp");
 
-    // Low=E(0), Med=D(1), High=C(2), VeryHigh=B(3). A and S get no Missives content (decided with the user).
+    // Low=E(0), Med=D(1), High=C(2), VeryHigh=B(3). A and S get no Missives content.
     static readonly Dictionary<string, (int rank, char letter)> TierRank = new()
     {
         ["Low"] = (0, 'E'), ["Med"] = (1, 'D'), ["High"] = (2, 'C'), ["VeryHigh"] = (3, 'B'),

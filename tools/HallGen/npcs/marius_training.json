@@ -1,0 +1,15 @@
+{
+ "_comment": "Marius's training: One-handed and Block to 75 (Expert), Two-handed, Light and Heavy Armor to 50 (Journeyman), no master levels; gold at vanilla's price; Guild members only. The texts come from drafting/marius_approved.json. npcgen builds a top-level choice 'ask' with Marius's reply 'reply' (voiced), then one choice per skill; a skill's reply is his recorded 'Of course.' (pick) and runs AGHallTrainerTIF, which sets the skill and cap on his class (AG_Native.SetTrainerSkill) and opens vanilla's training menu. 'skill' is vanilla's CLAS skill index (0 One-handed, 1 Two-handed, 3 Block, 5 Heavy Armor, 6 Light Armor).",
+ "ask": "Can you train me?",
+ "reply": "Aye, I can. It'll cost you same as any trainer... I'm just able to teach you more things.",
+ "pick": "Of course.",
+ "pickCopyOf": "AGHallResidentVeteran:vanilla:0DBA22",
+ "_pick": "Each skill's reply (a recorded vanilla line that fits): his vanilla 'Of course.' take, copied; then the menu opens.",
+ "skills": [
+  {"choice": "One-handed weapons.", "skill": 0, "max": 75},
+  {"choice": "Two-handed weapons.", "skill": 1, "max": 50},
+  {"choice": "Blocking.", "skill": 3, "max": 75},
+  {"choice": "Light armor.", "skill": 6, "max": 50},
+  {"choice": "Heavy armor.", "skill": 5, "max": 50}
+ ]
+}

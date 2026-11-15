@@ -1,7 +1,8 @@
 {
  "_comment": "Adventurers Guild for CHIM: the Oghma topic and aliases each knowledge-pack entry is filed under (CHIM brings an entry in when the talk names its topic or an alias). Entries the pack gives only to some factions are not listed: CHIM gets those through the speaker's factions instead (chim.json). src/chim/build_dwpkg.py fails on a pack entry that is neither here nor faction-bound.",
  "_guidelines": "Sent with a line only when the talk is about the Guild or someone present holds a guild rank: the few rules of SkyrimNet's guidelines/0511_guild_guidelines.prompt every NPC needs, kept short.",
- "guidelines": "Background only: bring up the Adventurers Guild only when the talk is already about it, or about work, monsters or adventuring. Never steer a conversation toward it, and never announce a character's own rank. The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, spoken of with respect and a little wonder; in Skyrim each hold capital's innkeeper keeps its counter. Say \"the Adventurers Guild\", never just \"the Guild\" (that could mean the Thieves Guild). Only adventurers hold a guild rank, from E (novice) to S (legendary), said as \"a C-rank adventurer\"; S-rank is almost unheard of in Skyrim, and one met on the road is never above A. Higher ranks earn deference. Never state a foe's rank: only the Guild's Appraisal reads those.",
+ "guidelines": "Background only: bring up the Adventurers Guild only when the talk is already about it, or about work, monsters or adventuring. Never steer a conversation toward it, and never announce a character's own rank. The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, spoken of with respect and a little wonder; in Skyrim it has one hall, above Riverwood, and each hold capital's innkeeper keeps a counter. Say \"the Adventurers Guild\", never just \"the Guild\" (that could mean the Thieves Guild). Only adventurers hold a guild rank, from E (novice) to S (legendary), said as \"a C-rank adventurer\"; S-rank is almost unheard of in Skyrim, and one met on the road is never above A. Higher ranks earn deference. Never state a foe's rank: only the Guild's Appraisal reads those.",
+ "guidelinesNoHall": "Background only: bring up the Adventurers Guild only when the talk is already about it, or about work, monsters or adventuring. Never steer a conversation toward it, and never announce a character's own rank. The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, spoken of with respect and a little wonder; in Skyrim it has no hall: each hold capital's innkeeper keeps a counter. Say \"the Adventurers Guild\", never just \"the Guild\" (that could mean the Thieves Guild). Only adventurers hold a guild rank, from E (novice) to S (legendary), said as \"a C-rank adventurer\"; S-rank is almost unheard of in Skyrim, and one met on the road is never above A. Higher ranks earn deference. Never state a foe's rank: only the Guild's Appraisal reads those.",
  "topics": {
   "ag_basics": {
    "topic": "Adventurers Guild",
@@ -23,17 +24,49 @@
    "topic": "Adventurers Guild founding",
    "aliases": "Wayfarers' Hall, Registrar-General"
   },
-  "ag_hall_folk": {
-   "topic": "Guild Hall residents",
-   "aliases": "Willem, Merila Andalen, Margot Belleau, Elise Varnier, Cassius Varro, Brynja, Old Henriette, Ghrulek, Ylva, Zhasim, Marius Crassus, Caralion of Cloudrest"
-  },
   "ag_guild_board": {
    "topic": "Guild Board",
    "aliases": "Guild Hall board, every hold's work"
   },
+  "ag_leader_board": {
+   "topic": "Guild parties' leader board",
+   "aliases": "leader board, party standings, which party leads, Golden Hand's standing"
+  },
   "ag_counters": {
    "topic": "Guild counters",
    "aliases": "Guild counter, Guild reps, innkeeper reps"
+  },
+  "ag_where_registration_hall": {
+   "topic": "Joining the Adventurers Guild",
+   "aliases": "join the Guild, register, sign up, registration fee"
+  },
+  "ag_where_promotion_hall": {
+   "topic": "Guild promotions",
+   "aliases": "promotion, promotion case, next rank"
+  },
+  "ag_where_training_hall": {
+   "topic": "Where the Guild trains",
+   "aliases": "Guild Training, Appraisal, perk training"
+  },
+  "ag_where_boxes_hall": {
+   "topic": "Where Guild Boxes are sold",
+   "aliases": "Guild Box, Blessed Box, Cursed Box"
+  },
+  "ag_where_library_hall": {
+   "topic": "The Guild Library",
+   "aliases": "Guild books, skill books"
+  },
+  "ag_where_tomes_hall": {
+   "topic": "Guild spell tomes",
+   "aliases": "spell tome, Guild tomes"
+  },
+  "ag_where_augments_hall": {
+   "topic": "Where Guild Augments are sold",
+   "aliases": "Guild Augment"
+  },
+  "ag_where_parties_hall": {
+   "topic": "Founding a party",
+   "aliases": "found a party, party registry, disband a party"
   },
   "ag_counter_lost": {
    "topic": "Closed Guild counter",

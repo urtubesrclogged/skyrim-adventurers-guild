@@ -36,13 +36,24 @@ def lore():
     oghma, factions, bad = [], [], []
     for e in pack["entries"]:
         cond = e.get("condition_expr", "").strip()
+        # 2.0, the Guild Hall optional: "<cond> and the hall installed (1) / not (0)". The server sends the set that matches
+        # the game (the state's hallInstalled); "<key>_nohall" takes <key>'s Oghma topic
+        hall_v = None
+        if m := re.fullmatch(r'(?:\((?P<inner>.*)\) and )?get_global_value\("AG_GuildHallInstalledGlobal"\) == (?P<v>[01])', cond):
+            hall_v, cond = int(m.group("v")), (m.group("inner") or "").strip()
+        # 2.0, MCM > Guild Hall: an entry for where something is done, by the global the DLL keeps. CHIM's lore has no
+        # conditions, so it takes the default, the Guild Hall's (== 1), and leaves the inns' twin (== 0) out
+        if hall := re.fullmatch(r'get_global_value\("AG_Hall\w+Global"\) == ([01])', cond):
+            if hall.group(1) == "0":
+                continue
+            cond = ""
         named = re.findall(r'"([^"]+)"', cond)
         if "faction" in cond:
             missing = [f for f in named if f not in chim["factions"]]
             if missing or not re.fullmatch(r'(\s*(or\s+)?(is_in_faction\(actorUUID, "[^"]+"\)|get_faction_rank\(actorUUID, "[^"]+"\) >= 0)\s*)+', cond):
                 bad.append(f"{e['key']}: faction condition not understood or faction not in chim.json ({missing or cond})")
                 continue
-            factions.append({"key": e["key"], "factions": named, "importance": e.get("importance", 0.5), "text": e["content"]})
+            factions.append({"key": e["key"], "factions": named, "importance": e.get("importance", 0.5), "text": e["content"], "hall": hall_v})
             continue
         plugin = ""
         if cond:
@@ -50,14 +61,14 @@ def lore():
                 bad.append(f"{e['key']}: condition not understood or plugin not in chim.json ({cond})")
                 continue
             plugin = named[0]
-        t = topics["topics"].get(e["key"])
+        t = topics["topics"].get(e["key"]) or topics["topics"].get(e["key"].removesuffix("_nohall"))
         if not t:
             bad.append(f"{e['key']}: no Oghma topic in src/chim/topics.json")
             continue
-        oghma.append({"key": e["key"], "topic": t["topic"], "aliases": t["aliases"], "plugin": plugin, "text": e["content"]})
+        oghma.append({"key": e["key"], "topic": t["topic"], "aliases": t["aliases"], "plugin": plugin, "text": e["content"], "hall": hall_v})
     if bad:
         sys.exit("knowledge pack entries CHIM cannot place:\n  " + "\n  ".join(bad))
-    return {"pack": pack["version"], "guidelines": topics["guidelines"], "oghma": oghma, "factions": factions}
+    return {"pack": pack["version"], "guidelines": topics["guidelines"], "guidelinesNoHall": topics["guidelinesNoHall"], "oghma": oghma, "factions": factions}
 
 
 def payload(version_base):

@@ -91,7 +91,8 @@ function agChimState(): ?array
 // Makes CHIM's Oghma hold exactly our entries for this game: the general ones and those of the other mods it has
 // loaded. Only rows tagged as ours are written or removed; a topic someone else already owns is left alone. Oghma is
 // kept per playthrough, so this runs on the first report after every load. Returns a one-line summary.
-function agChimSyncOghma(array $plugins): string
+// hall: whether the game has the Guild Hall (the state's hallInstalled; 2.0, optional): an entry for the other case is left out
+function agChimSyncOghma(array $plugins, bool $hall = true): string
 {
     $db = agChimDb();
     if (!$db) {
@@ -101,6 +102,9 @@ function agChimSyncOghma(array $plugins): string
     $want = [];
     foreach (agChimLore()['oghma'] ?? [] as $e) {
         $needs = (string)($e['plugin'] ?? '');
+        if (isset($e['hall']) && (int)$e['hall'] !== ($hall ? 1 : 0)) {
+            continue;
+        }
         if ($needs === '' || isset($loaded[strtolower($needs)])) {
             $want[strtolower((string)$e['topic'])] = $e;
         }
@@ -181,7 +185,7 @@ function agChimStandingLine(array $state, array $who): string
     return '';
 }
 
-// What a counter keeper (the Guild's liaison) knows of the player's record
+// What a counter keeper (the Guild's liaison or a clerk of the Guild Hall) knows of the player's record
 function agChimRecordLines(array $state, string $player): array
 {
     $led = $state['ledger'] ?? [];
@@ -231,7 +235,7 @@ function agChimRecordLines(array $state, string $player): array
 }
 
 // The knowledge pack's entries for some factions only, for a speaker in one of them; at most two, the most important
-function agChimFactionLore(array $factions): array
+function agChimFactionLore(array $factions, bool $hall = true): array
 {
     if (!$factions) {
         return [];
@@ -239,6 +243,9 @@ function agChimFactionLore(array $factions): array
     $have = array_flip(array_map('strval', $factions));
     $hits = [];
     foreach (agChimLore()['factions'] ?? [] as $e) {
+        if (isset($e['hall']) && (int)$e['hall'] !== ($hall ? 1 : 0)) {
+            continue;
+        }
         foreach ($e['factions'] ?? [] as $f) {
             if (isset($have[(string)$f])) {
                 $hits[] = $e;
@@ -265,22 +272,27 @@ function agChimNearby(array $state): array
 // The CHIM actions (CHIM/adventurersguild_actions.csv, from src/chim/actions.json) the speaker may use on this line, by
 // the same rules as SkyrimNet's actions (their eligibilityRules); the AdventurersGuild.dll checks again when one is used.
 // $me null: the game did not list the speaker, which it does for anyone with no rank, bio line, party tie or listed
-// faction (ChimData Near), so for joining they count as no one in particular.
+// faction (ChimData Near), so for joining they count as no one in particular. A counter is kept by an innkeeper
+// (AG_GuildLiaisonFaction) or a clerk of the Guild Hall (AGHallClerkFaction: SkyrimNet's AG_Hall* actions); while a
+// service is the hall's alone (MCM > Guild Hall, hallOnly in the state), the innkeepers do not offer it.
 function agChimActionsAllowed(?array $state, ?array $me, string $speaker): array
 {
     $led = $state['ledger'] ?? [];
     $registered = !empty($led['registered']);
     $factions = $me['factions'] ?? [];
     $rep = in_array('AG_GuildLiaisonFaction', $factions, true);
+    $clerk = in_array('AGHallClerkFaction', $factions, true);
+    $keeper = $rep || $clerk;
+    $hallOnly = $state['hallOnly'] ?? [];
     $standing = (int)($me['standing'] ?? -1);
     return [
-        'ExtCmdAGChim_OpenCounter' => $rep && $registered,
-        'ExtCmdAGChim_Register'    => $rep && !$registered,
-        'ExtCmdAGChim_Promote'     => $rep && $registered && !empty($led['promotionReady']),
-        'ExtCmdAGChim_Reports'     => $rep && $registered && (int)($led['reportsWaiting']['count'] ?? 0) > 0,
-        'ExtCmdAGChim_ReplaceCard' => $rep && $registered && isset($led['hasCard']) && !$led['hasCard'],
+        'ExtCmdAGChim_OpenCounter' => $keeper && $registered,
+        'ExtCmdAGChim_Register'    => ($clerk || ($rep && empty($hallOnly['registration']))) && !$registered,
+        'ExtCmdAGChim_Promote'     => ($clerk || ($rep && empty($hallOnly['promotion']))) && $registered && !empty($led['promotionReady']),
+        'ExtCmdAGChim_Reports'     => $keeper && $registered && (int)($led['reportsWaiting']['count'] ?? 0) > 0,
+        'ExtCmdAGChim_ReplaceCard' => $keeper && $registered && isset($led['hasCard']) && !$led['hasCard'],
         'ExtCmdAGChim_ShowCard'    => $me !== null && $standing >= 0 && $standing <= 5,
-        'ExtCmdAGChim_Join'        => $state !== null && $speaker !== '' && $speaker !== 'The Narrator' && $standing < 0 && !$rep
+        'ExtCmdAGChim_Join'        => $state !== null && $speaker !== '' && $speaker !== 'The Narrator' && $standing < 0 && !$keeper
             && !in_array('GuardDialogueFaction', $factions, true),
     ];
 }
@@ -333,13 +345,16 @@ function agChimInjectPrompt(): void
         } elseif ($tie >= 10 && isset($party['parties'][$tie - 10])) {
             $own[] = "Once travelled with $player in the adventuring party " . $party['parties'][$tie - 10];
         }
-        if (in_array('AG_GuildLiaisonFaction', $me['factions'] ?? [], true)) {
-            $own[] = "Keeps this hold's Adventurers Guild counter as its licensed liaison: registration, trophies, reports, the Guild's services and cases for promotion";
-            $own[] = "Knows the Guild's record of $player below, but raises it only when $player brings Guild business or asks about it; never brings it up unprompted while serving drinks or chatting";
+        $clerk = in_array('AGHallClerkFaction', $me['factions'] ?? [], true);
+        if ($clerk || in_array('AG_GuildLiaisonFaction', $me['factions'] ?? [], true)) {
+            $own[] = ($clerk ? 'Keeps the counter of the Adventurers Guild Hall as one of its clerks' : "Keeps this hold's Adventurers Guild counter as its licensed liaison")
+                . ": registration, trophies, reports, the Guild's services and cases for promotion";
+            $own[] = "Knows the Guild's record of $player below, but raises it only when $player brings Guild business or asks about it; never brings it up unprompted while "
+                . ($clerk ? 'off shift' : 'serving drinks') . ' or chatting';
             $own = array_merge($own, agChimRecordLines($state, $player));
         }
         if ($guildTalk) {
-            $own = array_merge($own, agChimFactionLore($me['factions'] ?? []));
+            $own = array_merge($own, agChimFactionLore($me['factions'] ?? [], (bool)($state['hallInstalled'] ?? true)));
         }
     }
     if ($own) {
@@ -361,7 +376,7 @@ function agChimInjectPrompt(): void
     }
     $mine = $me && (int)($me['standing'] ?? -1) >= 0 && (int)($me['standing'] ?? -1) <= 15;
     if ($guildTalk || $mine || count($ranks) > (empty($led['registered']) ? 0 : 1)) {
-        $text = (string)(agChimLore()['guidelines'] ?? '');
+        $text = (string)(agChimLore()[($state['hallInstalled'] ?? true) ? 'guidelines' : 'guidelinesNoHall'] ?? '');
         if ($ranks) {
             $text .= "\nAdventurers Guild ranks of those here: " . implode(', ', $ranks) . '.';
         }

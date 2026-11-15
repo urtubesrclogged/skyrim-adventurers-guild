@@ -1,0 +1,1 @@
+static class Props { public static void Run() { foreach (var p in typeof(Mutagen.Bethesda.Skyrim.PlacedObject).GetProperties()) if (System.Text.RegularExpressions.Regex.IsMatch(p.Name, "Own|Persist|Flag|Rank", System.Text.RegularExpressions.RegexOptions.IgnoreCase)) System.Console.WriteLine(p.Name + " : " + p.PropertyType.Name); } }

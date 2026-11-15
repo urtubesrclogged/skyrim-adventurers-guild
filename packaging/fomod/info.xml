@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The installer's mod information. package.sh fills in @VERSION@ (the release label, e.g. 2.0.0-alpha.1) and
+     @MACHINE_VERSION@ (the numbers alone, e.g. 2.0.0). -->
+<fomod>
+	<Name>Adventurers Guild</Name>
+	<Author>urtubesrclogged</Author>
+	<Version MachineVersion="@MACHINE_VERSION@">@VERSION@</Version>
+	<Website>https://github.com/urtubesrclogged/skyrim-adventurers-guild</Website>
+	<Description>A fully fleshed-out adventurers guild for Skyrim. Register at the guild hall, rank up from E to S, take guild quests, sell trophies and lead your own adventuring party. Works in Skyrim VR and Skyrim Special Edition.</Description>
+	<Groups>
+		<element>Gameplay</element>
+	</Groups>
+</fomod>

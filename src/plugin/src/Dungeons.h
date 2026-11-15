@@ -44,12 +44,13 @@ namespace AG::Dungeons
 
 	// Intel service (counter > Services > Intel): uncleared dungeons in the player's hold whose map marker is
 	// still hidden, priced in Merit by threat rank. Buying reveals the marker (Papyrus AddToMap, no fast travel).
-	nlohmann::json IntelServices(int a_merit, bool a_registered);  // Services rows, section "Intel"
+	// a_everyHold is the Guild Hall's counter: every hold's, each row with its counter's "city".
+	nlohmann::json IntelServices(int a_merit, bool a_registered, bool a_everyHold);  // Services rows, section "Intel"
 	std::string    BuyIntel(const std::string& a_id);             // "intel:<FormID hex>" -> status line
 	// Points of Interest (Intel's second tab): places worth knowing that are no dungeon - an Orc stronghold, a standing
 	// stone, a hunters' shack. Found from the game's map markers by icon (so other mods' places count), in categories
 	// with one Merit price each (guild.json "pointsOfInterest"). Nothing to clear, no rank, no notice on entering.
-	nlohmann::json PoiServices(int a_merit, bool a_registered);    // Services rows, section "Intel", group "poi"
+	nlohmann::json PoiServices(int a_merit, bool a_registered, bool a_everyHold);    // Services rows, section "Intel", group "poi"
 	std::string    BuyPoi(const std::string& a_id);                // "poi:<marker FormID hex>" -> status line
 
 	// dev/test (DevBench)

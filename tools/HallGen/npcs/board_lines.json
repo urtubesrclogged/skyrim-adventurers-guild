@@ -1,0 +1,56 @@
+{
+ "_comment": "The party leaderboard's idles and once-lines (tools/hall-private/npcs/drafting/board_approved.json). idles: NPC -> near (game units from AGHallLeaderBoardWriteMarker) and lines, played ahead of the NPC's own idles while that near the board. once: said once, ahead of the NPC's hellos, when the player's party holds 'place' on the board (AG_LB_PlayerPlaceGlobal). late: Marius's (voiced 2026-11-05), made after the others so no recorded line moves; with no idles or hellos of his own they go at the end of those topics. renownAbove: said once when the party's Renown (AG_LB_PartyRenownGlobal) passes that score (433, the Cold Hearth's on the board).",
+ "idles": {
+  "AGHallAssistant": {
+   "near": 150,
+   "lines": {
+    "boardIdle1": "Someone's been busy.",
+    "boardIdle2": "That one's climbing."
+   }
+  },
+  "AGHallResidentNoble": {
+   "near": 150,
+   "lines": {
+    "boardIdle1": "I deserve better than this. I'll talk with them later.",
+    "boardIdle2": "Hedge-born nobodies, all of them."
+   }
+  },
+  "AGHallGuildMaster": {
+   "near": 250,
+   "lines": {
+    "boardIdle1": "Hope they all come home."
+   }
+  }
+ },
+ "once": {
+  "AGHallGuildMaster": {
+   "topOfBoard": {
+    "place": 1,
+    "text": "Your party's at the top of the board. The Frostbitten held it all these years. They'd be proud of you and what you've done for this land."
+   }
+  }
+ },
+ "late": {
+  "idles": {
+   "AGHallResidentVeteran": {
+    "near": 150,
+    "lines": {
+     "boardIdle1": "Horkers. Every one of them.",
+     "boardIdle2": "Still behind the Frostbitten. Don't see that ever changing."
+    }
+   }
+  },
+  "once": {
+   "AGHallResidentVeteran": {
+    "topOfBoard": {
+     "place": 1,
+     "text": "Top of the board. I never thought I'd live to see anyone above the Frostbitten. Well done."
+    },
+    "passedColdHearth": {
+     "renownAbove": 433,
+     "text": "So. Your lot passed the Cold Hearth. Good. Took you long enough."
+    }
+   }
+  }
+ }
+}

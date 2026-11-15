@@ -8,7 +8,9 @@
 #include "MissiveWatch.h"
 
 #include "Counter.h"
+#include "Dungeons.h"
 #include "Guild.h"
+#include "GuildHall.h"
 #include "Loc.h"
 #include "PrismaToast.h"
 #include "RankCore.h"
@@ -18,6 +20,8 @@
 #include <nlohmann/json.hpp>
 #include <atomic>
 #include <cmath>
+#include <random>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -52,8 +56,19 @@ namespace AG::MissiveWatch
 		{
 			float last{ -100.0f };  // GameDaysPassed of its last refresh (Missives starts every board at -100)
 			float rate{ 3.0f };     // days between refreshes
+			std::string hold;       // the Missives hold whose lists it rolls (read off its trigger's lists; "" until then)
 		};
 		std::unordered_map<std::string, BoardTimer> g_timers;
+		// The Guild Hall as a Missives board (2.0; tools/hall-private/board/INTEGRATION.md, option 2, tested 2026-10-27): a
+		// container of Missives' own board base, placed hidden in the great hall at run time, so a missive started while the
+		// hall is loaded posts its note there, for any hold. The hall rolls a hold as Missives' board does, when that hold is
+		// due (its town boards and the hall share one timer per hold: whichever rolled last), and its roll counts as the
+		// hold's refresh. Missives' own and Missives for the Good Guys' quests only (the others: Voice and Quest Expansion and
+		// Worldspace Additions pick their hold from where the player stands; Monster Hunt posts into the board by itself;
+		// the Bad Guys keep to their refuges). Co-save.
+		std::unordered_set<RE::FormID>          g_hallRoll;    // the quests the hall rolls
+		std::unordered_map<std::string, float> g_hallRolled;  // hold -> GameDaysPassed of the hall's last roll of it
+		RE::FormID                             g_hallBoard{ 0 };  // the placed container
 		// Missives for the Good Guys and the Bad Guys, when installed: the list their _M_ActivatorScript finds "the nearest
 		// board" in. See FaceBoardList.
 		RE::BGSListForm*                            g_boardList{ nullptr };
@@ -183,6 +198,9 @@ namespace AG::MissiveWatch
 		}
 
 		bool ReadTrigger(RE::TESObjectREFR* a_trigger);  // below, with the board timers
+		bool IsGuildBoard(RE::TESObjectREFR* a_ref);     // below, with the Guild Hall's board
+		void ScheduleHallRoll(std::string a_why, int a_seconds);
+		void ScheduleHallRoll(std::string a_why, int a_seconds, int a_tries);
 
 		class Sink :
 			public RE::BSTEventSink<RE::TESQuestStageEvent>,
@@ -264,7 +282,13 @@ namespace AG::MissiveWatch
 			// A board's trigger comes into the world with its town: its timer is read (and reset when due)
 			RE::BSEventNotifyControl ProcessEvent(const RE::TESCellAttachDetachEvent* a_event, RE::BSTEventSource<RE::TESCellAttachDetachEvent>*) override
 			{
-				if (!a_event || !a_event->attached || !a_event->reference || g_boardBases.empty()) return RE::BSEventNotifyControl::kContinue;
+				if (!a_event || !a_event->attached || !a_event->reference) return RE::BSEventNotifyControl::kContinue;
+				// the great hall comes in (its Guild Board loads): the hall posts the work of every hold that is due
+				if (g_active && !g_hallRoll.empty() && IsGuildBoard(a_event->reference.get())) {
+					ScheduleHallRoll("the great hall loaded", 2);
+					return RE::BSEventNotifyControl::kContinue;
+				}
+				if (g_boardBases.empty()) return RE::BSEventNotifyControl::kContinue;
 				auto* base = a_event->reference->GetBaseObject();
 				if (!base || !g_boardBases.contains(base->GetFormID())) return RE::BSEventNotifyControl::kContinue;
 				const auto h = a_event->reference->GetHandle();
@@ -461,6 +485,8 @@ namespace AG::MissiveWatch
 				}
 				g_watch[quest->GetFormID()] = tier[0];
 				g_hold[quest->GetFormID()] = e.value("hold", "");  // none: any hold
+				// the Good Guys' missives are per hold, from Missives' own lists: the Guild Hall rolls them too
+				if (std::string_view(a_file) == "missives_goodguys.json" && !e.value("hold", "").empty()) g_hallRoll.insert(quest->GetFormID());
 				if (const int ps = j.value("postedStage", 0); ps != 0) g_postedStage[quest->GetFormID()] = ps;
 				if (const auto tg = j.value("tag", std::string()); !tg.empty()) g_tag[quest->GetFormID()] = tg;
 				Label(quest, tier[0]);
@@ -643,6 +669,9 @@ namespace AG::MissiveWatch
 			g_tag.clear();
 			g_titles.clear();
 			LoadManifest(j, dh, "Missives.esp");
+			g_hallRoll.clear();
+			for (auto& [id, tier] : g_watch)
+				if (!g_hold[id].empty()) g_hallRoll.insert(id);  // Missives' own: the hall rolls them
 			LoadAddons(dh);
 			// Missives - Voice and Quest Expansion (its own manifest: nothing of it is mastered)
 			auto* rankGlobal = dh->LookupForm<RE::TESGlobal>(Hex(j.at("rankGlobal")), "AdventurersGuild.esp");
@@ -787,15 +816,273 @@ namespace AG::MissiveWatch
 			auto& t = g_timers[key];
 			t.last = last->GetFloat();
 			if (rate) t.rate = rate->value;
+			// its hold: the hold of the first quest in its lists Missives knows by hold
+			if (t.hold.empty())
+				for (const auto* name : { "::QuestsLow_var", "::QuestsMed_var", "::QuestsHigh_var", "::QuestsVeryHigh_var" }) {
+					auto* lv = var(name);
+					auto* list = lv ? lv->Unpack<RE::BGSListForm*>() : nullptr;
+					if (list)
+						for (auto* f : list->forms)
+							if (auto h = f ? g_hold.find(f->GetFormID()) : g_hold.end(); h != g_hold.end() && !h->second.empty()) {
+								t.hold = h->second;
+								break;
+							}
+					if (!t.hold.empty()) break;
+				}
 			static int reads = 0;  // the first few in the log: the timer is being read at all
-			if (++reads <= 10) SKSE::log::info("MissiveWatch: board {} last refreshed on day {:.2f}, every {:.1f} days (today {:.2f})", key, t.last, t.rate, DaysPassed());
-			if (g_dueSince >= 0.0f && t.last >= 0.0f && t.last < g_dueSince) {
+			if (++reads <= 10) SKSE::log::info("MissiveWatch: board {} ({}) last refreshed on day {:.2f}, every {:.1f} days (today {:.2f})", key, t.hold.empty() ? "hold unknown" : t.hold, t.last, t.rate, DaysPassed());
+			// the Guild Hall may have rolled this hold since: that was the hold's refresh, so this board waits its turn
+			// (otherwise it would refresh at once and take down what the hall just posted)
+			const auto hallIt = t.hold.empty() ? g_hallRolled.end() : g_hallRolled.find(t.hold);
+			const float hall = hallIt == g_hallRolled.end() ? -100.0f : hallIt->second;
+			const float since = std::max(t.last, hall);
+			if (g_dueSince >= 0.0f && since >= 0.0f && since < g_dueSince) {
 				last->SetFloat(-100.0f);  // as Missives starts every board: refreshed long ago
 				t.last = -100.0f;
 				SKSE::log::info("MissiveWatch: the board at {} is due a refresh (the player's rank changed since it last refreshed)", key);
+			} else if (hall > t.last) {
+				last->SetFloat(hall);
+				t.last = hall;
+				SKSE::log::info("MissiveWatch: the board at {} waits its turn: the Guild Hall posted {}'s work on day {:.2f}", key, t.hold, hall);
 			}
 			return true;
 		}
+	}
+
+	// ---- The Guild Hall as a Missives board (see g_hallRoll) ----
+	namespace
+	{
+		constexpr std::string_view kGuildBoardModel = "adventurersguild\\board\\agguildboard";  // as GuildBoard.cpp knows it
+		constexpr float            kBelowFloor = 600.0f;  // the hall's Missives board sits this far under the Guild Board, out of sight
+
+		bool IsGuildBoard(RE::TESObjectREFR* a_ref)
+		{
+			auto* base = a_ref ? a_ref->GetBaseObject() : nullptr;
+			auto* model = base ? base->As<RE::TESModel>() : nullptr;
+			const char* path = model ? model->GetModel() : nullptr;
+			if (!path || !base->Is(RE::FormType::Activator)) return false;
+			std::string p(path);
+			std::ranges::transform(p, p.begin(), [](unsigned char c) { return static_cast<char>(c == '/' ? '\\' : std::tolower(c)); });
+			return p.find(kGuildBoardModel) != std::string::npos;
+		}
+
+		RE::TESBoundObject* HallBoardBase()
+		{
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			auto* f = dh ? dh->LookupForm(0x0012CB, "Missives.esp") : nullptr;  // _M_MissiveBoard
+			return f ? f->As<RE::TESBoundObject>() : nullptr;
+		}
+
+		RE::TESObjectREFR* HallBoardRef()
+		{
+			RE::FormID id;
+			{
+				std::lock_guard l(g_lock);
+				id = g_hallBoard;
+			}
+			auto* r = id ? RE::TESForm::LookupByID<RE::TESObjectREFR>(id) : nullptr;
+			auto* base = HallBoardBase();
+			return r && base && !r->IsDeleted() && r->GetBaseObject() == base ? r : nullptr;
+		}
+
+		// The Guild Board in the player's cell (the great hall; any of its arrangements), or null
+		RE::TESObjectREFR* GuildBoardHere()
+		{
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			RE::TESObjectREFR* found = nullptr;
+			if (pc && pc->parentCell)
+				pc->parentCell->ForEachReference([&](RE::TESObjectREFR* a_ref) {
+					if (!IsGuildBoard(a_ref)) return RE::BSContainer::ForEachResult::kContinue;
+					found = a_ref;
+					return RE::BSContainer::ForEachResult::kStop;
+				});
+			return found;
+		}
+
+		// The hall's Missives board: the one placed before, or one placed now under the Guild Board. Missives finds it as the
+		// nearest loaded board, so it must be enabled and in the great hall; nobody opens it (the Guild Board's page and the
+		// hall counter take the notes out, as the inn counters do). Persistent, so it keeps its notes while the hall is unloaded.
+		// Main thread.
+		RE::TESObjectREFR* EnsureHallBoard(RE::TESObjectREFR* a_anchor)
+		{
+			auto* cell = a_anchor ? a_anchor->GetParentCell() : nullptr;
+			if (!cell) return nullptr;
+			if (auto* r = HallBoardRef(); r && r->GetParentCell() == cell) {
+				if (r->IsDisabled()) r->Enable(false);
+				return r;
+			}
+			auto* base = HallBoardBase();
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			if (!base || !dh) {
+				SKSE::log::warn("MissiveWatch: Missives' board (_M_MissiveBoard, Missives.esp 0x12CB) not found - the Guild Hall posts no missives");
+				return nullptr;
+			}
+			auto pos = a_anchor->GetPosition();
+			pos.z -= kBelowFloor;
+			const auto ref = dh->CreateReferenceAtLocation(base, pos, RE::NiPoint3(), cell, nullptr, nullptr, nullptr, RE::ObjectRefHandle(), true, true).get();
+			if (!ref) {
+				SKSE::log::warn("MissiveWatch: the Guild Hall's Missives board was not created - the hall posts no missives");
+				return nullptr;
+			}
+			{
+				std::lock_guard l(g_lock);
+				g_hallBoard = ref->GetFormID();
+			}
+			SKSE::log::info("MissiveWatch: the Guild Hall's Missives board placed ({:08X}, under the Guild Board)", ref->GetFormID());
+			return ref.get();
+		}
+
+		float MissivesGlobal(RE::FormID a_id, float a_default)
+		{
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			auto* g = dh ? dh->LookupForm<RE::TESGlobal>(a_id, "Missives.esp") : nullptr;
+			return g ? g->value : a_default;
+		}
+
+		// What the hall's board holds: missives posted there now
+		int HallPosted()
+		{
+			auto* board = HallBoardRef();
+			if (!board) return 0;
+			int n = 0;
+			std::lock_guard l(g_lock);
+			for (auto& [id, tier] : g_watch) {
+				auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
+				if (q && PostedHere(q, nullptr) && AliasRef(q, "MissiveBoard") == board) ++n;
+			}
+			return n;
+		}
+
+		// The hall's roll: Missives' own (_M_ActivatorScript.UpdateQuests) over every hold that is due. A hold is due when
+		// neither the hall nor any of its town boards has rolled it within Missives' refresh rate, or none has since the
+		// player registered or was promoted. Each quest of a due hold at or below the player's rank is rolled at Missives'
+		// odds for its list; a hit starts one that isn't running (its note posts in the hall's board) and takes down one
+		// still posted, as Missives does. a_force: every hold (DevBench). Main thread.
+		void HallRoll(const std::string& a_why, bool a_force)
+		{
+			if (!g_active || g_hallRoll.empty() || !GuildHall::PlayerInHall()) return;
+			if (Guild::SaveState() == Guild::SaveData::kBroken) return;  // the rank is not known this session
+			const int rank = Guild::Rank();
+			if (rank < 0) return;  // missives are for registered adventurers
+			auto* anchor = GuildBoardHere();
+			if (!anchor) return;  // the cellars or the strongroom: rolled on coming up into the great hall
+			auto* board = EnsureHallBoard(anchor);
+			if (!board) return;
+			// Missives' odds per list (its own settings may change them) and its refresh rate. Low E, Med D, High C, VeryHigh B
+			const float chance[4] = { MissivesGlobal(0x001D93, 50.0f), MissivesGlobal(0x001D94, 35.0f), MissivesGlobal(0x001D95, 20.0f),
+				MissivesGlobal(0x009450, 5.0f) };
+			const float rate = MissivesGlobal(0x001D96, 3.0f);
+			static std::mt19937                  rng{ std::random_device{}() };
+			std::uniform_int_distribution<int>   roll(0, 100);  // Utility.RandomInt(): 0 to 100
+			std::vector<RE::TESQuest*>           starts, stops;
+			std::vector<std::string>             rolled;
+			{
+				std::lock_guard l(g_lock);
+				const float                            now = DaysPassed();
+				std::unordered_map<std::string, float> lastOf;  // hold -> its last roll, by the hall or a town board
+				for (auto id : g_hallRoll) lastOf.emplace(g_hold[id], -100.0f);
+				for (auto& [h, day] : g_hallRolled)
+					if (auto it = lastOf.find(h); it != lastOf.end()) it->second = std::max(it->second, day);
+				for (auto& [k, t] : g_timers)
+					if (auto it = lastOf.find(t.hold); it != lastOf.end()) it->second = std::max(it->second, t.last);
+				std::unordered_set<std::string> due;
+				for (auto& [h, last] : lastOf)
+					if (a_force || (g_dueSince >= 0.0f && last < g_dueSince) || now > last + rate) {
+						due.insert(h);
+						g_hallRolled[h] = now;
+						rolled.push_back(h);
+					}
+				for (auto id : g_hallRoll) {
+					if (!due.contains(g_hold[id]) || g_broken.contains(id)) continue;
+					const int list = FromLetter(g_watch[id]);
+					if (list < 0 || list > 3 || list > rank) continue;
+					if (static_cast<float>(roll(rng)) >= chance[list]) continue;  // Missives: RandomInt() < chance
+					auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
+					if (!q) continue;
+					if (!Running(q)) starts.push_back(q);
+					else if (q->GetCurrentStageID() == PostedStage(id)) stops.push_back(q);
+				}
+			}
+			if (rolled.empty()) return;
+			std::ranges::sort(rolled);
+			std::string holds;
+			for (auto& h : rolled) holds += (holds.empty() ? "" : ", ") + h;
+			SKSE::log::info("MissiveWatch: the Guild Hall rolled {} hold(s) ({}): {} to post, {} to take down [{}]", rolled.size(), a_why, starts.size(), stops.size(), holds);
+			if (starts.empty() && stops.empty()) return;
+			auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+			if (!vm) return;
+			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+			vm->DispatchStaticCall("AG_QuestHelper", "HallRoll", RE::MakeFunctionArguments(std::move(starts), std::move(stops), static_cast<RE::TESObjectREFR*>(board), g_goodGuys.load() > 0), cb);
+			// a while later, in the log: what the hall's board holds (Papyrus starts them one by one)
+			std::thread([] {
+				std::this_thread::sleep_for(std::chrono::seconds(20));
+				SKSE::GetTaskInterface()->AddTask([] { SKSE::log::info("MissiveWatch: the Guild Hall's board holds {} missive(s)", HallPosted()); });
+			}).detach();
+		}
+
+		// a_tries: the great hall's board loads before the load screen ends, so the roll waits (2 s at a time) until the player
+		// is in the great hall, for up to a minute
+		void ScheduleHallRoll(std::string a_why, int a_seconds, int a_tries)
+		{
+			std::thread([why = std::move(a_why), a_seconds, a_tries] {
+				std::this_thread::sleep_for(std::chrono::seconds(a_seconds));
+				SKSE::GetTaskInterface()->AddTask([why, a_tries] {
+					auto* ui = RE::UI::GetSingleton();
+					const bool loading = ui && ui->IsMenuOpen(RE::LoadingMenu::MENU_NAME);
+					if (loading || !GuildHall::PlayerInHall() || !GuildBoardHere()) {
+						if (a_tries > 1) ScheduleHallRoll(why, 2, a_tries - 1);
+						return;
+					}
+					HallRoll(why, false);
+				});
+			}).detach();
+		}
+		void ScheduleHallRoll(std::string a_why, int a_seconds) { ScheduleHallRoll(std::move(a_why), a_seconds, 30); }
+	}
+
+	void DebugHallRoll()
+	{
+		SKSE::GetTaskInterface()->AddTask([] {
+			if (!GuildHall::PlayerInHall()) SKSE::log::info("MissiveWatch::DebugHallRoll: not in the Guild Hall");
+			HallRoll("DevBench", true);
+		});
+	}
+
+	void PrepareUninstallHall()
+	{
+		auto* board = HallBoardRef();
+		if (!board) return;
+		// what it holds comes down (Missives' withdrawal, as at any board), then the board itself goes
+		std::vector<RE::TESQuest*> posted;
+		{
+			std::lock_guard l(g_lock);
+			for (auto& [id, tier] : g_watch) {
+				auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
+				if (q && PostedHere(q, nullptr) && AliasRef(q, "MissiveBoard") == board) posted.push_back(q);
+			}
+		}
+		if (auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton())
+			for (auto* q : posted) {
+				RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
+				vm->DispatchStaticCall("AG_QuestHelper", "WithdrawMissive", RE::MakeFunctionArguments(static_cast<RE::TESQuest*>(q)), cb);
+			}
+		// the board goes once the withdrawals have run (Missives takes each note back out of it at stage 110)
+		const auto h = board->GetHandle();
+		const auto n = posted.size();
+		std::thread([h, n] {
+			std::this_thread::sleep_for(std::chrono::seconds(5));
+			SKSE::GetTaskInterface()->AddTask([h, n] {
+				if (auto r = h.get()) {
+					r->Disable();
+					r->SetDelete(true);
+				}
+				{
+					std::lock_guard l(g_lock);
+					g_hallBoard = 0;
+				}
+				SKSE::log::info("MissiveWatch: prepare to uninstall: the Guild Hall's Missives board removed, {} missive(s) on it withdrawn", n);
+			});
+		}).detach();
 	}
 
 	void MakeBoardsDue(std::string_view a_why)
@@ -813,6 +1100,8 @@ namespace AG::MissiveWatch
 				if (base && g_boardBases.contains(base->GetFormID())) ReadTrigger(a_ref);
 				return RE::BSContainer::ForEachResult::kContinue;
 			});
+		// in the great hall: the hall posts at once (every hold is due now)
+		if (GuildHall::PlayerInHall()) ScheduleHallRoll(std::string(a_why), 1);
 	}
 
 	nlohmann::json BoardStatus()
@@ -844,8 +1133,11 @@ namespace AG::MissiveWatch
 			if (!loc || !Within(loc, area)) continue;
 			std::lock_guard l(g_lock);
 			if (auto it = g_timers.find(Adventurers::StableKey(board)); it != g_timers.end()) {
-				// Missives refreshes when GameDaysPassed > LastUpdate + RefreshRate
-				soonest = std::min(soonest, it->second.last + it->second.rate - DaysPassed());
+				// Missives refreshes when GameDaysPassed > LastUpdate + RefreshRate; a roll of its hold by the Guild Hall since
+				// counts (the board takes that time when its town next loads)
+				float last = it->second.last;
+				if (auto h = g_hallRolled.find(it->second.hold); !it->second.hold.empty() && h != g_hallRolled.end()) last = std::max(last, h->second);
+				soonest = std::min(soonest, last + it->second.rate - DaysPassed());
 				found = true;
 			} else {
 				unread = true;
@@ -861,8 +1153,8 @@ namespace AG::MissiveWatch
 	{
 		std::lock_guard l(g_lock);
 		auto timers = nlohmann::json::object();
-		for (auto& [k, t] : g_timers) timers[k] = { t.last, t.rate };
-		return { { "dueSince", g_dueSince }, { "timers", timers } };
+		for (auto& [k, t] : g_timers) timers[k] = { t.last, t.rate, t.hold };
+		return { { "dueSince", g_dueSince }, { "timers", timers }, { "hallRolled", g_hallRolled }, { "hallBoard", g_hallBoard } };
 	}
 
 	void Load(const nlohmann::json& a_j)
@@ -872,7 +1164,14 @@ namespace AG::MissiveWatch
 		g_dueSince = a_j.value("dueSince", -1.0f);
 		if (a_j.contains("timers") && a_j.at("timers").is_object())
 			for (auto& [k, v] : a_j.at("timers").items())
-				if (v.is_array() && v.size() == 2) g_timers[Adventurers::CanonicalKey(k)] = { v[0].get<float>(), v[1].get<float>() };
+				if (v.is_array() && v.size() >= 2)
+					g_timers[Adventurers::CanonicalKey(k)] = { v[0].get<float>(), v[1].get<float>(), v.size() > 2 && v[2].is_string() ? v[2].get<std::string>() : std::string() };
+		g_hallRolled.clear();
+		if (a_j.contains("hallRolled") && a_j.at("hallRolled").is_object())
+			for (auto& [h, day] : a_j.at("hallRolled").items())
+				if (day.is_number()) g_hallRolled[h] = day.get<float>();
+		// a created reference keeps its FormID in the save (checked against Missives' board base when used)
+		g_hallBoard = a_j.value("hallBoard", static_cast<RE::FormID>(0));
 	}
 
 	void Revert()
@@ -880,6 +1179,8 @@ namespace AG::MissiveWatch
 		std::lock_guard l(g_lock);
 		g_timers.clear();
 		g_dueSince = -1.0f;
+		g_hallRolled.clear();
+		g_hallBoard = 0;
 	}
 
 	void WithdrawAboveRank()
@@ -941,6 +1242,37 @@ namespace AG::MissiveWatch
 			const auto tg = g_tag.find(q->GetFormID());
 			out.push_back({ { "id", std::format("{:08X}", q->GetFormID()) }, { "tier", std::string(1, tier) }, { "title", PostingTitle(q) },
 				{ "tag", tg == g_tag.end() ? std::string() : tg->second } });
+		}
+		return out;
+	}
+
+	nlohmann::json AllPostings()
+	{
+		auto out = nlohmann::json::array();
+		if (!g_active) return out;
+		const int rank = Guild::Rank();
+		struct Row { RE::TESQuest* q; char tier; std::string hold, city; };
+		std::vector<Row> posted;
+		{
+			std::lock_guard l(g_lock);
+			for (auto& [id, tier] : g_watch) {
+				if (FromLetter(tier) > rank || g_broken.contains(id)) continue;
+				auto* q = RE::TESForm::LookupByID<RE::TESQuest>(id);
+				if (!q || !PostedHere(q, nullptr)) continue;
+				// the board it hangs on names the town; a quest that serves every hold ("") is of that town's hold
+				auto*       board = AliasRef(q, "MissiveBoard");
+				std::string city = board ? Dungeons::CityOf(board->GetCurrentLocation()) : std::string();
+				auto        h = g_hold.find(id);
+				std::string hold = h != g_hold.end() && !h->second.empty() ? h->second : HoldOf(city);
+				if (hold.empty()) continue;
+				posted.push_back({ q, tier, std::move(hold), std::move(city) });
+			}
+		}
+		std::sort(posted.begin(), posted.end(), [](auto& a, auto& b) { return a.tier != b.tier ? FromLetter(a.tier) > FromLetter(b.tier) : a.q->GetFormID() < b.q->GetFormID(); });
+		for (auto& r : posted) {
+			const auto tg = g_tag.find(r.q->GetFormID());
+			out.push_back({ { "id", std::format("{:08X}", r.q->GetFormID()) }, { "tier", std::string(1, r.tier) }, { "title", PostingTitle(r.q) },
+				{ "tag", tg == g_tag.end() ? std::string() : tg->second }, { "hold", r.hold }, { "city", r.city } });
 		}
 		return out;
 	}

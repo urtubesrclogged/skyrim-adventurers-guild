@@ -11,11 +11,14 @@
 #include "Dungeons.h"
 #include "GuildCard.h"
 #include "Guild.h"
+#include "GuildBoard.h"
+#include "LeaderBoard.h"
+#include "GuildHall.h"
 #include "Party.h"
 #include "Loc.h"
 #include "MissiveWatch.h"
 #include "NoticeWatch.h"
-#include "PrismaUI_API.h"
+#include "UiHost.h"
 #include "RankCore.h"
 #include "Shop.h"
 
@@ -31,11 +34,7 @@ namespace AG::Counter
 {
 	namespace
 	{
-		constexpr const char* kView = "AdventurersGuild/counter.html";
-		constexpr const char* kFile = "Data\\PrismaUI\\views\\AdventurersGuild\\counter.html";
-
-		PRISMA_UI_API::IVPrismaUI1* g_api{ nullptr };
-		PrismaView                  g_view{ 0 };
+		UiHost::Handle              g_view{ 0 };
 		std::atomic<bool>           g_open{ false };
 		std::atomic<bool>           g_pending{ false };
 		std::atomic<bool>           g_cardOnly{ false };  // opened from the physical card: the Guild Card page alone
@@ -46,7 +45,7 @@ namespace AG::Counter
 		nlohmann::json              g_member;            // another adventurer's card being shown (null: the player's own page); game thread
 		std::atomic<bool>           g_stampedFirst{ false };  // ... and for the first time by this hold
 
-		bool Valid() { return g_api && g_view && g_api->IsValid(g_view); }
+		bool Valid() { return g_view && UiHost::Valid(g_view); }
 
 		std::string Esc(std::string_view a_s)
 		{
@@ -66,14 +65,11 @@ namespace AG::Counter
 
 		void Status(const std::string& a_msg)
 		{
-			if (Valid()) g_api->Invoke(g_view, std::format("window.agStatus(\"{}\")", Esc(a_msg)).c_str());
+			if (Valid()) UiHost::Js(g_view, std::format("window.agStatus(\"{}\")", Esc(a_msg)));
 		}
 
-		// JS -> C++ listeners run on PrismaUI's side; hop to the game thread before touching game state.
-		void OnClose(const char*)
-		{
-			SKSE::GetTaskInterface()->AddTask([] { Close(); });
-		}
+		// calls from the page arrive on the game thread (UiHost)
+		void OnClose(const std::string&) { Close(); }
 
 		// ---- VR text entry (party names) ----
 		// PrismaVR opens the SteamVR keyboard for a focused <input> but only routes the typed text under OpenComposite
@@ -194,6 +190,11 @@ namespace AG::Counter
 			if (a_arg == "traitsviewed") { Party::TraitsViewed(); return {}; }
 			if (a_arg.starts_with("keyboard:")) return ShowKeyboard(Unescape(a_arg.substr(9)));  // VR: the name, typed on the headset
 			if (a_arg.starts_with("remove:")) return Party::Remove(a_arg.substr(7));
+			if (a_arg.starts_with("register:")) {  // a follower registered by hand (2.0)
+				RE::FormID id = 0;
+				try { id = static_cast<RE::FormID>(std::stoul(a_arg.substr(9), nullptr, 16)); } catch (...) { return {}; }
+				return Party::RegisterFollower(RE::TESForm::LookupByID<RE::Actor>(id));
+			}
 			if (a_arg.starts_with("add:")) {
 				RE::FormID id = 0;
 				try { id = static_cast<RE::FormID>(std::stoul(a_arg.substr(4), nullptr, 16)); } catch (...) { return {}; }
@@ -202,15 +203,23 @@ namespace AG::Counter
 			return {};
 		}
 
-		void OnAction(const char* a_arg)
+		void OnAction(const std::string& arg)
 		{
-			std::string arg = a_arg ? a_arg : "";
-			SKSE::GetTaskInterface()->AddTask([arg] {
+			{
 				if (arg.starts_with("details:")) {   // read-only: send the note's text to the view
 					SKSE::log::debug("Counter: action '{}'", arg);
 					const auto id = arg.substr(8);  // a missive or a notice: each watch knows its own quests
 					const auto details = BountyWatch::Owns(id) ? BountyWatch::Details(id) : NoticeWatch::Owns(id) ? NoticeWatch::Details(id) : MissiveWatch::Details(id);
-					if (Valid()) g_api->Invoke(g_view, ("window.agDetails(" + details.dump() + ")").c_str());
+					if (Valid()) UiHost::Js(g_view, "window.agDetails(" + details.dump() + ")");
+					return;
+				}
+				if (arg == "newbounty") {  // the Guild Hall's "A new bounty?": Papyrus answers later, the page waits for it
+					if (!GuildHall::IsBranch(Branch())) return;
+					BountyWatch::NewBounty([](const std::string& a_msg) {
+						SKSE::log::debug("Counter: action 'newbounty' -> '{}'", a_msg);
+						Refresh();
+						Status(a_msg);
+					});
 					return;
 				}
 				std::string msg;
@@ -218,13 +227,26 @@ namespace AG::Counter
 				// a lost guild card, replaced at the counter as the liaison's dialogue line does (same fee, this branch's seal).
 				// Not from the card itself: read from the inventory, there is one, and no branch to issue another.
 				else if (arg == "replacecard") { if (g_cardOnly.load()) return; msg = GuildCard::Replace(Branch()); }
-				else if (arg.starts_with("service:")) msg = Guild::BuyService(arg.substr(8));
+				else if (arg.starts_with("service:")) {
+					// what only the Guild Hall sells (MCM > Guild Hall): the page greys it at an inn; refused here too
+					const auto id = arg.substr(8);
+					const auto only = GuildHall::ServiceFeature(id);
+					msg = only && !GuildHall::Allows(*only, Branch()) ? GuildHall::RefusedHere() : Guild::BuyService(id);
+				}
 				else if (arg.starts_with("turnin:")) msg = Shop::TurnIn(arg.substr(7));
 				else if (arg.starts_with("accept:")) {
 					const auto id = arg.substr(7);
 					msg = BountyWatch::Owns(id) ? BountyWatch::Accept(id) : NoticeWatch::Owns(id) ? NoticeWatch::Accept(id) : MissiveWatch::Accept(id);
 				}
-				else if (arg.starts_with("party:")) { msg = PartyAction(arg.substr(6)); Party::AtCounter(); }  // the blessing follows at once; choices the roster no longer fits go
+				else if (arg.starts_with("party:")) {
+					// the party registry (founding, renaming, disbanding) is the Guild Hall's alone while MCM > Guild Hall says so
+					const auto sub = arg.substr(6);
+					const bool registry = sub.starts_with("found:") || sub.starts_with("rename:") || sub == "disband";
+					if (registry && !GuildHall::Allows(GuildHall::Only::kParties, Branch())) msg = GuildHall::RefusedHere();
+					// a follower is registered where the player would be (MCM > Guild Hall > Registration)
+					else if (sub.starts_with("register:") && (g_cardOnly.load() || !GuildHall::Allows(GuildHall::Only::kRegistration, Branch()))) msg = GuildHall::RefusedHere();
+					else { msg = PartyAction(sub); Party::AtCounter(); }  // the blessing follows at once; choices the roster no longer fits go
+				}
 				else {
 					SKSE::log::debug("Counter: action '{}' is not one the DLL knows", arg);
 					return;
@@ -232,24 +254,34 @@ namespace AG::Counter
 				SKSE::log::debug("Counter: action '{}' -> '{}'", arg, msg);  // detailed log: for "I clicked and nothing happened"
 				Refresh();
 				Status(msg);
-			});
+			}
 		}
 
 		// ---- controller ----
 		// PrismaUI gives a view the mouse and keyboard but not a controller, so the pad's buttons are forwarded to the
 		// page (window.agPad), which moves a highlight between its buttons. The last device used decides whether the
 		// page shows that highlight and the button hints (window.agInputMode), the way vanilla menus swap prompts.
-		// VR controllers are other device types, so none of this happens in VR.
+		// VR controllers are other device types, so none of this happens in VR. The Guild Board's page (GuildBoard) takes
+		// the same buttons while it is open: one reader of the pad, for whichever page is up.
 		std::atomic<bool> g_padMode{ false };
 
 		void Js(const std::string& a_script)
 		{
-			if (g_open.load() && Valid()) g_api->Invoke(g_view, a_script.c_str());
+			if (g_open.load() && Valid()) UiHost::Js(g_view, a_script);
+		}
+
+		bool PadTarget() { return g_open.load() || GuildBoard::IsOpen() || LeaderBoard::IsOpen(); }
+
+		void PadJs(const std::string& a_script)
+		{
+			if (g_open.load()) Js(a_script);
+			else if (LeaderBoard::IsOpen()) LeaderBoard::Invoke(a_script);
+			else GuildBoard::Invoke(a_script);
 		}
 
 		void SetPadMode(bool a_pad)
 		{
-			if (g_padMode.exchange(a_pad) != a_pad) Js(std::format("window.agInputMode({})", a_pad));
+			if (g_padMode.exchange(a_pad) != a_pad) PadJs(std::format("window.agInputMode({})", a_pad));
 		}
 
 		// XInput button masks, as the engine reports gamepad ButtonEvents; triggers are 0x9 / 0xA
@@ -298,7 +330,7 @@ namespace AG::Counter
 					if (!b || !b->IsPressed()) continue;
 					SetPadMode(true);
 					const char* name = PadName(b->GetIDCode());
-					if (!name || !g_open.load()) continue;
+					if (!name || !PadTarget()) continue;
 					const bool dir = b->GetIDCode() <= 0x0008;
 					// a held D-pad direction repeats after 0.35 s, every 0.1 s
 					if (b->IsDown()) Send(name);
@@ -317,7 +349,7 @@ namespace AG::Counter
 		private:
 			using Clock = std::chrono::steady_clock;
 
-			static void Send(const char* a_name) { Js(std::format("window.agPad(\"{}\")", a_name)); }
+			static void Send(const char* a_name) { PadJs(std::format("window.agPad(\"{}\")", a_name)); }
 
 			// the left stick moves the highlight like the D-pad: once on a push, then repeating while held
 			void Stick(const RE::ThumbstickEvent* a_t)
@@ -330,9 +362,9 @@ namespace AG::Counter
 				const auto now = Clock::now();
 				if (dir != m_stickDir) {
 					m_stickDir = dir;
-					if (dir && g_open.load()) Send(dir);
+					if (dir && PadTarget()) Send(dir);
 					m_stickNext = now + std::chrono::milliseconds(350);
-				} else if (dir && g_open.load() && now >= m_stickNext) {
+				} else if (dir && PadTarget() && now >= m_stickNext) {
 					Send(dir);
 					m_stickNext = now + std::chrono::milliseconds(100);
 				}
@@ -366,27 +398,14 @@ namespace AG::Counter
 	{
 		if (auto* ui = RE::UI::GetSingleton()) ui->AddEventSink<RE::MenuOpenCloseEvent>(MenuSink::Get());
 		if (auto* input = RE::BSInputDeviceManager::GetSingleton()) input->AddEventSink(PadSink::Get());
-		g_api = PRISMA_UI_API::RequestPluginAPI<PRISMA_UI_API::IVPrismaUI1>();
-		if (!g_api) {
-			SKSE::log::info("Counter: PrismaUI not loaded - counter window disabled");
+		g_view = UiHost::Create({ "counter", "counter.html", UiHost::Layer::kPanel, true, true });
+		if (!g_view) {
+			SKSE::log::info("Counter: no page - counter window disabled");
 			return;
 		}
-		std::error_code ec;
-		if (!std::filesystem::exists(kFile, ec)) {
-			SKSE::log::info("Counter: {} missing - counter window disabled", kFile);
-			g_api = nullptr;
-			return;
-		}
-		g_view = g_api->CreateView(kView);
-		if (!Valid()) {
-			SKSE::log::error("Counter: CreateView failed");
-			g_api = nullptr;
-			return;
-		}
-		g_api->Hide(g_view);
-		g_api->RegisterJSListener(g_view, "agClose", OnClose);
-		g_api->RegisterJSListener(g_view, "agAction", OnAction);
-		SKSE::log::info("Counter: view active (view {}, order {})", g_view, g_api->GetOrder(g_view));
+		UiHost::Listen(g_view, "agClose", OnClose);
+		UiHost::Listen(g_view, "agAction", OnAction);
+		UiHost::OnHostClosed(g_view, [] { Close(); });
 	}
 
 	std::string Branch()
@@ -427,18 +446,28 @@ namespace AG::Counter
 			NoticeWatch::Post();  // newly allowed notices go up here as they would at a board
 		}
 		// the page's text in the player's language (it keeps English fallbacks for anything missing)
-		g_api->Invoke(g_view, ("window.agStrings(" + Loc::UiStrings().dump() + ")").c_str());
-		// the headset keyboard is ours only under real SteamVR (see ShowKeyboard); flat and OpenComposite keep the text field
-		g_api->Invoke(g_view, REL::Module::IsVR() && !OpenComposite() ? "window.agVR && window.agVR(true)" : "window.agVR && window.agVR(false)");
+		UiHost::Js(g_view, "window.agStrings(" + Loc::UiStrings().dump() + ")");
+		// the page stays loaded between visits: its lists' filters start over (a hold picked at one clerk's counter
+		// left the other's list empty, in game 2026-10-28)
+		UiHost::Js(g_view, "window.agOpened && window.agOpened()");
+		// the headset keyboard is the DLL's only on Prisma UI under real SteamVR (see ShowKeyboard); flat, OpenComposite and
+		// Magelight UI (its own headset keyboard) keep the text field
+		UiHost::Js(g_view, REL::Module::IsVR() && !OpenComposite() && !UiHost::NativeVRText() ? "window.agVR && window.agVR(true)" : "window.agVR && window.agVR(false)");
+		UiHost::Js(g_view, UiHost::Active() == UiHost::Kind::kMagelight ? "window.agHost && window.agHost(\"magelight\")" : "window.agHost && window.agHost(\"prisma\")");
 		// a flat screen above 1080p scales the panel up (a 4K monitor showed it at a third of the width); VR never does
-		g_api->Invoke(g_view, REL::Module::IsVR() ? "window.agFlat && window.agFlat(false)" : "window.agFlat && window.agFlat(true)");
+		UiHost::Js(g_view, REL::Module::IsVR() ? "window.agFlat && window.agFlat(false)" : "window.agFlat && window.agFlat(true)");
 		Refresh();
 		// after the data (tasks run in order): controller users open with the first button highlighted
 		SKSE::GetTaskInterface()->AddTask([] { Js(std::format("window.agInputMode({})", g_padMode.load())); });
-		ControlsGuard::Shown();
-		ControlsGuard::Mask();  // VR: a trigger pull on the counter must not ready the weapon
-		g_api->Show(g_view);
-		g_api->Focus(g_view, true);
+		if (!UiHost::ManagesControls()) {  // Prisma UI only: Magelight UI suspends the player's controls itself
+			ControlsGuard::Shown();
+			ControlsGuard::Mask();  // VR: a trigger pull on the counter must not ready the weapon
+		}
+		UiHost::Show(g_view);
+		if (!UiHost::Focus(g_view)) {  // another mod's page has the input: the counter does not open under it
+			Close();
+			return;
+		}
 		if (g_cardOnly.load()) SKSE::log::info("Counter: opened as the guild card");
 		else SKSE::log::info("Counter: opened");
 	}
@@ -479,11 +508,13 @@ namespace AG::Counter
 	{
 		if (!g_open.exchange(false) || !Valid()) return;
 		g_member = nullptr;
-		g_api->Unfocus(g_view);
-		g_api->Hide(g_view);
+		UiHost::Unfocus(g_view);
+		UiHost::Hide(g_view);
 		g_cardOnly = false;
-		ControlsGuard::Unmask();
-		ControlsGuard::Hidden();
+		if (!UiHost::ManagesControls()) {
+			ControlsGuard::Unmask();
+			ControlsGuard::Hidden();
+		}
 		if (g_stamped.exchange(false)) SayStampLine(0, 0, g_stampedFirst.exchange(false));  // "There. Riften's mark, on your card."
 	}
 
@@ -545,9 +576,11 @@ namespace AG::Counter
 
 	bool IsOpen() { return g_open.load(); }
 
+	bool PadMode() { return g_padMode.load(); }
+
 	bool IsOpenComposite() { return OpenComposite(); }
 
-	int ViewOrder() { return Valid() ? g_api->GetOrder(g_view) : -1; }
+	std::uint32_t View() { return g_view; }
 
 	void Refresh()
 	{
@@ -589,21 +622,35 @@ namespace AG::Counter
 				for (auto& c : have) stamps.push_back(GuildCard::StampFile(c));
 				data["stamps"] = std::move(stamps);
 				const auto here = Branch();
-				if (const int cleared = here.empty() ? -1 : Dungeons::ClearedIn(here); cleared >= 0 && std::find(have.begin(), have.end(), here) == have.end())
+				if (const int cleared = here.empty() || GuildHall::IsBranch(here) ? -1 : Dungeons::ClearedIn(here); cleared >= 0 && std::find(have.begin(), have.end(), here) == have.end())
 					data["stampProgress"] = { { "city", Guild::CityName(here) }, { "have", cleared }, { "need", Guild::StampDungeons() }, { "waiting", Dungeons::WaitingIn(here) } };
 			}
 			data["inProgress"] = MissiveWatch::InProgress() + NoticeWatch::InProgress() + BountyWatch::InProgress();  // the card's "to do" note
 			data["trophies"] = Shop::TrophiesData();
-			data["postings"] = MissiveWatch::Postings(Branch());
-			data["boardStatus"] = MissiveWatch::BoardStatus();  // this town's board: due a refresh, or how long until it is
+			if (GuildHall::IsBranch(Branch()) && !g_cardOnly.load()) {
+				GuildHall::CounterData(data);  // the Guild Hall (2.0): every hold's missives and bounties, and the holds to filter them by
+			} else {
+				data["postings"] = MissiveWatch::Postings(Branch());
+				data["boardStatus"] = MissiveWatch::BoardStatus();  // this town's board: due a refresh, or how long until it is
+				data["bounty"] = g_cardOnly.load() ? nlohmann::json(nullptr) : BountyWatch::Posting(Branch());  // this hold's one bounty, or null
+			}
 			data["notices"] = NoticeWatch::Postings();
-			data["bounty"] = g_cardOnly.load() ? nlohmann::json(nullptr) : BountyWatch::Posting(Branch());  // this hold's one bounty, or null
 			data["boards"] = { { "missives", MissiveWatch::Active() }, { "notices", NoticeWatch::Active() } };  // which sub-tabs the Quests tab has
 			data["party"] = Party::CounterData();
-			for (auto& row : Dungeons::IntelServices(Guild::Merit(), Guild::Registered())) data["services"].push_back(row);
-			for (auto& row : Dungeons::PoiServices(Guild::Merit(), Guild::Registered())) data["services"].push_back(row);
+			// the Guild Hall's counter sells every hold's Intel, as it lists every hold's work
+			const bool everyHold = GuildHall::IsBranch(Branch()) && !g_cardOnly.load();
+			for (auto rows : { Dungeons::IntelServices(Guild::Merit(), Guild::Registered(), everyHold), Dungeons::PoiServices(Guild::Merit(), Guild::Registered(), everyHold) })
+				for (auto& row : rows) {
+					if (everyHold) GuildHall::NameHold(row);
+					data["services"].push_back(row);
+				}
+			// what only the Guild Hall does (MCM > Guild Hall, 2.0): greyed here at an inn, and what the page says instead
+			GuildHall::GreyServices(data["services"], Branch());
+			data["partyRegistry"] = g_cardOnly.load() || GuildHall::Allows(GuildHall::Only::kParties, Branch());
+			data["promotionAtHall"] = GuildHall::OnlyAtHall(GuildHall::Only::kPromotion);
+			data["followerRegister"] = !g_cardOnly.load() && GuildHall::Allows(GuildHall::Only::kRegistration, Branch());
 			const auto json = data.dump();
-			g_api->Invoke(g_view, ("window.agSetData(" + json + ")").c_str());
+			UiHost::Js(g_view, "window.agSetData(" + json + ")");
 		});
 	}
 }

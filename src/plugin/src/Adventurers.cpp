@@ -7,6 +7,7 @@
 #include "Adventurers.h"
 
 #include "Guild.h"
+#include "GuildHall.h"
 #include "RankCore.h"
 #include "SkyrimNetData.h"
 
@@ -29,8 +30,11 @@ namespace AG::Adventurers
 			int              rank{ -1 };  // the Guild rank they start at (they rise with their level once they have travelled with the player), or -1: from their level
 			std::string      note, retiredNote;
 			int              regYear{ -1 }, regMonth{ 0 }, regDay{ 1 };  // when they registered, if written down (month 0..11)
+			bool             always{ false };  // "retired": true - retired whatever the world does (the Guild Hall's Willem and Marius)
+			bool             guildMaster{ false };  // "guildMaster": true - the name says so in place of "retired" (Willem)
 			bool Retired() const
 			{
+				if (always) return true;
 				if (!where || !keyword) return false;
 				for (auto& d : where->keywordData)
 					if (d.keyword == keyword) return d.data == value;
@@ -345,6 +349,11 @@ namespace AG::Adventurers
 						if (dj.contains("cities")) g_liaisonCity[npc->GetFormID()] = dj.at("cities").value(key, "");
 					}
 				}
+				// the Guild Hall's clerks (2.0): their counter is the hall's, which sees every hold
+				for (const auto base : GuildHall::ClerkBases()) {
+					g_liaisons.insert(base);
+					g_liaisonCity[base] = GuildHall::kBranch;
+				}
 				g_stampKeepers.clear();
 				for (auto& k : dj.value("stampKeepers", nlohmann::json::array())) {
 					auto* npc = FormOfKey(k.value("npc", ""));
@@ -406,6 +415,8 @@ namespace AG::Adventurers
 				nm.note = n.value("note", "");
 				nm.retiredNote = n.value("retiredNote", "");
 				if (const auto r = n.value("rank", ""); !r.empty()) nm.rank = FromLetter(r[0]);
+				nm.always = n.value("retired", false);
+				nm.guildMaster = n.value("guildMaster", false);
 				if (n.contains("registered")) {
 					auto& reg = n.at("registered");
 					nm.regYear = reg.value("year", -1);
@@ -530,9 +541,10 @@ namespace AG::Adventurers
 				}
 			} else if (g_recruited.contains(key)) {
 				kind = Kind::kMember;
-			} else if (a_actor->IsPlayerTeammate()) {
+			} else if (a_actor->IsPlayerTeammate() && !GuildHall::FollowersByHand()) {
 				// Anyone travelling with the player is an adventurer. Those who were not already a
-				// member (story followers, custom followers with no vanilla faction) register now.
+				// member (story followers, custom followers with no vanilla faction) register now. Not while followers are
+				// registered by hand (MCM > Guild Hall, the 2.0 default): then they are registered at a counter (Party).
 				auto it = g_cache.find(a_actor->GetFormID());
 				const Kind before = it != g_cache.end() ? it->second : Decide(a_actor, nullptr);
 				joined = before != Kind::kMember;
@@ -744,6 +756,15 @@ namespace AG::Adventurers
 	{
 		std::lock_guard l(g_noteLock);
 		return g_noteTexts;
+	}
+
+	bool IsGuildMaster(RE::Actor* a_actor)
+	{
+		auto* base = a_actor ? a_actor->GetActorBase() : nullptr;
+		if (!base) return false;
+		std::lock_guard l(g_lock);
+		const auto it = g_named.find(base->GetFormID());
+		return it != g_named.end() && it->second.guildMaster;
 	}
 
 	const char* KindName(Kind a_kind)

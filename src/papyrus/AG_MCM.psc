@@ -38,6 +38,24 @@ Bool bRegistrationWasRunning = False
 ; it always had, and says so once
 Int iSLevel = 60
 Bool bSLevelSet = False
+; MCM > Guild Hall (version 7, 2.0): what only the hall does, one switch each, kept as "off" so that every one is ON in a
+; game saved before they existed (the 2.0 default). Index = AG_Native.SetHallOnly's: 0 registration, 1 promotion,
+; 2 training, 3 Guild Boxes, 4 library, 5 spell tomes, 6 augments, 7 the party registry
+Bool bHallRegistrationOff = False
+Bool bHallPromotionOff = False
+Bool bHallTrainingOff = False
+Bool bHallBoxesOff = False
+Bool bHallLibraryOff = False
+Bool bHallTomesOff = False
+Bool bHallAugmentsOff = False
+Bool bHallPartiesOff = False
+; followers who are not members join on recruitment (1.x) instead of being registered by hand (the 2.0 default)
+Bool bFollowersOnRecruit = False
+; MCM > Guild Hall > Promotion Trials (2.0): kept as "off", so a save from before it has the trials ON (the default)
+Bool bTrialsOff = False
+; Reputation for ranks (1.6.3): percent of guild.json's promotion Reputation, 50..200. A save from before it starts at
+; 100 (and anything out of range reads as 100), which is what every game asked before
+Int iRepScale = 100
 
 ; The MCM's text, in the game's language: SkyUI only reads the translation file of that language, with no English
 ; fallback, so the DLL gives the text (the translation's line, else English) and SkyUI shows it as it is
@@ -46,7 +64,7 @@ String Function T(String asKey)
 EndFunction
 
 Int Function GetVersion()
-	Return 6
+	Return 7
 EndFunction
 
 Event OnConfigInit()
@@ -62,6 +80,7 @@ Event OnConfigInit()
 	bDetailedLog = AG_Native.GetDetailedLog()
 	iSLevel = AG_Native.GetDefaultSLevel()
 	bSLevelSet = True
+	iRepScale = AG_Native.GetDefaultRepScale()
 	Apply()
 	RegisterCardAction()
 EndEvent
@@ -122,10 +141,11 @@ Function OnOpenGuildCard(String asEvent, String asArg, Float afArg, Form akSende
 EndFunction
 
 Function SetPages()
-	Pages = new String[3]
+	Pages = new String[4]
 	Pages[0] = T("$AG_MCM_System")
-	Pages[1] = T("$AG_MCM_Audio")
-	Pages[2] = T("$AG_MCM_Debug")
+	Pages[1] = T("$AG_MCM_Hall")
+	Pages[2] = T("$AG_MCM_Audio")
+	Pages[3] = T("$AG_MCM_Debug")
 EndFunction
 
 ; Pushes every setting into the DLL. Cheap and idempotent.
@@ -146,6 +166,17 @@ Function Apply()
 	If bSLevelSet
 		AG_Native.SetSLevel(iSLevel)
 	EndIf
+	Int i = 0
+	While i < 8
+		AG_Native.SetHallOnly(i, !HallOff(i))
+		i += 1
+	EndWhile
+	AG_Native.SetFollowersByHand(!bFollowersOnRecruit)
+	AG_Native.SetPromotionTrials(!bTrialsOff)
+	If iRepScale < 50 || iRepScale > 200
+		iRepScale = 100
+	EndIf
+	AG_Native.SetRepScale(iRepScale)
 EndFunction
 
 Event OnPageReset(String a_page)
@@ -166,6 +197,7 @@ Event OnPageReset(String a_page)
 		SetCursorPosition(1)
 		AddHeaderOption(T("$AG_MCM_System_Ranks_Header"), OPTION_FLAG_NONE)
 		AddSliderOptionST("SLevel", T("$AG_MCM_System_iSLevel_Text"), iSLevel, "{0}", OPTION_FLAG_NONE)
+		AddSliderOptionST("RepScale", T("$AG_MCM_System_iRepScale_Text"), iRepScale, "{0}%", OPTION_FLAG_NONE)
 		AddEmptyOption()
 		AddHeaderOption(T("$AG_MCM_System_RankLevels_Header"), OPTION_FLAG_NONE)
 		AddTextOption(T("$AG_MCM_System_RankD_Text"), AG_Native.GetRankLevel(1), OPTION_FLAG_NONE)
@@ -173,7 +205,43 @@ Event OnPageReset(String a_page)
 		AddTextOption(T("$AG_MCM_System_RankB_Text"), AG_Native.GetRankLevel(3), OPTION_FLAG_NONE)
 		AddTextOption(T("$AG_MCM_System_RankA_Text"), AG_Native.GetRankLevel(4), OPTION_FLAG_NONE)
 		AddTextOption(T("$AG_MCM_System_RankS_Text"), AG_Native.GetRankLevel(5), OPTION_FLAG_NONE)
+		AddEmptyOption()
+		AddHeaderOption(T("$AG_MCM_System_RankRep_Header"), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankD_Text"), AG_Native.GetRankReputation(1), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankC_Text"), AG_Native.GetRankReputation(2), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankB_Text"), AG_Native.GetRankReputation(3), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankA_Text"), AG_Native.GetRankReputation(4), OPTION_FLAG_NONE)
+		AddTextOption(T("$AG_MCM_System_RankS_Text"), AG_Native.GetRankReputation(5), OPTION_FLAG_NONE)
 	ElseIf a_page == Pages[1]
+		; (2.0 release plan, 2026-11-08) without the hall's plugin these switches do nothing: greyed, the status on the right says why
+		Int hallFlag = OPTION_FLAG_NONE
+		If !AG_Native.GetGuildHallLoaded()
+			hallFlag = OPTION_FLAG_DISABLED
+		EndIf
+		AddHeaderOption(T("$AG_MCM_Hall_Only_Header"), OPTION_FLAG_NONE)
+		AddToggleOptionST("HallRegistration", T("$AG_MCM_Hall_Registration_Text"), !bHallRegistrationOff, hallFlag)
+		AddToggleOptionST("HallPromotion", T("$AG_MCM_Hall_Promotion_Text"), !bHallPromotionOff, hallFlag)
+		AddToggleOptionST("HallTraining", T("$AG_MCM_Hall_Training_Text"), !bHallTrainingOff, hallFlag)
+		AddToggleOptionST("HallBoxes", T("$AG_MCM_Hall_Boxes_Text"), !bHallBoxesOff, hallFlag)
+		AddToggleOptionST("HallLibrary", T("$AG_MCM_Hall_Library_Text"), !bHallLibraryOff, hallFlag)
+		AddToggleOptionST("HallTomes", T("$AG_MCM_Hall_Tomes_Text"), !bHallTomesOff, hallFlag)
+		AddToggleOptionST("HallAugments", T("$AG_MCM_Hall_Augments_Text"), !bHallAugmentsOff, hallFlag)
+		AddToggleOptionST("HallParties", T("$AG_MCM_Hall_Parties_Text"), !bHallPartiesOff, hallFlag)
+		; right-hand column: whether the hall is there at all (without it, every counter does everything), and followers
+		SetCursorPosition(1)
+		AddHeaderOption(T("$AG_MCM_Hall_Status_Header"), OPTION_FLAG_NONE)
+		If AG_Native.GetGuildHallLoaded()
+			AddTextOptionST("HallStatus", T("$AG_MCM_Hall_Status_Text"), T("$AG_MCM_Hall_Installed"), OPTION_FLAG_NONE)
+		Else
+			AddTextOptionST("HallStatus", T("$AG_MCM_Hall_Status_Text"), T("$AG_MCM_Hall_Missing"), OPTION_FLAG_NONE)
+		EndIf
+		AddEmptyOption()
+		AddHeaderOption(T("$AG_MCM_Hall_Followers_Header"), OPTION_FLAG_NONE)
+		AddToggleOptionST("FollowersByHand", T("$AG_MCM_Hall_bFollowersByHand_Text"), !bFollowersOnRecruit, OPTION_FLAG_NONE)
+		AddEmptyOption()
+		AddHeaderOption(T("$AG_MCM_Hall_Trials_Header"), OPTION_FLAG_NONE)
+		AddToggleOptionST("PromotionTrials", T("$AG_MCM_Hall_bTrials_Text"), !bTrialsOff, hallFlag)
+	ElseIf a_page == Pages[2]
 		AddHeaderOption(T("$AG_MCM_Audio_Sounds_Header"), OPTION_FLAG_NONE)
 		AddMenuOptionST("SoundSet", T("$AG_MCM_Audio_iSoundSet_Text"), SoundSetName(iSoundSet), OPTION_FLAG_NONE)
 		AddMenuOptionST("SoundVolume", T("$AG_MCM_Audio_iSoundVolume_Text"), SoundVolumeNames()[iSoundVolume + 1], OPTION_FLAG_NONE)
@@ -187,7 +255,7 @@ Event OnPageReset(String a_page)
 		AddToggleOptionST("FollowerComments", T("$AG_MCM_Audio_bFollowerComments_Text"), !bFollowerCommentsOff, OPTION_FLAG_NONE)
 		AddToggleOptionST("Interactions", T("$AG_MCM_Audio_bInteractions_Text"), !bInteractionsOff, OPTION_FLAG_NONE)
 		AddToggleOptionST("RepLines", T("$AG_MCM_Audio_bRepLines_Text"), !bRepLinesOff, OPTION_FLAG_NONE)
-	ElseIf a_page == Pages[2]
+	ElseIf a_page == Pages[3]
 		AddHeaderOption(T("$AG_MCM_Debug_Log_Header"), OPTION_FLAG_NONE)
 		AddToggleOptionST("DetailedLog", T("$AG_MCM_Debug_bDetailedLog_Text"), bDetailedLog, OPTION_FLAG_NONE)
 		AddEmptyOption()
@@ -288,6 +356,178 @@ State RepLines
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText(T("$AG_MCM_Audio_bRepLines_Help"))
+	EndEvent
+EndState
+
+; ---- Guild Hall (2.0): what only the hall does, and followers registered by hand ----
+Bool Function HallOff(Int i)
+	If i == 0
+		Return bHallRegistrationOff
+	ElseIf i == 1
+		Return bHallPromotionOff
+	ElseIf i == 2
+		Return bHallTrainingOff
+	ElseIf i == 3
+		Return bHallBoxesOff
+	ElseIf i == 4
+		Return bHallLibraryOff
+	ElseIf i == 5
+		Return bHallTomesOff
+	ElseIf i == 6
+		Return bHallAugmentsOff
+	ElseIf i == 7
+		Return bHallPartiesOff
+	EndIf
+	Return False
+EndFunction
+
+Function SetHallOff(Int i, Bool abOff)
+	If i == 0
+		bHallRegistrationOff = abOff
+	ElseIf i == 1
+		bHallPromotionOff = abOff
+	ElseIf i == 2
+		bHallTrainingOff = abOff
+	ElseIf i == 3
+		bHallBoxesOff = abOff
+	ElseIf i == 4
+		bHallLibraryOff = abOff
+	ElseIf i == 5
+		bHallTomesOff = abOff
+	ElseIf i == 6
+		bHallAugmentsOff = abOff
+	ElseIf i == 7
+		bHallPartiesOff = abOff
+	EndIf
+EndFunction
+
+; a hall toggle's three events, shared by its state
+Function HallSelect(Int i)
+	SetHallOff(i, !HallOff(i))
+	SetToggleOptionValueST(!HallOff(i), False, "")
+	Apply()
+EndFunction
+Function HallDefault(Int i)
+	SetHallOff(i, False)
+	SetToggleOptionValueST(True, False, "")
+	Apply()
+EndFunction
+
+State HallRegistration
+	Event OnSelectST()
+		HallSelect(0)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(0)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Registration_Help"))
+	EndEvent
+EndState
+
+State HallPromotion
+	Event OnSelectST()
+		HallSelect(1)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(1)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Promotion_Help"))
+	EndEvent
+EndState
+
+State HallTraining
+	Event OnSelectST()
+		HallSelect(2)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(2)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Training_Help"))
+	EndEvent
+EndState
+
+State HallBoxes
+	Event OnSelectST()
+		HallSelect(3)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(3)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Boxes_Help"))
+	EndEvent
+EndState
+
+State HallLibrary
+	Event OnSelectST()
+		HallSelect(4)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(4)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Library_Help"))
+	EndEvent
+EndState
+
+State HallTomes
+	Event OnSelectST()
+		HallSelect(5)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(5)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Tomes_Help"))
+	EndEvent
+EndState
+
+State HallAugments
+	Event OnSelectST()
+		HallSelect(6)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(6)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Augments_Help"))
+	EndEvent
+EndState
+
+State HallParties
+	Event OnSelectST()
+		HallSelect(7)
+	EndEvent
+	Event OnDefaultST()
+		HallDefault(7)
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Parties_Help"))
+	EndEvent
+EndState
+
+State HallStatus
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_Status_Help"))
+	EndEvent
+EndState
+
+State FollowersByHand
+	Event OnSelectST()
+		bFollowersOnRecruit = !bFollowersOnRecruit
+		SetToggleOptionValueST(!bFollowersOnRecruit, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bFollowersOnRecruit = False
+		SetToggleOptionValueST(True, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_bFollowersByHand_Help"))
 	EndEvent
 EndState
 
@@ -403,6 +643,29 @@ State SLevel
 	EndEvent
 EndState
 
+; ---- System: the Reputation each promotion asks for, as a percent of guild.json's (1.6.3) ----
+State RepScale
+	Event OnSliderOpenST()
+		SetSliderDialogStartValue(iRepScale)
+		SetSliderDialogDefaultValue(AG_Native.GetDefaultRepScale())
+		SetSliderDialogRange(50.0, 200.0)
+		SetSliderDialogInterval(25.0)
+	EndEvent
+	Event OnSliderAcceptST(Float a_value)
+		iRepScale = a_value as Int
+		Apply()
+		ForcePageReset()  ; the five Reputation rows beneath
+	EndEvent
+	Event OnDefaultST()
+		iRepScale = AG_Native.GetDefaultRepScale()
+		Apply()
+		ForcePageReset()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_System_iRepScale_Help"))
+	EndEvent
+EndState
+
 State ToastSeconds
 	Event OnSliderOpenST()
 		SetSliderDialogStartValue(fToastSeconds)
@@ -488,6 +751,10 @@ State Prepare
 			Return
 		EndIf
 		String report = AG_Native.PrepareUninstall()
+		If !AG_Native.IsPreparedForUninstall()   ; refused (2.0: inside the Guild Hall): the quests stay as they are
+			ShowMessage(report, False, "$Accept", "$Cancel")
+			Return
+		EndIf
 		Quest reg = Game.GetFormFromFile(0x810, "AdventurersGuild.esp") as Quest
 		bRegistrationWasRunning = reg && reg.IsRunning()
 		SetGuildQuests(False)
@@ -550,3 +817,20 @@ Function SetGuildQuests(Bool abRunning)
 		i += 1
 	EndWhile
 EndFunction
+
+; MCM > Guild Hall > Promotion Trials: a new rank comes with the Guild Master's trial (no fee); off, the old promotion
+State PromotionTrials
+	Event OnSelectST()
+		bTrialsOff = !bTrialsOff
+		SetToggleOptionValueST(!bTrialsOff, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bTrialsOff = False
+		SetToggleOptionValueST(True, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_Hall_bTrials_Help"))
+	EndEvent
+EndState

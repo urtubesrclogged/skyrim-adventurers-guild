@@ -31,7 +31,7 @@ namespace AG::Diag
 			spdlog::flush_on(level);
 		}
 
-		// "1.5.0.0, 1970176 bytes" for a loaded DLL: the size tells builds apart when the author never bumped the version
+		// "1.5.0.0, 1970176 bytes" for a loaded DLL: the size tells builds apart when its author never bumped the version
 		std::string Module(const wchar_t* a_name)
 		{
 			auto* mod = GetModuleHandleW(a_name);

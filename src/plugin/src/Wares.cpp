@@ -447,7 +447,7 @@ namespace AG::Wares
 		std::lock_guard                                  l(g_lock);
 		std::vector<std::tuple<int, RE::FormID, float>> out;
 		// The Guild Drums: the drum (made for this timeline, from the start) at every drum's level (PrismaToast.cpp, Play),
-		// the game's rattle, lock and lid 1 dB under it, the balance the author chose by ear (2026-10-27); no reveal sound,
+		// the game's rattle, lock and lid 1 dB under it, a balance chosen by ear; no reveal sound,
 		// the drum's last blow is the reveal. Without the drum's record, the game's sounds as below.
 		const bool drums = a_drums && g_drumSound;
 		if (drums) out.emplace_back(0, g_drumSound, 3.93f);

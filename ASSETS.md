@@ -17,4 +17,9 @@ knowledge pack, notices and descriptions). Copyright (c) 2026 urtubesrclogged. A
   They may not be extracted, reused, or redistributed outside this mod in any form.
 - **Commercial use** of any asset: not allowed.
 
+The Guild Hall's people wear hair from KS Hairdos SSE (Kalilies and Stealthic): those files are theirs, used under their
+permissions (see THIRD_PARTY_NOTICES.md), and none of the above applies to them. The same goes for the Guild Hall's
+and the Guild Board's textures made from Vanilla Remastered (Ultimate) by WaqasTopNotch and The New Normal by
+Skytinerant: they are used under those mods' permissions, with credit.
+
 The Elder Scrolls V: Skyrim and its assets are (c) Bethesda Softworks / ZeniMax Media.

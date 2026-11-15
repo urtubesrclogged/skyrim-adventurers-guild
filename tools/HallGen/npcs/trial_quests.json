@@ -1,0 +1,263 @@
+{
+ "_comment": "The promotion trials (tools/hall-private/plans/promotion-trial.md). npcgen builds five quests, Rank D Trial to Rank S Trial, into the hall's plugin at IDs 0x9800-0x99FF (the hall session's grant). Willem briefs at stage 10 (intro first on the player's first trial), the creature is placed at 'spot' (x, y, z, angle in Tamriel), its trophy is a quest item in its inventory, Willem takes it at 40, the clerk promotes at 50. The Rank S Trial waits at 10 until 'waitsFor' (Dragon Rising) is completed, its journal's stage 15 saying so. creature: a vanilla base copied as our own unique NPC; healthAdd to its health offset, armorAdd to Damage Resist at spawn, spellsAdd to its spells, aggressive for a creature vanilla keeps neutral; headless: the base its body becomes when the trophy (its head) is taken, as vanilla's Glenmoril witches.",
+ "prompts": {
+  "trialStart": "I'm ready for my trial.",
+  "trialHandIn": "It's done. Here's the trophy.",
+  "clerkReady": "I'm ready for promotion."
+ },
+ "willem": {
+  "W0": [
+   "Staying alive, mostly. Do honest work, often, and when your reputation and experience are enough, I'll set you a trial for the next rank."
+  ],
+  "intro": [
+   "Here's how it goes.",
+   "Before the Guild officially promotes someone, they have to pass a trial: usually taking down a beast appropriate for the next rank.",
+   "I'll mark where it is on your map. Kill it, take its trophy, and bring it back to me. No rules against your party helping out either."
+  ],
+  "notYetS": [
+   "I've nothing worthy of you. Not a beast in Skyrim I'd call an S trial, not that I know of. Come back in a while. Something will turn up."
+  ]
+ },
+ "clerks": {
+  "AGHallClerkDay": {
+   "trialAsk": [
+    "Let me check. Oh, looks like you're ready. That means a trial, go on up and see the Guild Master."
+   ],
+   "trialDone": [
+    "Willem's signed off on it. Let me have your card."
+   ]
+  },
+  "AGHallClerkEvening": {
+   "trialAsk": [
+    "This means you're ready for a trial! The Guild Master sets those. Go and see him, and good luck!"
+   ],
+   "trialDone": [
+    "You passed! May I have your card please?"
+   ]
+  }
+ },
+ "trials": [
+  {
+   "rank": "D",
+   "rankIndex": 1,
+   "quest": "AGHallTrialD",
+   "name": "Rank D Trial",
+   "creature": {
+    "base": "EncHagraven",
+    "healthAdd": 50,
+    "spellsAdd": [
+     "IceSpikeLeftHand",
+     "IceStormLeftHand",
+     "WardLesserLeftHand"
+    ],
+    "headless": "C04GlenmorilWitchHeadless"
+   },
+   "spot": [
+    -32542,
+    -56137,
+    769,
+    0
+   ],
+   "trophy": {
+    "name": "Hagraven Trophy",
+    "model": "C04HagravenHead"
+   },
+   "brief": [
+    "There's a particularly dangerous hagraven near the Lady Stone, on the island in Lake Ilinalta.",
+    "I'd rather you had another year of wolves, but you've earned this chance to test yourself. I've marked it on your map. Now go and bring me her head."
+   ],
+   "done": [
+    "Her head, and you've still got yours. Good.", "Plenty at your rank don't come back from a hagraven at all. Off to the counter and they'll update your card."
+   ],
+   "objectives": {
+    "10": "Speak to Willem about your trial",
+    "20": "Kill the hagraven at the Lady Stone",
+    "30": "Collect the Hagraven Trophy",
+    "40": "Bring the Hagraven Trophy to Willem",
+    "50": "Have your guild card updated at the Guild Hall"
+   },
+   "journal": {
+    "10": "The clerk at the Guild Hall says I'm ready for Rank D, but every new rank comes with a trial. Willem, the Guild Master, sets it.",
+    "20": "Willem has set my trial: the hagraven at the Lady Stone. He has marked her on my map.",
+    "30": "The hagraven is dead. I should collect the Hagraven Trophy from her body.",
+    "40": "I have the Hagraven Trophy. Willem is waiting for it at the Guild Hall.",
+    "50": "Willem has taken the Hagraven Trophy and says I've passed. The clerks at the Guild Hall's counter will update my guild card.",
+    "100": "I passed the Guild's trial and was promoted to Rank D."
+   }
+  },
+  {
+   "rank": "C",
+   "rankIndex": 2,
+   "quest": "AGHallTrialC",
+   "name": "Rank C Trial",
+   "creature": {
+    "base": "DLC1EncTrollArmored",
+    "healthAdd": 270
+   },
+   "spot": [
+    76031,
+    61588,
+    -1171,
+    0
+   ],
+   "trophy": {
+    "name": "Troll Trophy",
+    "model": "BoneTrollSkull01"
+   },
+   "brief": [
+    "Some idiot put armor on a troll, and now it's loose in Wayward Pass, up in Winterhold. I want you to clean up their mess.",
+    "Your map will show you where. Come back with its head."
+   ],
+   "done": [
+    "Armor didn't save it, then. That's a C-rank's work, no question. Go and see the counter about your card."
+   ],
+   "objectives": {
+    "10": "Speak to Willem about your trial",
+    "20": "Kill the armored troll in Wayward Pass",
+    "30": "Collect the Troll Trophy",
+    "40": "Bring the Troll Trophy to Willem",
+    "50": "Have your guild card updated at the Guild Hall"
+   },
+   "journal": {
+    "10": "The clerk at the Guild Hall says I'm ready for Rank C, but every new rank comes with a trial. Willem, the Guild Master, sets it.",
+    "20": "Willem has set my trial: the armored troll in Wayward Pass. He has marked it on my map.",
+    "30": "The armored troll is dead. I should collect the Troll Trophy from its body.",
+    "40": "I have the Troll Trophy. Willem is waiting for it at the Guild Hall.",
+    "50": "Willem has taken the Troll Trophy and says I've passed. The clerks at the Guild Hall's counter will update my guild card.",
+    "100": "I passed the Guild's trial and was promoted to Rank C."
+   }
+  },
+  {
+   "rank": "B",
+   "rankIndex": 3,
+   "quest": "AGHallTrialB",
+   "name": "Rank B Trial",
+   "creature": {
+    "base": "EncMammothWild",
+    "healthAdd": 500,
+    "armorAdd": 150,
+    "aggressive": true
+   },
+   "spot": [
+    -61676,
+    -8959,
+    -5905,
+    0
+   ],
+   "trophy": {
+    "name": "Mammoth Trophy",
+    "model": "MammothTusk"
+   },
+   "brief": [
+    "A bull mammoth's gone mad at Gjukar's Monument, west of Whiterun. No giant herds this one, but it's big, angry, and has a hide as thick as a door.",
+    "You'll find it on your map. Bring it down."
+   ],
+   "done": [
+    "Look at the size of it. You've done well, and I mean that. The clerks are waiting with your card."
+   ],
+   "objectives": {
+    "10": "Speak to Willem about your trial",
+    "20": "Kill the mammoth at Gjukar's Monument",
+    "30": "Collect the Mammoth Trophy",
+    "40": "Bring the Mammoth Trophy to Willem",
+    "50": "Have your guild card updated at the Guild Hall"
+   },
+   "journal": {
+    "10": "The clerk at the Guild Hall says I'm ready for Rank B, but every new rank comes with a trial. Willem, the Guild Master, sets it.",
+    "20": "Willem has set my trial: the mammoth at Gjukar's Monument. He has marked it on my map.",
+    "30": "The mammoth is dead. I should collect the Mammoth Trophy from its body.",
+    "40": "I have the Mammoth Trophy. Willem is waiting for it at the Guild Hall.",
+    "50": "Willem has taken the Mammoth Trophy and says I've passed. The clerks at the Guild Hall's counter will update my guild card.",
+    "100": "I passed the Guild's trial and was promoted to Rank B."
+   }
+  },
+  {
+   "rank": "A",
+   "rankIndex": 4,
+   "quest": "AGHallTrialA",
+   "name": "Rank A Trial",
+   "creature": {
+    "base": "TestCenturionBoss",
+    "healthAdd": 400
+   },
+   "spot": [
+    122073,
+    -107690,
+    13591,
+    0
+   ],
+   "trophy": {
+    "name": "Centurion Trophy",
+    "model": "DwarvenCenturionDynamo"
+   },
+   "brief": [
+    "There's a Centurion at Avanchnzel, in the Rift, and it's not like the others. The Dwemer built this one with lightning and steam.",
+    "Bring me its core and you'll be an A ranked adventurer."
+   ],
+   "done": [
+    "Looks like that Centurion has finally been retired from its ancient guard duty. A-rank. That's as far as I ever got. Go on, the counter's waiting."
+   ],
+   "objectives": {
+    "10": "Speak to Willem about your trial",
+    "20": "Kill the Centurion at Avanchnzel",
+    "30": "Collect the Centurion Trophy",
+    "40": "Bring the Centurion Trophy to Willem",
+    "50": "Have your guild card updated at the Guild Hall"
+   },
+   "journal": {
+    "10": "The clerk at the Guild Hall says I'm ready for Rank A, but every new rank comes with a trial. Willem, the Guild Master, sets it.",
+    "20": "Willem has set my trial: the Centurion at Avanchnzel. He has marked it on my map.",
+    "30": "The Centurion is dead. I should collect the Centurion Trophy from its body.",
+    "40": "I have the Centurion Trophy. Willem is waiting for it at the Guild Hall.",
+    "50": "Willem has taken the Centurion Trophy and says I've passed. The clerks at the Guild Hall's counter will update my guild card.",
+    "100": "I passed the Guild's trial and was promoted to Rank A."
+   }
+  },
+  {
+   "rank": "S",
+   "rankIndex": 5,
+   "quest": "AGHallTrialS",
+   "name": "Rank S Trial",
+   "creature": {
+    "base": "DLC1EncDragon07Fire",
+    "healthAdd": 1200,
+    "armorAdd": 100,
+    "waitsFor": "MQ104"
+   },
+   "spot": [
+    18650,
+    -78081,
+    8419,
+    0
+   ],
+   "trophy": {
+    "name": "Dragon Trophy",
+    "model": "DragonBone"
+   },
+   "brief": [
+    "Helgen. Hearing reports of a huge dragon again and there's no one else in Skyrim I'd ask of this but you.",
+    "Go there, kill the bastard, and avenge Helgen for what they did. That's your trial."
+   ],
+   "done": [
+    "You've done it. By the Nine, you've really done it! First S rank since the Guild came to Skyrim.",
+    "Go on and get your card updated; I think I'll just sit here a while."
+   ],
+   "objectives": {
+    "10": "Speak to Willem about your trial",
+    "20": "Kill the dragon at Helgen",
+    "30": "Collect the Dragon Trophy",
+    "40": "Bring the Dragon Trophy to Willem",
+    "50": "Have your guild card updated at the Guild Hall"
+   },
+   "journal": {
+    "10": "The clerk at the Guild Hall says I'm ready for Rank S, but every new rank comes with a trial. Willem, the Guild Master, sets it.",
+    "20": "Willem has set my trial: the dragon at Helgen. He has marked it on my map.",
+    "30": "The dragon is dead. I should collect the Dragon Trophy from its body.",
+    "40": "I have the Dragon Trophy. Willem is waiting for it at the Guild Hall.",
+    "50": "Willem has taken the Dragon Trophy and says I've passed. The clerks at the Guild Hall's counter will update my guild card.",
+    "100": "I passed the Guild's trial and was promoted to Rank S.",
+    "15": "Willem can't yet think of a trial worthy of Rank S, and told me to come back later. (Progress further in the main quest.)"
+   }
+  }
+ ]
+}

@@ -17,6 +17,14 @@ parameterMapping:
     description: "the Adventurers Guild rep doing the guild business"
 
 eligibilityRules:
+  # 2.0: not while this is the Guild Hall's alone (MCM > Guild Hall); the hall's clerks have their own (AG_Hall*)
+  - conditions:
+      - decoratorName: "get_global_value"
+        arguments: ["AG_HallPromotionGlobal"]
+        comparisonOperator: "=="
+        expectedValue: 0
+    logicalOperator: "AND"
+    required: true
   - conditions:
       - decoratorName: "get_faction_rank"
         arguments: ["currentActor", "AG_GuildLiaisonFaction"]

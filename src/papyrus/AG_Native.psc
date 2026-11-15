@@ -18,6 +18,9 @@ Int Function GetThreatRank(Actor akActor) Global Native
 String Function GetRankLetter(Int aiRank) Global Native
 Int Function GetRankFromLevel(Int aiLevel) Global Native
 Bool Function IsGuildLiaison(Actor akActor) Global Native  ; innkeeper and not a story exception (e.g. Delphine)
+; a hall trainer of several skills: sets the skill (vanilla's CLAS skill index, 0 One-handed .. 17 Enchanting) and the
+; highest level his class teaches, before Game.ShowTrainingMenu; only a class from the hall's plugin, else False
+Bool Function SetTrainerSkill(Actor akTrainer, Int aiSkill, Int aiMaxLevel) Global Native
 String Function GetActorGuildNote(Actor akActor) Global Native  ; a named member's line for their SkyrimNet bio, or ""
 String Function GetPlayerLedger() Global Native            ; the player's ledger page as JSON (SkyrimNet ag_player)
 ; SkyrimNet actions (AG_SkyrimNetActions): a Guild rep doing guild business in an AI conversation. Same fees and
@@ -72,8 +75,22 @@ Function SetSLevel(Int aiLevel) Global Native
 Int Function GetRankLevel(Int aiRank) Global Native
 Function NoticeRankLevelsKept() Global Native                ; the one-time notice on a save from before 1.4.0
 Bool Function IsSaveFromBefore140() Global Native            ; the loaded save's Guild record predates 1.4.0 (false on a new game)
+; Reputation for ranks (1.6.3): percent of guild.json's promotion Reputation this game asks for, 50..200, per save.
+; GetRankReputation(1..5) is the Reputation rank D..S asks for under the current setting.
+Int Function GetRepScale() Global Native
+Int Function GetDefaultRepScale() Global Native
+Function SetRepScale(Int aiPercent) Global Native
+Int Function GetRankReputation(Int aiRank) Global Native
 Bool Function GetAudioOption(Int aiWhich) Global Native      ; MCM > Audio: 1 NPC greetings, 2 NPC interactions, 3 the representatives' own lines, 4 follower comments
 Function SetAudioOption(Int aiWhich, Bool abOn) Global Native
+; MCM > Guild Hall (2.0): 0 registration, 1 promotion, 2 training, 3 Guild Boxes, 4 library, 5 spell tomes, 6 augments,
+; 7 the party registry. On = the hall's alone (while the hall's plugin is loaded)
+Function SetHallOnly(Int aiWhich, Bool abOn) Global Native
+Bool Function GetGuildHallLoaded() Global Native
+Function SetPromotionTrials(Bool abOn) Global Native        ; MCM > Guild Hall > Promotion Trials (on by default)
+Bool Function GetPromotionTrialsLoaded() Global Native     ; the hall's trial quests are in the load order
+Function TrialPromote() Global Native                      ; the promotion trial's end: promoted, no fee (AGHallTrialQuestScript)
+Function SetFollowersByHand(Bool abOn) Global Native         ; MCM > Guild Hall: followers who are not members are registered at a counter
 Int Function GetNoticeSoundSet() Global Native              ; MCM > Audio > Notification sounds: 0 Guild Drums, 1 Skyrim, 2 none
 Function SetNoticeSoundSet(Int aiSet) Global Native
 Int Function GetNoticeVolume() Global Native                ; MCM > Audio > Notification volume: -1 quieter, 0 default, 1 louder
@@ -92,6 +109,11 @@ Function SetMinorToastSeconds(Float afSeconds) Global Native
 ; For testing and for modders: they change the player's Guild standing or simulate events (cheat-level), and nothing
 ; in this mod calls them. Used with DevBench (Nexus SE 181326) or from other scripts. Players never see them.
 String Function DebugDump() Global Native
+String Function DebugMapMarker(Float x, Float y, Float z, Float angle, String name, Int type) Global Native
+ObjectReference Function PlaceInTamriel(Form akBase, Float x, Float y, Float z, Float angle) Global Native  ; a persistent ref in Tamriel's persistent cell (Caralion's quest spots)
+String Function DebugRefInfo(ObjectReference akRef) Global Native  ; where a ref really is: cell, worldspace, position, 3D loaded, persistent (DevBench)
+Function SetUniqueLevel(ActorBase akBase, Int aiLevel) Global Native  ; a unique base's fixed level (Vohd: the player's + 10); not saved, set again on load
+Function PayGuildContract(String asTitle) Global Native  ; a contract the Guild posted, paid in hand: a cleared dungeon of the player's rank (gold, Merit, Reputation)
 ; parties (DevBench): the ledger, and the lifecycle without the counter
 String Function DebugPartyDump() Global Native
 String Function DebugPartyFound(String asName, Actor akFounder) Global Native
@@ -99,6 +121,7 @@ String Function DebugPartyAdd(Actor akActor) Global Native
 String Function DebugPartyRemove(Actor akActor) Global Native
 String Function DebugPartyDisband() Global Native
 Function DebugPartyBond(Actor akActor, Float afAmount) Global Native
+String Function DebugPartyRenown(Float afTarget) Global Native  ; DevBench: the active party's Renown set to this (a debug offset in its stats)
 String Function DebugDungeon() Global Native                ; current location / zone / threat rank / visited+reported
 String Function DebugStampSay(Int aiTopic) Global Native     ; the last counter's representative says test line 1-3 (hold stamps)
 Function MemberCardGiven(Actor akOwner) Global Native       ; the named card is in their inventory: an open menu shows it
@@ -114,9 +137,16 @@ String Function DebugThreat() Global Native         ; threat-rank breakdown of a
 String Function DebugKill(Int aiFormId) Global Native  ; kill credit as if the player killed that actor
 Function DebugReset() Global Native
 Function DebugBoard() Global Native                        ; as if walking up to a Missives board
+Function DebugHallRoll() Global Native                     ; the Guild Hall rolls every hold now (in the great hall)
 Function DebugCompleteMissive(String asFormId) Global Native
 String Function DebugAdventurer(Actor akActor) Global Native
 Function OpenCounter() Global Native                       ; the guild counter window (registered players)
+Function OpenGuildBoard() Global Native                    ; the Guild Hall's board page, as activating the board does (2.0)
+Function OpenLeaderBoard() Global Native                   ; the hall's party leader board page, as activating it does (2.0)
+Int Function LeaderBoardRank() Global Native               ; the player's active party's place on the leader board (1 = first; 0: none)
+Int Function LeaderBoardRivalRank() Global Native          ; the Golden Hand's place (0 once he is done)
+Function LeaderBoardEndRival(Int how) Global Native        ; the Golden Hand is done: 1 he fell, 2 he left Skyrim (struck out, "dishonored"); 3 he died before his quest ("disbanded")
+String Function DebugLeaderBoard() Global Native           ; DevBench: the leader board's rows and the rival's state
 String Function DebugLevelLabel(Int aiMode, Float afMargin) Global Native ; level-label fit: 0 auto, 1 shift, 2 shrink (-1 keeps); returns the measurements
 String Function DebugLevelDump(Float afAvail) Global Native  ; the level strip's clips and bounds (call twice); afAvail > 0 forces the shrink room
 Function DebugToast() Global Native                        ; shows a test notice (for checking the notice panel in VR)
@@ -131,3 +161,4 @@ Int Function GetNameMode() Global Native
 Function NameSiteAllow(Int aiRva, Bool abOn) Global Native
 Function NameSiteReset() Global Native
 String[] Function GetNameSites() Global Native
+Int Function DayOfWeek() Global Native                     ; the calendar's weekday: 0 Sundas ... 6 Loredas (-1 before the calendar exists)

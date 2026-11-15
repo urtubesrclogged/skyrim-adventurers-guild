@@ -3,7 +3,8 @@
 //   dotnet run -- <outDir> [configDir] [Missives.esp path]   (Missives 2.03 is a hard master)
 //   dotnet run -- --probe <factions|npcs|races|keywords|books|activators|locations|classes> [regex] [plugin]
 // FormIDs are FIXED once released (saves reference them): never renumber, only append.
-//   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics)
+//   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics);
+//                0x807 AG_GuildHallInstalledGlobal (2.0: never used by any release before it, checked against 1.0.0-1.6.2)
 //   0x900-0x9FF  Missives note variants per rank (MissivesPatch.cs)
 //   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json; full since 1.4.0, they go on in 0xD00-0xFFF
 //   0x81F the party-member faction
@@ -23,9 +24,16 @@
 //   0xCD8-0xCDA  SkyrimNet (1.5.2): AG_SkyrimNetStandingFaction, AG_SkyrimNetNoteFaction, AG_SkyrimNetPartyFaction
 //   0xCDB        AG_DrumBoxOpened (1.6.0): the Guild Drums' Guild Box opening (wares.json "sounds")
 //   0xCE0-0xCE5  Show Guild Card: the strongholds' branch and topic (0xCE4/5). 0xCE0-0xCE3 were the College's and the Treasury House's in
-//                development builds only (never released): free.
+//                development builds only (never released); since taken: 0xCE0-0xCE2 the card's inventory art, 0xCE3 AG_FollowerCommentsGlobal.
 //   0xC00-0xC7B  party traits 9+: their globals 0xC00-0xC0F (trait 9 = 0xC00), then their effects and perks
 //   0xC7C-0xC7F  a dead adventurer's card (1.5.0): AG_MemberCardBloody, AG_MemberCardMorrowindBloody, and their inventory art
+//   0xFC0-0xFD1  the Guild Hall's "A new bounty?" (2.0, HallBounties.cs): copies of the game's four bounty quests, their reward
+//                lines, the event keyword and the Story Manager node; the dialogue INFOs from 0xD00 stop at 0xFBF
+//   0xFD2-0xFDF  inn and hall (2.0): AG_HallRegistrationGlobal 0xFD2, AG_HallPromotionGlobal 0xFD3, the board's notice
+//                for registration at the hall 0xFD4, the other hall-only globals 0xFD5-0xFDA (training, Guild Boxes,
+//                library, spell tomes, augments, the party registry)
+//                0xFDB-0xFDC AG_MissivesInstalledGlobal, AG_NoticeBoardInstalledGlobal (which job mods are in, for the clerks' lines)
+//                0xFDD-0xFDF the leader board: AG_LB_PassedRival, AG_LB_PartyRenownGlobal, AG_LB_PlayerPlaceGlobal
 //   0xFE0-0xFFF  Guild Wares (1.6.0): 0xFE0-0xFEF the cursed weapons' curse abilities (wares.json "curses", in order);
 //                0xFF0-0xFFF the curses' description notes, two per curse (0xFF0 + 2n weapon, 0xFF1 + 2n worn: at most 8 curses); the
 //                dialogue INFOs that grow from 0xD00 stop short of this block
@@ -88,7 +96,10 @@ JsonNode? ResolveNode(JsonNode? node, string where)
                     foreach (var e in arr)
                     {
                         var edid = e!.GetValue<string>();
-                        if (map.TryGetValue(edid, out var fk)) res.Add(Key(fk));
+                        // "Plugin.esp|0x008030": a record of a plugin that cannot be a master here (the Guild Hall's
+                        // people, in the hall's own plugin), passed through and looked up at runtime (absent = skipped)
+                        if (edid.Contains('|')) res.Add(edid);
+                        else if (map.TryGetValue(edid, out var fk)) res.Add(Key(fk));
                         else { Console.Error.WriteLine($"ERROR {where}: unknown {k} editor ID '{edid}'"); errors++; }
                     }
                     outObj[k] = res;
@@ -214,6 +225,32 @@ var gFollowerComments = Global(0xCE3, "AG_FollowerCommentsGlobal", 1);
 var gCardsCarried = Global(0xCF9, "AG_CardsCarriedGlobal", 0);
 var gCardCase = Global(0xCFA, "AG_CardCaseGlobal", 0);
 var gCardFee = Global(0x81D, "AG_CardFee", 25);            // a replacement guild card (the DLL sets it from guild.json)
+// The Guild Hall (2.0), kept by the DLL: 1 while registration / promotion is the hall's alone (MCM > Guild Hall, and the
+// hall's plugin loaded). The innkeepers then send the player to the hall instead of taking the fee; SkyrimNet reads them too.
+var gHallRegistration = Global(0xFD2, "AG_HallRegistrationGlobal", 0);
+var gHallPromotion = Global(0xFD3, "AG_HallPromotionGlobal", 0);
+// ... and the same for the rest of MCM > Guild Hall, which only SkyrimNet's knowledge reads (where each service is sold)
+Global(0xFD5, "AG_HallTrainingGlobal", 0);
+Global(0xFD6, "AG_HallBoxesGlobal", 0);
+Global(0xFD7, "AG_HallLibraryGlobal", 0);
+Global(0xFD8, "AG_HallTomesGlobal", 0);
+Global(0xFD9, "AG_HallAugmentsGlobal", 0);
+Global(0xFDA, "AG_HallPartiesGlobal", 0);
+// 1 for good once the player's party first ranks above Caralion's Golden Hand on the hall's leader board (the DLL sets it,
+// LeaderBoard.cpp); Caralion's quest starts from it. Its FormID is fixed: the quest's conditions read it
+Global(0xFDD, "AG_LB_PassedRival", 0);
+// the player's standing on the leader board, for the hall folk's lines about it (dialogue conditions read globals, not
+// natives; the DLL sets both every half minute): the Renown of the player's best party (0 with none), and that party's
+// place on the board (1 = top, 0 with none). Fixed FormIDs: the NPC lines' conditions read them
+Global(0xFDE, "AG_LB_PartyRenownGlobal", 0);
+Global(0xFDF, "AG_LB_PlayerPlaceGlobal", 0);
+// 1 while Missives / The Notice Board is in and resolved: the DLL sets them on every load, so a mod taken out flips them for an old save, and the clerks' answers
+// about work read them in dialogue conditions. 0 by default: the "neither" version, which is safe
+Global(0xFDB, "AG_MissivesInstalledGlobal", 0);
+// 1 while the Guild Hall's plugin is loaded (the DLL sets it on every load, so a hall taken out flips it for an old save): SkyrimNet's
+// lore and the dialogue that only holds with or without the hall read it. 0 by default: the no-hall version
+var gHallInstalled = Global(0x807, "AG_GuildHallInstalledGlobal", 0);
+Global(0xFDC, "AG_NoticeBoardInstalledGlobal", 0);
 // 1 while a Missives add-on is loaded (the DLL sets it on every load): dialogue that depends on its board reads it
 var addonGlobals = new Dictionary<string, GlobalShort> { ["AG_MissivesSolstheimGlobal"] = Global(0xC90, "AG_MissivesSolstheimGlobal", 0) };
 Global(0x81E, "AG_CardMissingGlobal", 0);                  // 1 while a member carries no card (SkyrimNet action eligibility; DLL keeps it)
@@ -376,7 +413,7 @@ uint InfoId(string key)
     if (!ids.TryGetValue(key, out var hex))
     {
         if (nextId is >= 0xC00 and < 0xD00) nextId = 0xD00;
-        if (nextId >= 0xFE0) { Console.Error.WriteLine($"ERROR dialogue: no FormIDs left for '{key}' (0xA00-0xBFF and 0xD00-0xFDF are full; 0xFE0-0xFFF are the Guild Wares')"); Environment.Exit(1); }
+        if (nextId >= 0xFC0) { Console.Error.WriteLine($"ERROR dialogue: no FormIDs left for '{key}' (0xA00-0xBFF and 0xD00-0xFBF are full; 0xFC0-0xFDF are the Guild Hall's, 0xFE0-0xFFF the Guild Wares')"); Environment.Exit(1); }
         hex = $"0x{nextId++:X3}"; ids[key] = hex;
     }
     return Convert.ToUInt32(hex, 16);
@@ -424,7 +461,7 @@ void PutFirst(DialogTopic t, List<DialogResponses> shorts)
     for (var i = 0; i < t.Responses.Count; i++)
         t.Responses[i].PreviousDialog = i == 0 ? new FormLinkNullable<IDialogResponsesGetter>() : new FormLinkNullable<IDialogResponsesGetter>(t.Responses[i - 1].FormKey);
 }
-var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new(), ["cardhandin"] = new() };
+var roles = new Dictionary<string, List<string>> { ["register"] = new(), ["promote"] = new(), ["business"] = new(), ["replace"] = new(), ["stamp"] = new(), ["cardhandin"] = new(), ["rankings"] = new() };
 var liaisonKeys = new List<string>();
 var prompts = dlg["prompts"]!;
 
@@ -438,15 +475,24 @@ var prompts = dlg["prompts"]!;
 // single topic's (voice file names use it), so the existing voiced lines still match.
 // payNow (the replacement guild card): the fee is in the player's own line, so there is no ask and no second choice.
 // The liaison line (DLL acts on it) plays if the player has the gold, else "<role>:nofee", both in the one topic.
+// hall (2.0; registration, promotion): while that global is 1 the business is the Guild Hall's alone. Every line of the
+// topic, the "Of course." twins and the referrals included, needs it at 0, so no innkeeper offers the choice then
+// (no new lines for anyone outside the hall for now; the quest, the board's notice and the alerts
+// point to the hall). A liaison's optional "<role>Hall" line would answer instead, sending the player there.
+// topLevel false (2.0): the topic is a choice under "I have guild business." (its menu, below),
+// not in the top list. business: the representative's own line answers "I have guild business." and offers that menu.
 void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodbyeForLiaison, ConditionFloat[] state, bool referrals,
-               GlobalShort? fee = null, uint payTopicId = 0, uint laterTopicId = 0, bool payNow = false)
+               GlobalShort? fee = null, uint payTopicId = 0, uint laterTopicId = 0, bool payNow = false, GlobalShort? hall = null, bool topLevel = true)
 {
+    Condition[] notHall = hall is null ? Array.Empty<Condition>() : new Condition[] { GlobalIs(hall, 0) };
+    var opener = role == "business";   // her line opens the menu; the counter is the menu's "Let me see the counter."
+    var openers = new List<DialogResponses>();
     var branch = new DialogBranch(FK(branchId), Rel)
     {
         EditorID = $"AG_Branch{stem}",
         Quest = new FormLink<IQuestGetter>(dlgQuest.FormKey),
         Category = DialogBranch.CategoryType.Player,
-        Flags = DialogBranch.Flag.TopLevel,
+        Flags = topLevel ? DialogBranch.Flag.TopLevel : 0,
         StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(topicId)),
     };
     mod.DialogBranches.Add(branch);
@@ -466,10 +512,11 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     var shorts = new Dictionary<DialogTopic, List<DialogResponses>>();
     DialogResponses Short(DialogTopic t, string key, bool goodbye, IEnumerable<Condition> who, bool acts)
     {
-        var info = ShortReply(key, goodbye, who.Concat(state));
+        var info = ShortReply(key, goodbye, who.Concat(state).Concat(notHall));
         if (!shorts.TryGetValue(t, out var list)) shorts[t] = list = new();
         list.Add(info);
-        if (acts && roles.ContainsKey(role)) roles[role].Add(ids[key]);
+        if (acts && !opener && roles.ContainsKey(role)) roles[role].Add(ids[key]);
+        if (opener) openers.Add(info);
         return info;
     }
     // conditions that make a successor (Ysolda after Hulda) this liaison: in the DLL's faction, and at her inn
@@ -481,7 +528,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         if (su["cell"] is JsonNode cell) c.Add(InCell(KeyFk(cell.GetValue<string>()), true));
         return c;
     }
-    DialogResponses Info(DialogTopic t, string key, string[] lines, bool goodbye, IEnumerable<Condition> who)
+    DialogResponses Info(DialogTopic t, string key, string[] lines, bool goodbye, IEnumerable<Condition> who, bool hallLine = false)
     {
         var info = new DialogResponses(FK(InfoId(key)), Rel)
         {
@@ -493,10 +540,20 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         info.Conditions.Add(GlobalIs(gRepLines, 1));  // first, so it is ANDed with everything after it, OR groups included
         foreach (var c in who) info.Conditions.Add(c);
         foreach (var c in state) info.Conditions.Add(c);
+        if (hall is not null) info.Conditions.Add(GlobalIs(hall, hallLine ? 1 : 0));
         if (prevOf.TryGetValue(t, out var prev)) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(prev.FormKey);
         t.Responses.Add(info);
         prevOf[t] = info;
         return info;
+    }
+    // (2.0 re-voicing: each innkeeper in their own voice) the lines every liaison shares are one
+    // INFO, so one voice file per voice type: two liaisons of one voice type (Valga and Jonna, Thoring and Dagur) would
+    // speak the same recording. Those get a copy of each shared line of their own, ahead of the shared one.
+    List<string> OwnCopies()
+    {
+        var vt = JsonNode.Parse(File.ReadAllText(Path.GetFullPath(Path.Combine(configDir, "../../../voices.json"))))!["npcs"]!.AsObject();
+        var ls = dlg["liaisons"]!.AsArray().Where(x => x!["successor"] is null).Select(x => x!["npc"]!.GetValue<string>()).ToList();
+        return ls.Where(n => vt[n] is JsonNode v && ls.Count(m => m != n && vt[m]?.GetValue<string>() == v.GetValue<string>()) > 0).ToList();
     }
     List<Condition> AnyLiaison()
     {
@@ -513,6 +570,24 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             if (l!["successor"] is JsonNode su && su["cell"] is JsonNode cell && l["away"] is JsonNode away)
                 Info(topic, $"{role}:away:{l["npc"]!.GetValue<string>()}", new[] { away.GetValue<string>() }, false,
                     new Condition[] { IsNpc(Npc(l["npc"]!.GetValue<string>()), false), InFaction(liaisonFaction.FormKey), InCell(KeyFk(cell.GetValue<string>()), false) });
+    // the Guild Hall's business (2.0): each liaison sends the player to the hall. It only informs, so it acts on nothing
+    // and has no "Of course." twin; the global keeps it apart from every other line, so its place in the topic is no matter
+    if (hall is not null)
+        foreach (var l in dlg["liaisons"]!.AsArray())
+        {
+            var npc = l!["npc"]!.GetValue<string>();
+            if (l[$"{role}Hall"] is not JsonNode hl) continue;  // none: she does not offer the choice while it is the hall's
+            var who = new List<Condition> { IsNpc(Npc(npc), false) };
+            who.AddRange(Succeeded(l));
+            // a vanilla quest's completion can change it too ("afterQuest" {quest, "<role>Hall"}: Thoring and Waking Nightmare)
+            if (l["afterQuest"] is JsonObject aq && aq[$"{role}Hall"] is JsonNode ah)
+            {
+                var q = aq["quest"]!.GetValue<string>();
+                Info(topic, $"{role}:hall:{npc}:after", new[] { ah.GetValue<string>() }, false, who.Append(QuestDone(q, true)), hallLine: true);
+                who.Add(QuestDone(q, false));
+            }
+            Info(topic, $"{role}:hall:{npc}", new[] { hl.GetValue<string>() }, false, who, hallLine: true);
+        }
     // the per-liaison lines: in the pay topic when there's a fee, else straight in the topic
     DialogTopic? pay = null, later = null;
     if (fee is not null && !payNow)
@@ -530,6 +605,9 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             askWho.AddRange(Succeeded(l));
             asks.Add(Info(topic, $"{role}:ask:{npc}", new[] { own.GetValue<string>() }, false, askWho));
         }
+        foreach (var npc in OwnCopies())
+            if (dlg["liaisons"]!.AsArray().First(x => x!["npc"]!.GetValue<string>() == npc)![$"{role}Ask"] is null)
+                asks.Add(Info(topic, $"{role}:ask:own:{npc}", new[] { Line("ask") }, false, new List<Condition> { IsNpc(Npc(npc), false) }));
         asks.Add(Info(topic, $"{role}:ask", new[] { Line("ask") }, false, AnyLiaison()));
         asks.Add(Short(topic, $"{role}:ask:short", false, AnyLiaison(), false));
         foreach (var ask in asks)
@@ -557,6 +635,7 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             var w = Who();
             w.AddRange(extra);
             var info = Info(liaisonTopic, k, ls, goodbyeForLiaison, w);
+            if (opener) { openers.Add(info); return info; }   // (it opens the menu: no fragment, nothing for the DLL to do)
             if (roles.ContainsKey(role)) roles[role].Add(ids[k]);
             // SkyrimNet only offers its AI a dialogue line as an action ("Actions <npc> can take", fired through
             // TriggerDialogueLine) when the INFO has a script fragment that does something. This one opens the counter,
@@ -621,9 +700,13 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
     {
         var poor = AnyLiaison();
         poor.Add(Gold(fee, false));
+        foreach (var npc in OwnCopies())
+            Info(pay ?? topic, $"{role}:nofee:own:{npc}", new[] { Line("nofee") }, false, new List<Condition> { IsNpc(Npc(npc), false), Gold(fee, false) });
         Info(pay ?? topic, $"{role}:nofee", new[] { Line("nofee") }, false, poor);
         if (later is not null)
         {
+            foreach (var npc in OwnCopies())
+                Info(later, $"{role}:later:own:{npc}", new[] { Line("later") }, false, new List<Condition> { IsNpc(Npc(npc), false) });
             Info(later, $"{role}:later", new[] { Line("later") }, false, AnyLiaison());
             Short(later, $"{role}:later:short", false, AnyLiaison(), false);
         }
@@ -645,6 +728,13 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             }
             // a second line for the same people (after their innkeeper's death) needs its own key
             var gk = $"{role}:{kind}:{g["npcs"]![0]!.GetValue<string>()}" + (g["whenDead"] is JsonNode dd ? ":after" + dd.GetValue<string>() : "");
+            // (2.0) 'lineHall': what they say instead while the Guild Hall is installed, when the
+            // line is about where Guild business is done; the plain line then plays only without the hall
+            if (g["lineHall"] is JsonNode lh)
+            {
+                Info(topic, gk + ":hall", new[] { lh.GetValue<string>() }, false, conds.Append(GlobalIs(gHallInstalled, 1)).ToList());
+                conds.Add(GlobalIs(gHallInstalled, 0));
+            }
             Info(topic, gk, new[] { g["line"]!.GetValue<string>() }, false, conds);
         }
         foreach (var g in dlg["staff"]!.AsArray()) Group("staff", g!);
@@ -653,10 +743,71 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
         // tavern staff in JobInnkeeperFaction (Immersive Wenches), and a follower is no innkeeper while she follows.
         var notFollowing = InFaction(Skyrim.Faction.CurrentFollowerFaction.FormKey);   // in it = rank 0 and up; dismissed is rank -1
         notFollowing.ComparisonValue = 0;
-        Info(topic, $"{role}:generic", new[] { dlg["generic"]!.GetValue<string>() }, false, new Condition[] {
+        var genericWho = new List<Condition> {
             InFaction(Skyrim.Faction.JobInnkeeperFaction.FormKey),
             new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = new GetPlayerTeammateConditionData() },
-            notFollowing });
+            notFollowing };
+        if (dlg["genericHall"] is JsonNode gh)   // (2.0) with the Guild Hall installed, the hall is named too
+        {
+            Info(topic, $"{role}:generic:hall", new[] { gh.GetValue<string>() }, false, genericWho.Append(GlobalIs(gHallInstalled, 1)).ToList());
+            genericWho.Add(GlobalIs(gHallInstalled, 0));
+        }
+        Info(topic, $"{role}:generic", new[] { dlg["generic"]!.GetValue<string>() }, false, genericWho);
+    }
+    // "I have guild business." (2.0): her line, then the menu. Its choices, in this order: the counter, promotion, other members'
+    // cards, a lost card, the party rankings (no Guild Hall only), and "Not now." The menu's own replies are the game's "Of course."
+    // (her own line stays the answer to "I have guild business.", which it was written for)
+    if (opener)
+    {
+        var menu = new DialogBranch(FK(0x80A), Rel)
+        {
+            EditorID = "AG_BranchBusinessMenu", Quest = new FormLink<IQuestGetter>(dlgQuest.FormKey),
+            Category = DialogBranch.CategoryType.Player, Flags = 0, StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(0x80D)),
+        };
+        mod.DialogBranches.Add(menu);
+        DialogTopic MenuTopic(uint id, string edid, string text) => new DialogTopic(FK(id), Rel)
+        {
+            EditorID = edid, Name = text, Priority = 50,
+            Branch = new FormLinkNullable<IDialogBranchGetter>(menu.FormKey), Quest = new FormLinkNullable<IQuestGetter>(dlgQuest.FormKey),
+            Category = DialogTopic.CategoryEnum.Topic, Subtype = DialogTopic.SubtypeEnum.Custom, SubtypeName = new RecordType("CUST"),
+        };
+        DialogResponses OfCourse(DialogTopic t, string key, bool goodbye, IEnumerable<Condition> extra)
+        {
+            var info = new DialogResponses(FK(InfoId(key)), Rel)
+            {
+                EditorID = "AG_Info_" + key.Replace(":", "_"),
+                Flags = new DialogResponseFlags { Flags = goodbye ? DialogResponses.Flag.Goodbye : 0 },
+                ResponseData = new FormLinkNullable<IDialogResponsesGetter>(ofCourse),
+            };
+            foreach (var c in AnyLiaison().Concat(state).Concat(extra)) info.Conditions.Add(c);
+            t.Responses.Add(info);
+            return info;
+        }
+        // the counter: the line is a Goodbye, and the counter opens as the menu closes (the DLL, and the fragment for SkyrimNet)
+        var counter = MenuTopic(0x80D, "AG_TopicBusinessCounter", prompts["counter"]!.GetValue<string>());
+        var open = OfCourse(counter, "business:counter", true, Array.Empty<Condition>());
+        roles["business"].Add(ids["business:counter"]);
+        open.VirtualMachineAdapter = new DialogResponsesAdapter
+        {
+            ScriptFragments = new ScriptFragments
+            {
+                FileName = "AG_TIF_GuildBusiness",
+                OnEnd = new ScriptFragment { ScriptName = "AG_TIF_GuildBusiness", FragmentName = "Fragment_0" },
+            },
+        };
+        // the party rankings: the leader board's sheet, at an inn only while there is no Guild Hall (whose board is the place to read it)
+        var rankings = MenuTopic(0x80F, "AG_TopicRankings", prompts["rankings"]!.GetValue<string>());
+        OfCourse(rankings, "rankings", true, new Condition[] { GlobalIs(gHallInstalled, 0) });
+        roles["rankings"].Add(ids["rankings"]);
+        // "Not now.": back to the topic list
+        var notNow = MenuTopic(0x829, "AG_TopicBusinessLater", prompts["later"]!.GetValue<string>());
+        OfCourse(notNow, "business:later", false, Array.Empty<Condition>());
+        mod.DialogTopics.Add(counter);
+        mod.DialogTopics.Add(rankings);
+        mod.DialogTopics.Add(notNow);
+        foreach (var o in openers)
+            foreach (var t in new uint[] { 0x80D, 0x809, 0xCFF, 0x81C, 0x80F, 0x829 })
+                o.LinkTo.Add(new FormLink<IDialogTopicGetter>(FK(t)));
     }
     foreach (var (t, list) in shorts) PutFirst(t, list);
     mod.DialogTopics.Add(topic);
@@ -680,14 +831,14 @@ foreach (var l in dlg["liaisons"]!.AsArray())
     liaisonKeys.Add(k);
     liaisonCities[k] = l["city"]!.GetValue<string>();
 }
-MakeTopic(0x805, 0x806, "Register", "register", true, new[] { GlobalIs(gRegistered, 0) }, true, gRegFee, 0x816, 0x817);
-MakeTopic(0x808, 0x809, "Promote", "promote", true, new[] { GlobalIs(gRegistered, 1), GlobalIs(gPromoReady, 1) }, true, gPromoFee, 0x818, 0x819);
-MakeTopic(0x80B, 0x80C, "Business", "business", true, new[] { GlobalIs(gRegistered, 1) }, true);
+MakeTopic(0x805, 0x806, "Register", "register", true, new[] { GlobalIs(gRegistered, 0) }, true, gRegFee, 0x816, 0x817, hall: gHallRegistration);
+MakeTopic(0x808, 0x809, "Promote", "promote", true, new[] { GlobalIs(gRegistered, 1), GlobalIs(gPromoReady, 1) }, true, gPromoFee, 0x818, 0x819, hall: gHallPromotion, topLevel: false);
+MakeTopic(0x80B, 0x80C, "Business", "business", false, new[] { GlobalIs(gRegistered, 1) }, true);
 MakeTopic(0x812, 0x813, "About", "about", false, Array.Empty<ConditionFloat>(), false);
 // A lost guild card: only offered to a member who carries none, and the choice itself pays (no confirmation).
 // The DLL writes the fee into the player's line (Guild.cpp): a <Global=> tag added to a quest that is already
 // running in a save shows as "[...]".
-MakeTopic(0x81B, 0x81C, "Replace", "replace", false, new[] { GlobalIs(gRegistered, 1), HasNone(FK(0x81A)) }, false, gCardFee, payNow: true);
+MakeTopic(0x81B, 0x81C, "Replace", "replace", false, new[] { GlobalIs(gRegistered, 1), HasNone(FK(0x81A)) }, false, gCardFee, payNow: true, topLevel: false);
 
 // ---------- world awareness: greetings from named NPCs and guards (config/world_dialogue.json) ----------
 // One Hello topic in its own quest, the pattern proven by Bandit Lines Expansion: priority-50 start-game quest,
@@ -1049,8 +1200,24 @@ mod.DialogTopics.Add(hello);
         // refused until a save was loaded (measured 2026-10-11; a second stamp or a replacement card would get silence)
         foreach (var l in dlg["liaisons"]!.AsArray())
         {
-            if (l!["stamped"] is not JsonNode said) continue;
-            var npc = l["npc"]!.GetValue<string>();
+            var npc = l!["npc"]!.GetValue<string>();
+            // (2.0, the 1.6 line review: the re-stamp line "stamped" is cut for most) with no "stamped", her first-stamp line
+            // plays for a re-stamp too: the one INFO, for either value of AG_StampSayGlobal
+            if (l["stamped"] is not JsonNode said)
+            {
+                if (l["stampedFirst"] is not JsonNode only) continue;
+                var one = new DialogResponses(FK(InfoId("stampsaid:" + npc + ":first")), Rel)
+                {
+                    EditorID = "AG_Info_stampsaid_" + npc + "_first",
+                    Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = 0f },
+                };
+                one.Responses.Add(new DialogResponse { Text = only.GetValue<string>(), Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+                one.Conditions.Add(IsNpc(Npc(npc), false));
+                one.Conditions.Add(GlobalCmp(gStampSay, CompareOperator.NotEqualTo, 0));
+                one.Conditions.Add(GlobalIs(gRepLines, 1));
+                t.Responses.Add(one);
+                continue;
+            }
             var info = new DialogResponses(FK(InfoId("stampsaid:" + npc)), Rel)
             {
                 EditorID = "AG_Info_stampsaid_" + npc,
@@ -1135,12 +1302,14 @@ mod.DialogTopics.Add(hello);
     // (A conversation with the owner, to give a card straight back, was built and cut the same day: a living member's
     // card is only ever stolen or taken in trade, and a follower's goes back through the trade menu.)
     {
+        // (2.0: a choice under "I have guild business.", not in the top list. It stays in its quest, as its voice files are named by
+        // it: a choice may lead to another quest's topic, as vanilla's Farkas leads into CR04's and CR05's, Skyrim.esm 000F7942/3)
         DialogTopic Own(uint branchId, uint topicId, string stem, string prompt)
         {
             var b = new DialogBranch(FK(branchId), Rel)
             {
                 EditorID = "AG_Branch" + stem, Quest = new FormLink<IQuestGetter>(worldQuest.FormKey),
-                Category = DialogBranch.CategoryType.Player, Flags = DialogBranch.Flag.TopLevel,
+                Category = DialogBranch.CategoryType.Player, Flags = 0,
                 StartingTopic = new FormLinkNullable<IDialogTopicGetter>(FK(topicId)),
             };
             var t = new DialogTopic(FK(topicId), Rel)
@@ -1171,6 +1340,9 @@ mod.DialogTopics.Add(hello);
             var npc = l["npc"]!.GetValue<string>();
             foreach (var (name, n) in cases)
             {
+                // (2.0, the 1.6 line review) a case with no line of hers (the living owner's card, cut for most) falls to her
+                // short "Of course." below, which plays whatever the case
+                if (hi[name] is null) continue;
                 var who = new List<Condition> { IsNpc(Npc(npc), false) };
                 if (l["successor"] is JsonNode su)  // only once the counter is hers, and only at her inn
                 {
@@ -1392,7 +1564,8 @@ var regQuest = new Quest(FK(0x810), Rel)
             Index = 10,
             // Flags is given even though it is empty: without it the entry is written with no QSDT, which the game and
             // xEdit read and Wrye Bash does not (IndexError; every vanilla log entry starts with QSDT)
-            LogEntries = { new QuestLogEntry { Flags = (QuestLogEntry.Flag)0, Entry = "The missive board only takes work from registered adventurers. The innkeeper of any hold capital can sign me up with the Adventurers Guild." } },
+            // one entry for either route: the objective says where (2.0)
+            LogEntries = { new QuestLogEntry { Flags = (QuestLogEntry.Flag)0, Entry = "The missive board only takes work from registered adventurers. I need to sign up with the Adventurers Guild." } },
         },
         new QuestStage
         {
@@ -1400,7 +1573,13 @@ var regQuest = new Quest(FK(0x810), Rel)
             LogEntries = { new QuestLogEntry { Flags = QuestLogEntry.Flag.CompleteQuest, Entry = "I registered with the Adventurers Guild. Missives suited to my rank are now open to me." } },
         },
     },
-    Objectives = { new QuestObjective { Index = 10, DisplayText = "Register with the Adventurers Guild at an inn in any hold capital" } },
+    // 10 the inns, 20 the Guild Hall while registration is the hall's alone (2.0, MCM > Guild Hall): the DLL shows the one
+    // that applies, and swaps them if the setting changes while the quest runs (AG_QuestHelper.PointRegistrationQuest)
+    Objectives =
+    {
+        new QuestObjective { Index = 10, DisplayText = "Register with the Adventurers Guild at an inn in any hold capital" },
+        new QuestObjective { Index = 20, DisplayText = "Register with the Adventurers Guild at the Guild Hall above Riverwood" },
+    },
 };
 mod.Quests.Add(regQuest);
 
@@ -1438,13 +1617,28 @@ var note = new Book(FK(0x811), Rel)
         "<p align=\"right\">- The Adventurers Guild</p>",
 };
 mod.Books.Add(note);
+// The same notice while registration is the Guild Hall's alone (2.0): the DLL hands out the one that applies
+var noteHall = new Book(FK(0xFD4), Rel);
+noteHall.DeepCopyIn(note);
+noteHall.EditorID = "AG_RegistrationMissiveHall";
+noteHall.BookText =
+    "<p align=\"center\"><font size=\"30\">ADVENTURERS GUILD</font></p>" +
+    "<p align=\"center\">Notice to all who would take work from this board</p><br>" +
+    "<p>The missives posted here are Guild Missives. They are offered only to registered adventurers, " +
+    "and only at a rank the Guild judges you fit for.</p><br>" +
+    "<p>Registration is taken at the Guild Hall, on the hill above Riverwood in Whiterun Hold. Speak to the clerks at its counter. The fee is fifty septims.</p><br>" +
+    "<p>Those with experience will be assessed and placed accordingly. Everything above that is earned: " +
+    "trophies, cleared dungeons and completed missives build your standing with the Guild, and the Guild will hear " +
+    "your case for promotion once you have earned it.</p><br>" +
+    "<p align=\"right\">- The Adventurers Guild</p>";
+mod.Books.Add(noteHall);
 
 // The physical Guild Card (1.2.0): a note the DLL hands over at registration and renames at each promotion. Reading it
 // opens the counter's Guild Card page (GuildCard.cpp watches the Book Menu); this text is only seen if that cannot
 // happen (PrismaUI missing, or the card in the hands of someone the Guild does not know).
 // The notices' sounds (1.5.0, PrismaToast.cpp plays them by these IDs). Each is a sound descriptor of OURS that names a file
-// of the GAME's: no audio is shipped. Ours, and not the game's records, because the author chose single files by ear
-// (2026-10-13) where the game's record picks one of several at random (its stingers, its reward music, the smithing
+// of the GAME's: no audio is shipped. Ours, and not the game's records, because single files were chosen by ear
+// where the game's record picks one of several at random (its stingers, its reward music, the smithing
 // sound). Every one is a copy of a game interface sound, with the file changed where one was chosen: they play once,
 // flat, at the effects volume.
 // Two of the files are MUSIC (dungeon entered, registered), and a sound record cannot name a music file: written with
@@ -1476,8 +1670,8 @@ Cue(0xC85, "AG_CueComplete", "UIQuestComplete", null);
 Cue(0xC86, "AG_CueStamped", "UISmithingCreateGeneric", @"Data\Sound\FX\UI\Smithing\UI_Smithing_CreateGeneric_01.wav");
 Cue(0xC87, "AG_CueReputationLost", "UILevelUpSD", @"Data\Sound\FX\mgk\firebolt\mag_firebolt_fail.wav");
 // The Guild Drums (MCM > Audio > Notification sounds, the default): the mod's own drums, made from arithmetic alone by
-// tools/make_drums.py and chosen by ear by the author (2026-10-13). Under names of ours, so no sound mod replaces them.
-// Same order as above (PrismaToast.cpp, kDrumId); several notices share a file, as the author chose.
+// tools/make_drums.py and chosen by ear. Under names of ours, so no sound mod replaces them.
+// Same order as above (PrismaToast.cpp, kDrumId); several notices share a file.
 Cue(0xC8B, "AG_DrumPromoted", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_promoted.wav");
 Cue(0xC8C, "AG_DrumDungeonEntered", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_dungeon_entered.wav");
 Cue(0xC8D, "AG_DrumRegistered", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_registered.wav");
@@ -1486,7 +1680,7 @@ Cue(0xC8F, "AG_DrumComplete", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag
 Cue(0xCE7, "AG_DrumStamped", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_stamp.wav");
 Cue(0xCE8, "AG_DrumReputationLost", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_reputation_lost.wav");
 // a Guild Box opened at the counter (1.6.0): a drum scored to the box's animation, played under the game's rattle,
-// lock and lid (Wares.cpp, LootBoxSounds); the author's pick of 2026-10-27
+// lock and lid (Wares.cpp, LootBoxSounds)
 Cue(0xCDB, "AG_DrumBoxOpened", "UILevelUpSD", @"Data\Sound\FX\AdventurersGuild\ag_box_opened.wav");
 
 // What the inventory shows for a card, and what the Book Menu opens (a book's "inventory art"): the game's own menu
@@ -1884,7 +2078,7 @@ for (int si = 0; si < 3; si++)
             return m;
         }
         // the engine joins each effect's text after the one before, which keeps its full stop: "Absorb 80 points of
-        // magicka. But you take 50% more damage from shock." (the author's wording, 2026-10-26)
+        // magicka. But you take 50% more damage from shock."
         var noteText = $"But {curseNote}.";
         Note((uint)(0xFF0 + 2 * i), "Weapon", CastType.FireAndForget, TargetType.Touch, noteText);
         Note((uint)(0xFF1 + 2 * i), "Worn", CastType.ConstantEffect, TargetType.Self, noteText);
@@ -1913,6 +2107,9 @@ if (Environment.GetEnvironmentVariable("MISSIVES_GOODGUYS") is { Length: > 0 } g
 // optional: the same for its sister mod, "Missives for the Bad Guys"
 if (Environment.GetEnvironmentVariable("MISSIVES_BADGUYS") is { Length: > 0 } badGuys && Directory.Exists(badGuys))
     MissivesPatch.BadGuys(badGuys, missivesPath, configDir);
+
+// ---------- the Guild Hall's "A new bounty?" (2.0) ----------
+HallBounties.Add(mod, masters, FK);
 
 // ---------- write ----------
 mod.ModHeader.Stats.NextFormID = Math.Max(0x900u, nextMissivesId);

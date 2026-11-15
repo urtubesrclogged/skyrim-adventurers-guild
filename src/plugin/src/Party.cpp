@@ -10,6 +10,7 @@
 
 #include "Adventurers.h"
 #include "Guild.h"
+#include "GuildHall.h"
 #include "Loc.h"
 #include "RankCore.h"
 
@@ -38,7 +39,7 @@ namespace AG::Party
 			std::array<float, 6> missive{ 1.0f, 1.5f, 2.5f, 4.0f, 5.0f, 6.0f };
 			float                diminish{ 150.0f };     // gains shrink as Bond rises: x (1 - bond / diminish), at least x0.2
 			// Renown: how far the party's name has travelled (SkyrimNet). Points from its record; see Renown().
-			std::array<float, 2> renown{ 15.0f, 60.0f };  // talked about in the holds / famous across Skyrim
+			std::array<float, 2> renown{ 85.0f, 380.0f };  // talked about in the holds / famous across Skyrim (about 10 and 45 hours)
 		};
 
 		// the 18 skills in the order the counter's Analysis tab reads them
@@ -58,6 +59,12 @@ namespace AG::Party
 			int   missives{ 0 };
 			int   bestTier{ 0 };   // highest Bond tier the party has reached
 			float tierDay{ -1.0f };
+			// for Renown (2.0): what of the above people talk about less
+			int camps{ 0 };        // of the dungeons, outdoor camps (bandit, giant, Forsworn)
+			int beasts{ 0 };       // of the kills, dragons and giants
+			int wild{ 0 };         // of the kills, wildlife (mammoths too; bears, trolls and sabre cats are fights)
+			int fame{ 0 };         // a party from before 2.0: the Renown level it had then (0-2), never lost on the update
+			float debugRenown{ 0.0f };  // DevBench only (AG_Native.DebugPartyRenown): added to Renown so a test can reach a set value
 		};
 
 		struct Member
@@ -219,6 +226,18 @@ namespace AG::Party
 			if (auto* pl = RE::ProcessLists::GetSingleton())
 				for (auto& h : pl->highActorHandles)
 					if (auto a = h.get(); a && Following(a.get()) && Adventurers::Of(a.get()).kind == Adventurers::Kind::kMember) out.push_back(a.get());
+			return out;
+		}
+
+		// Followers at the player's side who are people and could be registered (Adventurers::JoinStatus "can_join"): only
+		// while followers are registered by hand, else everyone at the player's side is a member already
+		std::vector<RE::Actor*> FollowersToRegister()
+		{
+			std::vector<RE::Actor*> out;
+			if (!GuildHall::FollowersByHand()) return out;
+			if (auto* pl = RE::ProcessLists::GetSingleton())
+				for (auto& h : pl->highActorHandles)
+					if (auto a = h.get(); a && Following(a.get()) && Adventurers::IsPerson(a.get()) && Adventurers::JoinStatus(a.get()) == "can_join") out.push_back(a.get());
 			return out;
 		}
 
@@ -720,7 +739,7 @@ namespace AG::Party
 		}).detach();
 	}
 
-	void OnKill(RE::Actor* a_victim, RE::Actor* a_killer, int a_rank, bool a_big)
+	void OnKill(RE::Actor* a_victim, RE::Actor* a_killer, int a_rank, bool a_big, bool a_beast, bool a_wild)
 	{
 		const auto present = Present();
 		if (present.empty() || !a_victim) return;
@@ -732,6 +751,8 @@ namespace AG::Party
 			if (!p) return;
 			++p->stats.kills;
 			if (a_big) ++p->stats.bigKills;
+			if (a_beast) ++p->stats.beasts;
+			if (a_wild) ++p->stats.wild;
 			if (!killer.empty())
 				if (auto* m = FindLocked(*p, killer); m && m->status == "active") ++m->kills;
 			amount = g_cfg.kill[std::clamp(a_rank, 0, 5)] * (a_big ? g_cfg.bigKill : 1.0f);
@@ -739,7 +760,7 @@ namespace AG::Party
 		Gain(present, amount, true);
 	}
 
-	void OnDungeonCleared(int a_rank)
+	void OnDungeonCleared(int a_rank, bool a_camp)
 	{
 		const auto present = Present();
 		if (present.empty()) return;
@@ -749,6 +770,7 @@ namespace AG::Party
 			auto* p = ActiveLocked();
 			if (!p) return;
 			++p->stats.dungeons;
+			if (a_camp) ++p->stats.camps;
 			amount = g_cfg.dungeon[std::clamp(a_rank, 0, 5)];
 		}
 		Gain(present, amount, false);
@@ -1003,6 +1025,22 @@ namespace AG::Party
 		return Loc::F("$AG_Party_Joined", "{} joins {}.", name, party);
 	}
 
+	std::string RegisterFollower(RE::Actor* a_actor)
+	{
+		if (!a_actor || !Following(a_actor) || !Adventurers::IsPerson(a_actor)) return Loc::T("$AG_Party_RegNotHere", "Only a follower at your side can be registered.");
+		if (Adventurers::JoinStatus(a_actor) != "can_join") return Loc::F("$AG_Party_RegCannot", "{} cannot be registered with the Guild.", a_actor->GetDisplayFullName());
+		const int fee = Guild::RegistrationFee();
+		if (!Guild::PayGold(fee)) return Loc::F("$AG_Party_RegGold", "Registering a follower costs {} gold.", fee);
+		const auto result = Adventurers::Join(a_actor);  // the member's HUD line, SkyrimNet and the AG_AdventurerJoined event
+		if (result != "joined") {
+			SKSE::log::warn("Party: registering {:08X} failed after the fee was paid ({}) - the fee is returned", a_actor->GetFormID(), result);
+			RE::PlayerCharacter::GetSingleton()->AddObjectToContainer(RE::TESForm::LookupByID<RE::TESBoundObject>(0xF), nullptr, fee, nullptr);
+			return Loc::F("$AG_Party_RegCannot", "{} cannot be registered with the Guild.", a_actor->GetDisplayFullName());
+		}
+		SKSE::log::info("Party: {} registered with the Guild by hand, {} gold", a_actor->GetDisplayFullName(), fee);
+		return Loc::F("$AG_Party_Registered", "{} is registered with the Adventurers Guild.", a_actor->GetDisplayFullName());
+	}
+
 	std::string Remove(const std::string& a_key)
 	{
 		std::string name, party;
@@ -1130,6 +1168,7 @@ namespace AG::Party
 	{
 		// actors first (no lock held while touching game state)
 		const auto nearby = NearbyAdventurers();
+		const auto unregistered = FollowersToRegister();
 		// "With you" means what the blessing means: a teammate, alive and loaded (Present()), so the
 		// counter never shows a blessing, or a member at your side, that the engine is not applying.
 		std::unordered_set<std::string> here;
@@ -1209,7 +1248,7 @@ namespace AG::Party
 			j["active"] = nullptr;
 		}
 		// followers who could join now (founding needs at least one of them)
-		auto& e = j["eligible"] = nlohmann::json::array();
+		auto& e = j["eligible"] = nlohmann::json::array();  // (registered members only: the rest are in toRegister)
 		for (auto* x : nearby) {
 			const auto key = Adventurers::StableKey(x);
 			auto* m = p ? FindLocked(*p, key) : nullptr;
@@ -1219,6 +1258,10 @@ namespace AG::Party
 			e.push_back({ { "id", std::format("{:08X}", x->GetFormID()) }, { "name", x->GetDisplayFullName() }, { "letter", LetterStr(info.rank) },
 				{ "level", x->GetLevel() }, { "rejoin", m != nullptr }, { "bond", std::round(bond) }, { "tier", TierOf(bond) } });
 		}
+		// followers at the player's side who are not members yet (registered by hand, 2.0), and what it costs
+		auto& reg = j["toRegister"] = nlohmann::json::array();
+		for (auto* x : unregistered) reg.push_back({ { "id", std::format("{:08X}", x->GetFormID()) }, { "name", x->GetDisplayFullName() }, { "level", x->GetLevel() } });
+		j["registerFee"] = Guild::RegistrationFee();
 		auto& ledger = j["ledger"] = nlohmann::json::array();
 		for (auto it = g_parties.rbegin(); it != g_parties.rend(); ++it) {
 			nlohmann::json roll = nlohmann::json::array();
@@ -1236,10 +1279,47 @@ namespace AG::Party
 	{
 		float RenownPoints(const Record& a_p)
 		{
+			// (the original flat points, corrected where they paid for the wrong effort) 3
+			// a dungeon but 1 an outdoor camp; 3 a missive, notice or Jarl's bounty; 5 a dragon or giant (a dungeon's boss no
+			// longer: clearing the place is the boss's death, it was paid twice); 0.2 a kill but 0.1 wildlife (mammoths, extra
+			// large as they are, among them); 1 a day in the field. About 8.4 an hour with the party along
 			const auto& s = a_p.stats;
-			return s.dungeons * 3.0f + s.missives * 3.0f + s.bigKills * 5.0f + s.kills * 0.2f + s.hours / 24.0f;
+			const int   rest = std::max(0, s.kills - s.wild);
+			return (s.dungeons - s.camps) * 3.0f + s.camps * 1.0f + s.missives * 3.0f + s.beasts * 5.0f + rest * 0.2f + s.wild * 0.1f +
+			       s.hours / 24.0f + s.debugRenown;
 		}
 		int RenownLevel(float a_points) { return a_points >= g_cfg.renown[1] ? 2 : a_points >= g_cfg.renown[0] ? 1 : 0; }
+		// a party's level: its points, but never below the fame it had before 2.0 rescaled them
+		int RenownLevel(const Record& a_p) { return std::max(RenownLevel(RenownPoints(a_p)), a_p.stats.fame); }
+		// the fame a party from before 2.0 had: 1.x's points (3 a dungeon and a missive, 5 a great kill, bosses among them,
+		// 0.2 a kill, 1 a day) against 1.x's levels (15 and 60)
+		int LegacyFame(const Stats& a_s)
+		{
+			const float pts = a_s.dungeons * 3.0f + a_s.missives * 3.0f + a_s.bigKills * 5.0f + a_s.kills * 0.2f + a_s.hours / 24.0f;
+			return pts >= 60.0f ? 2 : pts >= 15.0f ? 1 : 0;
+		}
+	}
+
+	// DevBench: the active party's Renown set to a_target (a debug offset kept in its stats; a deed after this still adds)
+	std::string DebugSetRenown(float a_target)
+	{
+		std::lock_guard l(g_lock);
+		auto* p = ActiveLocked();
+		if (!p) return "no active party";
+		p->stats.debugRenown = 0.0f;
+		const float earned = RenownPoints(*p);
+		p->stats.debugRenown = a_target - earned;
+		SKSE::log::info("Party: debug Renown of {} set to {} (earned {}, offset {})", p->name, a_target, earned, p->stats.debugRenown);
+		return std::format("{}: Renown {} (earned {}, debug offset {})", p->name, RenownPoints(*p), earned, p->stats.debugRenown);
+	}
+
+	nlohmann::json Standings()
+	{
+		std::lock_guard l(g_lock);
+		auto out = nlohmann::json::array();
+		for (auto& p : g_parties)
+			out.push_back({ { "name", p.name }, { "founded", p.founded }, { "disbanded", p.disbanded }, { "renown", RenownPoints(p) } });
+		return out;
 	}
 
 	std::string SkyrimNetJson(RE::Actor* a_actor)
@@ -1261,8 +1341,7 @@ namespace AG::Party
 					break;
 				}
 		if (!p) return j.dump();
-		const float pts = RenownPoints(*p);
-		const int   level = RenownLevel(pts);
+		const int level = RenownLevel(*p);
 		std::vector<std::string> active, fallen;
 		for (auto& m : p->members) {
 			if (m.status == "active") active.push_back(m.name);
@@ -1285,7 +1364,7 @@ namespace AG::Party
 		j["days"] = static_cast<int>(p->stats.hours / 24.0f);
 		j["dungeons"] = p->stats.dungeons;
 		j["missives"] = p->stats.missives;
-		j["greatBeasts"] = p->stats.bigKills;
+		j["greatBeasts"] = p->stats.beasts;
 		j["renown"] = level;  // 0 unknown, 1 talked about in the holds, 2 famous across Skyrim
 		j["renownWord"] = level == 2 ? "famous across Skyrim" : level == 1 ? "talked about in the holds" : "not yet known";
 		return j.dump();
@@ -1341,7 +1420,7 @@ namespace AG::Party
 			const auto& st = p.stats;
 			a.push_back({ { "id", p.id }, { "name", p.name }, { "founded", p.founded }, { "disbanded", p.disbanded }, { "members", std::move(ms) },
 				{ "stats", { { "hours", st.hours }, { "kills", st.kills }, { "bigKills", st.bigKills }, { "dungeons", st.dungeons }, { "missives", st.missives },
-								{ "bestTier", st.bestTier }, { "tierDay", st.tierDay } } } });
+								{ "bestTier", st.bestTier }, { "tierDay", st.tierDay }, { "camps", st.camps }, { "beasts", st.beasts }, { "wild", st.wild }, { "fame", st.fame }, { "debugRenown", st.debugRenown } } } });
 		}
 		auto facts = nlohmann::json::object();
 		for (auto& [k, f] : g_facts) facts[k] = FactsJson(f);
@@ -1421,6 +1500,15 @@ namespace AG::Party
 				const auto& st = jp.at("stats");
 				p.stats = { st.value("hours", 0.0f), st.value("kills", 0), st.value("bigKills", 0), st.value("dungeons", 0), st.value("missives", 0),
 					st.value("bestTier", 0), st.value("tierDay", -1.0f) };
+				// a save from before 2.0 kept no beasts, camps or wildlife: its great kills (bosses among them) stand in for the
+				// beasts, so a party's Renown does not drop on the update; camps and wildlife count from now on. 2.0's levels sit
+				// far higher than 1.x's, so the fame it had then is kept as a floor: NPCs who knew it as famous still do
+				const bool legacy = !st.contains("beasts");
+				p.stats.beasts = st.value("beasts", p.stats.bigKills);
+				p.stats.camps = st.value("camps", 0);
+				p.stats.wild = st.value("wild", 0);
+				p.stats.debugRenown = st.value("debugRenown", 0.0f);
+				p.stats.fame = legacy ? LegacyFame(p.stats) : std::clamp(st.value("fame", 0), 0, 2);
 			}
 			g_parties.push_back(std::move(p));
 		}

@@ -1,0 +1,7 @@
+{
+ "_comment": "Nessa at her archery practice in the basement: her own talk is put off while she practises, and 'What are you doing down here?' is asked only then; its answer changes once her own quest is done (AGHallNessaQuestDoneGlobal, set by that quest, not built yet).",
+ "busy": "Now's not a good time.",
+ "prompt": "What are you doing down here?",
+ "before": "Oh nothing, just practicing with my bow. It's nothing, really.",
+ "after": "You know what I'm doing. I'm going to practice even harder from now on. Thank you again for your help."
+}

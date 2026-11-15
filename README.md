@@ -1,8 +1,12 @@
 # Adventurers Guild
 
-A fully fleshed-out adventurers guild for Skyrim, inspired by classic RPGs and isekai manga and anime. The Guild keeps
-a counter in the inn of every hold capital, and one in Raven Rock: talk to the innkeeper, who represents the Guild, to
-get started.
+> **This branch is the 2.0 alpha.** It is the source of the 2.0.0-alpha.1 download on Nexus Mods: the Guild Hall, new
+> guild NPCs and quests, and other adventuring parties. It is unfinished and will change. The released 1.6 line is on
+> `main`.
+
+A fully fleshed-out adventurers guild for Skyrim, inspired by classic RPGs and isekai manga and anime. The guild has its own
+hall next to Riverwood. The guild also keeps a counter in the inn of every hold capital, and one in Raven Rock, for
+quests and services. Installed without the hall, the innkeepers handle everything, as in 1.6.
 
 Works in Skyrim VR and in regular Skyrim Special Edition.
 
@@ -66,11 +70,28 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
   counter, register you, hear your promotion case, take your reports, replace your card, show their own card, or join.
 - **Translatable**: all text is in a standard translation file (see [docs/TRANSLATING.md](docs/TRANSLATING.md)).
 
+## The Guild's history
+
+- **4E 17**: Emperor Titus Mede I charters the Adventurers Guild in the Imperial City, the year he takes the Ruby
+  Throne. Its records are kept at the Wayfarers' Hall, where the Registrar-General ranks adventurers.
+- **4E 168**: Titus Mede II, crowned that year, grants the Guild its charter in Skyrim. High King Istlod gives it one
+  hall, outside the hold capitals, on the road above Riverwood, and a counter in each hold capital's inn. The hall's
+  first company, about forty strong, moves in that spring.
+- **4E 171**: The Great War begins.
+- **4E 174**: The Legion calls up the Guild as auxiliaries, and the hall's company marches out together.
+- **4E 175**: The Battle of the Red Ring and the White-Gold Concordat end the war. Six of the company come home. The
+  hall is shut, and the inn counters keep the Guild going in Skyrim.
+- **4E 200**: Willem, one of the six and now a retired A-rank, reopens the hall after ten years of writing to the
+  Registrar-General.
+- **4E 201**: The present day.
+
 ## Requirements
 
 - [SKSE](https://skse.silverlock.org/)
 - Address Library for SKSE Plugins (Special Edition) or VR Address Library (VR)
-- [Prisma UI](https://www.nexusmods.com/skyrimspecialedition/mods/148718), for the guild counter and its notices
+- [Prisma UI](https://www.nexusmods.com/skyrimspecialedition/mods/148718) or
+  [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303) 1.8.0 or newer, for the guild counter,
+  the boards and the notices. With both installed, Magelight UI is used (`[UI] Host` in `AdventurersGuild.ini`).
 - Skyrim VR only: Skyrim VR ESL Support (the plugin is a light plugin)
 
 ## Optional, recommended
@@ -102,7 +123,8 @@ Each of these is detected when the game starts. Without one, its part of the mod
 
 ## Installation
 
-Install the requirements, then install Adventurers Guild with your mod manager like any other mod. It is safe to add mid-playthrough.
+Install the requirements, then install Adventurers Guild with your mod manager like any other mod. It should be safe to add mid-playthrough, so that a game already running 1.6 can be updated to 2.0. For roleplay, you may still want to consider a new playthrough.
+As with any alpha, keep a save from before you update.
 
 ## Uninstalling
 
@@ -135,6 +157,10 @@ Players should install the mod from [its Nexus Mods page](https://www.nexusmods.
 | `src/papyrus/` | Papyrus scripts (MCM, quest helpers, SkyrimNet decorators and actions); `headers/` holds compile-time declarations only |
 | `tools/EspGen/` | Generates `AdventurersGuild.esp` (ESL-flagged: a light plugin, so Skyrim VR needs Skyrim VR ESL Support) and the resolved config files with Mutagen (no hand-edited plugin) |
 | `config/` | Everything the mod ships as data: JSON config, the counter and notice pages (PrismaUI), MCM, translations, SkyrimNet prompts and actions |
+| `tools/HallGen/` | Generates the Guild Hall: its plugin (`AdventurersGuild - Guild Hall.esp`), meshes, textures, NPCs and the checks every build passes (see its `README.md`) |
+| `src/hall/` | The Guild Hall's Papyrus scripts |
+| `src/chim/` | The CHIM actions and topics |
+| `packaging/` | The FOMOD installer and the release zip's checks |
 | `docs/` | `PARTIES.md` (party system design), `TRANSLATING.md` (for translators) |
 
 ## Building
@@ -151,6 +177,8 @@ and Quest Expansion (`MISSIVES_EXPANSION_ESP`), for `missives_expansion.json`.
 1. Copy `local.env.example` to `local.env` and set the paths.
 2. `powershell -File build.ps1` builds the plugin file, the scripts and the DLL (or `-Only esp|papyrus|dll`).
 3. `bash deploy.sh` copies the result into your mod-manager folder (`MOD_DIR`); `bash package.sh` zips it.
+4. `bash build.sh` builds the last commit of AG and the Guild Hall together, runs the hall's checks and deploys both to
+   the installs in `HALL_INSTALLS`. The hall also needs Blender and texconv (`BLENDER`, `TEXCONV`).
 
 Not in this repository:
 
@@ -159,6 +187,9 @@ Not in this repository:
 - **The parchment of the counter's documents** (`config/PrismaUI/views/AdventurersGuild/tex/skin/`). Those images are
   cut from Skyrim's own textures, which are Bethesda's, so they ship only in the mod's download. A copy built from this
   source shows the Guild Card and missives without their paper until that folder is copied over from the download.
+- **The Guild Hall's inputs made from the game's files** (textures, meshes, map data and the full Papyrus headers, kept in `tools/hall-private`).
+  They are Bethesda's, so the hall can only be rebuilt from this source with your own copies; its built plugin, meshes
+  and textures ship in the mod's download.
 - **The generators** for the translation file, the art and the voice lines. Their outputs that the mod needs
   (`config/Interface/Translations`, the other textures under `config/PrismaUI`) are included as they are.
 

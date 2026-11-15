@@ -4,6 +4,7 @@
 // See LICENSE and EXCEPTIONS.md at the repository root: https://github.com/urtubesrclogged/skyrim-adventurers-guild
 
 #include "RankCore.h"
+#include "GuildHall.h"
 #include "Kills.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -287,6 +288,14 @@ namespace AG
 				}
 				if (it->second == kRankCount - 1) listed = true;
 			}
+
+		// the promotion trials' creatures (the hall's own records): exactly their trial's rank, floor and ceiling, whatever
+		// their level, score or bonuses say (plans/promotion-trial.md: an elite's extra health would move it a rank up)
+		if (const int trial = GuildHall::TrialCreatureRank(base); trial >= 0) {
+			if (trial != t.rank) add(std::format("{} for its trial", Letter(trial)));
+			t.rank = trial;
+			if (trial == kRankCount - 1) listed = true;
+		}
 
 		// Rank S is never reached by level alone: listed, or proven
 		if (g_threat.sGate && t.rank == kRankCount - 1 && !listed) {

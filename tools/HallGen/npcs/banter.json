@@ -1,0 +1,566 @@
+{
+ "_comment": "The hall's banter. Written by banter_export.py from drafting/banter_approved.json: edit that.",
+ "pairs": [
+  {
+   "npcs": [
+    "AGHallResidentNoble",
+    "AGHallResidentOrc"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentNoble",
+      "Ugh, must you laugh like that?"
+     ],
+     [
+      "AGHallResidentOrc",
+      "Ha ha! Like this?"
+     ],
+     [
+      "AGHallResidentNoble",
+      "Precisely like that."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentNoble",
+    "AGHallResidentVeteran"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentVeteran",
+      "Polished armour. Never been hit, then."
+     ],
+     [
+      "AGHallResidentNoble",
+      "A noble does not get hit."
+     ],
+     [
+      "AGHallResidentVeteran",
+      "Not yet."
+     ]
+    ],
+    [
+     [
+      "AGHallResidentVeteran",
+      "I've seen your sort before. Never at the front."
+     ],
+     [
+      "AGHallResidentNoble",
+      "My rank was earned."
+     ],
+     [
+      "AGHallResidentVeteran",
+      "By whom?"
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentNoble",
+    "AGHallResidentRanger"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentNoble",
+      "You there, ranger. Fetch me a drink."
+     ],
+     [
+      "AGHallResidentRanger",
+      "No."
+     ],
+     [
+      "AGHallResidentNoble",
+      "Do you know who I am?"
+     ],
+     [
+      "AGHallResidentRanger",
+      "Yes."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentNoble",
+    "AGHallResidentScout"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentNoble",
+      "Must you sit there, cat?"
+     ],
+     [
+      "AGHallResidentScout",
+      "Zhasim was here first."
+     ],
+     [
+      "AGHallResidentNoble",
+      "Then must you remain?"
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallBarkeeper",
+    "AGHallServer"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallServer",
+      "His lordship tipped me again."
+     ],
+     [
+      "AGHallBarkeeper",
+      "Good. I've added it to his tab."
+     ],
+     [
+      "AGHallServer",
+      "You're a wicked man, Cassius."
+     ]
+    ],
+    [
+     [
+      "AGHallBarkeeper",
+      "You're humming."
+     ],
+     [
+      "AGHallServer",
+      "I'm always humming. You only notice when it's slow."
+     ],
+     [
+      "AGHallBarkeeper",
+      "It's slow."
+     ]
+    ],
+    [
+     [
+      "AGHallServer",
+      "Busy enough for you?"
+     ],
+     [
+      "AGHallBarkeeper",
+      "Never busy enough, friend."
+     ],
+     [
+      "AGHallServer",
+      "Spoken like a man who doesn't carry the trays."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentOrc",
+    "AGHallServer"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentOrc",
+      "Brynja! Marry me."
+     ],
+     [
+      "AGHallServer",
+      "Not this week, Ghrulek."
+     ],
+     [
+      "AGHallResidentOrc",
+      "Next week, then."
+     ],
+     [
+      "AGHallServer",
+      "Ask me next week."
+     ]
+    ],
+    [
+     [
+      "AGHallResidentOrc",
+      "One day you'll say yes."
+     ],
+     [
+      "AGHallServer",
+      "One day you'll pay your tab too."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentOrc",
+    "AGHallResidentRanger"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentOrc",
+      "Ylva! You're too quiet."
+     ],
+     [
+      "AGHallResidentRanger",
+      "I'm always quiet."
+     ],
+     [
+      "AGHallResidentOrc",
+      "Ha! Then I'll talk for both of us."
+     ],
+     [
+      "AGHallResidentRanger",
+      "You always do."
+     ]
+    ],
+    [
+     [
+      "AGHallResidentOrc",
+      "Good hunt?"
+     ],
+     [
+      "AGHallResidentRanger",
+      "It paid."
+     ],
+     [
+      "AGHallResidentOrc",
+      "That's a yes, then."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentOrc",
+    "AGHallResidentScout"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentScout",
+      "Ghrulek, you snore like a mammoth."
+     ],
+     [
+      "AGHallResidentOrc",
+      "Keeps the rats out of the attic."
+     ],
+     [
+      "AGHallResidentScout",
+      "And keeps this one awake."
+     ]
+    ],
+    [
+     [
+      "AGHallResidentOrc",
+      "Malacath's teeth, this ale is weak."
+     ],
+     [
+      "AGHallResidentScout",
+      "You said that about the last barrel."
+     ],
+     [
+      "AGHallResidentOrc",
+      "The last barrel was weak too!"
+     ]
+    ],
+    [
+     [
+      "AGHallResidentScout",
+      "Arm wrestle? Loser buys."
+     ],
+     [
+      "AGHallResidentOrc",
+      "You always lose."
+     ],
+     [
+      "AGHallResidentScout",
+      "And you always buy anyway. Khajiit likes this game."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallCook",
+    "AGHallServer"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallServer",
+      "Table by the window wants more bread."
+     ],
+     [
+      "AGHallCook",
+      "That table always wants more bread."
+     ],
+     [
+      "AGHallServer",
+      "It's good bread."
+     ],
+     [
+      "AGHallCook",
+      "Flattery. Take it, then."
+     ]
+    ],
+    [
+     [
+      "AGHallCook",
+      "That stew goes out hot, child, not when you've done gossiping."
+     ],
+     [
+      "AGHallServer",
+      "It'll be hot. I'll be quick."
+     ],
+     [
+      "AGHallCook",
+      "Not quick enough."
+     ]
+    ],
+    [
+     [
+      "AGHallCook",
+      "Mind the fire. It's spitting."
+     ],
+     [
+      "AGHallServer",
+      "It spits every day."
+     ],
+     [
+      "AGHallCook",
+      "Then mind the fire every day."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallClerkDay",
+    "AGHallServer"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallServer",
+      "Heard who came back limping?"
+     ],
+     [
+      "AGHallClerkDay",
+      "I took his report. Tell me your version."
+     ],
+     [
+      "AGHallServer",
+      "Mine has a bear in it."
+     ]
+    ],
+    [
+     [
+      "AGHallClerkDay",
+      "Anything I should know about?"
+     ],
+     [
+      "AGHallServer",
+      "Nothing you can write down."
+     ],
+     [
+      "AGHallClerkDay",
+      "Then whisper it."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentVeteran",
+    "AGHallBarkeeper"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallBarkeeper",
+      "The usual, Sergeant?"
+     ],
+     [
+      "AGHallResidentVeteran",
+      "Don't call me that."
+     ],
+     [
+      "AGHallBarkeeper",
+      "The usual, then."
+     ]
+    ],
+    [
+     [
+      "AGHallBarkeeper",
+      "Another, friend?"
+     ],
+     [
+      "AGHallResidentVeteran",
+      "I'm not your friend."
+     ],
+     [
+      "AGHallBarkeeper",
+      "Everyone's my friend. Another?"
+     ],
+     [
+      "AGHallResidentVeteran",
+      "Fine."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentVeteran",
+    "AGHallCook"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentVeteran",
+      "Same as always, Henriette."
+     ],
+     [
+      "AGHallCook",
+      "You've had the same as always since before the war."
+     ],
+     [
+      "AGHallResidentVeteran",
+      "Then don't change it."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentVeteran",
+    "AGHallGuildMaster"
+   ],
+   "exchanges": [
+    {
+     "lines": [
+      [
+       "AGHallGuildMaster",
+       "You've got the good chair."
+      ],
+      [
+       "AGHallResidentVeteran",
+       "Rank has its privileges."
+      ],
+      [
+       "AGHallGuildMaster",
+       "I outrank you."
+      ],
+      [
+       "AGHallResidentVeteran",
+       "Not at this table."
+      ]
+     ],
+     "sitting": true
+    },
+    [
+     [
+      "AGHallResidentVeteran",
+      "Your new adventurers can't hold a shield."
+     ],
+     [
+      "AGHallGuildMaster",
+      "They'll learn. You taught me."
+     ],
+     [
+      "AGHallResidentVeteran",
+      "Took years. Still not sure it stuck."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallGuildMaster",
+    "AGHallAssistant"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallGuildMaster",
+      "Anything I need to see?"
+     ],
+     [
+      "AGHallAssistant",
+      "Three reports. One of them is even legible."
+     ],
+     [
+      "AGHallGuildMaster",
+      "Leave them on the desk."
+     ]
+    ],
+    [
+     [
+      "AGHallGuildMaster",
+      "What would I do without you?"
+     ],
+     [
+      "AGHallAssistant",
+      "Lose things, mostly."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentScout",
+    "AGHallAssistant"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallResidentScout",
+      "This one has a cave for your map."
+     ],
+     [
+      "AGHallAssistant",
+      "How far from the road?"
+     ],
+     [
+      "AGHallResidentScout",
+      "Three hundred paces. Khajiit counted."
+     ],
+     [
+      "AGHallAssistant",
+      "Good. I'll check it, then mark it."
+     ]
+    ]
+   ]
+  },
+  {
+   "npcs": [
+    "AGHallResidentScout",
+    "AGHallClerkEvening"
+   ],
+   "exchanges": [
+    [
+     [
+      "AGHallClerkEvening",
+      "Where would you start, if you were me?"
+     ],
+     [
+      "AGHallResidentScout",
+      "Somewhere close, well known, with the draugr slow and few."
+     ],
+     [
+      "AGHallClerkEvening",
+      "Really?"
+     ],
+     [
+      "AGHallResidentScout",
+      "About places, Zhasim does not joke."
+     ]
+    ]
+   ]
+  }
+ ]
+}

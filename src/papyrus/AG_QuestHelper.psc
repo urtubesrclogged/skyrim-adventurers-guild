@@ -17,11 +17,36 @@ Function StartRegistrationQuest(Quest akQuest) Global
 	akQuest.SetObjectiveDisplayed(10)
 EndFunction
 
+; 2.0: objective 10 sends the player to an inn, 20 to the Guild Hall (registration the hall's alone, MCM > Guild Hall)
+Function StartRegistrationQuestFor(Quest akQuest, Bool abHall) Global
+	If !akQuest || akQuest.IsCompleted()
+		Return
+	EndIf
+	If !akQuest.IsRunning()
+		akQuest.Start()
+	EndIf
+	akQuest.SetStage(10)
+	PointRegistrationQuest(akQuest, abHall)
+EndFunction
+
+; the setting changed while the quest runs: the objective that applies is shown, the other taken away
+Function PointRegistrationQuest(Quest akQuest, Bool abHall) Global
+	If !akQuest || !akQuest.IsRunning() || akQuest.IsCompleted()
+		Return
+	EndIf
+	akQuest.SetObjectiveDisplayed(10, !abHall)
+	akQuest.SetObjectiveDisplayed(20, abHall)
+EndFunction
+
 Function CompleteRegistrationQuest(Quest akQuest) Global
 	If !akQuest || !akQuest.IsRunning()
 		Return  ; registered without ever seeing a board notice: nothing to close
 	EndIf
-	akQuest.SetObjectiveCompleted(10)
+	If akQuest.IsObjectiveDisplayed(20)
+		akQuest.SetObjectiveCompleted(20)
+	Else
+		akQuest.SetObjectiveCompleted(10)
+	EndIf
 	akQuest.SetStage(100)
 EndFunction
 
@@ -32,6 +57,48 @@ Function WithdrawMissive(Quest akQuest) Global
 	If akQuest && akQuest.IsRunning() && akQuest.GetStage() == 0
 		akQuest.SetStage(110)
 	EndIf
+EndFunction
+
+; The Guild Hall posts the holds' work (2.0): its roll, chosen by the DLL (MissiveWatch.cpp, HallRoll), run as Missives' own
+; board script runs it. akStops: posted and not taken, rolled down (stage 110). akStarts: started with the hall's Missives
+; board loaded, so the note lands in it. Missives for the Good Guys makes its board alias optional and creates the note
+; with the quest giver: with it installed (abGoodGuys), as its own board script does, the alias is pointed at the board
+; and the note put into it.
+Function HallRoll(Quest[] akStarts, Quest[] akStops, ObjectReference akBoard, Bool abGoodGuys) Global
+	Int i = 0
+	While i < akStops.Length
+		If akStops[i] && akStops[i].IsRunning() && akStops[i].GetStage() == 0
+			akStops[i].SetStage(110)
+		EndIf
+		i += 1
+	EndWhile
+	Int posted = 0
+	Int failed = 0
+	i = 0
+	While i < akStarts.Length
+		Quest q = akStarts[i]
+		If q && !q.IsRunning()
+			If q.Start()
+				posted += 1
+				ReferenceAlias boardAlias = q.GetAliasByName("MissiveBoard") as ReferenceAlias
+				If boardAlias && !boardAlias.GetReference()
+					boardAlias.ForceRefTo(akBoard)
+				EndIf
+				ReferenceAlias noteAlias = q.GetAliasByName("Missive") as ReferenceAlias
+				ObjectReference note = None
+				If noteAlias
+					note = noteAlias.GetReference()
+				EndIf
+				If abGoodGuys && note && boardAlias && boardAlias.GetReference() == akBoard
+					akBoard.AddItem(note, 1, true)
+				EndIf
+			Else
+				failed += 1
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
+	Debug.Trace("AG_QuestHelper.HallRoll: " + posted + " posted, " + failed + " could not start, " + akStops.Length + " rolled down")
 EndFunction
 
 ; Take a posted missive from the guild counter exactly as if the player had picked its note off the board:
@@ -170,4 +237,28 @@ Function RevealMarker(ObjectReference akMarker) Global
 	If akMarker
 		akMarker.AddToMap(false)
 	EndIf
+EndFunction
+
+; The Guild Hall's "A new bounty?" (2.0): the game's own way to start a quest for a place it chooses. akEvent is the
+; hall's Story Manager keyword, whose node lists the hall's copies of the four bounty quests; akTown is a hold's capital,
+; which their Location alias takes from the event. True when one started (the Story Manager picks which, as the game's
+; own nodes do; a hold with no target left for any of them starts none).
+Bool Function StartHallBounty(Keyword akEvent, Location akTown) Global
+	If !akEvent || !akTown
+		Return False
+	EndIf
+	Return akEvent.SendStoryEventAndWait(akTown)
+EndFunction
+
+; Prepare to Uninstall: a hall bounty still running would leave its hold marked as taken (BQActiveQuest) once the
+; plugin is gone, and the game would never post a bounty there again. What its stage 200 does, without the reward.
+Function StopHallBounty(Quest akQuest, Keyword akTaken) Global
+	If !akQuest || !akQuest.IsRunning()
+		Return
+	EndIf
+	LocationAlias hold = akQuest.GetAliasByName("Hold") as LocationAlias
+	If hold && hold.GetLocation() && akTaken
+		hold.GetLocation().SetKeywordData(akTaken, 0)
+	EndIf
+	akQuest.Stop()
 EndFunction

@@ -1,0 +1,169 @@
+{
+ "_comment": "Caralion's quest, The Golden Hand (plans/caralion-quest.md). npcgen builds it in its own block (0x1700 / 0x8F00 merged); the lines come from drafting/caralion_approved.json. Journal and objective texts are final.",
+ "name": "The Golden Hand",
+ "sellswords": 4,
+ "vohd": {
+  "name": "Vohd",
+  "base": "DLC1EncTrollFrostArmored",
+  "levelsAbovePlayer": 10
+ },
+ "head": {
+  "name": "Vohd's Head",
+  "model": "BoneTrollSkull01",
+  "draft": true
+ },
+ "sellsword": {
+  "base": "TG02EncMercenaryTemplate"
+ },
+ "spots": {
+  "lair": [
+   19344,
+   -58160,
+   4303,
+   248.7
+  ],
+  "_ambush_comment": "500-573 from the lair on its east side, close enough that Caralion runs to the player, on the vanilla navmesh (slope 12 or less, 70+ from any edge), each in sight of the lair and the other two; Caralion's first. Was 1,200-1,360 to the south.",
+  "ambush": [
+   [19836, -58247, 4347, 280.0],
+   [19907, -58485, 4325, 300.0],
+   [19619, -58636, 4269, 330.0]
+  ]
+ },
+ "objectives": {
+  "10": "Kill Vohd",
+  "20": "Collect Vohd's head.",
+  "30": "Bring Vohd's head to Willem"
+ },
+ "lines": {
+  "C1": {
+   "npc": "AGHallResidentNoble",
+   "text": "There you are. I've seen the board. Hedge-born nobodies above the Golden Hand, as if a few dead wolves make a name. My family hunted in Summerset before Skyrim had a king. This won't stand and neither will you for much longer.",
+   "parts": [
+    "There you are. I've seen the board. Hedge-born nobodies above the Golden Hand, as if a few dead wolves make a name.",
+    "My family hunted in Summerset before Skyrim had a king. This won't stand and neither will you for much longer."
+   ]
+  },
+  "C1r": {
+   "_comment": "the player's one reply to C1; Caralion answers with Yngvar's vanilla line (DialogueMarkarthYngvarChoice04, INFO 00055A0F part 1: the game drops a reply whose answer has no words), then Willem's W1 follows",
+   "prompt": "Is that a threat?",
+   "npc": "AGHallResidentNoble",
+   "text": "If I was threatening you, believe me, you'd know it.",
+   "parts": ["If I was threatening you, believe me, you'd know it."]
+  },
+  "W1": {
+   "npc": "AGHallGuildMaster",
+   "text": "Quiet, Caralion. The hall's heard enough. Here's how we settle it: the Guild's posted a contract on Vohd, a frost troll behind Riverwood that's killed several hunters recently. Both your parties will take the job. Whoever brings me the troll's head takes the prize.",
+   "parts": [
+    "Quiet, Caralion. The hall's heard enough.",
+    "Here's how we settle it: the Guild's posted a contract on Vohd, a frost troll behind Riverwood that's killed several hunters recently.",
+    "Both your parties will take the job. Whoever brings me the troll's head takes the prize."
+   ]
+  },
+  "C2": {
+   "npc": "AGHallResidentNoble",
+   "text": "Then it's settled. Enjoy the view from the top while it lasts.",
+   "parts": [
+    "Then it's settled. Enjoy the view from the top while it lasts."
+   ]
+  },
+  "W3": {
+   "_comment": "25: after the scene Willem turns to the player and closes the interaction; walking away starts the hunt as W3a does",
+   "npc": "AGHallGuildMaster",
+   "text": "You heard what I said. If you want our high-born friend off your back, you'll need to hurry up and get to that troll first. Come back when you have its head.",
+   "parts": [
+    "You heard what I said. If you want our high-born friend off your back, you'll need to hurry up and get to that troll first.",
+    "Come back when you have its head."
+   ]
+  },
+  "W3a": {
+   "_comment": "the player's acceptance; Willem's answer is vanilla's \"Good hunting.\" (a reply with no words is dropped by the game); ends the talk, Vohd placed (30)",
+   "npc": "AGHallGuildMaster",
+   "prompt": "One troll head coming right up.",
+   "text": "Good hunting.",
+   "parts": [
+    "Good hunting."
+   ]
+  },
+  "W3q": {
+   "_comment": "the player's question; Willem answers, then both choices again",
+   "npc": "AGHallGuildMaster",
+   "prompt": "Anything I should be worried about?",
+   "text": "I trust you know how to handle a troll. But remember that this is a friendly competition and I expect both parties to behave accordingly.",
+   "parts": [
+    "I trust you know how to handle a troll.",
+    "But remember that this is a friendly competition and I expect both parties to behave accordingly."
+   ]
+  },
+  "C3": {
+   "npc": "AGHallResidentNoble",
+   "text": "One troll. How hard can it be?",
+   "parts": [
+    "One troll. How hard can it be?"
+   ]
+  },
+  "C4": {
+   "_comment": "50: the ambush talk: he walks up to the player at the lair; the player's reply is C5's prompt",
+   "npc": "AGHallResidentNoble",
+   "text": "You didn't think I'd let you carry that head back to the hall, did you? That prize is mine.",
+   "parts": [
+    "You didn't think I'd let you carry that head back to the hall, did you? That prize is mine."
+   ]
+  },
+  "C5": {
+   "_comment": "his answer to the player's reply: his order to his men; its end starts the fight",
+   "prompt": "Come and take it.",
+   "npc": "AGHallResidentNoble",
+   "text": "Now! While they're exhausted from the troll. Kill them all! For Cloudrest and the Dominion!",
+   "parts": [
+    "Now! While they're exhausted from the troll. Kill them all! For Cloudrest and the Dominion!"
+   ]
+  },
+  "Q4": {
+   "npc": "AGHallResidentNoble",
+   "text": "Enough! Enough, I yield! You win, just let me live. Please.",
+   "parts": [
+    "Enough! Enough, I yield! You win, just let me live. Please."
+   ]
+  },
+  "Q4a": {
+   "npc": "AGHallResidentNoble",
+   "prompt": "Leave Skyrim, and never come back.",
+   "text": "Gladly. Skyrim can keep its trolls. You won't see me again.",
+   "parts": [
+    "Gladly. Skyrim can keep its trolls. You won't see me again."
+   ]
+  },
+  "Q4b": {
+   "npc": "AGHallResidentNoble",
+   "prompt": "You don't get to walk away from this.",
+   "text": "No, wait, I can pay! My family can pay!",
+   "parts": [
+    "No, wait, I can pay! My family can pay!"
+   ]
+  },
+  "W2t": {
+   "npc": "AGHallGuildMaster",
+   "prompt": "Ended up fighting more than just a troll...",
+   "text": "I should have seen it in Caralion. I didn't. That's on me, not you. However it ended out there, you came home, and that's what matters. And Vohd?",
+   "parts": [
+    "I should have seen it in Caralion. I didn't. That's on me, not you. However it ended out there, you came home, and that's what matters. And Vohd?"
+   ]
+  },
+  "W2": {
+   "npc": "AGHallGuildMaster",
+   "prompt": "Vohd is dead. Here's its head.",
+   "text": "That's Vohd, well done. Here's your reward. As for Caralion, I'll have Merila strike the Golden Hand from the leaderboard. I'll not speak ill of the boy. I'll not speak of him much at all.",
+   "parts": [
+    "That's Vohd, well done. Here's your reward. As for Caralion, I'll have Merila strike the Golden Hand from the leaderboard.",
+    "I'll not speak ill of the boy. I'll not speak of him much at all."
+   ]
+  }
+ },
+ "journal": {
+  "20": "Caralion of the Golden Hand confronted me at the Guild Hall over my party's place on the leaderboard. Willem proposed a challenge to both our parties to settle the dispute. Whoever brings back the frost troll Vohd's head takes the prize.",
+  "50": "Caralion and his hired swords were waiting for me once Vohd was dead.",
+  "65": "Caralion yielded, and I let him go on his word that he will leave Skyrim for good.",
+  "66": "Caralion yielded, but I would not let his treachery go unanswered.",
+  "100": "I brought Vohd's head to Willem and collected the Guild's reward. The Golden Hand is to be struck from the leaderboard."
+ }
+}

@@ -7,6 +7,7 @@
 
 #include "Adventurers.h"
 #include "Guild.h"
+#include "GuildHall.h"
 #include "Loc.h"
 #include "Party.h"
 #include "RankCore.h"
@@ -265,6 +266,9 @@ namespace AG::ChimData
 		auto& letters = j["letters"] = nlohmann::json::array();
 		for (int r = 0; r < kRankCount; ++r) letters.push_back(LetterStr(r));
 		j["ledger"] = nlohmann::json::parse(Guild::LedgerJson(), nullptr, false);
+		// what the innkeepers do not offer while it is the hall's alone (SkyrimNet reads the same from AG_Hall*Global)
+		j["hallInstalled"] = GuildHall::Loaded();  // the lore's hall / no-hall version (SkyrimNet reads AG_GuildHallInstalledGlobal)
+		j["hallOnly"] = { { "registration", GuildHall::OnlyAtHall(GuildHall::Only::kRegistration) }, { "promotion", GuildHall::OnlyAtHall(GuildHall::Only::kPromotion) } };
 		j["party"] = Party::SkyrimNetState();
 		j["near"] = Near();
 		j["plugins"] = g_plugins;

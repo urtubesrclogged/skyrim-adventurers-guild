@@ -1,0 +1,1110 @@
+{
+ "_comment": "The staff's own conversations. Written by staff_talk_export.py: edit the drafting files it names. rank: the lowest rank that hears the answer (E D C B A S); lock: the reply below it.",
+ "groups": [
+  {
+   "stem": "SelfWillem",
+   "nodes": [
+    {
+     "id": "WP0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "A farm boy from the Rift. I walked here at nineteen, the year the Guild came to Skyrim, and I was the youngest of the first company.",
+        "After the war this hall stood empty twenty-five years, and I opened it again."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "WP1",
+     "parent": "WP0",
+     "prompt": "Why'd you leave the farm?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "Wolves kept taking our sheep, and I kept going after them. My father said if I loved trouble that much, someone ought to pay me for it."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "WP2",
+     "parent": "WP0",
+     "prompt": "Why open this hall again, after all those years?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "I owed it to The Forty. They deserved a hall with its lights on, not a shut door on the road.",
+        "Ten years I wrote to the Registrar-General before the answer came, and we put a new roof on her that same year."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "WP2a",
+     "parent": "WP2",
+     "prompt": "And the Guild paid for all this?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "Paid? They sent me the deed and their good wishes. Everything over your head came from myself and a few local patrons.",
+        "Guild fees don't cover much but the paperwork itself, so we have to accept help where we can get it."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "WP3",
+     "parent": "WP0",
+     "prompt": "You left out the Great War.",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "Mostly on purpose. The Legion called us up, the whole company, and we marched south together. Most never saw Skyrim again.",
+        "After the Battle of the Red Ring I lost my appetite for such things...",
+        "and here we are again, killing our own brothers and sisters in a pointless civil war."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallGuildMaster": [
+       "Not that one. Not yet. Come home from a few harder jobs, then ask me."
+      ]
+     }
+    },
+    {
+     "id": "WP3a",
+     "parent": "WP3",
+     "prompt": "Who else made it back?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "Six. Only six came home. Marius was one of them and he carried me most of the last road."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "WP4",
+     "parent": "WP0",
+     "prompt": "Was there ever anyone, Willem? Besides the Guild.",
+     "rank": "A",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "There was a girl in the Rift. I meant to go back for her after the war. Then there was always another road and another job, and the years went.",
+        "That's the whole of it."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallGuildMaster": [
+       "That's a question for someone I know better. Ask me when you've earned a few more promotions."
+      ]
+     }
+    },
+    {
+     "id": "WP4a",
+     "parent": "WP4",
+     "prompt": "Do you regret it?",
+     "rank": "A",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "On quiet nights. I heard she married long since, and I hope she's happy. The hall keeps me busy enough the rest of the time."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "WP5",
+     "parent": "WP2",
+     "prompt": "If you ever retired, have you thought about who would take over the guild hall?",
+     "rank": "S",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "Often. I suspect I'll know them when I see them: someone who comes home, and who brings the others home with them.",
+        "When the day comes, I'll be ready to let someone else worry about these things."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallGuildMaster": [
+       "Save that one for the day you've nowhere left to climb."
+      ]
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallGuildMaster": "What is it?"
+    }
+   }
+  },
+  {
+   "stem": "SelfMargot",
+   "nodes": [
+    {
+     "id": "MA0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Wayrest. Mother sold herbs by the docks, Father kept a cloth merchant's books, and I grew up smelling of lavender with ink on my fingers.",
+        "They're both gone now. They'd have liked it here. I want to be standing at this counter when someone worth a song walks in."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "MA1",
+     "parent": "MA0",
+     "prompt": "What brought you all the way to Skyrim?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Bandits. They caught my parents on the road home from the market, and that was that. It was a Guild party that hunted the whole wretched gang down.",
+        "I'd always heard the stories, but after that I wanted to work for the people who make them.",
+        "So I asked to be a clerk back home, but the only opening was here."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallClerkDay": [
+       "A sadder story than I'm ready to share... maybe when you've done more work for the guild you could ask me again."
+      ]
+     }
+    },
+    {
+     "id": "MA3",
+     "parent": "MA0",
+     "prompt": "How do you and Nessa get along?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "She's like a little sister who reads too many legends. She's sweet, she's braver than she thinks, and she talks in her sleep.",
+        "Someone has to make sure she eats and goes to bed at a sensible hour."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "MA4",
+     "parent": "MA0",
+     "prompt": "Is there anyone waiting for you back in Wayrest?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "In Wayrest? No. I left nobody behind, and a clerk's hours don't leave much room for courting. Not that I'd say no, if the right Adventurer asked."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallClerkDay": [
+       "Oh, that's personal! Earn another rank or two before you ask me that."
+      ]
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallClerkDay": "Anything else?"
+    }
+   }
+  },
+  {
+   "stem": "SelfNessa",
+   "nodes": [
+    {
+     "id": "EL0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkEvening": {
+       "": [
+        "I'm from Markarth. I grew up under the tables at the Silver-Blood Inn, listening to the adventurers who came to the Guild counter there.",
+        "Every story they told, I heard. Most of them twice."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "EL1",
+     "parent": "EL0",
+     "prompt": "Bet you heard a lot of things from under there.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkEvening": {
+       "": [
+        "Everything! Boots, mostly. The miners talked about the dark under the city, and the adventurers talked about everywhere else.",
+        "I wanted to go everywhere else."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "EL2",
+     "parent": "EL0",
+     "prompt": "All those stories. Did you never want one of your own?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkEvening": {
+       "": [
+        "Of course I did! I tried to register at sixteen, the very first day I could. It didn't work out."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "EL2a",
+     "parent": "EL2",
+     "prompt": "What happened?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkEvening": {
+       "": [
+        "I had the fee saved, every coin. But I wanted one real job first, so I tagged along with a party into a barrow outside Markarth.",
+        "When the first draugr rose, I froze. They got me out and this counter is now the closest I've gotten to adventuring since."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallClerkEvening": [
+       "I'd rather not. Maybe when I know you a bit better so keep coming back for more work."
+      ]
+     }
+    },
+    {
+     "id": "EL2b",
+     "parent": "EL0",
+     "prompt": "I've seen you with that bow in the basement.",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkEvening": {
+       "": [
+        "That bow's for one place. The barrow outside Markarth. I went in once and came out the wrong way.",
+        "Next time I go in, I want my hands steady and someone good beside me."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallClerkEvening": [
+       "That's a secret, for now. Climb a rank or two, and I might share it."
+      ]
+     }
+    },
+    {
+     "id": "EL2c",
+     "parent": "EL2b",
+     "prompt": "Would you go into a barrow again?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkEvening": {
+       "": [
+        "Not just any barrow. That one. And I'd want someone with me who's done it before. Someone like you, maybe."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "EL3",
+     "parent": "EL0",
+     "prompt": "Which story do you like best?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallClerkEvening": {
+       "": [
+        "The Hero of Kvatch. Nobody even agrees on their name, and they walked into Oblivion and came back out. Into Oblivion! I'd have fainted at the gate."
+       ]
+      }
+     },
+     "lock": null
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallClerkEvening": "All right. What is it?"
+    }
+   }
+  },
+  {
+   "stem": "SelfMerila",
+   "nodes": [
+    {
+     "id": "ME0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "My family left Morrowind when I was small. There was little left there worth staying for.",
+        "We settled in Windhelm's Gray Quarter, and a priest at the Temple taught me my letters. I've been reading ever since."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "ME1",
+     "parent": "ME0",
+     "prompt": "How did you end up working for Willem?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "I was copying maps in Windhelm. Willem came in with one of his own, very confident and very wrong about Kynesgrove.",
+        "I marked his errors and a week later, he offered me the job."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "ME2",
+     "parent": "ME0",
+     "prompt": "The Gray Quarter can't have been easy.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "No. It was the Snow Quarter before my people came. Once they had, the Nords renamed it, and they meant it the way it sounds. I don't need pity for it.",
+        "It taught me to be exact, to be useful, and to leave."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "ME3",
+     "parent": "ME0",
+     "prompt": "What do you read when the reports are done?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "Everything. Bestiaries, histories, the Guild's charter, more than once.",
+        "For pleasure, A Dance in Fire: a clerk who stumbles into a war and survives on his wits. One day this hall will have a library worthy of the name."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "ME4",
+     "parent": "ME0",
+     "prompt": "You could work anywhere. Why here?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "Because this is the first place in Skyrim that judged me by my work. Willem read my corrections before he looked at my face.",
+        "I guard this hall for that. Its records, and its people."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallAssistant": [
+       "In time. When you've risen a little further, ask again."
+      ]
+     }
+    },
+    {
+     "id": "ME4a",
+     "parent": "ME4",
+     "prompt": "And outside these walls?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "Outside, I'm what I always was: a dark elf in a Nord country. The difference is that now I carry the Guild's name. It gets me a hearing.",
+        "It doesn't get me respect. That, I still earn one person at a time."
+       ]
+      }
+     },
+     "lock": null
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallAssistant": "Of course."
+    }
+   }
+  },
+  {
+   "stem": "SelfCassius",
+   "nodes": [
+    {
+     "id": "CA0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Where to start? Bruma, my father's inn. The Imperial City, twenty years at the Wayfarers' Hall, the finest guild taproom in Cyrodiil. Now here."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "CA1",
+     "parent": "CA0",
+     "prompt": "Do you miss the Imperial City?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Every man misses the place he was young. But a bar's a bar, friend. Same faces, different names. I've no complaints."
+       ]
+      }
+     },
+     "lock": null,
+     "backIds": "1E80"
+    },
+    {
+     "id": "CA2a",
+     "parent": "CA0",
+     "prompt": "What really brought you north?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Between us? Not the mountain air up here. The Thalmor. A man shouldn't have to check over his shoulder in his own taproom.",
+        "I got tired of watching myself."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallBarkeeper": [
+       "Ah, that's a long night's story. When you've climbed a rank or two, maybe."
+      ]
+     }
+    },
+    {
+     "id": "CA2b",
+     "parent": "CA2a",
+     "prompt": "Did they ever come to your bar?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Once. A regular of mine said something he shouldn't, loud, one night. A week later his stool was empty. Nobody asked after him. Neither did I.",
+        "That's the part that stays with me."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "CA3",
+     "parent": "CA1",
+     "prompt": "Who are your regulars here, then?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Everyone who sleeps upstairs ends up at my bar sooner or later. Pick one, and I'll tell you what I've seen."
+       ]
+      }
+     },
+     "lock": null,
+     "backIds": "1E80"
+    },
+    {
+     "id": "CA3a",
+     "parent": "CA3",
+     "prompt": "What about Marius?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [
+      "AGHallResidentVeteran"
+     ],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Marius was drinking in this hall before I'd heard of it. He takes the table by the wall, where he can see the door and the stair. Old sergeants never stop counting heads.",
+        "He beats me at cards most nights, too. I've stopped asking how."
+       ]
+      }
+     },
+     "lock": null,
+     "ids": "1E80"
+    },
+    {
+     "id": "CA3b",
+     "parent": "CA3",
+     "prompt": "What about Ghrulek?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [
+      "AGHallResidentOrc"
+     ],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Ghrulek buys a round for the whole room every time he's back from a job. I've told him he can't afford it. He says that's what the job was for."
+       ]
+      }
+     },
+     "lock": null,
+     "ids": "1E80"
+    },
+    {
+     "id": "CA3c",
+     "parent": "CA3",
+     "prompt": "What about Ylva?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [
+      "AGHallResidentRanger"
+     ],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "One mead, slowly, in the chair nearest the fire. Whoever was in it gets up when she comes down. I've never seen anyone argue about it."
+       ]
+      }
+     },
+     "lock": null,
+     "ids": "1E80"
+    },
+    {
+     "id": "CA3d",
+     "parent": "CA3",
+     "prompt": "What about Zhasim?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [
+      "AGHallResidentScout"
+     ],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "Zhasim's out more than he's in. When he's back, he sits with Ghrulek and draws wherever he's been on my bar top, in spilled ale. I've learned more of Skyrim from that bar than I ever saw from Bruma."
+       ]
+      }
+     },
+     "lock": null,
+     "ids": "1E80"
+    },
+    {
+     "id": "CA3e",
+     "parent": "CA3",
+     "prompt": "What about Caralion?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [
+      "AGHallResidentNoble"
+     ],
+     "says": {
+      "AGHallBarkeeper": {
+       "": [
+        "His lordship pays whatever I put on his tab and never reads it. I've always admired that in a man."
+       ]
+      }
+     },
+     "lock": null,
+     "whileOpen": [
+      "AGHallCaralionQuest"
+     ],
+     "ids": "1E80"
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallBarkeeper": "Is there anything else you need?"
+    }
+   }
+  },
+  {
+   "stem": "SelfHenriette",
+   "nodes": [
+    {
+     "id": "HE0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallCook": {
+       "": [
+        "A Breton girl who came north young and found herself in the kitchen. This one. I cooked for the first company, and I'll cook for whoever comes after.",
+        "The rest is just years."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "HE1",
+     "parent": "HE0",
+     "prompt": "Who were you cooking for in those days?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallCook": {
+       "": [
+        "Forty young fools with good hearts. They argued, they sang, they tracked mud through my kitchen, the Horker Company worst of all.",
+        "Ask me about any one of them, and I'll tell you what she ate and how he laughed."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "HE2",
+     "parent": "HE0",
+     "prompt": "Where did you go when the hall shut?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallCook": {
+       "": [
+        "Not far. Down the hill, cooking for whoever would pay. Close enough to watch the snow pile up on this roof every winter."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "HE2a",
+     "parent": "HE2",
+     "prompt": "What brought you back up the hill?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallCook": {
+       "": [
+        "Nobody sent for me. I heard the doors were open, put on my good apron and walked up. Willem looked at me like he'd seen a ghost.",
+        "Then he asked if I'd stay. As if I'd come for a visit."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallCook": [
+       "Never you mind. That story's for someone with more standing here."
+      ]
+     }
+    },
+    {
+     "id": "HE3",
+     "parent": "HE0",
+     "prompt": "What was Willem like back then?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallCook": {
+       "": [
+        "A farm boy who thought he'd live forever. He'd come in soaked from a job and grinning. He doesn't grin like that now.",
+        "He still needs telling, though, and I still tell him."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "HE4",
+     "parent": "HE0",
+     "prompt": "I heard you say he liked it with onions.",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallCook": {
+       "": [
+        "Sigvald, of the Cold Hearth. Marius's lot. He'd have put onions in the porridge if I'd let him.",
+        "Once a year, around the day they marched south, I still make his stew."
+       ]
+      }
+     },
+     "lock": {
+      "AGHallCook": [
+       "That's an old woman talking to herself. When you're higher in the Guild, I'll explain."
+      ]
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallCook": "Of course."
+    }
+   }
+  },
+  {
+   "stem": "SelfBrynja",
+   "nodes": [
+    {
+     "id": "BR0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallServer": {
+       "": [
+        "Not much to tell, love. White River farm, four sisters, too many goats. I walked up here for work that didn't bleat, and stayed for the tips.",
+        "And the company."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "BR1",
+     "parent": "BR0",
+     "prompt": "What did the goats ever do to you?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallServer": {
+       "": [
+        "What didn't they do? They were little monsters always bumping and biting me... even ate one of my shoes.",
+        "I swore if I ever got off that farm, I'd never milk anything again."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "BR2",
+     "parent": "BR0",
+     "prompt": "You talk about Solitude as if you've been.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallServer": {
+       "": [
+        "I haven't. I just like the sound of it. A city on an arch over the sea, and nobody there has ever smelled a goat. That's my kind of place."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "BR3",
+     "parent": "BR0",
+     "prompt": "So seems like Ghrulek proposes to you every week.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [
+      "AGHallResidentOrc"
+     ],
+     "says": {
+      "AGHallServer": {
+       "": [
+        "Every week, like the tides. I laugh, he buys me a drink anyway, and the next week he's back.",
+        "There's almost something reassuring about his persistence...",
+        "just knowing that I'll have to turn him down rather than worry about him and the others coming back from a job."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "BR4",
+     "parent": "BR0",
+     "prompt": "Do you flirt with every adventurer who walks in?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallServer": {
+       "": [
+        "Only the ones who come back. Keeps you trying, doesn't it? You aren't jealous are you?"
+       ]
+      }
+     },
+     "lock": {
+      "AGHallServer": [
+       "Get a few more ranks on that card, love, and find out."
+      ]
+     }
+    },
+    {
+     "id": "BR4a",
+     "parent": "BR4",
+     "prompt": "And if I keep coming back?",
+     "rank": "C",
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallServer": {
+       "": [
+        "Then I'll start keeping a seat for you. Maybe a drink, too. Don't make me regret it."
+       ]
+      }
+     },
+     "lock": null
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallServer": "What do you need, love? Ask anything."
+    }
+   }
+  },
+  {
+   "stem": "SelfCaralion",
+   "nodes": [
+    {
+     "id": "CN0",
+     "parent": null,
+     "prompt": "Tell me about yourself.",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentNoble": {
+       "": [
+        "Caralion of the Golden Hand. The younger son of a very old house in Cloudrest.",
+        "Elder sons inherit the estates, and younger sons are sent somewhere cold to make a name. I'm making mine."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "CN1",
+     "parent": "CN0",
+     "prompt": "Why Skyrim, of all places?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentNoble": {
+       "": [
+        "Skyrim has barrows full of dead kings and nobody here can read their own history. A clever man can do a great deal with that.",
+        "And it's very far from home."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
+     "id": "CN3",
+     "parent": "CN0",
+     "prompt": "Where's the rest of your party?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "says": {
+      "AGHallResidentNoble": {
+       "": [
+        "Out doing what I pay them for. A noble doesn't bunk with his underlings. They have some inn or other. I have the best room in this hall."
+       ]
+      }
+     },
+     "lock": null
+    }
+   ]
+  }
+ ]
+}

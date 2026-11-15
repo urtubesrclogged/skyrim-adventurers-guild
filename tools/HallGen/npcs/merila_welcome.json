@@ -1,0 +1,30 @@
+{
+ "_comment": "Merila's welcome. Plays once: her ForceGreet the first time a member is in the hall with her. Each list is the spoken parts in order; a long approved line is split at its sentences into vanilla's 150-character responses, word for word. choices: the player's prompts.",
+ "choices": {
+  "up": "What's upstairs?",
+  "down": "What's in the basement?",
+  "bye": "That's all."
+ },
+ "welcome": [
+  "Allow me to formally welcome you to the guild hall, adventurer. I'm Merila.",
+  "I assist Willem, the Guild Master, and I keep this hall's records and its library.",
+  "This is the Guild's only hall in Skyrim. Members eat in the tavern, sleep upstairs, train below, and bring their work to the counter.",
+  "As a member of the guild, this hall is open to you. Now, any questions?"
+ ],
+ "up": [
+  "The Guild Master's office and my library are on the second floor... along with the staff rooms; please leave those to us.",
+  "The stairs go further up to the attic, where members sleep.",
+  "The bunk inside the door, by the window, is yours, and what you leave in its chest stays there.",
+  "You may also notice a locked door at the top of the stairs; that is not open to adventurers so stay out."
+ ],
+ "down": [
+  "The training hall most importantly.",
+  "Marius, a retired A-rank who lives here, trains members in arms and armor so you should introduce yourself when you get the chance.",
+  "The targets and dummies are free to use.",
+  "There's a bath beside it, and you'll want it after training or coming back from a long job.",
+  "There's also a cellar under the kitchen, and a small prison cell which we haven't had to use in years."
+ ],
+ "bye": [
+  "Walk carefully adventurer."
+ ]
+}

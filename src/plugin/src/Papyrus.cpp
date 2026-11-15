@@ -12,6 +12,9 @@
 #include "MemberCards.h"
 #include "Guild.h"
 #include "GuildCard.h"
+#include "GuildBoard.h"
+#include "LeaderBoard.h"
+#include "GuildHall.h"
 #include "Loc.h"
 #include "Party.h"
 #include "Kills.h"
@@ -40,6 +43,14 @@ namespace AG
 		std::string  GetRankLetter(Tag*, std::int32_t a_rank) { return LetterStr(a_rank); }
 		std::int32_t GetRankFromLevel(Tag*, std::int32_t a_level) { return FromLevel(a_level); }
 
+		// the calendar's day of the week, 0 Sundas ... 6 Loredas (the Guild Hall's contracts away, 2026-11-07: the
+		// followers leave on set weekdays); -1 before the calendar exists
+		std::int32_t DayOfWeek(Tag*)
+		{
+			auto* cal = RE::Calendar::GetSingleton();
+			return cal ? static_cast<std::int32_t>(cal->GetDayOfWeek()) : -1;
+		}
+
 		// Guild rank of any actor: the player's earned rank, an NPC adventurer's rank, or -1.
 		// Hidden memberships (assassins) report -1: the secret is kept from other mods too.
 		std::int32_t GetActorGuildRank(Tag*, RE::Actor* a_actor)
@@ -58,6 +69,23 @@ namespace AG
 		}
 
 		bool IsGuildLiaison(Tag*, RE::Actor* a_actor) { return Adventurers::IsLiaison(a_actor); }
+
+		// A trainer of several skills (Marius trains One-handed and Block to 75, Two-handed, Light
+		// and Heavy Armor to 50). Vanilla's trainer teaches one skill, the one his class names (CLAS DATA: teaches and
+		// maximumTrainingLevel); the hall gives him a class of his own, and his dialogue sets the skill picked here, then
+		// opens vanilla's training menu (Game.ShowTrainingMenu), so prices and the cap stay vanilla's. Only a class from the
+		// hall's plugin is changed, never a vanilla one another NPC shares. The change is in memory only, set before each menu.
+		bool SetTrainerSkill(Tag*, RE::Actor* a_trainer, std::int32_t a_skill, std::int32_t a_max)
+		{
+			auto* base = a_trainer ? a_trainer->GetActorBase() : nullptr;
+			auto* cls = base ? base->npcClass : nullptr;
+			auto* file = cls ? cls->GetFile(0) : nullptr;
+			if (!file || file->GetFilename() != "AdventurersGuild - Guild Hall.esp" || a_skill < 0 || a_skill > 17 || a_max < 0 || a_max > 100)
+				return false;
+			cls->data.teaches = static_cast<RE::CLASS_DATA::Skill>(a_skill);
+			cls->data.maximumTrainingLevel = static_cast<std::uint8_t>(a_max);
+			return true;
+		}
 		std::string GetActorGuildNote(Tag*, RE::Actor* a_actor) { return Adventurers::Note(a_actor); }
 
 		void ReloadConfig(Tag*)
@@ -66,6 +94,7 @@ namespace AG
 			Guild::LoadConfig();
 			// on the game thread, like the party's 5 s evaluation that reads the same tables (no overlap)
 			SKSE::GetTaskInterface()->AddTask([] { Party::LoadConfig(); });
+			LeaderBoard::LoadConfig();
 			Adventurers::Load();
 			Shop::Load();
 		}
@@ -82,6 +111,11 @@ namespace AG
 		std::int32_t GetRankLevel(Tag*, std::int32_t a_rank) { return AG::MinLevel(a_rank); }
 		void         NoticeRankLevelsKept(Tag*) { Guild::NoticeRankLevelsKept(); }
 		bool         IsSaveFromBefore140(Tag*) { return Guild::SaveKeepsOldRankLevels(); }
+		// MCM > System > Reputation for ranks (1.6.3): percent of guild.json's promotion Reputation, per save
+		std::int32_t GetRepScale(Tag*) { return Guild::RepScale(); }
+		std::int32_t GetDefaultRepScale(Tag*) { return Guild::RepScaleDefault(); }
+		void         SetRepScale(Tag*, std::int32_t a_percent) { Guild::SetRepScale(a_percent); Guild::OnBandsChanged(); }
+		std::int32_t GetRankReputation(Tag*, std::int32_t a_rank) { return Guild::ReputationFor(a_rank); }
 		std::string CancelUninstall(Tag*) { return Guild::CancelUninstall(); }
 		std::string UninstallText(Tag*, std::int32_t a_which)
 		{
@@ -161,6 +195,19 @@ namespace AG
 			g->value = v;
 			SKSE::log::info("Papyrus: audio option {} ({}) {}", a_which, a_which == 1 ? "NPC greetings" : a_which == 2 ? "NPC interactions" : a_which == 3 ? "representatives' lines" : "follower comments", a_on ? "on" : "off");
 		}
+		// MCM > Guild Hall (2.0): what only the hall does, by GuildHall::Only (0 registration, 1 promotion, 2 training, 3 Guild
+		// Boxes, 4 library, 5 spell tomes, 6 augments, 7 the party registry), and followers registered by hand
+		void SetHallOnly(Tag*, std::int32_t a_which, bool a_on)
+		{
+			if (a_which >= 0 && a_which < static_cast<std::int32_t>(GuildHall::Only::kCount)) GuildHall::SetOnly(static_cast<GuildHall::Only>(a_which), a_on);
+		}
+		bool GetGuildHallLoaded(Tag*) { return GuildHall::Loaded(); }
+		void SetFollowersByHand(Tag*, bool a_on) { GuildHall::SetFollowersByHand(a_on); }
+		// MCM > Guild Hall > Promotion Trials (2.0): on by default; without the hall's trial quests it changes nothing
+		void SetPromotionTrials(Tag*, bool a_on) { GuildHall::SetTrials(a_on); }
+		bool GetPromotionTrialsLoaded(Tag*) { return GuildHall::TrialQuest(1) != nullptr; }
+		// the promotion trial's last stage (AGHallTrialQuestScript.Promoted): the Guild Master passed the player, no fee
+		void TrialPromote(Tag*) { Guild::TrialPromote(); }
 		// MCM > Audio > Notification sounds: 0 the Guild Drums, 1 the game's own, 2 none
 		std::int32_t GetNoticeSoundSet(Tag*) { return static_cast<std::int32_t>(PrismaToast::Sounds()); }
 		void         SetNoticeSoundSet(Tag*, std::int32_t a_set) { PrismaToast::SetSounds(static_cast<PrismaToast::SoundSet>(std::clamp(a_set, 0, 2))); }
@@ -217,6 +264,113 @@ namespace AG
 		}
 
 		// ---- dev / test (DevBench) ----
+		// A spike (2026-10-30, the hall's map marker): can a map marker exist with no edit of the vanilla world, before the
+		// hall is placed (it stands only once the player has been near)? A persistent MapMarker ref at x, y, z in the player's
+		// worldspace, wherever the player is, its ExtraMapMarker's data copied from a vanilla marker (it holds a game vtable,
+		// so it cannot be made from nothing) and named, added to the player's list of the world's markers. Returns the ref's
+		// FormID, or why not.
+		std::string DebugMapMarker(Tag*, float a_x, float a_y, float a_z, float a_angle, std::string a_name, std::int32_t a_type)
+		{
+			auto* pc = RE::PlayerCharacter::GetSingleton();
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			auto* ws = pc ? pc->GetWorldspace() : nullptr;
+			auto* base = RE::TESForm::LookupByID<RE::TESBoundObject>(0x10);  // MapMarker
+			if (!ws || !ws->persistentCell || !dh || !base) return "no worldspace";
+			auto& markers = pc->GetPlayerRuntimeData().currentMapMarkers;
+			RE::MapMarkerData* from = nullptr;
+			for (auto& h : markers) {
+				const auto r = h.get();
+				const auto* x = r ? r->extraList.GetByType<RE::ExtraMapMarker>() : nullptr;
+				if (x && x->mapData) {
+					from = x->mapData;
+					break;
+				}
+			}
+			if (!from) return std::format("no vanilla marker to copy ({} in the list)", markers.size());
+			const auto ref = dh->CreateReferenceAtLocation(base, RE::NiPoint3(a_x, a_y, a_z), RE::NiPoint3(0.0f, 0.0f, a_angle * 3.14159265f / 180.0f),
+				ws->persistentCell, ws, nullptr, nullptr, RE::ObjectRefHandle(), true, true).get();
+			if (!ref) return "not created";
+			auto* data = RE::malloc<RE::MapMarkerData>();
+			std::memcpy(static_cast<void*>(data), from, sizeof(RE::MapMarkerData));
+			new (&data->locationName.fullName) RE::BSFixedString(a_name.c_str());
+			data->flags = RE::MapMarkerData::Flag::kVisible;
+			data->flags.set(RE::MapMarkerData::Flag::kCanTravelTo);
+			data->type = static_cast<RE::MARKER_TYPE>(a_type);
+			auto* extra = RE::BSExtraData::Create<RE::ExtraMapMarker>();
+			extra->mapData = data;
+			ref->extraList.Add(extra);
+			markers.push_back(ref->GetHandle());
+			SKSE::log::info("DebugMapMarker: {:08X} '{}' at ({:.0f}, {:.0f}, {:.0f}), {} markers", ref->GetFormID(), a_name, a_x, a_y, a_z, markers.size());
+			return std::format("{:08X}", ref->GetFormID());
+		}
+		// Caralion's quest (2026-11-04, plans/caralion-quest.md in the hall's notes): a persistent reference of a_base at x, y, z
+		// in Tamriel (angle in game degrees, 0 north, clockwise), made in the worldspace's persistent cell, so it exists while
+		// its cell is unloaded and an actor can MoveTo it there, as vanilla moves actors to persistent markers. The quest's
+		// spots (Vohd's lair, the ambush) are made this way, never as records in a vanilla cell; the map marker spike above
+		// made one 40,000 units from the player. None, and the log says why, if it cannot be made.
+		RE::TESObjectREFR* PlaceInTamriel(Tag*, RE::TESForm* a_base, float a_x, float a_y, float a_z, float a_angle)
+		{
+			auto* dh = RE::TESDataHandler::GetSingleton();
+			auto* ws = RE::TESForm::LookupByID<RE::TESWorldSpace>(0x3C);  // Tamriel
+			auto* base = a_base ? a_base->As<RE::TESBoundObject>() : nullptr;
+			if (!dh || !ws || !ws->persistentCell || !base) {
+				SKSE::log::warn("PlaceInTamriel: not made ({})", !base ? "no base object" : "no Tamriel persistent cell");
+				return nullptr;
+			}
+			const auto ref = dh->CreateReferenceAtLocation(base, RE::NiPoint3(a_x, a_y, a_z), RE::NiPoint3(0.0f, 0.0f, a_angle * 3.14159265f / 180.0f),
+				ws->persistentCell, ws, nullptr, nullptr, RE::ObjectRefHandle(), true, true).get();
+			if (!ref) {
+				SKSE::log::warn("PlaceInTamriel: {:08X} at ({:.0f}, {:.0f}, {:.0f}) not created", base->GetFormID(), a_x, a_y, a_z);
+				return nullptr;
+			}
+			SKSE::log::info("PlaceInTamriel: {:08X} of {:08X} at ({:.0f}, {:.0f}, {:.0f}), angle {:.1f}", ref->GetFormID(), base->GetFormID(), a_x, a_y, a_z, a_angle);
+			return ref.get();
+		}
+		// Caralion's quest (Vohd, an elite at the player's level plus 10, its level shown as the
+		// player's + 10): a unique actor base's fixed level, not scaled by the player's. A base's data is not saved, so the
+		// quest sets it again on every load; its stats are scaled on the actor itself (saved), by Papyrus. Unique bases only:
+		// a shared base would change every actor made from it.
+		void SetUniqueLevel(Tag*, RE::TESNPC* a_base, std::int32_t a_level)
+		{
+			if (!a_base || a_level < 1) return;
+			if (!a_base->IsUnique()) {
+				SKSE::log::warn("SetUniqueLevel: {:08X} is not unique; not changed", a_base->GetFormID());
+				return;
+			}
+			a_base->actorData.actorBaseFlags.reset(RE::ACTOR_BASE_DATA::Flag::kPCLevelMult);
+			a_base->actorData.level = static_cast<std::uint16_t>(std::min(a_level, 65535));
+			SKSE::log::info("SetUniqueLevel: {:08X} at level {}", a_base->GetFormID(), a_level);
+		}
+		// a contract the Guild posted itself, paid in hand by the Guild Master (Caralion's quest, Vohd's head: gold,
+		// Merit and Reputation, the usual contract reward): what a cleared dungeon of the player's own
+		// rank pays (guild.json dungeonGold, dungeonMerit, dungeonRep), the Guild paying the gold too, as it does for dungeons
+		void PayGuildContract(Tag*, std::string a_title)
+		{
+			const int rank = Guild::Rank();
+			if (rank < 0) return;
+			Guild::AddGold(Guild::DungeonGold(rank));
+			Guild::AddReward(Guild::DungeonMerit(rank), Guild::DungeonRep(rank), a_title);
+			SKSE::log::info("PayGuildContract '{}': rank {} rates", a_title, rank);
+		}
+		// where a reference really is (DevBench): its cell, worldspace, position, whether its 3D is loaded and it persists
+		std::string DebugRefInfo(Tag*, RE::TESObjectREFR* a_ref)
+		{
+			if (!a_ref) return "none";
+			auto* cell = a_ref->GetParentCell();
+			const auto* ws = a_ref->GetWorldspace();
+			std::string where = "no cell";
+			if (cell) {
+				const auto* c = cell->IsExteriorCell() ? cell->GetCoordinates() : nullptr;
+				where = c ? std::format("exterior cell {},{}", c->cellX, c->cellY)
+				          : (ws && cell == ws->persistentCell ? std::string("the worldspace's persistent cell") : std::format("cell {:08X} {}", cell->GetFormID(), cell->GetFormEditorID()));
+			}
+			const auto p = a_ref->GetPosition();
+			const auto* actor = a_ref->As<RE::Actor>();
+			return std::format("{:08X} {} in {} ({}), at ({:.0f}, {:.0f}, {:.0f}), 3D {}, {}, {}{}", a_ref->GetFormID(), a_ref->GetDisplayFullName(), where,
+				ws ? ws->GetFormEditorID() : "no worldspace", p.x, p.y, p.z, a_ref->Is3DLoaded() ? "loaded" : "not loaded",
+				a_ref->IsPersistent() ? "persistent" : "temporary", a_ref->IsDisabled() ? "disabled" : "enabled",
+				actor ? std::format(", {}", actor->IsDead() ? "dead" : "alive") : std::string());
+		}
 		std::string  DebugDump(Tag*) { return Guild::Dump(); }
 		// parties (DevBench): the ledger, and the lifecycle without the counter
 		std::string DebugPartyDump(Tag*) { return Party::Dump(); }
@@ -225,6 +379,7 @@ namespace AG
 		std::string DebugPartyRemove(Tag*, RE::Actor* a_actor) { return a_actor ? Party::Remove(Adventurers::StableKey(a_actor)) : ""; }
 		std::string DebugPartyDisband(Tag*) { return Party::Disband(); }
 		void        DebugPartyBond(Tag*, RE::Actor* a_actor, float a_amount) { Party::AddBond(a_actor, a_amount); }
+		std::string DebugPartyRenown(Tag*, float a_target) { return Party::DebugSetRenown(a_target); }
 		std::string  DebugDungeon(Tag*) { return Dungeons::DebugInfo(); }
 		std::string  DebugHoldDungeons(Tag*) { return Dungeons::DebugHold(); }
 		std::string  DebugClearDungeon(Tag*) { return Dungeons::DebugClear(); }
@@ -240,9 +395,16 @@ namespace AG
 		std::string  DebugKill(Tag*, std::int32_t a_ref) { return Kills::DebugKill(static_cast<RE::FormID>(a_ref)); }
 		void         DebugReset(Tag*) { Guild::DebugReset(); }
 		void         DebugBoard(Tag*) { MissiveWatch::DebugBoard(); }
+		void         DebugHallRoll(Tag*) { MissiveWatch::DebugHallRoll(); }
 		void         DebugCompleteMissive(Tag*, std::string a_formId) { MissiveWatch::DebugComplete(a_formId); }
 		std::string  DebugAdventurer(Tag*, RE::Actor* a_actor) { return Adventurers::Describe(a_actor); }
 		void         OpenCounter(Tag*) { Counter::Open(); }
+		void         OpenGuildBoard(Tag*) { GuildBoard::Open(); }
+		void         OpenLeaderBoard(Tag*) { LeaderBoard::Open(); }
+		std::int32_t LeaderBoardRank(Tag*) { return LeaderBoard::Rank(); }
+		std::int32_t LeaderBoardRivalRank(Tag*) { return LeaderBoard::RivalRank(); }
+		void         LeaderBoardEndRival(Tag*, std::int32_t a_how) { LeaderBoard::EndRival(a_how); }
+		std::string  DebugLeaderBoard(Tag*) { return LeaderBoard::Dump(); }
 		std::string  DebugLevelLabel(Tag*, std::int32_t a_mode, float a_margin) { return LevelDisplay::DebugFit(a_mode, a_margin); }
 		std::string  DebugLevelDump(Tag*, float a_avail) { return LevelDisplay::DebugDump(a_avail); }
 		void         DebugToast(Tag*) { PrismaToast::Show("TEST NOTICE", "Adventurers Guild notice check"); }
@@ -280,6 +442,7 @@ namespace AG
 		REG(GetThreatRank);
 		REG(GetRankLetter);
 		REG(GetRankFromLevel);
+		REG(DayOfWeek);
 		REG(GetActorGuildRank);
 		REG(GetActorGuildStatus);
 		REG(ReloadConfig);
@@ -292,10 +455,15 @@ namespace AG
 		a_vm->RegisterFunction("SetSLevel", kClass, SLevelSet);
 		REG(GetRankLevel);
 		REG(NoticeRankLevelsKept);
+		REG(GetRepScale);
+		REG(GetDefaultRepScale);
+		REG(SetRepScale);
+		REG(GetRankReputation);
 		REG(IsSaveFromBefore140);
 		REG(CancelUninstall);
 		REG(UninstallText);
 		REG(IsGuildLiaison);
+		REG(SetTrainerSkill);
 		REG(GetActorGuildNote);
 		REG(GetShowGuildRank);
 		REG(SetShowGuildRank);
@@ -316,6 +484,12 @@ namespace AG
 		REG(SetShowRankUpToast);
 		REG(GetAudioOption);
 		REG(SetAudioOption);
+		REG(SetHallOnly);
+		REG(SetPromotionTrials);
+		REG(GetPromotionTrialsLoaded);
+		REG(TrialPromote);
+		REG(GetGuildHallLoaded);
+		REG(SetFollowersByHand);
 		REG(GetNoticeSoundSet);
 		REG(SetNoticeSoundSet);
 		REG(GetNoticeVolume);
@@ -342,11 +516,17 @@ namespace AG
 		REG(GetPartyName);
 		REG(GetJoinStatus);
 		REG(DebugDump);
+		REG(DebugMapMarker);
+		REG(PlaceInTamriel);
+		REG(DebugRefInfo);
+		REG(SetUniqueLevel);
+		REG(PayGuildContract);
 		REG(DebugPartyDump);
 		REG(DebugPartyFound);
 		REG(DebugPartyAdd);
 		REG(DebugPartyRemove);
 		REG(DebugPartyDisband);
+		REG(DebugPartyRenown);
 		REG(DebugPartyBond);
 		REG(DebugDungeon);
 		REG(DebugClearDungeon);
@@ -363,9 +543,16 @@ namespace AG
 		REG(DebugKill);
 		REG(DebugReset);
 		REG(DebugBoard);
+		REG(DebugHallRoll);
 		REG(DebugCompleteMissive);
 		REG(DebugAdventurer);
 		REG(OpenCounter);
+		REG(OpenGuildBoard);
+		REG(OpenLeaderBoard);
+		REG(LeaderBoardRank);
+		REG(LeaderBoardRivalRank);
+		REG(LeaderBoardEndRival);
+		REG(DebugLeaderBoard);
 		REG(DebugToast);
 		REG(DebugLevelDump);
 		REG(DebugLevelLabel);

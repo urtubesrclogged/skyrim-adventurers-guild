@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.0.0-alpha.1
+
+**New**
+- The Guild Hall: the Adventurers Guild's own hall next to Riverwood
+- New guild NPCs
+- New guild quests (more to come!)
+  - includes trials for being promoted to the next rank (w/ guild hall only)
+- Other adventuring parties (including a leaderboard in the guild hall)
+
+**Other Changes**
+- FOMOD installer lets you choose: the dedicated Guild Hall, or no standalone hall.
+  - With the hall installed, registration and promotions happen at the hall. Without it, the inns handle everything as before.
+- New voice pipeline for high quality voiced lines
+  - not all voiced lines re-recorded yet; guards for example still have the recordings from 1.6 at the moment
+- Supports Magelight UI now.
+  - You can use this instead of Prisma UI now; but the mod should continue working with either
+
+## 1.6.3
+
+**Balance Changes**
+- Reputation needed for each rank raised: D 150, C 550, B 1400, A 2800, S 5000.
+- Dungeon reports pay less Reputation: E 8, D 15, C 30, B 55, A 65, S 100.
+
+**Improvements & QoL**
+- New MCM slider (System > Reputation for ranks): scale the Reputation each rank needs, 50% to 200%, for games that level faster or slower.
+
 ## 1.6.2
 
 **Fixes/Bugs**

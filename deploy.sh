@@ -2,7 +2,10 @@
 # Deploys Adventurers Guild build outputs into its MO2 mod folders (NOT overwrite/, which would shadow
 # them). MO2 locks its files while the game runs, so this refuses to deploy then.
 set -e
-R="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# AG_SRC (environment): the checkout whose build outputs are copied, instead of this script's own (package.sh: build.sh's snapshot,
+# build/build-src, which holds what was built and deployed). AG_STAGE=1 (package.sh): a staging folder, not an install: no
+# game check, no status report, no MO2 meta.ini
+R="${AG_SRC:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 [ -f "$R/local.env" ] || { echo "local.env not found: copy local.env.example to local.env and set your paths" >&2; exit 1; }
 while IFS= read -r line || [ -n "$line" ]; do   # KEY=VALUE lines (values may contain spaces); # comments skipped
 	case "$line" in '#'*|'') continue ;; esac
@@ -10,12 +13,19 @@ while IFS= read -r line || [ -n "$line" ]; do   # KEY=VALUE lines (values may co
 done < "$R/local.env"
 # AG_MOD_DIR (environment) overrides local.env for one run, e.g. to stage a test build outside the mod manager
 M="${AG_MOD_DIR:-${MOD_DIR:?local.env: MOD_DIR is not set}}"
+# STATUS_HOOK (local.env, optional): a bash file sourced here that reports this run to a status page (status_step / status_end)
+[ -z "${AG_STAGE:-}" ] && [ -n "${STATUS_HOOK:-}" ] && [ -f "$STATUS_HOOK" ] && { source "$STATUS_HOOK"; status_step "AG deploy" "$(basename "$(dirname "$(dirname "$M")")")"; }
 GAME_EXE="${GAME_EXE:-SkyrimSE.exe}"
 # any Skyrim, not only $GAME_EXE: AG_MOD_DIR can point at another install (an SE list while local.env names the VR one)
-if tasklist 2>/dev/null | grep -qiE "$GAME_EXE|SkyrimSE\.exe|SkyrimVR\.exe"; then
+# AG_DEPLOY_EXE (build.sh, one install at a time): only that install's game; otherwise any Skyrim
+if [ -z "${AG_STAGE:-}" ] && tasklist 2>/dev/null | grep -qiE "${AG_DEPLOY_EXE:-$GAME_EXE|SkyrimSE\.exe|SkyrimVR\.exe}"; then
 	echo "Skyrim is running - close the game before deploying." >&2
 	exit 1
 fi
+# the generated files must be newer than what they are made from: a stale build/esp would quietly undo a config change on the install (2026-11-02: Willem's guildMaster, in adventurers.json for a day, missing from a build/esp of 28 October)
+for f in adventurers shop traits trophies threat; do
+	[ "$R/config/SKSE/Plugins/AdventurersGuild/$f.json" -nt "$R/build/esp/$f.resolved.json" ] && { echo "build/esp is older than config's $f.json - run build.ps1 -Only esp first." >&2; exit 1; }
+done
 P="$M/SKSE/Plugins/AdventurersGuild"
 mkdir -p "$P" "$M/Scripts" "$M/PrismaUI/views/AdventurersGuild"
 # retired files from earlier builds (the MCM moved off MCM Helper onto SkyUI's own API in 1.11)
@@ -30,7 +40,7 @@ cp "$R"/build/esp/*.resolved.json "$P/"
 rm -f "$P/bounties.json" "$P/bounties.resolved.json" "$P/isekai_points.json" "$P/lotd.json"   # retired: bounties (kills pay Reputation directly), Isekai Hero points (shelved patch), Legacy of the Dragonborn (paused: feature/lotd-support)
 cp "$R/build/esp/missives.json" "$P/missives.json"              # Missives board quests (tier, hold) for MissiveWatch
 V="$R/config/PrismaUI/views/AdventurersGuild"
-cp "$V/counter.html" "$V/index.html" "$M/PrismaUI/views/AdventurersGuild/"   # by name: scratch pages (_mock.html) stay behind
+cp "$V/counter.html" "$V/index.html" "$V/board.html" "$V/leaderboard.html" "$M/PrismaUI/views/AdventurersGuild/"   # by name: scratch pages (_mock.html) stay behind
 # the documents' paper is cut from the game's textures and is not in the repository: without it the card has no sheet
 [ -f "$V/tex/skin/sheet.png" ] || { echo "tex/skin/ is empty - run: python tools/make_skin_assets.py" >&2; exit 1; }
 mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex/skin" "$M/PrismaUI/views/AdventurersGuild/fonts"
@@ -38,6 +48,7 @@ cp "$V"/tex/skin/*.png "$M/PrismaUI/views/AdventurersGuild/tex/skin/"
 # the Guild Boxes' strongboxes: renders of the game's own chests, not in the repository either (tools/make_chest_assets.py)
 [ -f "$V/tex/chest/guild_body.png" ] || { echo "tex/chest/ is empty - run tools/chest_render.py and tools/make_chest_assets.py" >&2; exit 1; }
 mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex/chest" && cp "$V"/tex/chest/*.png "$M/PrismaUI/views/AdventurersGuild/tex/chest/"
+mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex/board" && cp "$V"/tex/board/*.png "$V"/tex/board/*.jpg "$M/PrismaUI/views/AdventurersGuild/tex/board/"   # the Guild Board page (2.0)
 cp "$V"/fonts/* "$M/PrismaUI/views/AdventurersGuild/fonts/"                   # Cyrodiil and its licence (OFL: they travel together)
 mkdir -p "$M/PrismaUI/views/AdventurersGuild/tex" && cp "$R"/config/PrismaUI/views/AdventurersGuild/tex/*.png "$M/PrismaUI/views/AdventurersGuild/tex/"
 cp "$R"/build/papyrus/AG_*.pex                             "$M/Scripts/"
@@ -62,11 +73,14 @@ cp "$R/build/esp/AdventurersGuild.esp" "$M/AdventurersGuild.esp"
 mkdir -p "$M/Interface/Translations" && cp "$R/config/Interface/Translations/AdventurersGuild_ENGLISH.txt" "$M/Interface/Translations/"
 mkdir -p "$M/SEQ" && cp "$R/build/esp/SEQ/AdventurersGuild.seq" "$M/SEQ/"
 # voiced lines ship as .fuz: build.ps1 -Only voice packs config/Sound (.wav + .lip sources) into build/Sound
-if [ -d "$R/build/Sound" ]; then rm -rf "$M/Sound" && mkdir -p "$M/Sound" && cp -r "$R/build/Sound/." "$M/Sound/"; fi   # .fuz only; replaces the old WAV + LIP set
+# (.fuz only; replaces the old WAV + LIP set. 2.0: only the core plugin's voices are replaced: this folder also holds the
+# Guild Hall's, Sound/Voice/AdventurersGuild - Guild Hall.esp, which deploy_hall.sh puts there; deleting all of Sound took the
+# hall's clerks' voices with it on all three installs, 2026-10-30)
+if [ -d "$R/build/Sound" ]; then rm -rf "$M/Sound/Voice/AdventurersGuild.esp" && mkdir -p "$M/Sound" && cp -r "$R/build/Sound/." "$M/Sound/"; fi
 # the Guild Drums (1.5.0): the notices' own sounds, made by tools/make_drums.py (private, like all the mod's audio)
 for f in ag_cleared ag_box_opened; do   # ag_box_opened: the Guild Box (1.6.0)
   [ -f "$R/config/Sound/FX/AdventurersGuild/$f.wav" ] || { echo "the Guild Drums are missing ($f) - run: python tools/make_drums.py" >&2; exit 1; }
 done
 mkdir -p "$M/Sound/FX/AdventurersGuild" && cp "$R"/config/Sound/FX/AdventurersGuild/*.wav "$M/Sound/FX/AdventurersGuild/"
-[ -f "$M/meta.ini" ] || printf '[General]\nmodid=0\nnotes=Adventurers Guild. Requires Missives 2.03.\n' > "$M/meta.ini"   # MO2 bookkeeping only
+[ -n "${AG_STAGE:-}" ] || [ -f "$M/meta.ini" ] || printf '[General]\nmodid=0\nnotes=Adventurers Guild. Requires Missives 2.03.\n' > "$M/meta.ini"   # MO2 bookkeeping only
 echo "deployed"; find "$M" -type f | sed "s#$M/##" | sort

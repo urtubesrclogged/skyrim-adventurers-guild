@@ -128,10 +128,15 @@ namespace AG::Guild
 	void  ConductTick();                                              // every few seconds, game thread
 	void  OnMissiveAbandoned(int a_rank, std::string_view a_title);
 	int   CardFee();                            // gold for a replacement guild card
+	int   RegistrationFee();                    // gold to register (the player, or a follower registered by hand)
+	void  RegistrationRouteChanged();           // MCM > Guild Hall > Registration changed: the running quest's objective follows
 	// Hold stamps: the two marks dialogue conditions read, set again for the liaisons and stamp keepers that are loaded.
 	// Cheap; run on the five-second beat and whenever what it depends on has just changed.
 	void  SyncStampMarks();
-	int   ReputationFor(int a_rank);            // the Reputation a rank asks for (guild.json), for the other adventurers' cards
+	int   ReputationFor(int a_rank);            // the Reputation a rank asks for in this game (guild.json x the MCM's percent)
+	int   RepScale();                           // MCM > System > Reputation for ranks: percent, 50..200 (per save)
+	int   RepScaleDefault();
+	void  SetRepScale(int a_percent);
 	int   CardReturnReputation();               // Reputation for another adventurer's card brought back (guild.json)
 	float CardReplaceDays();                    // game days until a member whose card is gone has a replacement
 	int   StampDungeons();                      // dungeons to clear in a hold for its stamp on the Guild Card (guild.json)
@@ -142,6 +147,7 @@ namespace AG::Guild
 	// dev/test (DevBench)
 	void DebugRegister();
 	void DebugPromote();
+	void TrialPromote();   // the promotion trial's end (AG_Native.TrialPromote): promoted, no fee
 	void DebugSetRank(int a_rank);
 	void DebugReset();
 }

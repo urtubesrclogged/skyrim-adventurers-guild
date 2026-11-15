@@ -1,0 +1,64 @@
+{
+	"_comment": "The followers' contracts away (drafting/away_approved.json; SCHEDULES.md 'Away on contract'): a global per follower, 1 while away, set by the away quest's script (not built yet); 'Have you seen ...?' asked of the clerks only while that one is away; one idle per absentee. Built in an ID block of their own (0x1A00-, merged 0x9200-) once 'live' is true, or with AG_AWAY_BUILD=1 for the recording build. 'live' waits for the away quest.",
+	"live": true,
+	"away": {
+		"Ghrulek": {
+			"npc": "AGHallResidentOrc",
+			"global": "AGHallAwayGhrulekGlobal",
+			"leaves": "Morndas 08:00",
+			"back": "Middas 08:00"
+		},
+		"Ylva": {
+			"npc": "AGHallResidentRanger",
+			"global": "AGHallAwayYlvaGlobal",
+			"leaves": "Middas 08:00",
+			"back": "Fredas 08:00"
+		},
+		"Zhasim": {
+			"npc": "AGHallResidentScout",
+			"global": "AGHallAwayZhasimGlobal",
+			"leaves": "Fredas 08:00",
+			"back": "Sundas 08:00"
+		}
+	},
+	"choices": {
+		"AWG": {
+			"who": "Ghrulek",
+			"prompt": "Have you seen Ghrulek?"
+		},
+		"AWY": {
+			"who": "Ylva",
+			"prompt": "Have you seen Ylva?"
+		},
+		"AWZ": {
+			"who": "Zhasim",
+			"prompt": "Have you seen Zhasim?"
+		}
+	},
+	"answers": {
+		"AGHallClerkDay": {
+			"AWG": "Gone on a contract. Expect him back in a day or two, and hungry.",
+			"AWY": "Out on a hunt. The best-paid one on the board, knowing her.",
+			"AWZ": "Scouting. He'll turn up when he's found something to sell us."
+		},
+		"AGHallClerkEvening": {
+			"AWG": "On a contract! The hall's ever so quiet without him.",
+			"AWY": "She's hunting. I'd have given anything to go with her.",
+			"AWZ": "Out scouting! He promised me a story when he's back."
+		}
+	},
+	"idles": {
+		"AGHallClerkEvening": {
+			"about": "Ylva",
+			"text": "I hope Ylva's hunt is going well."
+		},
+		"AGHallBarkeeper": {
+			"about": "Zhasim",
+			"text": "Zhasim's stool is empty. He must be on the road."
+		},
+		"AGHallServer": {
+			"about": "Ghrulek",
+			"text": "Finally some peace and quiet while our resident orc is away."
+		}
+	}
+}

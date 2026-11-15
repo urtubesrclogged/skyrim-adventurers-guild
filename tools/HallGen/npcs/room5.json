@@ -1,0 +1,25 @@
+{
+ "_comment": "Room 5 as the player's home (BACKLOG.md, plans/room5-home.md). npcgen builds Willem's sale of Caralion's old room and the spouse's 'Let's live at the Guild Hall.' from this file. The texts are drafts until 'approved' is true; Willem's lines must also be recorded. Until both, the builder holds them out of the plugin (AG_TALK_BUILD=1 builds them regardless). The spouse answers in vanilla's own recorded move lines, so 'home' has no spoken text of its own.",
+ "approved": true,
+ "price": 1000,
+ "willem": {
+  "offer": {
+   "prompt": "About Caralion's old room...",
+   "text": "He won't be needing it, and the hall can't carry an empty best room. A thousand gold and it's yours, fireplace and all."
+  },
+  "take": {
+   "prompt": "I'll take it.",
+   "text": "Good. The room's yours, and everything in it. Treat it better than he did."
+  },
+  "nofee": {
+   "text": "A thousand, I said. Come back when you have it."
+  },
+  "later": {
+   "prompt": "Not right now.",
+   "text": "Think on it. Empty rooms don't pay for this place's upkeep."
+  }
+ },
+ "home": {
+  "prompt": "Let's live at the Guild Hall."
+ }
+}

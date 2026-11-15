@@ -1,0 +1,627 @@
+{
+ "name": "B5_dressed",
+ "origin": [
+  24991.3,
+  -35419.5,
+  48.34554173312028
+ ],
+ "yaw": 79.0,
+ "radius": 4200,
+ "views": {
+  "road": {
+   "eye": [
+    25158.847317493535,
+    -37329.62483791,
+    -65.90389350945748
+   ],
+   "look": [
+    24991.3,
+    -35419.5,
+    568.3455417331203
+   ],
+   "lens": 22
+  },
+  "three-quarter": {
+   "eye": [
+    23327.864323275902,
+    -38391.48820312912,
+    121.57726181469184
+   ],
+   "look": [
+    24991.3,
+    -35419.5,
+    568.3455417331203
+   ],
+   "lens": 28
+  },
+  "hillside": {
+   "eye": [
+    25435.944514618594,
+    -32990.00711856828,
+    1742.4998656329042
+   ],
+   "look": [
+    24991.3,
+    -35419.5,
+    568.3455417331203
+   ],
+   "lens": 26
+  },
+  "aerial": {
+   "eye": [
+    26981.724022226408,
+    -37273.76314731919,
+    2568.3603515625
+   ],
+   "look": [
+    24991.3,
+    -35419.5,
+    568.3455417331203
+   ],
+   "lens": 26
+  },
+  "behind": {
+   "eye": [
+    23131.765531644174,
+    -34762.22584502926,
+    903.3608846856714
+   ],
+   "look": [
+    25048.58343749471,
+    -35713.965891371095,
+    590.4040559888974
+   ],
+   "lens": 24
+  },
+  "entrance": {
+   "eye": [
+    25613.705686667257,
+    -36629.97931052301,
+    -69.99788836927965
+   ],
+   "look": [
+    25086.70449768827,
+    -35910.31359172383,
+    378.3455417331203
+   ],
+   "lens": 24
+  }
+ },
+ "pieces": [
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhubEXT01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0,
+   "hide_textures": [
+    "wrstonebase02"
+   ]
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallR01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub2ndFLWallR01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallL01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub2ndFLWallL01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallF01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub2ndFLWallF01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallM01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub2ndFLWallMext01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhubChimneyExt01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerKEXT01.nif",
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0,
+   "hide_textures": [
+    "wrstonebase02"
+   ]
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerKEXT01.nif",
+   "yaw": 180,
+   "pos": [
+    0.0,
+    0.0,
+    256.0
+   ],
+   "scale": 1.0,
+   "hide_textures": [
+    "wrstonebase02"
+   ]
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhubBASE01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhubPosts01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerBASEK01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerBASEK01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "yaw": 180,
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerPostsK01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerPostsK01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "yaw": 180,
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallL01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallR01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallF01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhub1stFLWallM01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtower1stFlWallK01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "yaw": 0,
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtower1stFlWallK01.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "yaw": 180,
+   "scale": 1.0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerRoofK01.nif",
+   "pos": [
+    0,
+    0,
+    256
+   ],
+   "yaw": 0
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRtowerRoofK01.nif",
+   "pos": [
+    0,
+    0,
+    256
+   ],
+   "yaw": 180
+  },
+  {
+   "model": "Meshes\\_BYOH\\Architecture\\BYOHHouse\\BYOHBYOHWRhubEXT01.nif",
+   "pos": [
+    0,
+    0,
+    256
+   ],
+   "yaw": 180,
+   "only_textures": [
+    "wrdragoncarvings01"
+   ]
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRCastleDoor01.nif",
+   "pos": [
+    420,
+    0,
+    155
+   ],
+   "yaw": 270,
+   "scale": 0.92
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRTerrain\\WRGuardHouse01Arch01.nif",
+   "pos": [
+    366,
+    -15,
+    422
+   ],
+   "yaw": 90
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRJovaskrBanner02.nif",
+   "pos": [
+    414,
+    -384.4,
+    300
+   ],
+   "yaw": 90,
+   "scale": 1.25
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRJovaskrBanner02.nif",
+   "pos": [
+    414,
+    384.4,
+    300
+   ],
+   "yaw": 90,
+   "scale": 1.25
+  },
+  {
+   "model": "Meshes\\AdventurersGuild\\Hall\\AGHallSkirt.nif",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "yaw": 0
+  },
+  {
+   "model": "Meshes\\AdventurersGuild\\Hall\\AGHallCrest.nif",
+   "pos": [
+    418,
+    0,
+    690
+   ],
+   "yaw": 0
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRBrazier01.nif",
+   "pos": [
+    790,
+    -300,
+    -124
+   ],
+   "yaw": 0
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRBrazier01.nif",
+   "pos": [
+    790,
+    300,
+    -94
+   ],
+   "yaw": 0
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRIntShield01.nif",
+   "pos": [
+    414,
+    -640,
+    560
+   ],
+   "yaw": 180
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRIntShield02.nif",
+   "pos": [
+    414,
+    -520,
+    560
+   ],
+   "yaw": 180
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRIntShield03.nif",
+   "pos": [
+    414,
+    520,
+    560
+   ],
+   "yaw": 180
+  },
+  {
+   "model": "Meshes\\Architecture\\WhiteRun\\WRClutter\\WRIntShield04.nif",
+   "pos": [
+    414,
+    640,
+    560
+   ],
+   "yaw": 180
+  }
+ ],
+ "shapes": [],
+ "stone_rules": [
+  {
+   "outline": [
+    [
+     407.0,
+     -783.0
+    ],
+    [
+     407.0,
+     783.0
+    ],
+    [
+     270.0,
+     783.0
+    ],
+    [
+     250.0,
+     931.0
+    ],
+    [
+     241.4814565722671,
+     995.7047612756302
+    ],
+    [
+     216.50635094610968,
+     1056.0
+    ],
+    [
+     176.7766952966369,
+     1107.776695296637
+    ],
+    [
+     125.00000000000003,
+     1147.5063509461097
+    ],
+    [
+     64.70476127563019,
+     1172.481456572267
+    ],
+    [
+     1.5308084989341916e-14,
+     1181.0
+    ],
+    [
+     -64.70476127563022,
+     1172.481456572267
+    ],
+    [
+     -124.99999999999994,
+     1147.5063509461097
+    ],
+    [
+     -176.77669529663686,
+     1107.776695296637
+    ],
+    [
+     -216.50635094610968,
+     1056.0
+    ],
+    [
+     -241.48145657226706,
+     995.7047612756303
+    ],
+    [
+     -250.0,
+     931.0
+    ],
+    [
+     -270.0,
+     783.0
+    ],
+    [
+     -407.0,
+     783.0
+    ],
+    [
+     -407.0,
+     -783.0
+    ],
+    [
+     -270.0,
+     -783.0
+    ],
+    [
+     -250.0,
+     -931.0
+    ],
+    [
+     -241.4814565722671,
+     -995.7047612756302
+    ],
+    [
+     -216.50635094610965,
+     -1056.0
+    ],
+    [
+     -176.77669529663692,
+     -1107.776695296637
+    ],
+    [
+     -125.00000000000011,
+     -1147.5063509461097
+    ],
+    [
+     -64.70476127563016,
+     -1172.481456572267
+    ],
+    [
+     -4.5924254968025744e-14,
+     -1181.0
+    ],
+    [
+     64.70476127563008,
+     -1172.481456572267
+    ],
+    [
+     125.00000000000003,
+     -1147.5063509461097
+    ],
+    [
+     176.77669529663683,
+     -1107.776695296637
+    ],
+    [
+     216.5063509461096,
+     -1056.0
+    ],
+    [
+     241.4814565722671,
+     -995.7047612756302
+    ],
+    [
+     250.0,
+     -931.0000000000001
+    ],
+    [
+     270.0,
+     -783.0
+    ]
+   ],
+   "closed": true,
+   "margin": 60,
+   "course": 64,
+   "column": 128,
+   "min": 96.0,
+   "offset": 14.0,
+   "margin_front": 0,
+   "margin_back": 200.0,
+   "min_back": 256.0,
+   "front_x": 407.0,
+   "back_x": -407.0,
+   "back_flush": 700,
+   "plinth": 32,
+   "plinth_gap": 360,
+   "tympanum": [
+    422,
+    440,
+    128,
+    306,
+    470
+   ]
+  }
+ ]
+}

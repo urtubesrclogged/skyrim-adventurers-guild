@@ -1,0 +1,429 @@
+{
+ "_comment": "The Guild conversations. Written by guild_talk_export.py from drafting/guild_talk_v3.json: edit there. says: NPC -> version -> spoken parts. Version '' is the only one; both / missives / notices / none are by the optional mods installed. back: the choice that goes up one level, with each speaker's reply (drafting/back_replies.json).",
+ "groups": [
+  {
+   "stem": "Willem",
+   "nodes": [
+    {
+     "id": "W0",
+     "parent": null,
+     "prompt": "What does it take to rise in the Guild?",
+     "gate": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "Staying alive, mostly. Do honest work, often, and when your reputation and experience are enough, the Guild will recognize your growth.",
+        "The higher your rank, the harder the jobs available, but the better the rewards.",
+        "We rank all adventurers from E through A, though those truly exceptional can achieve an S rank."
+       ]
+      }
+     }
+    },
+    {
+     "id": "W1c",
+     "parent": "W0",
+     "prompt": "Did you ever make S-rank yourself?",
+     "gate": [
+      "belowS"
+     ],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "No. That takes deeds people sing about, and only one in a lifetime is ever worthy. I'm just a proud old man at the back of the room now."
+       ]
+      }
+     }
+    },
+    {
+     "id": "W3",
+     "parent": "W0",
+     "prompt": "How should I spend what I earn?",
+     "gate": ["member"],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "On yourself. Appraisal first, so you know what you're looking at. Then the drills, so you live through it. Books and Augments after that."
+       ]
+      }
+     }
+    },
+    {
+     "id": "W3c",
+     "parent": "W3",
+     "prompt": "And those Guild Boxes?",
+     "gate": ["member"],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "A bit risky if you ask me, but a good way to get your hands on some fine gear. It'll cost you some of your reputation as well as merit and gold.",
+        "I always preferred to earn my gear the old-fashioned way."
+       ]
+      }
+     }
+    },
+    {
+     "id": "W4",
+     "parent": "W0",
+     "prompt": "Should I travel alone?",
+     "gate": ["member"],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "No. Alone is how we lose good adventurers. Find people you trust and register as a party.",
+        "The longer you share the road, the more you hold each other up.",
+        "My advice is to make sure you travel with those who complement your strengths and cover your weaknesses.",
+        "The Frostbitten lived by that, and it's no wonder they reached the top of the board."
+       ]
+      }
+     }
+    },
+    {
+     "id": "W5",
+     "parent": "W0",
+     "prompt": "Where does the Guild stand on the war?",
+     "gate": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "Nowhere, and we've sworn to it. No war contracts, no taking sides. You see how empty this place is? Damn wars are the reason, Oblivion take them all."
+       ]
+      }
+     }
+    },
+    {
+     "id": "W5a",
+     "parent": "W5",
+     "prompt": "And the Thalmor?",
+     "gate": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "We've no quarrel with them. That's what I say out loud. Keep your voice down when you ask that."
+       ]
+      }
+     }
+    },
+    {
+     "id": "W6",
+     "parent": "W0",
+     "prompt": "Does the Guild care what its members get up to?",
+     "gate": [],
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "The Guild? Only when a Jarl does. Me? I'd like to think we're the ones who come when the farmer's scared. Try to stay on that side of things.",
+        "And if not? Well, try not to get caught."
+       ]
+      }
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallGuildMaster": "What is it?"
+    }
+   }
+  },
+  {
+   "stem": "Merila",
+   "nodes": [
+    {
+     "id": "M0",
+     "parent": null,
+     "prompt": "Tell me about what you do here.",
+     "gate": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "I'm the one who reads the reports adventurers bring back and who directs the Guild's scouts. Which interests you?"
+       ]
+      }
+     }
+    },
+    {
+     "id": "M1",
+     "parent": "M0",
+     "prompt": "What do the scouts know?",
+     "gate": ["member"],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "Where each hold's dungeons are, and how badly each is likely to treat you. Any counter can mark your map for some merit."
+       ]
+      }
+     }
+    },
+    {
+     "id": "M1b",
+     "parent": "M1",
+     "prompt": "I could just go and look.",
+     "gate": ["member"],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "You could. Many have. I have their reports, from those who wrote any."
+       ]
+      }
+     }
+    },
+    {
+     "id": "M2",
+     "parent": "M0",
+     "prompt": "Who reads all those reports?",
+     "gate": [],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "I read every one. Then they go on the shelves, where they may save anyone who bothers to read first."
+       ]
+      }
+     }
+    },
+    {
+     "id": "M2a",
+     "parent": "M2",
+     "prompt": "What about a dungeon I clear with no contract?",
+     "gate": ["member"],
+     "says": {
+      "AGHallAssistant": {
+       "": [
+        "Report it all the same. The Guild pays for any dungeon cleared, contract or no, at any counter. Each is paid once, so spare me the second account."
+       ]
+      }
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallAssistant": "Of course."
+    }
+   }
+  },
+  {
+   "stem": "Clerk",
+   "nodes": [
+    {
+     "id": "C0",
+     "parent": null,
+     "prompt": "Could you tell me about the guild counter?",
+     "gate": ["member"],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Work goes out, reports come back, you sell me your trophies, and there's plenty to buy.",
+        "The innkeepers run counters of their own, but this one's the biggest."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "Nearly everything the Guild does goes through here! Taking work, selling trophies, buying what you need.",
+        "The innkeepers keep counters too, in every hold capital."
+       ]
+      }
+     }
+    },
+    {
+     "id": "C1b",
+     "parent": "C0",
+     "prompt": "What sort of work and how do I take jobs?",
+     "gate": ["member"],
+     "says": {
+      "AGHallClerkDay": {
+       "both": [
+        "There are missives posted on boards in each hold capital with local problems folks need help with.",
+        "Notices are requests that could come from anywhere in Skyrim.",
+        "There's always bounties posted by the jarls of each hold as well if that's more your thing.",
+        "Get out there and visit the boards in each town to find new postings; we'll try to keep the board in the hall up to date with what you come across."
+       ],
+       "missives": [
+        "There are missives posted on boards in each hold capital with local problems folks need help with.",
+        "There's always bounties posted by the jarls of each hold as well if that's more your thing.",
+        "Get out there and visit the boards in each town to find new postings; we'll try to keep the board in the hall up to date with what you come across."
+       ],
+       "notices": [
+        "Notices are requests that could come from anywhere in Skyrim, and every board carries much the same ones.",
+        "There's always bounties posted by the jarls of each hold as well if that's more your thing.",
+        "Get out there and see who needs help; we'll try to keep the board in the hall up to date with what you come across."
+       ],
+       "none": [
+        "There's always bounties posted by the jarls of each hold. Get out there and ask the innkeepers and stewards in each town for leads;",
+        "we'll try to keep the board in the hall up to date with what you come across."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "both": [
+        "Oh, all sorts! Missives are for people in the towns who need help, and you'll find them on the town boards.",
+        "Notices can come from anywhere in Skyrim, and the Jarls post bounties of their own.",
+        "The more boards you read, the more we can put on ours in the great hall. Or just ask me, and I'll find you something that suits your rank!"
+       ],
+       "missives": [
+        "Oh, all sorts! Missives are for people in the towns who need help, and you'll find them on the town boards. The Jarls post bounties of their own, too.",
+        "The more boards you read, the more we can put on ours in the great hall. Or just ask me, and I'll find you something that suits your rank!"
+       ],
+       "notices": [
+        "Oh, all sorts! Notices can come from anywhere in Skyrim, and you'll find much the same ones on every board. The Jarls post bounties of their own, too.",
+        "The more you find, the more we can put on ours in the great hall. Or just ask me, and I'll find you something that suits your rank!"
+       ],
+       "none": [
+        "Oh, the Jarls post bounties all over Skyrim! Any innkeeper or steward can point you to one.",
+        "The more you find, the more we can put on our board in the great hall. Or just ask me, and I'll find you something that suits your rank!"
+       ]
+      }
+     }
+    },
+    {
+     "id": "C2",
+     "parent": "C1b",
+     "prompt": "How do I get paid?",
+     "gate": ["member"],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Finish the job and bring your report to any counter to earn Guild merit and reputation.",
+        "Note that the Guild also pays gold for reports of a cleared dungeon."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "Just hand your report in at any counter when the job's done! That earns you merit and reputation.",
+        "Cleared dungeons are worth reporting too, plus those pay gold."
+       ]
+      }
+     }
+    },
+    {
+     "id": "C2b",
+     "parent": "C0",
+     "prompt": "You said I can sell trophies?",
+     "gate": ["member"],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Hides, claws, teeth, anything off a proper monster. Hand them in at any guild counter and we'll pay you in merit based on their fair market value."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "Yes! Bring them to any counter and we'll pay merit for anything you've taken from a monster, depending on what it's worth.",
+        "Don't tell me how you pulled the parts out though. I'd rather not know."
+       ]
+      }
+     }
+    },
+    {
+     "id": "C3",
+     "parent": "C0",
+     "prompt": "What sort of things can I buy here?",
+     "gate": ["member"],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Plenty! We offer training, a unique Appraisal skill, useful books, spell tomes, potions, and more.",
+        "Augments are a day's edge: carry more, haggle better, learn faster. Guild Boxes are a chance for a powerful item once your rank is high enough."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "So many useful things!",
+        "We have training, spell tomes, potions and books, and Appraisal teaches you to size up threats and evaluate the true value of items.",
+        "An Augment gives you a boon for about a day. Once your rank is high enough, a Guild Box might hold something wonderful... if you can afford it!"
+       ]
+      }
+     }
+    },
+    {
+     "id": "C4",
+     "parent": "C0",
+     "prompt": "What do I do with my guild card?",
+     "gate": [
+      "member"
+     ],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Show it, mostly. It says the Guild vouches for you.",
+        "Keep it safe: a replacement costs coin, and you'll have to ask each hold to replace any stamps from your lost card."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "It shows your rank and how far you've come. So please don't lose it!",
+        "Any counter can make you a new one for a small fee, but you'd need each hold to stamp it again."
+       ]
+      }
+     }
+    },
+    {
+     "id": "C4s",
+     "parent": "C4",
+     "prompt": "What are the stamps for?",
+     "gate": [
+      "member"
+     ],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Proof of where you've done real work. Report enough dungeons from a hold, and the counter in its capital will stamp your card with their crest.",
+        "Merchants there might give you better prices for making them safer."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "They show which holds you've helped! Clear and report enough dungeons, then visit the inn in its capital to get your card stamped.",
+        "I've heard the merchants there might thank you with a better price."
+       ]
+      }
+     }
+    },
+    {
+     "id": "C5a",
+     "parent": "C0",
+     "prompt": "How do I form a party?",
+     "gate": ["member"],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Bring your group to the counter, pay a small fee, and give me a name you'd want shouted in a tavern. Anyone not on our ledger, I can sign on as well."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "You'll need at least one companion with you! If they aren't Guild members yet, I can sign them up.",
+        "Then there's a small fee, and you get to choose a name! That's the best part."
+       ]
+      }
+     }
+    },
+    {
+     "id": "C7",
+     "parent": "C0",
+     "prompt": "You mentioned the innkeepers?",
+     "gate": ["member"],
+     "says": {
+      "AGHallClerkDay": {
+       "": [
+        "Every hold capital's inn keeps a counter for us. Reports, trophies, supplies and that hold's work, all without the walk back here.",
+        "Some things like promotions, training, and the good inventory are only available here in the guild hall."
+       ]
+      },
+      "AGHallClerkEvening": {
+       "": [
+        "You can hand in reports, sell trophies and find that hold's work at any of their counters, so you won't have to walk all the way back here.",
+        "Promotions, training and the best goods stay at the hall, though, so I'll still get to see you!"
+       ]
+      }
+     }
+    }
+   ],
+   "back": {
+    "prompt": "Let's talk about something else.",
+    "says": {
+     "AGHallClerkDay": "Anything else?",
+     "AGHallClerkEvening": "All right. What is it?"
+    }
+   }
+  }
+ ]
+}

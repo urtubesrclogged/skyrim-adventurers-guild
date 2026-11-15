@@ -28,8 +28,9 @@ namespace AG::Counter
 	void OpenCard();           // the Guild Card page alone (the physical card, read anywhere)
 	void Close();
 	bool IsOpen();
-	bool IsCardOnly();         // open as the physical card's single page
+	bool PadMode();            // the controller was the last device used (the Guild Board's page opens in the same mode)
+	bool IsCardOnly();        // open as the physical card's single page
 	void Refresh();            // push fresh data if open (any thread)
 	bool IsOpenComposite();   // VR runtime is OpenComposite rather than SteamVR (false outside VR)
-	int  ViewOrder();          // PrismaUI order of the counter view (-1 if none), so a toast can sit above it
+	std::uint32_t View();      // the counter's page (a UiHost::Handle, 0 if none), so a notice can sit above it
 }

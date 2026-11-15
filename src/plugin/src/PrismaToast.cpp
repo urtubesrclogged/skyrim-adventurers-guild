@@ -7,7 +7,7 @@
 
 #include "ControlsGuard.h"
 #include "Counter.h"
-#include "PrismaUI_API.h"
+#include "UiHost.h"
 
 #include <SimpleIni.h>
 #include <atomic>
@@ -19,11 +19,7 @@ namespace AG::PrismaToast
 {
 	namespace
 	{
-		constexpr const char* kViewPath = "AdventurersGuild/index.html";
-		constexpr const char* kViewFile = "Data\\PrismaUI\\views\\AdventurersGuild\\index.html";
-
-		PRISMA_UI_API::IVPrismaUI1* g_api{ nullptr };
-		PrismaView                  g_view{ 0 };
+		UiHost::Handle              g_view{ 0 };
 		std::atomic<bool>           g_enabled{ true };
 		std::atomic<int>            g_sounds{ 0 };     // MCM "Notification sounds": SoundSet
 		// The Guild Drums: the same notices, in the same order as the game's set (0xC81..0xC87); EspGen, Cue
@@ -33,7 +29,7 @@ namespace AG::PrismaToast
 		// The game's file each cue plays (tools/EspGen/Program.cs, Cue), under Data. The game keeps every one of them in
 		// its archives, so a loose file at that path is another mod's. A list that restyles its interface sounds
 		// (a test install: "Paper UI Sounds", "No UI Sounds") gave a promotion a rustle of paper in place of the sound chosen
-		// for it (in game, 2026-10-13); the author would have no sound there over the wrong one. A replacement packed
+		// for it (in game); no sound there is better than the wrong one. A replacement packed
 		// into a mod's own archive is not seen this way: only loose files, which is how such mods come.
 		constexpr const char* kCueFile[] = { nullptr,
 			"Sound\\FX\\UI\\UI_LevelUp", "Music\\Stinger\\MUS_Stinger_02", "Music\\Reward\\MUS_Reward_01", "Sound\\fx\\ui\\ui_skill_increase",
@@ -127,30 +123,11 @@ namespace AG::PrismaToast
 		}
 		FindReplaced();
 		BorrowTracks();
-		g_api = PRISMA_UI_API::RequestPluginAPI<PRISMA_UI_API::IVPrismaUI1>();
-		if (!g_api) {
-			SKSE::log::info("PrismaToast: PrismaUI not loaded - rank-up toast disabled");
-			return;
-		}
-
-		std::error_code ec;
-		if (!std::filesystem::exists(kViewFile, ec)) {
-			SKSE::log::info("PrismaToast: PrismaUI present but {} is missing - rank-up toast disabled", kViewFile);
-			g_api = nullptr;
-			return;
-		}
-
-		g_view = g_api->CreateView(kViewPath);
-		if (!g_api->IsValid(g_view)) {
-			SKSE::log::error("PrismaToast: CreateView failed - rank-up toast disabled");
-			g_api = nullptr;
-			return;
-		}
-		g_api->Hide(g_view);
-		SKSE::log::info("PrismaToast: view active (view {}, order {})", g_view, g_api->GetOrder(g_view));
+		g_view = UiHost::Create({ "notice", "index.html", UiHost::Layer::kNotice, false, false });
+		if (!g_view) SKSE::log::info("PrismaToast: no page - notices disabled");
 	}
 
-	bool Active() { return g_api != nullptr && g_api->IsValid(g_view); }
+	bool Active() { return g_view && UiHost::Valid(g_view); }
 
 	namespace
 	{
@@ -226,13 +203,11 @@ namespace AG::PrismaToast
 		void Present(const std::string& a_call, int a_hideMs)
 		{
 			// A toast raised while the counter is open (e.g. intel bought) must draw above it, not behind it.
-			if (const int co = Counter::ViewOrder(); co >= 0 && g_api->GetOrder(g_view) <= co) {
-				g_api->SetOrder(g_view, co + 1);
-				SKSE::log::info("PrismaToast: order raised above the counter ({} -> {})", co, g_api->GetOrder(g_view));
-			}
-			g_api->Invoke(g_view, a_call.c_str());
+			UiHost::KeepAbove(g_view, Counter::View());
+			UiHost::Js(g_view, a_call);
 			// PrismaVR masks fighting controls while a laser is on any of its panels, the notice included (ControlsGuard.h).
-			if (!g_shown.exchange(true)) {
+			// Magelight UI's notice takes no input and masks nothing.
+			if (!UiHost::ManagesControls() && !g_shown.exchange(true)) {
 				ControlsGuard::Shown();
 				std::thread([]() {
 					while (g_shown.load()) {
@@ -244,7 +219,7 @@ namespace AG::PrismaToast
 					}
 				}).detach();
 			}
-			g_api->Show(g_view);  // no Focus() - purely visual, plays over live gameplay
+			UiHost::Show(g_view);  // no Focus() - purely visual, plays over live gameplay
 
 			// Auto-hide after the CSS animation finishes so the (invisible but still "shown") view doesn't linger.
 			// Only the latest toast's timer hides the view: a toast shown mid-way through another restarts the
@@ -255,8 +230,8 @@ namespace AG::PrismaToast
 				std::this_thread::sleep_for(std::chrono::milliseconds(hideMs));
 				if (auto* task = SKSE::GetTaskInterface()) {
 					task->AddTask([seq]() {
-						if (seq == g_seq.load() && g_api && g_api->IsValid(g_view)) {
-							g_api->Hide(g_view);
+						if (seq == g_seq.load() && Active()) {
+							UiHost::Hide(g_view);
 							if (g_shown.exchange(false)) ControlsGuard::Hidden();
 						}
 					});

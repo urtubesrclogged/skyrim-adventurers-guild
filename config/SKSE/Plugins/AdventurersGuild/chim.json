@@ -1,7 +1,11 @@
 {
-	"_comment": "Adventurers Guild for CHIM (1.6.0): what AdventurersGuild.dll reports to the Guild's CHIM server plugin about the people near the player. factions: the factions the knowledge pack's per-NPC entries depend on (their condition_expr), 'Plugin|0xID'; the DLL tells the server which of them the speaker is in. plugins: the other mods the pack has entries for; only the loaded ones are taught to CHIM. src/chim/build_dwpkg.py fails if the pack names a faction or plugin missing here.",
+	"_comment": "Adventurers Guild for CHIM (1.6.0): what AdventurersGuild.dll reports to the Guild's CHIM server plugin about the people near the player. factions: the factions the knowledge pack's per-NPC entries (their condition_expr) and the CHIM actions' rules depend on, 'Plugin|0xID'; the DLL tells the server which of them the speaker is in. plugins: the other mods the pack has entries for; only the loaded ones are taught to CHIM. src/chim/build_dwpkg.py fails if the pack names a faction or plugin missing here.",
 	"factions": {
+		"AG_AdventurerRankFaction": "AdventurersGuild.esp|0xC91",
 		"AG_GuildLiaisonFaction": "AdventurersGuild.esp|0x8C6",
+		"AG_WanderingAdventurerFaction": "AdventurersGuild.esp|0xC80",
+		"AGHall2GuildFaction": "AdventurersGuild - Guild Hall.esp|0x995",
+		"AGHallClerkFaction": "AdventurersGuild - Guild Hall.esp|0x8200",
 		"BardSingerFaction": "Skyrim.esm|0x0CF8F9",
 		"CollegeofWinterholdFaction": "Skyrim.esm|0x01F259",
 		"CompanionsFaction": "Skyrim.esm|0x048362",
@@ -13,7 +17,9 @@
 		"JobInnkeeperFaction": "Skyrim.esm|0x05091B",
 		"JobJarlFaction": "Skyrim.esm|0x050920",
 		"JobStewardFaction": "Skyrim.esm|0x050922",
-		"ThalmorFaction": "Skyrim.esm|0x039F26"
+		"PotentialFollowerFaction": "Skyrim.esm|0x05C84D",
+		"ThalmorFaction": "Skyrim.esm|0x039F26",
+		"TownRiverwoodFaction": "Skyrim.esm|0x013481"
 	},
 	"plugins": [
 		"Missives.esp",
