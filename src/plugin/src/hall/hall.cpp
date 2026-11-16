@@ -17,6 +17,12 @@
 #include <fstream>
 #include <mutex>
 #include <unordered_set>
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <set>
+#include <thread>
+#include <unordered_map>
 
 namespace Hall
 {
@@ -204,86 +210,181 @@ namespace Hall
 			if (auto* ws = pc ? pc->GetWorldspace() : nullptr; ws && ws->persistentCell) ws->persistentCell->ForEachReferenceInRange(a_origin, a_radius, visit);
 		}
 
-		// AGHall2.HideTrees, natively: trees in the site's boxes; landscape rocks, boulders, stumps and logs in them (only
-		// small ones in a "trees and small pieces" box); and whatever stood more than 40 above the land on a hidden rock.
+		// ---- the hide pass. AGHall2.HideTrees, natively: trees in the site's boxes; landscape rocks, boulders, stumps and logs in
+		// them (only small ones in a "trees and small pieces" box); whatever stood more than 40 above the land on a hidden rock; and
+		// what a mod set on any hidden support. One sweep of the loaded references near the site answers every question from a list
+		// (walking the cells again for each support and rider took about 110 ms a pass on MGO; the sweep, about 4 ms).
+		struct NearRef
+		{
+			RE::TESObjectREFR*  r;
+			RE::FormID          id;
+			RE::NiPoint3        p;
+			RE::TESBoundObject* base;
+			bool                off;   // disabled when swept
+		};
 		int Hide(const Layout& a_l, const Site& a_s)
 		{
 			// (in testing, the dirt cliff at the stair's foot and a stump on the terrace stood again after a rebuild,
 			// though the save had them hidden: a rebuild re-enabled every hidden ref and hid them again at once, and the queued enable
 			// landed after the disable. Rebuilds no longer re-show anything; and a ref the save says is hidden but stands enabled is
 			// disabled again here, on every pass, which mends a save that rebuild left so)
-			int mended = 0;
+			int         mended = 0;
+			std::string which;
 			for (auto id : g_hidden)
-				if (auto* r = Ref(id); r && !r->IsDisabled()) r->Disable(), ++mended;
-			if (mended) SKSE::log::info("Hall: {} ref(s) the save had hidden stood enabled: hidden again", mended);
+				if (auto* r = Ref(id); r && !r->IsDisabled()) {
+					auto*       base = r->GetBaseObject();
+					const auto  p = r->GetPosition();
+					const auto* file = r->GetFile(0);
+					which += std::format("{}{:08X} ({}, base {:08X}{}, {}, at {:.0f} {:.0f} {:.0f})", which.empty() ? "" : "; ", id,
+						file ? file->GetFilename() : std::string_view("created"), base ? base->GetFormID() : 0u,
+						base && (base->GetFormFlags() & 0x02000000) ? " obstacle" : "", base ? RE::FormTypeToString(base->GetFormType()) : std::string_view("?"), p.x, p.y, p.z);
+					r->Disable(), ++mended;
+				}
+			if (mended) SKSE::log::info("Hall: {} ref(s) the save had hidden stood enabled: hidden again: {}", mended, which);
 			std::unordered_set<RE::FormID> ours(g_placed.begin(), g_placed.end());
 			std::unordered_set<RE::FormID> hidden(g_hidden.begin(), g_hidden.end());
-			const float                    a = a_s.yaw * kPi / 180.0f, c = std::cos(a), s = std::sin(a);
+			// one sweep: everything the searches below reach (the site's 3500, a support's half-size, a rider's 64), the attached
+			// cells' references and the worldspace's persistent ones
+			std::vector<NearRef> swept;
+			ForEachLoadedRef(RE::NiPoint3(a_s.x, a_s.y, 0.0f), 6000.0f, [&](RE::TESObjectREFR* r) {
+				auto* b = r->GetBaseObject();
+				swept.push_back({ r, r->GetFormID(), r->GetPosition(), b ? b->As<RE::TESBoundObject>() : nullptr, r->IsDisabled() });
+			});
+			auto within = [&](const RE::NiPoint3& a_o, float a_radius, auto&& a_fn) {   // (as ForEachReferenceInRange: by distance in 3D)
+				const float r2 = a_radius * a_radius;
+				for (auto& w : swept)
+					if (a_o.GetSquaredDistance(w.p) <= r2) a_fn(w);
+			};
+			std::unordered_map<RE::TESBoundObject*, bool> clutterOf, markerOf;
+			auto clutter = [&](NearRef& w) {
+				auto it = clutterOf.find(w.base);
+				if (it != clutterOf.end()) return it->second;
+				return clutterOf[w.base] = IsLandscapeClutter(w.r);
+			};
+			auto marker = [&](NearRef& w) {
+				auto it = markerOf.find(w.base);
+				if (it != markerOf.end()) return it->second;
+				auto* m = w.base->As<RE::TESModel>();
+				bool  is = !m || !m->GetModel() || !*m->GetModel();
+				if (!is) {
+					std::string path = m->GetModel();
+					std::ranges::transform(path, path.begin(), [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+					is = path.starts_with("marker") || path.find("\\marker") != std::string::npos || path.find("/marker") != std::string::npos;
+				}
+				return markerOf[w.base] = is;
+			};
+			auto off = [&](const NearRef& w) { return w.off || ours.contains(w.id) || hidden.contains(w.id); };
+			auto hide = [&](NearRef& w) {
+				if (!hidden.insert(w.id).second) return false;
+				w.r->Disable();
+				g_hidden.push_back(w.id);
+				return true;
+			};
+			const float a = a_s.yaw * kPi / 180.0f, c = std::cos(a), s = std::sin(a);
 			// the box a reference stands in (-1: none); a rock in a "trees and small pieces" box (kind 0) only if small
-			auto boxOf = [&](RE::TESObjectREFR* r) {
-				const auto p = r->GetPosition();
+			auto boxOf = [&](const RE::NiPoint3& p) {
 				const float dx = p.x - a_s.x, dy = p.y - a_s.y, lx = dx * c - dy * s, ly = dx * s + dy * c;  // world -> layout frame
-				int best = -1;
+				int         best = -1;
 				for (const auto& b : a_l.boxes)
 					if (b.site == a_s.id && lx >= b.x0 && lx <= b.x1 && ly >= b.y0 && ly <= b.y1) best = std::max(best, b.kind);
 				return best;
 			};
-			std::vector<RE::TESObjectREFR*> trees, rocks;
-			int                             kept = 0;
-			ForEachLoadedRef(RE::NiPoint3(a_s.x, a_s.y, 0.0f), 3500.0f, [&](RE::TESObjectREFR* r) {
-				auto* base = r->GetBaseObject();
-				if (!base || r->IsDisabled() || ours.contains(r->GetFormID()) || hidden.contains(r->GetFormID())) return;
-				if (base->Is(RE::FormType::Tree)) {
-					if (boxOf(r) >= 0) trees.push_back(r);
-				} else if (base->Is(RE::FormType::Static) && IsLandscapeClutter(r)) {
-					const int k = boxOf(r);
+			std::vector<NearRef*> trees, rocks;
+			int                   kept = 0;
+			within(RE::NiPoint3(a_s.x, a_s.y, 0.0f), 3500.0f, [&](NearRef& w) {
+				if (!w.base || off(w)) return;
+				if (w.base->Is(RE::FormType::Tree)) {
+					if (boxOf(w.p) >= 0) trees.push_back(&w);
+				} else if (w.base->Is(RE::FormType::Static) && clutter(w)) {
+					const int k = boxOf(w.p);
 					if (k < 0) return;
-					if (k == 1 || Size(r) <= 1000.0f) rocks.push_back(r);
+					if (k == 1 || Size(w.r) <= 1000.0f) rocks.push_back(&w);
 					else ++kept;                                // too big for a "trees and small pieces" box: ground
 				}
 			});
-			auto hide = [&](RE::TESObjectREFR* r) {
-				if (!hidden.insert(r->GetFormID()).second) return false;
-				r->Disable();
-				g_hidden.push_back(r->GetFormID());
-				return true;
-			};
 			// Vanilla lays the fungus on a log or a stump as its own FLOR reference at the host's origin
 			// (TreePineForestLog01 + TreePineForestLog01MoraTapinella): left behind, it hangs where the log was.
-			auto companions = [&](RE::TESObjectREFR* a_host) {
-				const auto                      hp = a_host->GetPosition();
-				std::vector<RE::TESObjectREFR*> with;
-				ForEachLoadedRef(hp, 64.0f, [&](RE::TESObjectREFR* d) {
-					auto* base = d->GetBaseObject();
-					if (!base || d == a_host || !base->Is(RE::FormType::Flora) || d->IsDisabled() || ours.contains(d->GetFormID()) || hidden.contains(d->GetFormID())) return;
-					const auto dp = d->GetPosition();
-					if (std::hypot(dp.x - hp.x, dp.y - hp.y) < 8.0f && std::abs(dp.z - hp.z) < 64.0f) with.push_back(d);
+			auto companions = [&](const NearRef& h) {
+				std::vector<NearRef*> with;
+				within(h.p, 64.0f, [&](NearRef& d) {
+					if (!d.base || d.id == h.id || !d.base->Is(RE::FormType::Flora) || off(d)) return;
+					if (std::hypot(d.p.x - h.p.x, d.p.y - h.p.y) < 8.0f && std::abs(d.p.z - h.p.z) < 64.0f) with.push_back(&d);
 				});
-				int c = 0;
-				for (auto* d : with) c += hide(d);
-				return c;
+				int k = 0;
+				for (auto* d : with) k += hide(*d);
+				return k;
+			};
+			auto* tes = RE::TES::GetSingleton();
+			auto  aboveLand = [&](const NearRef& d) {
+				float land = 0.0f;
+				return tes && tes->GetLandHeight(d.p, land) && d.p.z > land + 40.0f;
 			};
 			int n = 0, onTop = 0, flora = 0;
-			for (auto* r : trees) {
-				n += hide(r);
-				flora += companions(r);
+			for (auto* t : trees) {
+				n += hide(*t);
+				flora += companions(*t);
 			}
-			auto* tes = RE::TES::GetSingleton();
 			for (auto* rock : rocks) {
-				n += hide(rock);
-				flora += companions(rock);
-				const float reach = Size(rock) / 2.0f;
-				std::vector<RE::TESObjectREFR*> riders;     // what stood on it: trees, flora, small rocks over 40 above the land
-				ForEachLoadedRef(rock->GetPosition(), reach, [&](RE::TESObjectREFR* d) {
-					auto* base = d->GetBaseObject();
-					if (!base || d == rock || d->IsDisabled() || ours.contains(d->GetFormID()) || hidden.contains(d->GetFormID())) return;
-					if (!(base->Is(RE::FormType::Tree) || base->Is(RE::FormType::Flora) || (base->Is(RE::FormType::Static) && IsLandscapeClutter(d) && Size(d) <= 600.0f))) return;
-					float land = 0.0f;
-					if (tes && tes->GetLandHeight(d->GetPosition(), land) && d->GetPosition().z > land + 40.0f) riders.push_back(d);
+				n += hide(*rock);
+				flora += companions(*rock);
+				std::vector<NearRef*> riders;     // what stood on it: trees, flora, small rocks over 40 above the land
+				within(rock->p, Size(rock->r) / 2.0f, [&](NearRef& d) {
+					if (!d.base || d.id == rock->id || off(d)) return;
+					if (!(d.base->Is(RE::FormType::Tree) || d.base->Is(RE::FormType::Flora) || (d.base->Is(RE::FormType::Static) && clutter(d) && Size(d.r) <= 600.0f))) return;
+					if (aboveLand(d)) riders.push_back(&d);
 				});
-				for (auto* d : riders) onTop += hide(d);
+				for (auto* d : riders) onTop += hide(*d);
 			}
+			// What a mod set on a hidden support (a brazier bowl on a rock, with its fire and its light at the same spot) would be
+			// left floating: anything placed (not an actor, a door, a light or a marker) standing over 40 above the land within a
+			// hidden rock's or stump's footprint, or on a hidden tree's trunk, goes too, with the effects and lights within 64 of
+			// it. Every pass looks at every hidden support, so a save that hid the support before this rule is mended as well.
+			int         stranded = 0;
+			std::string strandedLog;
+			auto        describe = [](const NearRef& d) {
+				const auto* file = d.r->GetFile(0);
+				return std::format("{:08X} {} {} ({}) at {:.0f} {:.0f} {:.0f}", d.id, file ? file->GetFilename() : std::string_view("created"),
+					d.base ? RE::FormTypeToString(d.base->GetFormType()) : std::string_view("?"), d.base ? d.base->GetFormEditorID() : "", d.p.x, d.p.y, d.p.z);
+			};
+			std::unordered_map<RE::FormID, NearRef*> byId;
+			for (auto& w : swept) byId.emplace(w.id, &w);
+			const std::vector<RE::FormID> supports(g_hidden.begin(), g_hidden.end());
+			for (auto sid : supports) {
+				auto it = byId.find(sid);
+				if (it == byId.end()) continue;   // (not loaded near the site)
+				auto& sp = *it->second;
+				if (!sp.base || !sp.r->GetParentCell() || !sp.r->GetParentCell()->IsAttached()) continue;
+				const bool tree = sp.base->Is(RE::FormType::Tree);
+				if (!tree && !(sp.base->Is(RE::FormType::Static) && clutter(sp))) continue;
+				const float           reach = tree ? 64.0f : std::max(64.0f, Size(sp.r) / 2.0f);
+				std::vector<NearRef*> on;
+				within(sp.p, reach, [&](NearRef& d) {
+					if (!d.base || d.id == sid || off(d)) return;
+					if (d.r->Is(RE::FormType::ActorCharacter) || d.base->Is(RE::FormType::Door) || d.base->Is(RE::FormType::Light)) return;
+					if (!(d.base->Is(RE::FormType::Static) || d.base->Is(RE::FormType::MovableStatic) || d.base->Is(RE::FormType::Furniture) ||
+					        d.base->Is(RE::FormType::Container) || d.base->Is(RE::FormType::Activator) || d.base->Is(RE::FormType::Misc) ||
+					        d.base->Is(RE::FormType::Tree) || d.base->Is(RE::FormType::Flora)))
+						return;
+					if (marker(d)) return;
+					if (aboveLand(d)) on.push_back(&d);
+				});
+				for (auto* d : on) {
+					if (!hide(*d)) continue;
+					++stranded;
+					strandedLog += (strandedLog.empty() ? "" : "; ") + describe(*d) + std::format(" on {:08X}", sid);
+					std::vector<NearRef*> with;   // its fire, its light
+					within(d->p, 64.0f, [&](NearRef& w) {
+						if (!w.base || w.id == d->id || off(w)) return;
+						if (w.base->Is(RE::FormType::MovableStatic) || w.base->Is(RE::FormType::Light)) with.push_back(&w);
+					});
+					for (auto* w : with)
+						if (hide(*w)) ++stranded, strandedLog += "; with it " + describe(*w);
+				}
+			}
+			if (stranded) SKSE::log::info("Hall: site {}: hid {} ref(s) left standing on hidden supports: {}", a_s.id, stranded, strandedLog);
+			onTop += stranded;
 			n += onTop + flora;
+			if (n || mended) Nav::OutdoorGroundChanged();   // (a hidden tree can be a navmesh obstacle: the game redoes its cut)
 			if (n)  // silent when there was nothing (new) to hide
 				SKSE::log::info("Hall: site {}: hid {} tree(s), {} rock(s), {} standing on them, {} flora growing on them; kept {} big rock(s)", a_s.id,
 					trees.size(), rocks.size(), onTop, flora, kept);
@@ -375,6 +476,7 @@ namespace Hall
 		// Bring the world in line with the layout: on the main thread, once the hall's cells are loaded.
 		void Reconcile(const char* a_why, bool a_force)
 		{
+			HallPassTimer timer("hall reconcile");
 			std::scoped_lock l(g_lock);
 			if (!g_inGame) return;
 			const auto L = Load();
@@ -467,6 +569,7 @@ namespace Hall
 		// (a pass only sees attached cells, so one run at the first cell missed the rest). Cheap, and idempotent.
 		void HideMore(const char* a_why)
 		{
+			HallPassTimer timer("hall hide pass");
 			std::scoped_lock l(g_lock);
 			if (!g_inGame || g_version.empty()) return;
 			const auto L = Load();
@@ -474,6 +577,29 @@ namespace Hall
 			int n = 0;
 			for (const auto& s : L.sites) n += Hide(L, s);
 			if (n) SKSE::log::info("Hall: hid {} more ref(s) ({}); {} hidden in all", n, a_why, g_hidden.size());
+		}
+
+		// One hide pass per burst of cell loads: a load beside the hall finishes some 25 cells at once, and a pass for each held the
+		// main thread for seconds (a black screen, then dead controls, in VR). A cell load sets the pass kHideSettleMs ahead; it runs
+		// once cells stop arriving, and kHideMaxMs after the burst's first at the latest.
+		constexpr long long kHideSettleMs = 250, kHideMaxMs = 1000;
+		std::atomic<long long> g_hideDueMs{ 0 };
+		std::atomic_bool       g_hideQueued{ false };
+		long long              NowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
+		void                   ScheduleHideMore()
+		{
+			const auto now = NowMs();
+			g_hideDueMs = now + kHideSettleMs;
+			if (g_hideQueued.exchange(true)) return;
+			std::thread([first = now] {
+				for (;;) {
+					std::this_thread::sleep_for(std::chrono::milliseconds(50));
+					const auto t = NowMs();
+					if (t >= g_hideDueMs || t - first >= kHideMaxMs) break;
+				}
+				g_hideQueued = false;   // (a cell load from here on schedules another pass)
+				SKSE::GetTaskInterface()->AddTask([] { HideMore("cells loaded"); });
+			}).detach();
 		}
 
 		// the hall's cells loading (arriving near it, or a reload) brings a waiting rebuild, more hiding, the navmesh
@@ -490,7 +616,7 @@ namespace Hall
 							pending = g_inGame && g_pending;
 						}
 						if (pending) Reconcile("its cells loaded", false);
-						else HideMore("a cell loaded");
+						else ScheduleHideMore();
 						Nav::AutoApply();
 					});
 				return RE::BSEventNotifyControl::kContinue;
@@ -571,6 +697,12 @@ namespace Hall
 		SKSE::GetTaskInterface()->AddTask([a_newGame] {
 			Reconcile(a_newGame ? "new game" : "game loaded", false);
 		});
+	}
+
+	bool Standing()
+	{
+		std::scoped_lock l(g_lock);
+		return g_active && g_inGame && !g_placed.empty();
 	}
 
 	bool RegisterPapyrus(RE::BSScript::IVirtualMachine* a_vm)

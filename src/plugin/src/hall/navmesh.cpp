@@ -734,6 +734,7 @@ namespace
 	}
 
 	std::string Outdoor(Tag*) { return Nav::OutdoorStatus(); }
+	std::string OutdoorNav(Tag*, std::string a_step) { return Nav::OutdoorNavStep(a_step); }
 	std::string OutdoorInfoLinks(Tag*, bool a_on)
 	{
 		Nav::OutdoorSetInfoLinks(a_on);
@@ -752,6 +753,9 @@ namespace
 		switch (a_msg->type) {
 		case SKSE::MessagingInterface::kDataLoaded:
 			Hall::OnDataLoaded();
+			break;
+		case SKSE::MessagingInterface::kPreLoadGame:
+			Nav::OutdoorPreLoad();
 			break;
 		case SKSE::MessagingInterface::kPostLoadGame:
 			Hall::OnGameLoaded(false);
@@ -780,6 +784,7 @@ namespace
 		a_vm->RegisterFunction("Info", kClass, Info);
 		a_vm->RegisterFunction("Outdoor", kClass, Outdoor);
 		a_vm->RegisterFunction("OutdoorInfoLinks", kClass, OutdoorInfoLinks);
+		a_vm->RegisterFunction("OutdoorNav", kClass, OutdoorNav);
 		return true;
 	}
 }
@@ -798,6 +803,7 @@ namespace Nav
 
 	void AutoApply()
 	{
+		HallPassTimer timer("navmesh patches + outdoor navmesh");
 		OutdoorApply();   // the outdoor navmesh (outdoor.cpp): its own file, its own wait for the hall's cells
 		std::error_code ec;
 		if (!std::filesystem::is_directory(kPatchDir, ec)) return;

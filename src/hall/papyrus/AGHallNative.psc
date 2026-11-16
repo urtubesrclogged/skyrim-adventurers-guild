@@ -45,3 +45,7 @@ String Function HallRemove() Global Native
 ; The piece the DLL placed for this record (the first, if the layout has more), or None. Placed pieces are persistent,
 ; so this answers from inside the hall too: an inside door's way out to its outside door.
 ObjectReference Function HallRef(Form akBase) Global Native
+
+; The outdoor navmesh's diagnostic: "status" (the swap, entry by entry) or "watch" (60 s of navmesh counts in the log), run
+; on the main thread; "last" returns the latest result.
+String Function OutdoorNav(String asStep) Global Native

@@ -1,6 +1,6 @@
 # Adventurers Guild
 
-> **This branch is the 2.0 alpha.** It is the source of the 2.0.0-alpha.1 download on Nexus Mods: the Guild Hall, new
+> **This branch is the 2.0 alpha.** It is the source of the 2.0.0-alpha.3 download on Nexus Mods: the Guild Hall, new
 > guild NPCs and quests, and other adventuring parties. It is unfinished and will change. The released 1.6 line is on
 > `main`.
 

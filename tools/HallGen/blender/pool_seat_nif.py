@@ -32,6 +32,8 @@ v = [bm.verts.new(Mi @ mathutils.Vector(p)) for p in
 for f in ((0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)):
     bm.faces.new([v[i] for i in f])
 bmesh.ops.triangulate(bm, faces=bm.faces[:]); bm.to_mesh(coll.data); bm.free(); coll.data.update()
+for vg_ in list(coll.vertex_groups): coll.vertex_groups.remove(vg_)   # the template's per-face materials named its own faces
+coll.pyn_collshape.bhkMaterial = "STONE"                            # the pool's stone seat: its havok material (none is silent)
 chair["pynNodeName"] = "AGHall2PoolSeat"; chair.name = "AGHall2PoolSeat:ROOT"
 # its BSX flags as vanilla's benches and chairs (130: its collision live; the invisible chair's are 0), and its seats entered
 # from the front (the pool; the wall is behind), the ends from their open sides too (vanilla's: FRONT|BEHIND, LEFT|UP,

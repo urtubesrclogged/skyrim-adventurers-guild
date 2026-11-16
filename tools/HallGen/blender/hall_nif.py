@@ -264,12 +264,25 @@ rootobj.name = rootobj["pynNodeName"] + ":ROOT"
 if coll is not None:
     if D["coll"]:
         Mi = coll.matrix_world.inverted()
-        cbm = bmesh.new()
-        for t in D["coll"]:
-            try: cbm.faces.new([cbm.verts.new(Mi @ mathutils.Vector(p)) for p in t])
-            except ValueError: pass
-        bmesh.ops.remove_doubles(cbm, verts=cbm.verts[:], dist=0.5)
+        # each triangle's havok material (the export's coll_mat; footstep and impact sounds come from it, none is silent) goes to
+        # PyNifly as a SKY_HAV_MAT_<name> vertex group, which it reads off a face's first corner: so corners are welded only
+        # within one material, and a corner is never shared by two
+        mats_ = D.get("coll_mat") or []
+        if len(mats_) != len(D["coll"]) or not all(mats_): raise SystemExit("COLLISION MATERIAL: the export gives no havok material for every collision triangle")
+        for vg_ in list(coll.vertex_groups): coll.vertex_groups.remove(vg_)
+        gi_ = {m_: coll.vertex_groups.new(name="SKY_HAV_MAT_" + m_).index for m_ in sorted(set(mats_))}
+        cbm = bmesh.new(); dl_ = cbm.verts.layers.deform.verify()
+        by_ = {}
+        for t, m_ in zip(D["coll"], mats_):
+            try: f_ = cbm.faces.new([cbm.verts.new(Mi @ mathutils.Vector(p)) for p in t])
+            except ValueError: continue
+            for v_ in f_.verts: v_[dl_][gi_[m_]] = 1.0
+            by_.setdefault(m_, []).extend(f_.verts)
+        for m_, vs_ in by_.items(): bmesh.ops.remove_doubles(cbm, verts=list(set(vs_)), dist=0.5)
         cbm.to_mesh(coll.data); cbm.free(); coll.data.update()
+        main_ = max(set(mats_), key=mats_.count)
+        coll.pyn_collshape.bhkMaterial = main_                     # the default, for a face PyNifly finds in no group
+        print("COLLISION MATERIALS", {m_: mats_.count(m_) for m_ in sorted(set(mats_))})
     else:
         bpy.data.objects.remove(coll, do_unlink=True); coll = None
 

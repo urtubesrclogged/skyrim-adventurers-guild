@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 project(AdventurersGuild VERSION 2.0.0 LANGUAGES CXX)  # the mod's version: the DLL reports it, package.sh names the zip after it
 # The pre-release label, part of the version wherever it is shown (AG's log, CHIM's data, package.sh's zip and installer):
-# "-alpha.N" until 2.0.0 is published, then "" (every build is 2.0.0-alpha.1 until it ships). The
+# "-alpha.N" until 2.0.0 is published, then "" (bumped per published alpha). The
 # environment variable AG_VERSION_LABEL, if set when CMake configures, overrides it for that build.
-set(AG_VERSION_LABEL "-alpha.1")
+set(AG_VERSION_LABEL "-alpha.3")
 if(DEFINED ENV{AG_VERSION_LABEL})
 	set(AG_VERSION_LABEL "$ENV{AG_VERSION_LABEL}")
 endif()

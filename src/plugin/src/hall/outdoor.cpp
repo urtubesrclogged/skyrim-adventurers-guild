@@ -3,7 +3,8 @@
 // who came out of the front door dropped to the vanilla ground under the terrace, inside the podium, and NPCs pathed through the
 // hall's walls on the ground under it. blender/outdoor_nav.py writes outdoor_nav.json: our mesh in world coordinates with its
 // neighbours, cut on the cells' borders; the outline the ground must keep out of (the hall's footprint and ours); the stair feet.
-// Here, once the hall's cells are loaded:
+// Here, once the hall's cells are loaded and the game's obstacle work on every navmesh the fit may change has stopped changing
+// (Settled, below):
 //   1. cut: every loaded ground triangle inside the outline is deleted, unlinked from its neighbours (within its navmesh and through
 //      other navmeshes' portals) and taken out of its lookup grid; one across it is clipped on its line (Clipper2, earcut);
 //   2. hosts: one navmesh per cell (the one with the most cut triangles, else the largest) takes our triangles in that cell; our
@@ -21,12 +22,15 @@
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <deque>
 #include <cmath>
 #include <fstream>
 #include <functional>
 #include <map>
 #include <set>
+#include <thread>
 
 namespace
 {
@@ -140,8 +144,11 @@ namespace
 	};
 	Applied g_app;
 
+	bool              g_override = false;   // the swap runs the fit on its copies only (LoadedMeshes answers with them)
+	std::vector<Mesh> g_overrideMeshes;
 	std::vector<Mesh> LoadedMeshes()
 	{
+		if (g_override) return g_overrideMeshes;
 		std::vector<Mesh> out;
 		auto*             tes = RE::TES::GetSingleton();
 		auto*             grid = tes ? tes->gridCells : nullptr;
@@ -178,10 +185,64 @@ namespace
 		return true;
 	}
 
-	// take back what is still there: a navmesh the game loaded again holds none of it
-	void RevertNow(const char* a_why)
+	// ---- the game's own navmesh obstacle work. Where an obstacle cuts a navmesh, the game keeps undo data on that navmesh
+	// (obstacles) and a triangle-to-obstacle map, both by triangle index, and applies and undoes them on its task threads. A fit that
+	// changes a navmesh's triangles while an undo is still to come leaves the game undoing by stale indices: an access violation in
+	// the obstacle update a second or two later (seen when the hall hid 104 trees and rocks on its site and fitted at once). The
+	// game's cuts also add and drop triangles at the end of the same arrays after a fit went in, so a fit beside applied obstacles
+	// goes stale at once and cannot be taken out cleanly (refitted on its leftovers, it broke pathing). Applied obstacles are a
+	// steady state on installs whose trees and rocks cut navmesh (37 of 71 loaded navmeshes round Riverwood on one; 1 of 27 on
+	// others). So the fit goes in only where every navmesh it may change holds none, kStillLooks looks in a row; elsewhere it is
+	// left out (logged once). The revert goes ahead only while every changed navmesh still holds none and has the sizes the fit
+	// left; otherwise the fit stays until those cells reload, and is never refitted on top.
+	std::size_t ObstacleWork(const RE::NavMesh* a_nm)
 	{
-		if (!g_app.in && g_app.tris.empty() && g_app.infos.empty()) return;
+		const auto& m = *static_cast<const RE::BSNavmesh*>(a_nm);
+		return m.obstacles.size() + (m.triangleToObstacleMap ? m.triangleToObstacleMap->size() : 0);
+	}
+
+	// the fit's still-standing changes, by navmesh (a navmesh the game loaded again is not ours any more)
+	std::set<RE::NavMesh*> FitChanged()
+	{
+		std::map<RE::NavMesh*, RE::FormID> ids;
+		for (const auto& m : g_app.meshes) ids[m.nm] = m.id;
+		std::set<RE::NavMesh*> out;
+		auto add = [&](RE::NavMesh* a_nm) {
+			if (auto f = ids.find(a_nm); f != ids.end() && RE::TESForm::LookupByID<RE::NavMesh>(f->second) == a_nm) out.insert(a_nm);
+		};
+		for (const auto& h : g_app.hosts) add(h.nm);
+		for (const auto& g : g_app.grids) add(g.nm);
+		for (const auto& t : g_app.tris) add(t.nm);
+		return out;
+	}
+
+	// take back what is still there: a navmesh the game loaded again holds none of it. Held (false) while a navmesh it would change
+	// holds obstacle work or sizes other than the fit left, unless the caller is mid-fit (a_midFit).
+	std::string g_lastHeld;
+	bool RevertNow(const char* a_why, bool a_midFit = false)
+	{
+		if (!g_app.in && g_app.tris.empty() && g_app.infos.empty()) return true;
+		if (!a_midFit) {
+			std::string moved;
+			int         n = 0;
+			const auto  changed = FitChanged();
+			for (auto* nm : changed)
+				if (const auto w = ObstacleWork(nm)) moved += std::format("{}{} obstacle work {}", n++ ? ", " : "", Hex(nm->GetFormID()), w);
+			for (const auto& h : g_app.hosts) {
+				if (!changed.contains(h.nm)) continue;
+				const auto& m = *static_cast<RE::BSNavmesh*>(h.nm);
+				if (m.vertices.size() != h.nv + h.addV || m.triangles.size() != h.nt + h.addT || m.extraEdgeInfo.size() != h.ne + h.addE)
+					moved += std::format("{}{} sizes {}/{}/{} (fit left {}/{}/{})", n++ ? ", " : "", Hex(h.id), m.vertices.size(), m.triangles.size(), m.extraEdgeInfo.size(),
+						h.nv + h.addV, h.nt + h.addT, h.ne + h.addE);
+			}
+			if (n) {
+				const auto line = std::format("outdoor navmesh left in ({}): {} of its navmesh(es) changed since the fit ({}); it goes when their cells reload", a_why, n, moved);
+				if (line != g_lastHeld) SKSE::log::info("{}", line);
+				g_lastHeld = line;
+				return false;
+			}
+		}
+		g_lastHeld.clear();
 		auto same = [](RE::NavMesh* a_nm, RE::FormID a_id) { return RE::TESForm::LookupByID<RE::NavMesh>(a_id) == a_nm; };
 		std::map<RE::NavMesh*, RE::FormID> ids;
 		for (const auto& m : g_app.meshes) ids[m.nm] = m.id;
@@ -220,6 +281,125 @@ namespace
 		}
 		SKSE::log::info("outdoor navmesh taken out ({}): {} triangle(s) restored", a_why, restored);
 		g_app = Applied{};
+		return true;
+	}
+
+	// every loaded navmesh the fit may change, by the fit's own rules: the hosts' candidates (every navmesh in the hall's cells); a
+	// navmesh with a live triangle the outline touches (cut or carved), and the navmeshes across that triangle's portals (it is
+	// unlinked from them); a navmesh with a live triangle whose bounds come near a stair foot (the feet's joins and splits look
+	// 48 from our edges, which lie within a foot's radius). DoApply checks afterwards that it held.
+	std::set<RE::NavMesh*> FitTargets(const std::vector<Mesh>& a_meshes)
+	{
+		constexpr double kFootMargin = 128.0, kEdge = 1.0;
+		const auto&      b = g_ours.blockedBox;
+		std::map<RE::FormID, RE::NavMesh*> byId;
+		for (const auto& m : a_meshes) byId[m.id] = m.nm;
+		std::set<RE::NavMesh*> out;
+		for (const auto& mm : a_meshes) {
+			const auto& m = *mm.m;
+			if (g_ours.cells.contains({ mm.cx, mm.cy })) out.insert(mm.nm);
+			for (const auto& t : m.triangles) {
+				if (t.triangleFlags.any(TriFlag::kDeleted)) continue;
+				const auto& p = m.vertices[t.vertices[0]].location; const auto& q = m.vertices[t.vertices[1]].location; const auto& w = m.vertices[t.vertices[2]].location;
+				const double x0 = std::min({ p.x, q.x, w.x }), x1 = std::max({ p.x, q.x, w.x }), y0 = std::min({ p.y, q.y, w.y }), y1 = std::max({ p.y, q.y, w.y });
+				for (const auto& f : g_ours.feet) {
+					const double r = f[3] + kFootMargin;
+					if (x1 >= f[0] - r && x0 <= f[0] + r && y1 >= f[1] - r && y0 <= f[1] + r) { out.insert(mm.nm); break; }
+				}
+				if (x1 < b.left - kEdge || x0 > b.right + kEdge || y1 < b.top - kEdge || y0 > b.bottom + kEdge) continue;
+				const Clipper2Lib::PathD tri{ { p.x, p.y }, { q.x, q.y }, { w.x, w.y } };
+				const bool touched = InBlocked(p.x, p.y) || InBlocked(q.x, q.y) || InBlocked(w.x, w.y) ||
+				                     std::abs(Clipper2Lib::Area(Clipper2Lib::Intersect(Clipper2Lib::PathsD{ tri }, g_ours.blocked, Clipper2Lib::FillRule::EvenOdd, 3))) > 0.0;
+				if (!touched) continue;
+				out.insert(mm.nm);
+				for (int e = 0; e < 3; ++e)
+					if (t.triangleFlags.any(static_cast<TriFlag>(1 << e)) && t.triangles[e] < m.extraEdgeInfo.size()) {
+						const auto& x = m.extraEdgeInfo[t.triangles[e]];
+						if (x.type.get() == RE::EDGE_EXTRA_INFO_TYPE::kPortal)
+							if (auto f = byId.find(x.portal.otherMeshID); f != byId.end()) out.insert(f->second);
+					}
+			}
+		}
+		return out;
+	}
+
+	// ---- waiting for no obstacle work on the fit's navmeshes: looked at again every kLookMs from a task; the go-ahead is the
+	// navmeshes' own state, the pause only paces the looks. Given up when the work is steady for kSteadyLooks (applied obstacles that
+	// stay) or after kMaxLooks.
+	constexpr int kLookMs = 50;
+	constexpr int kStillLooks = 4;
+	constexpr int kSteadyLooks = 20;
+	constexpr int kMaxLooks = 200;
+	struct Wait
+	{
+		int                                    looks = 0, stillRun = 0, changes = 0;
+		std::map<RE::NavMesh*, std::size_t>    last;    // the work on each target at the last look
+		std::map<RE::FormID, std::size_t>      first;   // and at the first, for the log
+	};
+	Wait                   g_wait;
+	std::string            g_lastSkip;
+	std::set<RE::NavMesh*> g_checked;   // what the last go-ahead looked at
+	std::atomic_bool       g_lookQueued{ false };
+
+	void LookAgain()
+	{
+		if (g_lookQueued.exchange(true)) return;
+		std::thread([] {
+			std::this_thread::sleep_for(std::chrono::milliseconds(kLookMs));
+			SKSE::GetTaskInterface()->AddTask([] { g_lookQueued = false; Nav::OutdoorApply(); });
+		}).detach();
+	}
+
+	std::string WorkList(const std::map<RE::FormID, std::size_t>& a_w)
+	{
+		std::string s;
+		for (const auto& [id, n] : a_w) s += std::format("{}{} {}", s.empty() ? "" : ", ", Hex(id), n);
+		return s;
+	}
+
+	// may the fit (and the stale fit's revert) change these navmeshes now? Logs what it waited for, and a give-up once per state.
+	bool Settled(const std::vector<Mesh>& a_meshes)
+	{
+		auto targets = FitTargets(a_meshes);
+		if (g_app.in)
+			for (auto* nm : FitChanged()) targets.insert(nm);
+		std::map<RE::NavMesh*, std::size_t> now;
+		for (auto* nm : targets) now[nm] = ObstacleWork(nm);
+		if (g_wait.looks == 0)
+			for (const auto& [nm, w] : now)
+				if (w) g_wait.first[nm->GetFormID()] = w;
+		const bool still = g_wait.looks > 0 && now == g_wait.last;
+		if (g_wait.looks > 0 && !still) ++g_wait.changes;
+		g_wait.stillRun = still ? g_wait.stillRun + 1 : 0;
+		g_wait.last = now;
+		++g_wait.looks;
+		auto list = [&] {
+			std::map<RE::FormID, std::size_t> w;
+			for (const auto& [nm, n] : now)
+				if (n) w[nm->GetFormID()] = n;
+			return w;
+		};
+		const auto w = list();
+		if (w.empty() && g_wait.stillRun >= kStillLooks - 1) {   // none, on kStillLooks looks in a row
+			if (g_wait.changes)
+				SKSE::log::info("outdoor navmesh: {} navmesh(es) it may change; the game's obstacle work on them ended after {} look(s) {} ms apart (at the first: {})",
+					targets.size(), g_wait.looks, kLookMs, WorkList(g_wait.first));
+			g_wait = Wait{};
+			g_lastSkip.clear();
+			g_checked = std::move(targets);
+			return true;
+		}
+		if ((!w.empty() && g_wait.stillRun >= kSteadyLooks) || g_wait.looks >= kMaxLooks) {
+			const auto s = WorkList(w);
+			if (s != g_lastSkip)
+				SKSE::log::info("outdoor navmesh left out: the game cuts {} of the {} navmesh(es) it would change round obstacles ({}), and a fit there cannot stand beside its cuts; tried again when a cell loads",
+					w.size(), targets.size(), s);
+			g_lastSkip = s;
+			g_wait = Wait{};
+			return false;
+		}
+		LookAgain();
+		return false;
 	}
 
 	void BackupGrid(RE::NavMesh* a_nm)
@@ -410,13 +590,21 @@ namespace
 		const auto t0 = std::chrono::steady_clock::now();
 		Load();
 		if (!g_ours.ok) return;
-		if (StillIn()) return;
-		if (g_app.in) RevertNow("a navmesh was loaded again");
+		if (!g_override && StillIn()) return;
 		auto meshes = LoadedMeshes();
 		std::set<std::pair<int, int>> have;
 		for (const auto& m : meshes) have.insert({ m.cx, m.cy });
 		for (const auto& c : g_ours.cells)
-			if (!have.contains(c)) return;   // later, when all the hall's cells are loaded
+			if (!have.contains(c)) {   // later, when all the hall's cells are loaded
+				g_wait = Wait{};
+				if (g_override) g_app.summary = std::format("no copy for hall cell {},{}", c.first, c.second);
+				return;
+			}
+		if (!g_override && !Settled(meshes)) return;   // the game has obstacle work on a navmesh it would change: looked at again
+		if (g_app.in) {
+			if (!RevertNow("a navmesh was loaded again")) return;
+			meshes = LoadedMeshes();
+		}
 		g_editedTris.clear();
 		g_oursRange.clear();
 		g_app = Applied{};
@@ -819,14 +1007,14 @@ namespace
 			const auto& t = g_ours.tris[i];
 			const auto  p = (g_ours.verts[t[0]] + g_ours.verts[t[1]] + g_ours.verts[t[2]]) / 3.0f;
 			hostOf[i] = host[{ static_cast<int>(std::floor(p.x / 4096.0)), static_cast<int>(std::floor(p.y / 4096.0)) }];
-			if (!hostOf[i]) { g_app.summary = "a cell of ours has no navmesh"; RevertNow("no host"); return; }
+			if (!hostOf[i]) { g_app.summary = "a cell of ours has no navmesh"; RevertNow("no host", true); return; }
 			members[hostOf[i]].push_back(static_cast<int>(i));
 		}
 		std::vector<std::uint16_t> local(nOurs);
 		std::map<Mesh*, std::size_t> base;
 		for (auto& [h, mem] : members) {
 			base[h] = h->m->triangles.size();
-			if (base[h] + mem.size() + 64 >= kNone) { g_app.summary = "a host would overflow"; RevertNow("overflow"); return; }
+			if (base[h] + mem.size() + 64 >= kNone) { g_app.summary = "a host would overflow"; RevertNow("overflow", true); return; }
 			for (std::size_t k = 0; k < mem.size(); ++k) local[mem[k]] = static_cast<std::uint16_t>(base[h] + k);
 			record(h);
 			g_oursRange[h->nm] = { base[h], base[h] + mem.size() };
@@ -1124,23 +1312,536 @@ namespace
 		g_app.summary = std::format("outdoor navmesh in: {} ground triangle(s) cut in {} navmesh(es); ours in {}{} edge(s) joined at the feet ({} back, {} split); {} portal pair(s); {} info neighbour(s) added",
 			cut.size(), cutCount.size(), hs, bridged, backs, splits, joined.size(), added);
 		SKSE::log::info("{} ({} ms)", g_app.summary, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count());
+		{   // the obstacle check must have looked at everything the fit changed
+			std::string missed;
+			for (auto* nm : FitChanged())
+				if (!g_checked.contains(nm)) missed += std::format("{}{}", missed.empty() ? "" : ", ", Hex(nm->GetFormID()));
+			if (!missed.empty()) SKSE::log::warn("outdoor navmesh: the fit changed navmesh(es) the obstacle check did not look at: {}", missed);
+		}
 		Reachability(byId);
 	}
+
+	// ---- diagnostics (AGHallNative.OutdoorNav): the loaded exterior cell at a grid position; and the watch
+	RE::TESObjectCELL* LoadedCell(int a_x, int a_y)
+	{
+		auto* tes = RE::TES::GetSingleton();
+		auto* grid = tes ? tes->gridCells : nullptr;
+		if (!grid || !grid->cells || grid->length >= 64) return nullptr;
+		for (std::uint32_t gx = 0; gx < grid->length; ++gx)
+			for (std::uint32_t gy = 0; gy < grid->length; ++gy)
+				if (auto* c = grid->GetCell(gx, gy); c && c->IsExteriorCell())
+					if (const auto* xy = c->GetCoordinates(); xy && xy->cellX == a_x && xy->cellY == a_y) return c;
+		return nullptr;
+	}
+
+	// the watch: every loaded navmesh's vertex, triangle, edge-link and obstacle counts sampled every 100 ms for 60 s on the main
+	// thread; each change logged (does the game's obstacle work change the edge-link list as well as the triangles?)
+	struct Counts { std::size_t v = 0, t = 0, e = 0, o = 0; bool operator==(const Counts&) const = default; };
+	std::map<RE::FormID, Counts> g_watchLast;
+	int                          g_watchLeft = 0, g_watchChanges = 0, g_watchLinkChanges = 0;
+	void WatchTick()
+	{
+		if (g_watchLeft <= 0) return;
+		--g_watchLeft;
+		for (const auto& mm : LoadedMeshes()) {
+			const Counts c{ mm.m->vertices.size(), mm.m->triangles.size(), mm.m->extraEdgeInfo.size(), ObstacleWork(mm.nm) };
+			auto it = g_watchLast.find(mm.id);
+			if (it == g_watchLast.end()) { g_watchLast[mm.id] = c; continue; }
+			if (it->second == c) continue;
+			++g_watchChanges;
+			if (it->second.e != c.e) ++g_watchLinkChanges;
+			SKSE::log::info("navmesh watch: {} verts {}->{} tris {}->{} links {}->{} obstacle work {}->{}", Hex(mm.id), it->second.v, c.v, it->second.t, c.t, it->second.e,
+				c.e, it->second.o, c.o);
+			it->second = c;
+		}
+		if (g_watchLeft == 0) SKSE::log::info("navmesh watch done: {} change(s), {} of them in an edge-link list", g_watchChanges, g_watchLinkChanges);
+		else
+			std::thread([] {
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				SKSE::GetTaskInterface()->AddTask([] { WatchTick(); });
+			}).detach();
+	}
+	std::string Watch()
+	{
+		if (g_watchLeft > 0) return std::format("already watching ({} samples left)", g_watchLeft);
+		g_watchLast.clear();
+		g_watchChanges = g_watchLinkChanges = 0;
+		g_watchLeft = 600;
+		WatchTick();
+		return std::format("watching {} loaded navmeshes for 60 s (AdventurersGuild.log, \"navmesh watch\")", g_watchLast.size());
+	}
+
+	// ======== the swap: the outdoor navmesh in copies of the ground navmeshes, behind their ids
+	// Each ground navmesh in the hall's cells that the fit touches is copied whole into a NavMesh form of the hall's own (from
+	// the game's factory; the copy's formID member reads its original's, the form map is untouched), the proven fit (DoApply)
+	// runs on the copies, and each original's info entry is pointed at its copy. The cells keep the originals, so the game's own
+	// edits (obstacle cuts, link upkeep) go on there unread by pathing; nothing in any ground navmesh is changed. The game also
+	// swaps in navmeshes of its own behind an id (its obstacle job's working copies): a check every second notices, and the
+	// swap is redone from the game's newest navmesh, at most kRedoCap times a minute before it gives up until the next cell load.
+	struct SwapEntry
+	{
+		RE::FormID         id = 0;
+		RE::BSNavmeshInfo* info = nullptr;
+		RE::NavMesh*       src = nullptr;    // the navmesh in the cell's list it was copied from (held: IncRef)
+		RE::NavMesh*       copy = nullptr;   // ours (held: IncRef, pooled)
+		RE::BSNavmesh*     was = nullptr;    // what the entry pointed at just before the swap
+		int                cx = 0, cy = 0;
+	};
+
+	// is a_nm in the navmesh list of the loaded exterior cell a_x, a_y?
+	bool InCellList(int a_x, int a_y, const RE::BSNavmesh* a_nm)
+	{
+		if (!a_nm) return false;
+		auto* cell = LoadedCell(a_x, a_y);
+		if (!cell) return false;
+		auto& rd = cell->GetRuntimeData();
+		if (!rd.navMeshes) return false;
+		for (auto& sp : rd.navMeshes->navMeshes)
+			if (static_cast<const RE::BSNavmesh*>(sp.get()) == a_nm) return true;
+		return false;
+	}
+	// the navmesh with id a_id in the loaded cell's list (the one its info entry points at, if that one is there)
+	RE::NavMesh* CellNavmesh(int a_x, int a_y, RE::FormID a_id)
+	{
+		auto* cell = LoadedCell(a_x, a_y);
+		if (!cell) return nullptr;
+		auto& rd = cell->GetRuntimeData();
+		if (!rd.navMeshes) return nullptr;
+		auto*        info = InfoOf(a_id);
+		RE::NavMesh* any = nullptr;
+		for (auto& sp : rd.navMeshes->navMeshes)
+			if (auto* nm = sp.get(); nm && nm->GetFormID() == a_id) {
+				if (info && info->navMesh == static_cast<RE::BSNavmesh*>(nm)) return nm;
+				if (!any) any = nm;
+			}
+		return any;
+	}
+	struct PoolItem { RE::NavMesh* nm; RE::FormID ownId; };
+	std::map<RE::FormID, std::vector<PoolItem>> g_pool;   // copies by original id; never released, refilled when only we hold one
+	std::vector<SwapEntry>                      g_swap;
+	std::string                                 g_swapSummary;
+	bool                                        g_swapGaveUp = false;
+	std::deque<std::chrono::steady_clock::time_point> g_redos;
+	constexpr int                               kRedoCap = 3;
+	std::atomic_bool                            g_pollQueued{ false };
+	// the go-ahead: the ground still for kQuiet, and kQuiet past the hall's last hiding of refs (kSwapMaxLooks looks at most: 30 s)
+	constexpr auto                              kQuiet = std::chrono::seconds(2);
+	constexpr int                               kSwapMaxLooks = 600;
+	std::chrono::steady_clock::time_point       g_stillSince{};
+	std::chrono::steady_clock::time_point       g_quietUntil{};
+	// settling: the game finishing its obstacle work after a cell load swaps navmeshes of its own in; for kSettle after a swap
+	// goes in from scratch, up to kSettleRedos of those are redone without counting toward kRedoCap (a loop is still caught after)
+	constexpr auto                              kSettle = std::chrono::seconds(20);
+	constexpr int                               kSettleRedos = 10;
+	std::chrono::steady_clock::time_point       g_settleUntil{};
+	int                                         g_settleRedos = 0;
+	bool                                        g_redoing = false;
+	std::map<RE::FormID, std::pair<int, int>>   g_touched;   // every navmesh id the swap has stood behind this session, and its cell
+
+	// The hall taken away (HallRemove): every entry the swap stood behind goes back to its cell's own navmesh as the plugin loaded
+	// it (the form map's), with the entry's reference. Taking the swap out is not enough on its own: the game builds its own
+	// working copies from whatever an entry points at, so after a swap they carry the hall's cut and its stairs, and an entry left
+	// on one keeps them until the cell really reloads. The originals were never edited; the game cuts its obstacles into a new
+	// working copy of them as it does on any cell load. (The working copies are left to the game.)
+	void RestoreGround()
+	{
+		auto* map = RE::TES::GetSingleton()->GetRuntimeData2().navMeshInfoMap;
+		if (!map) return;
+		struct Back { RE::BSNavmeshInfo* info; RE::BSNavmesh* orig; RE::BSNavmesh* was; };
+		std::vector<Back> todo;
+		for (const auto& [id, cell] : g_touched) {
+			auto* orig = RE::TESForm::LookupByID<RE::NavMesh>(id);
+			auto* info = InfoOf(id);
+			if (!orig || !info || !InCellList(cell.first, cell.second, orig)) continue;   // (not loaded: it loads fresh from the plugin)
+			if (info->navMesh != static_cast<RE::BSNavmesh*>(orig)) todo.push_back({ info, static_cast<RE::BSNavmesh*>(orig), nullptr });
+		}
+		int n = 0;
+		map->mapLock.LockForWrite();
+		for (auto& b : todo) {
+			b.orig->IncRef();   // the entry's (what it held before is left held: a leak, never freed memory)
+			b.was = b.info->navMesh;
+			b.info->navMesh = b.orig;
+			++n;
+		}
+		map->mapLock.UnlockForWrite();
+		SKSE::log::info("outdoor navmesh: the hall removed; {} of {} entr(ies) pointed back at their cells' own navmeshes", n, g_touched.size());
+	}
+
+	// References. An info entry owns one reference to the navmesh it points at: the game releases it when it swaps its own
+	// navmesh in behind the entry (on MGO within a second of every swap). So whatever an entry is pointed at gets that
+	// reference, and gives it up only when the entry is pointed away again. Our copies also hold one of ours (g_pool) for the
+	// session: never released, never reused, never changed after their swap (the game's own working copies are built from
+	// them). Where it is unsure who holds what, a reference is kept rather than given up: a leak, never freed memory.
+	bool IsOurCopy(const RE::BSNavmesh* a_nm)
+	{
+		for (const auto& [id, v] : g_pool)
+			for (const auto& p : v)
+				if (static_cast<const RE::BSNavmesh*>(p.nm) == a_nm) return true;
+		return false;
+	}
+
+	// a fresh copy of a_src for original a_id, from the game's factory
+	RE::NavMesh* CopyOf(RE::FormID a_id, const RE::BSNavmesh& a_src)
+	{
+		auto* f = RE::IFormFactory::GetConcreteFormFactoryByType<RE::NavMesh>();
+		auto* nm = f ? f->Create() : nullptr;
+		if (!nm) return nullptr;
+		static_cast<RE::BSNavmesh*>(nm)->IncRef();   // ours, for the session
+		g_pool[a_id].push_back({ nm, nm->GetFormID() });
+		auto& m = *static_cast<RE::BSNavmesh*>(nm);
+		for (const auto& v : a_src.vertices) m.vertices.push_back(v);
+		for (const auto& t : a_src.triangles) m.triangles.push_back(t);
+		for (const auto& e : a_src.extraEdgeInfo) m.extraEdgeInfo.push_back(e);
+		for (const auto& d : a_src.doorPortals) m.doorPortals.push_back(d);
+		for (const auto& d : a_src.closedDoors) m.closedDoors.push_back(d);
+		for (const auto& c : a_src.coverArray) m.coverArray.push_back(c);
+		m.meshGrid.gridSize = a_src.meshGrid.gridSize;
+		m.meshGrid.columnSectionLen = a_src.meshGrid.columnSectionLen;
+		m.meshGrid.rowSectionLen = a_src.meshGrid.rowSectionLen;
+		m.meshGrid.gridBoundsMin = a_src.meshGrid.gridBoundsMin;
+		m.meshGrid.gridBoundsMax = a_src.meshGrid.gridBoundsMax;
+		const auto cells = static_cast<std::size_t>(a_src.meshGrid.gridSize) * a_src.meshGrid.gridSize;
+		m.meshGrid.gridData.resize(cells);
+		for (std::size_t c = 0; c < cells; ++c) {
+			m.meshGrid.gridData[c].clear();
+			for (auto v : a_src.meshGrid.gridData[c]) m.meshGrid.gridData[c].push_back(v);
+		}
+		m.parentCell = a_src.parentCell;
+		m.unk110 = a_src.unk110;
+		nm->formID = a_id;   // the copy answers with its original's id; the form map still holds the original
+		return nm;
+	}
+
+	// the ground navmeshes the fit touches: in the hall's cells, a live triangle under or across the outline, or near a stair foot
+	std::vector<Mesh*> SwapTargets(std::vector<Mesh>& a_meshes)
+	{
+		std::vector<Mesh*> out;
+		const auto&        b = g_ours.blockedBox;
+		for (auto& g : a_meshes) {
+			if (!g_ours.cells.contains({ g.cx, g.cy })) continue;
+			const auto& m = *g.m;
+			for (const auto& t : m.triangles) {
+				if (t.triangleFlags.any(TriFlag::kDeleted)) continue;
+				const auto& p = m.vertices[t.vertices[0]].location; const auto& q = m.vertices[t.vertices[1]].location; const auto& w = m.vertices[t.vertices[2]].location;
+				const RE::NiPoint3 c = (p + q + w) / 3.0f;
+				bool take = std::any_of(g_ours.feet.begin(), g_ours.feet.end(), [&](const auto& f) { return std::hypot(c.x - f[0], c.y - f[1]) <= f[3] + 200; });
+				if (!take) {
+					const double x0 = std::min({ p.x, q.x, w.x }), x1 = std::max({ p.x, q.x, w.x }), y0 = std::min({ p.y, q.y, w.y }), y1 = std::max({ p.y, q.y, w.y });
+					if (x1 < b.left - 1 || x0 > b.right + 1 || y1 < b.top - 1 || y0 > b.bottom + 1) continue;
+					const Clipper2Lib::PathD tri{ { p.x, p.y }, { q.x, q.y }, { w.x, w.y } };
+					take = InBlocked(p.x, p.y) || InBlocked(q.x, q.y) || InBlocked(w.x, w.y) ||
+					       std::abs(Clipper2Lib::Area(Clipper2Lib::Intersect(Clipper2Lib::PathsD{ tri }, g_ours.blocked, Clipper2Lib::FillRule::EvenOdd, 3))) > 0.0;
+				}
+				if (take) { out.push_back(&g); break; }
+			}
+		}
+		// one per id: a cell's list can hold two navmeshes behind one id (the original and the game's own working copy of it);
+		// the one its info entry points at is the one pathing reads
+		std::map<RE::FormID, Mesh*> one;
+		for (auto* g : out) {
+			auto* info = InfoOf(g->id);
+			if (info && info->navMesh == g->m) one[g->id] = g;
+			else one.try_emplace(g->id, g);
+		}
+		out.clear();
+		for (auto& [id, g] : one) out.push_back(g);
+		return out;
+	}
+
+	// point back every entry still leading to a copy of ours (one the game swapped since is left as the game set it). An entry
+	// goes back only to a navmesh its loaded cell still lists: the one it was copied from, else the cell's current one. With the
+	// cell or that navmesh unloaded, the entry stays on our copy (held, never reused while an entry points at it) until the game
+	// loads the navmesh again: pointing it at a navmesh that is leaving would leave it on freed memory once released.
+	void SwapTeardown(const char* a_why)
+	{
+		if (g_swap.empty()) return;
+		auto*       map = RE::TES::GetSingleton()->GetRuntimeData2().navMeshInfoMap;
+		int         back = 0, toCell = 0, gameOwned = 0, kept = 0;
+		std::string keptIds;
+		// where each goes, worked out before the lock (the lookups read the info map)
+		std::vector<RE::BSNavmesh*> dest(g_swap.size(), nullptr);
+		std::vector<bool>           toSrc(g_swap.size(), false);
+		for (std::size_t i = 0; i < g_swap.size(); ++i) {
+			const auto& e = g_swap[i];
+			if (InCellList(e.cx, e.cy, e.src)) { dest[i] = static_cast<RE::BSNavmesh*>(e.src); toSrc[i] = true; }
+			else if (auto* now = CellNavmesh(e.cx, e.cy, e.id)) dest[i] = static_cast<RE::BSNavmesh*>(now);
+		}
+		std::vector<RE::BSNavmesh*> released;   // the entries' references on our copies, given up after the lock
+		if (map) map->mapLock.LockForWrite();
+		for (std::size_t i = 0; i < g_swap.size(); ++i) {
+			const auto& e = g_swap[i];
+			if (e.info->navMesh != static_cast<RE::BSNavmesh*>(e.copy)) { ++gameOwned; continue; }   // (the game released the entry's reference on it)
+			if (dest[i]) {
+				if (dest[i] != e.was) dest[i]->IncRef();   // the entry's reference (back to what it held before the swap: that one is still its own)
+				e.info->navMesh = dest[i];
+				released.push_back(static_cast<RE::BSNavmesh*>(e.copy));
+				++(toSrc[i] ? back : toCell);
+			} else { ++kept; keptIds += (keptIds.empty() ? "" : ", ") + Hex(e.id); }
+		}
+		if (map) map->mapLock.UnlockForWrite();
+		for (auto* c : released) c->DecRef();   // (our own reference keeps the copy)
+		if (map && !g_app.infos.empty()) {   // the fit's info-map neighbours, taken out (the new arrays are left: a few bytes)
+			map->mapLock.LockForWrite();
+			for (auto it = g_app.infos.rbegin(); it != g_app.infos.rend(); ++it)
+				if (it->info->adjacentMeshesArray == it->newArr) { it->info->adjacentMeshesArray = it->oldArr; it->info->adjacentMeshCount = it->oldCount; }
+			map->mapLock.UnlockForWrite();
+		}
+		// our hold on each source let go: no entry points at one unless its cell still lists it (and so holds it too)
+		for (const auto& e : g_swap) static_cast<RE::BSNavmesh*>(e.src)->DecRef();
+		SKSE::log::info("outdoor navmesh out ({}): {} entr(ies) pointed back, {} to their cell's current navmesh, {} left to the game's own navmesh{}", a_why,
+			back, toCell, gameOwned, kept ? std::format(", {} left on our copy until the game loads the navmesh again ({})", kept, keptIds) : std::string());
+		g_swap.clear();
+		g_app = Applied{};
+	}
+
+	void SwapPoll();
+	void SchedulePoll()
+	{
+		if (g_pollQueued.exchange(true)) return;
+		std::thread([] {
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			SKSE::GetTaskInterface()->AddTask([] { g_pollQueued = false; SwapPoll(); });
+		}).detach();
+	}
+
+	void SwapApply();
+	// every second while the swap is in: a hall cell gone or a navmesh reloaded -> out; the game swapped an entry -> redo
+	void SwapPoll()
+	{
+		HallPassTimer timer("outdoor navmesh check");
+		if (g_swap.empty()) return;
+		bool gone = false, gameSwapped = false;
+		std::string which;
+		std::string goneWhy;
+		for (const auto& e : g_swap) {
+			const bool onCopy = e.info->navMesh == static_cast<RE::BSNavmesh*>(e.copy);
+			if (!LoadedCell(e.cx, e.cy)) goneWhy = std::format("cell {},{} unloaded", e.cx, e.cy);
+			else if (onCopy && !InCellList(e.cx, e.cy, e.src)) goneWhy = std::format("{} left its cell's list", Hex(e.id));
+			if (!goneWhy.empty()) { gone = true; break; }
+			if (!onCopy) { gameSwapped = true; which += (which.empty() ? "" : ", ") + Hex(e.id); }
+		}
+		if (gone) {
+			SwapTeardown(goneWhy.c_str());
+			g_redoing = false;
+			SwapApply();   // (waits for the hall's cells; a cell load also brings it back)
+			return;
+		}
+		if (gameSwapped) {
+			const auto now = std::chrono::steady_clock::now();
+			const bool settling = now < g_settleUntil && g_settleRedos < kSettleRedos;
+			if (settling) ++g_settleRedos;
+			else {
+				while (!g_redos.empty() && now - g_redos.front() > std::chrono::seconds(60)) g_redos.pop_front();
+				if (std::cmp_greater_equal(g_redos.size(), kRedoCap)) {
+					SwapTeardown("the game kept swapping its own navmesh in");
+					g_swapGaveUp = true;
+					SKSE::log::info("outdoor navmesh: given up until the next cell load (the game swapped {} in more than {} times a minute)", which, kRedoCap);
+					return;
+				}
+				g_redos.push_back(now);
+			}
+			SKSE::log::info("outdoor navmesh: the game swapped its own navmesh in behind {}: redone from it{}", which,
+				settling ? std::format(" (settling after a load: {} of {})", g_settleRedos, kSettleRedos) : std::string());
+			SwapTeardown("redo");
+			g_redoing = true;
+			SwapApply();
+			return;
+		}
+		SchedulePoll();
+	}
+
+	void SwapApply()
+	{
+		if (!g_swap.empty() || g_swapGaveUp) return;
+		if (!Hall::Standing()) return;   // (no hall placed, or it was removed: no navmesh for it; its placing brings the fit)
+		Load();
+		if (!g_ours.ok) return;
+		auto meshes = LoadedMeshes();
+		std::erase_if(meshes, [](const Mesh& g) { return (g.id >> 24) == 0xFF; });
+		std::set<std::pair<int, int>> have;
+		for (const auto& m : meshes) have.insert({ m.cx, m.cy });
+		for (const auto& c : g_ours.cells)
+			if (!have.contains(c)) { g_wait = Wait{}; return; }   // later, when all the hall's cells are loaded
+		const auto targets = SwapTargets(meshes);
+		if (targets.empty()) return;
+		// what to copy: what the info entry points at when its cell lists it (the game's own newest navmesh, if it swapped one in),
+		// else the cell's own (an entry left on a copy of ours, or on nothing, after an unload)
+		auto sourceOf = [](const Mesh* g) {
+			auto* info = InfoOf(g->id);
+			auto* cur = info ? info->navMesh : nullptr;
+			return InCellList(g->cx, g->cy, cur) ? cur : static_cast<RE::BSNavmesh*>(g->m);
+		};
+		// settled: the same counts on every target (what its info entry points at, and that navmesh's obstacle work) for kQuiet,
+		// counted from the hall's last hiding of refs on the ground (a hidden tree can be an obstacle: the game redoes its cut,
+		// a job that lands about a second later and swaps a navmesh of its own in)
+		{
+			const auto                          tnow = std::chrono::steady_clock::now();
+			std::map<RE::NavMesh*, std::size_t> now;
+			for (auto* g : targets) {
+				const auto* live = sourceOf(g);
+				now[g->nm] = live->vertices.size() * 1000003u + live->triangles.size() * 1009u + live->extraEdgeInfo.size() * 31u +
+				             ObstacleWork(static_cast<RE::NavMesh*>(const_cast<RE::BSNavmesh*>(live))) + reinterpret_cast<std::uintptr_t>(live);
+			}
+			const bool still = g_wait.looks > 0 && now == g_wait.last;
+			if (!still) g_stillSince = tnow;
+			g_wait.last = now;
+			++g_wait.looks;
+			if (tnow - g_stillSince < kQuiet || tnow < g_quietUntil) {
+				if (g_wait.looks >= kSwapMaxLooks) {
+					if (g_lastSkip != "unsettled") SKSE::log::info("outdoor navmesh left out: the ground under the hall kept changing for {} looks; tried again when a cell loads", g_wait.looks);
+					g_lastSkip = "unsettled";
+					g_wait = Wait{};
+					return;
+				}
+				LookAgain();
+				return;
+			}
+			g_wait = Wait{};
+			g_lastSkip.clear();
+		}
+		const auto t0 = std::chrono::steady_clock::now();
+		// copies
+		std::vector<SwapEntry> entries;
+		std::string            elsewhere;
+		for (auto* g : targets) {
+			auto* info = InfoOf(g->id);
+			if (!info) { SKSE::log::info("outdoor navmesh left out: {} has no info entry; tried again when a cell loads", Hex(g->id)); return; }
+			auto* was = info->navMesh;
+			auto* from = sourceOf(g);
+			if (from != was)
+				elsewhere += std::format("{}{} ({})", elsewhere.empty() ? "" : ", ", Hex(g->id),
+					!was ? "nothing" : (IsOurCopy(was) ? "a copy of ours" : "a navmesh no cell lists"));
+			auto* src = static_cast<RE::NavMesh*>(from);   // (the cell's list and the info hold the NavMesh's BSNavmesh base)
+			auto* copy = CopyOf(g->id, *from);
+			if (!copy) { SKSE::log::info("outdoor navmesh left out: the game's NavMesh factory gave nothing"); return; }
+			entries.push_back({ g->id, info, src, copy, was, g->cx, g->cy });
+		}
+		if (!elsewhere.empty()) SKSE::log::info("outdoor navmesh: info entries pointing outside their cell's list, copied from the cell's own navmesh: {}", elsewhere);
+		{   // every hall cell needs a navmesh the fit can take
+			std::set<std::pair<int, int>> covered;
+			for (const auto& e : entries) covered.insert({ e.cx, e.cy });
+			std::string missing;
+			for (const auto& c : g_ours.cells)
+				if (!covered.contains(c)) missing += std::format("{}{},{}", missing.empty() ? "" : "; ", c.first, c.second);
+			if (!missing.empty()) {
+				std::string seen;
+				for (const auto& m : meshes)
+					if (!covered.contains({ m.cx, m.cy }) && g_ours.cells.contains({ m.cx, m.cy })) seen += std::format(" {}@{},{}({} tris)", Hex(m.id), m.cx, m.cy, m.m->triangles.size());
+				SKSE::log::info("outdoor navmesh left out: no navmesh under the hall in cell(s) {} (their navmeshes:{}); tried again when a cell loads", missing, seen);
+				return;
+			}
+		}
+		// the proven fit, on the copies only
+		g_overrideMeshes.clear();
+		for (const auto& e : entries) g_overrideMeshes.push_back({ e.copy, static_cast<RE::BSNavmesh*>(e.copy), e.id, e.cx, e.cy });
+		g_checked.clear();
+		for (const auto& e : entries) g_checked.insert(e.copy);
+		g_app = Applied{};
+		g_override = true;
+		DoApply();
+		g_override = false;
+		if (!g_app.in) { SKSE::log::info("outdoor navmesh left out: the fit on the copies did not go in ({})", g_app.summary); g_app = Applied{}; return; }
+		// the swap, each entry re-checked under the lock: one the game swapped meanwhile is not taken
+		auto* map = RE::TES::GetSingleton()->GetRuntimeData2().navMeshInfoMap;
+		int   swapped = 0, moved = 0;
+		map->mapLock.LockForWrite();
+		for (auto& e : entries) {
+			if (e.info->navMesh != e.was) { ++moved; continue; }
+			static_cast<RE::BSNavmesh*>(e.src)->IncRef();    // ours, while the swap is in
+			static_cast<RE::BSNavmesh*>(e.copy)->IncRef();   // the entry's (the game releases it when it swaps its own in)
+			// (the entry's reference on what it pointed at before is kept: given back if the entry returns to it, else left)
+			e.info->navMesh = static_cast<RE::BSNavmesh*>(e.copy);
+			g_swap.push_back(e);
+			g_touched[e.id] = { e.cx, e.cy };
+			++swapped;
+		}
+		map->mapLock.UnlockForWrite();
+		if (moved) {   // the game swapped one meanwhile: take it all out, and try again (counted as a redo)
+			SwapTeardown("the game swapped a navmesh during the fit");
+			const auto now = std::chrono::steady_clock::now();
+			if (now < g_settleUntil && g_settleRedos < kSettleRedos) ++g_settleRedos;
+			else {
+				while (!g_redos.empty() && now - g_redos.front() > std::chrono::seconds(60)) g_redos.pop_front();
+				if (std::cmp_greater_equal(g_redos.size(), kRedoCap)) {
+					g_swapGaveUp = true;
+					SKSE::log::info("outdoor navmesh: given up until the next cell load (the game kept swapping its own navmeshes in during the fit)");
+					return;
+				}
+				g_redos.push_back(now);
+			}
+			SwapApply();
+			return;
+		}
+		if (!g_redoing) {   // in from scratch (a load, a cell load): the game may still be finishing its obstacle work
+			g_settleUntil = std::chrono::steady_clock::now() + kSettle;
+			g_settleRedos = 0;
+		}
+		g_redoing = false;
+		std::string ids;
+		for (const auto& e : g_swap) ids += std::format("{}{}", ids.empty() ? "" : ", ", Hex(e.id));
+		g_swapSummary = std::format("{} (copies behind {})", g_app.summary, ids);
+		SKSE::log::info("outdoor navmesh in by swap: {} ({} ms)", g_swapSummary, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count());
+		SchedulePoll();
+	}
+
 }
 
 namespace Nav
 {
+	// (a cell load: a swap that gave up gets a fresh try)
+	static void SwapApplyGuarded()   // (no objects with destructors beside a __try)
+	{
+		__try { SwapApply(); } __except (EXCEPTION_EXECUTE_HANDLER) { g_app.summary = "access fault while fitting the outdoor navmesh"; }
+	}
 	void OutdoorApply()
 	{
-		__try { DoApply(); } __except (EXCEPTION_EXECUTE_HANDLER) { g_app.summary = "access fault while fitting the outdoor navmesh"; }
+		HallPassTimer timer("outdoor navmesh");
+		g_swapGaveUp = false;
+		SwapApplyGuarded();
 	}
-	void OutdoorRevert() { RevertNow("asked"); }
+	void OutdoorRevert()
+	{
+		SwapTeardown("the hall removed");
+		g_redoing = false;
+		RestoreGround();
+	}
+	void OutdoorPreLoad() { SwapTeardown("loading a save"); g_swapGaveUp = false; g_redos.clear(); g_redoing = false; }
+	void OutdoorGroundChanged()
+	{
+		g_quietUntil = std::chrono::steady_clock::now() + kQuiet;
+		g_wait = Wait{};
+	}
 	std::string OutdoorStatus()
 	{
 		Load();
 		if (!g_ours.ok) return "outdoor navmesh: " + g_ours.why;
-		return g_app.in ? (StillIn() ? g_app.summary : "outdoor navmesh: stale (a cell reloaded), refit on the next cell load") :
-		                  std::format("outdoor navmesh: not in ({} triangles read; waiting for the hall's {} cells){}", g_ours.tris.size(), g_ours.cells.size(), g_app.summary.empty() ? "" : " - " + g_app.summary);
+		if (!g_swap.empty()) return "outdoor navmesh in by swap: " + g_swapSummary;
+		return std::format("outdoor navmesh: not in ({} triangles read; waiting for the hall's {} cells{})", g_ours.tris.size(), g_ours.cells.size(), g_swapGaveUp ? "; given up until the next cell load" : "");
 	}
 	void OutdoorSetInfoLinks(bool a_on) { g_infoLinks = a_on; }
+	// the diagnostic (AGHallNative.OutdoorNav): "status" (the swap, entry by entry) or "watch" (60 s of navmesh counts in the log),
+	// run on the main thread; "last" answers with the latest result. Nothing runs unless called.
+	std::string g_navLast = "nothing run yet";
+	std::string SwapDetail()
+	{
+		std::string out = OutdoorStatus();
+		for (const auto& e : g_swap) {
+			const auto* cur = e.info->navMesh;
+			out += std::format(" | {}: entry on {}, copy {} tris, source {} tris, obstacle work {}", Hex(e.id),
+				cur == static_cast<RE::BSNavmesh*>(e.copy) ? "our copy" : (cur ? "the game's own navmesh" : "nothing"),
+				static_cast<RE::BSNavmesh*>(e.copy)->triangles.size(), static_cast<RE::BSNavmesh*>(e.src)->triangles.size(), ObstacleWork(e.src));
+		}
+		return out;
+	}
+	std::string OutdoorNavStep(const std::string& a_given)
+	{
+		// (Papyrus strings are case-blind: a word arrives in whatever casing the game first saw it in)
+		std::string step = a_given;
+		std::ranges::transform(step, step.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+		if (step == "last") return g_navLast;
+		if (step != "status" && step != "watch") return "steps: status, watch, last";
+		g_navLast = "queued: " + step;
+		SKSE::GetTaskInterface()->AddTask([step] { g_navLast = step == "watch" ? Watch() : SwapDetail(); });
+		return "queued (OutdoorNav(\"last\") for the result)";
+	}
 }

@@ -325,6 +325,9 @@ static partial class Build
                 Lighting = firstCell.Lighting?.DeepCopy() ?? new CellLighting(),
             };
             c.AcousticSpace.SetTo(firstCell.AcousticSpace.FormKeyNullable);
+            // music: Jorrvaskr's (and its basement's) type. A cell with none plays nothing, and music mods add their tracks
+            // to the vanilla types, so they go silent in a cell without one
+            c.Music.SetTo(mods.SelectMany(m => m.MusicTypes).Last(t => t.EditorID == "MUSCastle").FormKey);
             // (the lighting: as Proudspire, a hall of many windows, bright and cheerful during the day, dimmer, warmer and
             // cozy after sundown; as bright as Jorrvaskr;
             // our own ambient, with an optional Lux patch for Lux's users.) Proudspire's imagespace and template (until now a

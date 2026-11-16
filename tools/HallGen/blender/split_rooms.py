@@ -135,10 +135,12 @@ for (room, mat), items in sorted(faces.items()):
     for k_, piece in enumerate(split(items, room)):
         by_room.setdefault(room, []).append(("%s@%s_%d" % (mat, room, k_), piece))
 coll_by_room = {}
-for t in D["coll"]:
+MATS_ = D.get("coll_mat") or [None] * len(D["coll"])                 # each triangle's havok material, kept with it
+assert len(MATS_) == len(D["coll"]), "collision triangles and their materials differ"
+for t, m_ in zip(D["coll"], MATS_):
     c = [sum(p[k] for p in t) / 3 for k in range(3)]
     rs = R.room_of(c)
-    coll_by_room.setdefault(rs[0] if len(rs) == 1 else nearest_room(c), []).append(t)
+    coll_by_room.setdefault(rs[0] if len(rs) == 1 else nearest_room(c), []).append((t, m_))
 for room in sorted(set(by_room) | set(coll_by_room)):
     o = R.origin(room)
     shapes, tris, worst = {}, 0, 0
@@ -158,9 +160,10 @@ for room in sorted(set(by_room) | set(coll_by_room)):
         if have_a: shapes[name]["a"] = A
         lo, hi = bounds(piece)
         n_ = len(R.lights_on(lo, hi, LIGHTS[room])); worst = max(worst, n_); ALLN.append(n_)
-    coll = [[[p[k] - o[k] for k in range(3)] for p in t] for t in coll_by_room.get(room, [])]
+    coll = [[[p[k] - o[k] for k in range(3)] for p in t] for t, _ in coll_by_room.get(room, [])]
+    coll_mat = [m_ for _, m_ in coll_by_room.get(room, [])]
     fn = "hall2_interior_room_%s.json" % room
-    json.dump({"shapes": shapes, "coll": coll}, open(os.path.join(out, fn), "w"))
+    json.dump({"shapes": shapes, "coll": coll, "coll_mat": coll_mat}, open(os.path.join(out, fn), "w"))
     parts[room] = {"origin": o, "file": fn, "nif": "AGHall2Room%s.nif" % room, "shapes": len(shapes), "tris": tris,
                    "coll": len(coll), "max_lights": worst}
     print("ROOM %-11s %3d shapes %6d tris %5d collision, at most %d lights on a shape" % (room, len(shapes), tris, len(coll), worst))

@@ -33,7 +33,7 @@ TOWER2 = VARIANT in ("U", "V", "W")   # the stair from the guild services, out o
 TOWER3 = VARIANT in ("V", "W")        # the tower at the planned line, an open-well stair turning clockwise
 HEARTH = VARIANT == "W"               # the great hearth, its mirror mass, the counter on the right, bracketed galleries
 for k_ in [k_ for k_ in GEO if k_[0] != "interior"]: del GEO[k_]   # the exterior was built for its numbers only
-COLL.clear(); AGE_CELL.clear()                                     # no baked age inside (yet)
+COLL.clear(); COLL_KEY.clear(); AGE_CELL.clear()                                     # no baked age inside (yet)
 SITE = None                                                        # no terrain round an interior
 PART = "interior"
 if HEARTH:   # W, the fit-out (palette C): the renders in Solitude's interior kit, as hall_nif.py's
@@ -301,6 +301,7 @@ def coll_only(q):
     """a collision quad that is not drawn"""
     q = [tuple(p) for p in q]
     COLL_ONLY.setdefault(PART, []).extend([[q[0], q[1], q[2]], [q[0], q[2], q[3]]])
+    COLL_ONLY_KEY.setdefault(PART, []).extend(["stairs:" + str(LAST_KEY[0])] * 2)   # every caller lays a stair's walking ramp under its drawn tread
 
 # the carved brackets under the galleries (the great hall's and the tavern's): their size (the hall2t walk, 2026-10-26: shrunk,
 # all of them including the tavern's, as they read too large); AG_BRACKET for the renders of sizes
@@ -4239,6 +4240,7 @@ def tavern_panelling():
                 rest_ = nxt_
             for P_, _ in rest_:
                 COLL_ONLY.setdefault(PART, []).extend([[tuple(P_[0]), tuple(P_[j_]), tuple(P_[j_ + 1])] for j_ in range(1, len(P_) - 1)])
+                COLL_ONLY_KEY.setdefault(PART, []).extend([gk_[1]] * (len(P_) - 2))   # the wall's own plaster
         if plain_: print("TAVERN PANELLING: wall", i_, "left plain between stones", [(round(a_), round(b_)) for a_, b_ in plain_])
         if not merged_: continue
         u0_, u1_ = merged_[0][0], merged_[-1][1]

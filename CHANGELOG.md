@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0-alpha.3
+
+**Fixes**
+- Fixed guild hall navmesh compatibility with tree and rock mods that change how NPCs path around them.
+- Fixed and optimized some issues with the hall clean-up code which removes trees, rocks, and objects which would conflict with the guild hall.
+- Footsteps and music fixed inside the guild hall.
+
+## 2.0.0-alpha.2
+
+**Fixes**
+- Fixed a crash near the Guild Hall with tree or rock mods that change how NPCs path around them (common in large load orders).
+  - With those mods, followers can't use the hall's outside stairs and terrace for now; a proper fix is in the works.
+
 ## 2.0.0-alpha.1
 
 **New**

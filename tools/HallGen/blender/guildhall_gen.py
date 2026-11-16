@@ -156,7 +156,25 @@ PART = "body"
 COLL = {}         # part -> collision triangles (simple solids only: walls as blocks, roof planes, stair ramps)
 NOCOLL_IDS = set()   # (part, key, index): faces drawn but kept out of the interior's collision, and COLL_ONLY: part ->
 COLL_ONLY = {}       # triangles that collide but are not drawn (2026-10-26: the tower stair, in vanilla's chamfered profile)
-def coll_tri(a, b, c): COLL.setdefault(PART, []).append([tuple(a), tuple(b), tuple(c)])
+COLL_KEY = {}      # part -> each COLL triangle's surface key (the key last drawn when it was laid), and COLL_ONLY_KEY: part ->
+COLL_ONLY_KEY = {}  # each COLL_ONLY triangle's ("stairs:" + the tread's key for a stair's walking ramp); both give the havok material
+LAST_KEY = [None]  # the key poly() drew last: a collision solid follows its own drawing (box(...); coll_box(...))
+def coll_tri(a, b, c):
+    COLL.setdefault(PART, []).append([tuple(a), tuple(b), tuple(c)]); COLL_KEY.setdefault(PART, []).append(LAST_KEY[0])
+# the havok material of each surface key: Skyrim's footstep and impact sounds come from it, and a triangle without one (0) is silent.
+# Every key that collides must be listed: an unlisted one stops the export rather than guess
+HAV_WOOD = ("wood", "wood2", "planks", "planks2", "wainframe", "wainpanel", "wframe", "door", "painting1", "painting2")
+HAV_STONE = ("stone", "base", "trim", "stucco", "floor", "break", "moss", "mosswall", "wearcrack", "wearstain", "roof", "tile",
+             "sframe", "crest3d")
+HAV_OF = dict([(k_, "WOOD") for k_ in HAV_WOOD] + [(k_, "STONE") for k_ in HAV_STONE] +
+              [("steps", "STAIRS_STONE"), ("metal", "SOLID_METAL"), ("pipe", "SOLID_METAL"), ("iron", "SOLID_METAL"),
+               ("dirt", "DIRT"), ("grass", "GRASS"), ("cloth", "CLOTH"), ("gpane", "GLASS"), ("gcoat", "GLASS"), ("glead", "GLASS")])
+def hav_material(key):
+    stair = key is not None and key.startswith("stairs:")
+    base_ = key[7:] if stair else key
+    if base_ not in HAV_OF: raise SystemExit(f"COLLISION MATERIAL: no havok material for the surface key {base_!r}: add it to HAV_OF")
+    m_ = HAV_OF[base_]
+    return ("STAIRS_WOOD" if m_ == "WOOD" else "STAIRS_STONE") if stair else m_
 def coll_quad(q): coll_tri(q[0], q[1], q[2]); coll_tri(q[0], q[2], q[3])
 RAMPS = []        # (2026-11-13) each outdoor stair's walking surface as rows across it, foot to top: [[(left xyz), (right xyz)], ...], for
                   # outdoor_nav.py, which lays each stair's navmesh as a ramp on them (as vanilla meshes a stair), not a region per tread
@@ -173,6 +191,7 @@ FIX_FACES = os.environ.get("AG_FIX_FACES", "1") == "1"   # (2026-10-25, leak_che
                     # bargeboard's underside), with its own flicker pass (the patio parapets, pwall). AG_FIX_FACES=0: the old
                     # faces, for comparing. They change the age bake's T-junction splits (+2439 plaster faces).
 def poly(key, pts, uvs=None, scale=S, swap=False):
+    LAST_KEY[0] = key
     pts = [Vector(FRAME(p) if FRAME else p) for p in pts]
     if FIX_FACES:
         keep = [i for i in range(len(pts)) if (pts[i] - pts[i - 1]).length > 1e-6]   # a corner given twice (a strip that ends
@@ -2998,7 +3017,9 @@ if os.environ.get("AG_EXPORT"):
                 shapes[sub] = {"v": V, "f": F, "uv": U}
                 if (pt, key) in COLS: shapes[sub]["c"] = [[[round(x, 3) for x in c] for c in COLS[(pt, key)][i_]] for i_ in idx]
                 if (pt, key) in MOSS_A: shapes[sub]["a"] = [[round(x, 3) for x in MOSS_A[(pt, key)][i_]] for i_ in idx]
-        return {"shapes": shapes, "coll": [[L(p) for p in t] for t in COLL.get(part, [])]}
+        assert len(COLL.get(part, [])) == len(COLL_KEY.get(part, [])), f"{part}: {len(COLL.get(part, []))} collision triangles, {len(COLL_KEY.get(part, []))} keys"
+        return {"shapes": shapes, "coll": [[L(p) for p in t] for t in COLL.get(part, [])],
+                "coll_mat": [hav_material(k_) for k_ in COLL_KEY.get(part, [])]}
     name = {"body": "hall2_body", "roof": "hall2_roof", "site": "hall2_site" + (("_" + TAG) if TAG else ""), "interior": "hall2_interior",
             "lookout": "hall2_lookout", "basement": "hall2_basement"}
     INT_PARTS = ("interior",) + (("lookout",) if INTERIOR and any(pt == "lookout" for pt, _ in GEO) else ())   # (W: the lookout's cell)
@@ -3006,9 +3027,12 @@ if os.environ.get("AG_EXPORT"):
     if INTERIOR:   # the inside, to walk: every solid face collides (not the windows' and doors'
         NOCOLL = ("win1", "win3", "win1i", "win3i", "win1d", "win3d", "door", "iron", "candle", "cork", "paper", "wframe", "sframe", "gpane", "gcoat", "glead")   # pictures, the iron work, the candles)
         for ip_ in INT_PARTS:
-            COLL[ip_] = [[f_[0], f_[k_], f_[k_ + 1]] for (pt, key), faces in GEO.items() if pt == ip_ and key not in NOCOLL
-                         for i_, (f_, _) in enumerate(faces) if (pt, key, i_) not in NOCOLL_IDS
-                         for k_ in range(1, len(f_) - 1)] + COLL_ONLY.get(ip_, [])
+            tk_ = [([f_[0], f_[k_], f_[k_ + 1]], key) for (pt, key), faces in GEO.items() if pt == ip_ and key not in NOCOLL
+                   for i_, (f_, _) in enumerate(faces) if (pt, key, i_) not in NOCOLL_IDS
+                   for k_ in range(1, len(f_) - 1)]
+            assert len(COLL_ONLY.get(ip_, [])) == len(COLL_ONLY_KEY.get(ip_, [])), f"{ip_}: collision-only triangles and their keys differ"
+            COLL[ip_] = [t_ for t_, _ in tk_] + COLL_ONLY.get(ip_, [])
+            COLL_KEY[ip_] = [k_ for _, k_ in tk_] + COLL_ONLY_KEY.get(ip_, [])
     def piece_json(pl):
         """a placed piece, layout frame; a load door (W's ladder and hatch) also says its role and where one arriving
         through it stands; (2026-10-26) a piece whose fifth item is a dict names its record ("ed") and may give its
