@@ -36,6 +36,27 @@ Function PointRegistrationQuest(Quest akQuest, Bool abHall) Global
 	EndIf
 	akQuest.SetObjectiveDisplayed(10, !abHall)
 	akQuest.SetObjectiveDisplayed(20, abHall)
+	MarkRegistrationHall(akQuest)
+EndFunction
+
+; objective 20 shown: the Guild Hall's map marker (made by the DLL with the hall installed) fills the HallMarker alias, the
+; objective's target, and goes on the map as vanilla quests put a place there: seen, not yet for fast travel until the player
+; discovers it. Called again after every load, so a marker made anew is the one pointed at.
+Function MarkRegistrationHall(Quest akQuest) Global
+	If !akQuest || !akQuest.IsRunning() || akQuest.IsCompleted() || !akQuest.IsObjectiveDisplayed(20)
+		Return
+	EndIf
+	ObjectReference marker = AG_Native.HallMapMarker()
+	If !marker
+		Return
+	EndIf
+	ReferenceAlias target = akQuest.GetAliasByName("HallMarker") as ReferenceAlias
+	If target && target.GetReference() != marker
+		target.ForceRefTo(marker)
+	EndIf
+	If !marker.IsMapMarkerVisible()
+		marker.AddToMap()
+	EndIf
 EndFunction
 
 Function CompleteRegistrationQuest(Quest akQuest) Global

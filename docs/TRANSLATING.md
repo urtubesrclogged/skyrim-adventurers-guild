@@ -125,6 +125,7 @@ have:
   `$AG_UI_RegisterFee` (`{0}` = gold), `$AG_UI_RegisterBtn`, with `$AG_UI_FoundRegisterFirst` and
   `$AG_UI_NoRecruitsRegister` where nobody can join a party until registered; its status lines `$AG_Party_Registered`,
   `$AG_Party_RegGold`, `$AG_Party_RegCannot` (`{0}` = the follower) and `$AG_Party_RegNotHere`.
+* The Guild Hall's map marker: `$AG_Hall_MapName` (the name on the world map and in the discovery message).
 * Every counter: `$AG_UI_AllRanks`, `$AG_UI_SortHigh` and `$AG_UI_SortLow` (the rank filter and the sort).
 * The Guild Board in the hall (its own page, `board.html`, sharing the counter's keys where the words are the same):
   `$AG_UI_GBoardTitle`, `$AG_UI_GBoardYourRank`, `$AG_UI_GBoardPosted` (`{0}` = how many), `$AG_UI_GBoardEmpty`,

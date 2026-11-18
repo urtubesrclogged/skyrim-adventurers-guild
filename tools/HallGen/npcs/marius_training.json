@@ -11,5 +11,27 @@
   {"choice": "Blocking.", "skill": 3, "max": 75},
   {"choice": "Light armor.", "skill": 6, "max": 50},
   {"choice": "Heavy armor.", "skill": 5, "max": 50}
- ]
+ ],
+ "_watch": "Marius's idles while he watches practice (drafting/marius_training_approved.json): said to himself at his post (within 'near' of AGHallTrainWatchMarker), only while a trainee in that pool runs a practice package: melee = the 'train' packages (Ghrulek, Zhasim, Caralion at the dummies), archery = the 'archery' packages (Nessa, Ylva at the targets). Ahead of his own idles in the idle topic; 'chance' is each line's percent per idle check, 'reset' the game hours before a line can play again (the hall's idles have 1, which suits pools that run all day, not a three-hour practice). 'ids' gives each line its ID by its place (merged 0x9A40 on), so the voice files keep their names: append a new line there, never reorder. The pools' order is the INFO order within each pool.",
+ "watch": {"near": 200, "chance": 10, "reset": 2, "ids": ["trainMelee13", "trainMelee2", "trainMelee11", "trainMelee10", "trainMelee6", "trainMelee15", "trainArchery3", "trainArchery11", "trainArchery22", "trainArchery23", "trainMelee42", "trainMelee48", "trainMelee49", "trainMelee57", "trainMelee52", "trainMelee60", "trainArchery30", "trainArchery42"], "melee": {
+  "trainMelee13": "Knees bent. You fight from the ground up.",
+  "trainMelee2": "Good. Now do it again!",
+  "trainMelee11": "Breathe out when you strike. Not in.",
+  "trainMelee10": "Slower. Get it right first, then get it fast.",
+  "trainMelee6": "Not bad. Now do it again with a feint.",
+  "trainMelee15": "Where's your back foot? Find it.",
+ "trainMelee42": "Never expect them to drop from the first blow. Follow it up.",
+ "trainMelee48": "Neck, armpit, back of the knee. That's where the gaps are.",
+ "trainMelee49": "Treat that dummy like it brought friends.",
+ "trainMelee57": "Loose grip on the swing. Squeeze as it lands.",
+ "trainMelee52": "Again, but mean it this time. Get lazy in here and someone buries you out there.",
+ "trainMelee60": "Good. Now let's change it up. I want you to add a parry and riposte after your first strike."
+ }, "archery": {
+  "trainArchery3": "Don't admire the shot. Nock the next one.",
+  "trainArchery11": "Same draw, every time. Breathe, release, and repeat until perfect.",
+  "trainArchery22": "That one's a kill. Make every one look like it.",
+  "trainArchery23": "Better. Keep your bow arm still after the release.",
+ "trainArchery30": "Elbow up on the draw. Don't let it sag.",
+ "trainArchery42": "A good archer saved more of us than any shield. Let's focus on consecutive quick shots next."
+ }}
 }

@@ -5,6 +5,7 @@
 #   bash gates_all.sh <export dir> <clean Data root> [<previous export dir>]        exit 1 on any new failure
 # With BUILD=<build dir> set, also every file the plugin and meshes name (models_check.py).
 # Not here, for the shell and site only when those change: clearance_check, decal_support_check, roof_cover_check, ivy_fit_check, the clip check.
+# (roof_poke_check is here: the wall plates stood up through every eave in every build from the first, unseen until snow showed them)
 E="${1:?export dir}"; C="${2:?clean Data root}"; P="${3:-}"; here="$(cd "$(dirname "$0")" && pwd)"; B="$here/blender"
 source "$here/status/hook.sh"; status_step "hall gates" "$(basename "$E")${BUILD:+ on $(basename "$BUILD")}"   # (the status page: build/status/index.html)
 BL="${BL:-/c/Program Files/Blender Foundation/Blender 5.2/blender.exe}"; L="$E/gates"; mkdir -p "$L"; cd "$B"
@@ -39,6 +40,10 @@ gate "$L/hang.log" python hang_check.py "$E/hall2_interior.json" "$E/hall2_basem
 gate "$L/physics.log" python physics_check.py "$E/hall2_interior.json" "$E/hall2_basement.json" "$E/hall2_lookout.json" --data "$C" &
 gate "$L/seal.log" python seal_check.py "$E/hall2_basement.json" &
 gate "$L/coplanar.log" python coplanar_check.py "$E/hall2_basement.json" --interior --top 5 --fail &
+# (2026-11-17: the outside was never checked, and the Solitude bridge's pilasters shared the passage wall's plane, shimmering in game)
+# the site and the building against each other, outdoors (over the site's ground, under the sky); the site's own AG_SITE and map
+[ -n "${HALL_SITE_AG:-}" ] || source "$here/env.sh"
+gate "$L/coplanar_outside.log" python coplanar_check.py "$E/hall2_site_1.json" "$E/hall2_body.json" --site "$HALL_SITE_AG" --map "$HALL_PRIVATE/$HALL_SITE_MAP" --top 5 --fail &
 # (2026-11-05: the site's pieces were checked only in gates_export.sh, whose exit the build ignored, and without the building or the
 # ground, so 1418 reports nobody read) the site, its pieces against the body's collision and the ground; the flora reported apart
 PLANTS_RE='flora|fern|clover|lavender|leaves|ivy|tree|bush|shrub|jazbay|juniper|snowberry|dragonstongue|nirnroot|thistle'
@@ -57,6 +62,7 @@ for c_ in interior basement lookout; do al_=(); [ $c_ = interior ] && al_=(--all
 gate "$L/hearth.log" timeout 280 python hearth_check.py "$E/hall2_interior.json" "$E/nav_interior.json" "$C" &
 for c_ in interior basement lookout; do gate "$L/contact_$c_.log" timeout 280 python contact_check.py "$E/hall2_$c_.json" "$E/nav_$c_.json" & done
 gate "$L/frame.log" python frame_check.py "$E/hall2_interior.json" &
+gate "$L/roof_poke.log" "$BL" -b -P roof_poke_check.py -- "$E" &   # nothing of the building up through a roof (beams' tops over the slope)
 # (baseboards that did not meet, bright seams beside the posts throughout the hall) the seam
 # gate: upright strips of plaster or stone left showing beside a timber, and the baseboards' ends (interior_gen.py baseboards())
 gate "$L/seams_interior.log" "$BL" -b -P seam_check.py -- "$E/hall2_interior.json" "$E/baseboards_W.json" &
@@ -96,7 +102,7 @@ PY
 grep -h -E "FAIL|BAD |UNUSABLE|DOORWAY|SWING|POCKET|PINCH|FACING|UNKNOWN " "$L"/*.log | sed 's/[[:space:]]\+/ /g' | sort -u > "$L/fails.txt"
 # (a gate that fell over is no pass: hall2bz's placement gate died on an empty file and 90 failures left this list without a word)
 for f_ in "$L"/*.log; do grep -q -E "^Traceback|Error: |Error.*No such file" "$f_" && echo "FAIL GATE DID NOT RUN $(basename "$f_"): $(tail -1 "$f_" | cut -c1-120)" >> "$L/fails.txt"; done
-for f_ in ${BUILD:+door_body} ${BUILD:+banner} ${BUILD:+window_emit} ${BUILD:+plaster} ${BUILD:+lock} ${BUILD:+fresh} frame hearth place_interior place_basement place_lookout through_interior through_basement through_lookout centre_interior centre_basement hang contact_interior contact_basement contact_lookout inside_interior inside_basement inside_lookout connect_interior connect_basement connect_lookout routes_interior routes_basement routes_lookout seams_interior seams_basement seams_lookout place_site coplanar leak_interior leak_lookout leak_basement ivy_interior ivy_basement ivy_lookout; do gate_in_set "$f_" || continue; [ -s "$L/$f_.log" ] || echo "FAIL GATE DID NOT RUN $f_: no log" >> "$L/fails.txt"; done
+for f_ in ${BUILD:+door_body} ${BUILD:+banner} ${BUILD:+window_emit} ${BUILD:+plaster} ${BUILD:+lock} ${BUILD:+fresh} frame roof_poke hearth place_interior place_basement place_lookout through_interior through_basement through_lookout centre_interior centre_basement hang contact_interior contact_basement contact_lookout inside_interior inside_basement inside_lookout connect_interior connect_basement connect_lookout routes_interior routes_basement routes_lookout seams_interior seams_basement seams_lookout place_site coplanar coplanar_outside leak_interior leak_lookout leak_basement ivy_interior ivy_basement ivy_lookout; do gate_in_set "$f_" || continue; [ -s "$L/$f_.log" ] || echo "FAIL GATE DID NOT RUN $f_: no log" >> "$L/fails.txt"; done
 sort -u -o "$L/fails.txt" "$L/fails.txt"
 grep -h "^HANG" "$L/hang.log" | cut -c1-90
 for f in hearth seams_interior contact_interior contact_basement contact_lookout through_interior through_lookout through_basement centre_interior centre_basement physics routes_interior routes_basement routes_lookout light_interior light_basement light_lookout; do

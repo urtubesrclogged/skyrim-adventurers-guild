@@ -52,7 +52,9 @@ FormKey Key(uint id)
     var at = idBase + id;
     // the NPC blocks: 0x8000-0x8FFF, and 0x9000-0x97FF (spike 0x1800-0x1FFF; the hall session's grant, 2026-11-05)
     // ... and the promotion trials' block, 0x9800-0x99FF (spike 0x2000-0x21FF; the hall session's grant, 2026-11-05)
-    if (merge && (at < 0x8000 || at > 0x99FF)) throw new Exception($"ID 0x{at:X} is outside the NPC blocks 0x8000-0x99FF of the hall's plugin");
+    // ... and the trunks' block, 0x9A00-0x9A3F (spike 0x2200-0x223F; the hall session's grant, 2026-11-17)
+    // ... and Marius's practice idles, 0x9A40-0x9A7F (spike 0x2240-0x227F; the hall session's grant, 2026-11-17)
+    if (merge && (at < 0x8000 || at > 0x9A7F)) throw new Exception($"ID 0x{at:X} is outside the NPC blocks 0x8000-0x9A7F of the hall's plugin");
     if (merge && hallIds.Contains(at)) throw new Exception($"ID 0x{at:X} is already used by the hall's plugin");
     return new(mod.ModKey, at);
 }
@@ -469,7 +471,13 @@ Staff("AGHallServer", "Brynja", "IdgrodTheYounger", true, "FemaleSultry", "Cloth
 Staff("AGHallResidentOrc", "Ghrulek", "Ghorbash", false, "MaleOrc", "ArmorOrcStrongholdNoHelmetOutfit", "AGHallResidentOrcMarker");
 Staff("AGHallResidentRanger", "Ylva", "Threki", true, "FemaleCommander", "DA05HunterOutfit2", "AGHallResidentRangerMarker");
 Staff("AGHallResidentScout", "Zhasim", "Majhad", false, "MaleKhajiit", "ArmorLeatherNoHelmetOutfit", "AGHallResidentScoutMarker");   // (with gauntlets)
-Staff("AGHallResidentVeteran", "Marius Crassus", "SailorXander", false, "MaleOldGrumpy", "MerchantClothesOutfit01NoHat", "AGHallResidentVeteranMarker");
+{
+    var marius = Staff("AGHallResidentVeteran", "Marius Crassus", "SailorXander", false, "MaleOldGrumpy", "MerchantClothesOutfit01NoHat", "AGHallResidentVeteranMarker");
+    // older than his donor (a sailor in his prime) for thirty years' service: vanilla's steel grey hair and beard, and the
+    // Imperial man's Age50 complexion (its detail map deepens the creases; the same diffuse and normal map as before)
+    marius.HairColor.SetTo(Ed<IColorRecordGetter>("HairColor15SteelGrey").FormKey);
+    marius.HeadTexture.SetTo(Ed<ITextureSetGetter>("SkinHeadMaleImperialComplexion_Age50").FormKey);
+}
 // (after the veteran, so the earlier IDs stay put) the fifth resident, the arrogant rival: the noble's son with a bought rank who sneers at
 // commoners. An Altmer character-creation preset (no one's face in the game), gilded Elven armour, the haughty elf voice.
 Staff("AGHallResidentNoble", "Caralion of Cloudrest", "HighElfMalePreset03", false, "MaleElfHaughty", "ArmorElvenGildedNoHelmetOutfit", "AGHallResidentNobleMarker");
@@ -793,6 +801,8 @@ var agEsp = ModKey.FromFileName("AdventurersGuild.esp");
 var gRank = new FormKey(agEsp, 0x800);       // AG_PlayerRankGlobal: 0..5 = E..S, -1 not registered
 var gRegistered = new FormKey(agEsp, 0x801); // AG_RegisteredGlobal
 var gRepLines = new FormKey(agEsp, 0xC8A);   // AG_RepLinesGlobal
+var gSite = new FormKey(agEsp, 0x80E);       // AG_GuildHallSiteGlobal: the installed hall's site, 1 Riverwood, 2 Solitude (the DLL sets it each load)
+ConditionFloat AtSite(int site, bool at = true) => GlobalIs(gSite, at ? CompareOperator.EqualTo : CompareOperator.NotEqualTo, site);
 ConditionFloat GlobalIs(FormKey g, CompareOperator op, float v)
 {
     var d = new GetGlobalValueConditionData();
@@ -963,7 +973,11 @@ var ownRadius = sched.GetProperty("own").GetSingle();
 var hallNamed = hall.Cells.Records.SelectMany(b => b.SubBlocks).SelectMany(s => s.Cells)
     .SelectMany(c => c.Persistent.Concat(c.Temporary)).OfType<IPlacedObjectGetter>().Where(r => r.EditorID != null)
     .GroupBy(r => r.EditorID!).ToDictionary(g => g.Key, g => g.First().FormKey);
-// lean = Wilhelm's SitTarget on his bar's lean marker (Vilemyr Inn; Ungrien, Mallus and Haelga lean the same way): the
+// ... and the cell each one stands in
+var hallNamedCell = hall.Cells.Records.SelectMany(b => b.SubBlocks).SelectMany(s => s.Cells)
+    .SelectMany(c => c.Persistent.Concat(c.Temporary).OfType<IPlacedObjectGetter>().Where(r => r.EditorID != null).Select(r => (r.EditorID!, c.FormKey)))
+    .GroupBy(p => p.Item1).ToDictionary(g => g.Key, g => g.First().Item2);
+// lean =Wilhelm's SitTarget on his bar's lean marker (Vilemyr Inn; Ungrien, Mallus and Haelga lean the same way): the
 // NPC goes to the marker and leans there for the shift, as a sitter takes a chair, offering services as he does. Work's
 // Sandbox let the clerks drift (2026-10-28, read in game: Nessa 177 units from her marker, turned away from the counter).
 // train and archery (the basement: Willem's sword drill and Nessa's archery) are vanilla's
@@ -980,7 +994,11 @@ var pkgSrc = new Dictionary<string, IPackageGetter> { ["work"] = Ed<IPackageGett
     ["use"] = Ed<IPackageGetter>("MGRAppBrelynaStage20Read"),   // UseIdleMarker on one idle marker (60 such in Skyrim.esm, measured 2026-11-04)
     ["leisure"] = Ed<IPackageGetter>("CompanionsShift2Train7x5"), ["eat"] = Ed<IPackageGetter>("CompanionsShift2Eat13x3"),
     ["sleep"] = Ed<IPackageGetter>("CompanionsShift2Sleep22x8"),
-    ["train"] = Ed<IPackageGetter>("GuardRiftenPracticeDayDummy01_20x2"), ["archery"] = Ed<IPackageGetter>("MQSkyHavenTempleArcheryPracticeA8x2") };
+    ["train"] = Ed<IPackageGetter>("GuardRiftenPracticeDayDummy01_20x2"), ["archery"] = Ed<IPackageGetter>("MQSkyHavenTempleArcheryPracticeA8x2"),
+    // walkto = a Bards College student's walk to class (Travel, no flags): ahead of each practice block, so the walk down to
+    // the training room is made with the weapon put away. The practice packages are the Riften guard's, whose Weapon Drawn
+    // flag holds for the whole package, its travel included: the guard stands at his dummy already, ours start upstairs
+    ["walkto"] = Ed<IPackageGetter>("SolitudeBardsCollegeClassPanteaIngeAttend8x4") };
 var missingSpots = new SortedSet<string>();
 var packages = 0;
 string[] clerkIds = { "AGHallClerkDay", "AGHallClerkEvening" };
@@ -1053,6 +1071,11 @@ foreach (var n in sched.GetProperty("npcs").EnumerateObject())
                 };
             }
         }
+        else if (kind == "walkto")
+            pk.Data.Values.OfType<PackageDataLocation>().First().Location = new LocationTargetRadius
+            {
+                Target = new LocationTarget { Link = new FormLink<IPlacedGetter>(at) }, Radius = (uint)r,
+            };
         else
             ((PackageDataLocation)pk.Data[0]).Location = new LocationTargetRadius
             {
@@ -1074,6 +1097,20 @@ foreach (var n in sched.GetProperty("npcs").EnumerateObject())
             b.TryGetProperty("days", out var dd) ? dd.GetString() : null,
             b.TryGetProperty("else", out var ee) ? ee.GetString() : null, b.TryGetProperty("elseRadius", out var er) ? er.GetSingle() : null,
             b.TryGetProperty("target", out var tg) ? tg.GetString() : null, b.TryGetProperty("noSpecial", out var ns) && ns.GetBoolean());
+        // a practice block (stand and target both placed) gets the walk down first, in the same hours and ahead of it in the
+        // list: it applies while the NPC is out of the stand's cell or more than 256 from the stand, so the practice package
+        // (and its drawn weapon, or the archers' bow) only begins at the stand
+        var standAt = b.GetProperty("where").GetString()!;
+        if (kind is "train" or "archery" && hallNamed.ContainsKey(standAt) && tg.ValueKind == JsonValueKind.String && hallNamed.ContainsKey(tg.GetString()!))
+        {
+            var go = Make1("walkto", $"{n.Name}Pkg{i:00}WalkTo{hour:00}", standAt, 64, hour, b.GetProperty("hours").GetInt32(),
+                b.TryGetProperty("days", out var gd) ? gd.GetString() : null);
+            var inCell = new GetInCellConditionData(); inCell.Cell.Link.SetTo(hallNamedCell[standAt]);
+            var far = new GetDistanceConditionData(); far.Target.Link.SetTo(hallNamed[standAt]);
+            go.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = inCell, Flags = Condition.Flag.OR });
+            go.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.GreaterThan, ComparisonValue = 256, Data = far });
+            npc.Packages.Add(go.ToLink<IPackageGetter>());
+        }
         // allow (any Sandbox block): switch on what Saadia's Sandbox, the work blocks' source, has off (measured 2026-11-07:
         // no wandering, no sitting, no special furniture, so a worker stood frozen). "wander" (7) walks the area, "sit" (6)
         // takes a chair, "special" (31) uses special furniture such as a cooking pot, as vanilla's forge workers do
@@ -1467,23 +1504,46 @@ Condition[] Idling(string clerk)
         new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = los },
         new ConditionFloat { CompareOperator = CompareOperator.LessThan, ComparisonValue = 1, Data = new GetRandomPercentConditionData() } };
 }
-void RandomGroup(DialogTopic t, string clerk, string slot, IEnumerable<string> texts, Condition[]? extra = null, float resetHours = 0)
+// twins: a line's version for the Solitude site (site 2), which plays there in place of the line it twins (that one then
+// plays only at site != 2), in the same RANDOM group. Twins take their IDs from a block of their own (twinBlock), so the
+// recorded lines keep theirs. A twin's "unlessDone": a quest whose completion ends it (what it tells of is over).
+void RandomGroup(DialogTopic t, string clerk, string slot, IEnumerable<string> texts, Condition[]? extra = null, float resetHours = 0,
+    IReadOnlyList<SiteTwin>? twins = null, uint twinBlock = 0)
 {
     var list = texts.ToList();
-    for (var k = 0; k < list.Count; k++)
+    twins ??= Array.Empty<SiteTwin>();
+    foreach (var tw in twins) if (tw.Of < 1 || tw.Of > list.Count) throw new Exception($"{clerk} {slot}: a site twin of line {tw.Of}, which it does not have");
+    var made = new List<DialogResponses>();
+    DialogResponses Make(FormKey key, string ed, string text, string lineKey)
     {
-        var info = new DialogResponses(NewKey(), SkyrimRelease.SkyrimSE)
+        var info = new DialogResponses(key, SkyrimRelease.SkyrimSE)
         {
-            EditorID = $"AGHallInfo_{clerk}_{slot}{k + 1}",
-            Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random | (k == list.Count - 1 ? DialogResponses.Flag.RandomEnd : 0), ResetHours = resetHours },
+            EditorID = ed, Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random, ResetHours = resetHours },
         };
-        info.Responses.Add(new DialogResponse { Text = list[k], Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+        info.Responses.Add(new DialogResponse { Text = text, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
         info.Conditions.AddRange(At(Hall(clerk)));
         if (extra != null) info.Conditions.AddRange(extra);
         if (t.Responses.Count > 0) info.PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(t.Responses[^1].FormKey);
-        t.Responses.Add(info);
-        extraLines.Add(($"{clerk}:{slot}{k + 1}", clerk, info.FormKey.ID, list[k], t.EditorID!));
+        t.Responses.Add(info); made.Add(info);
+        extraLines.Add((lineKey, clerk, info.FormKey.ID, text, t.EditorID!));
+        return info;
     }
+    for (var k = 0; k < list.Count; k++)
+    {
+        var info = Make(NewKey(), $"AGHallInfo_{clerk}_{slot}{k + 1}", list[k], $"{clerk}:{slot}{k + 1}");
+        if (twins.Any(tw => tw.Of == k + 1)) info.Conditions.Add(AtSite(2, false));
+    }
+    foreach (var tw in twins)
+    {
+        var info = Make(KeyIn(twinBlock), $"AGHallInfo_{clerk}_{slot}{tw.Of}_solitude", tw.Text, $"{clerk}:{slot}{tw.Of}:solitude");
+        info.Conditions.Add(AtSite(2));
+        if (tw.UnlessDone is { } q)
+        {
+            var d = new GetQuestCompletedConditionData(); d.Quest.Link.SetTo(Ed<IQuestGetter>(q).FormKey);
+            info.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = d });
+        }
+    }
+    made[^1].Flags!.Flags |= DialogResponses.Flag.RandomEnd;
 }
 if (clerkDlg.TryGetProperty("about", out var aboutDlg))
 {
@@ -1491,8 +1551,17 @@ if (clerkDlg.TryGetProperty("about", out var aboutDlg))
     var t = NewTopic(b, "About", Prompt("about"));
     b.StartingTopic.SetTo(t.FormKey);
     // members only (the hall's talk that assumes a new member is hidden until the player joins)
-    foreach (var c in aboutDlg.EnumerateObject()) RandomGroup(t, c.Name, "about", c.Value.EnumerateArray().Select(x => x.GetString()!),
-        new Condition[] { GlobalIs(gRegistered, CompareOperator.EqualTo, 1) });
+    // "aboutSolitude": the Solitude site's versions, by clerk and the line number they stand in for
+    var aboutSol = clerkDlg.TryGetProperty("aboutSolitude", out var asol) ? asol : default;
+    foreach (var c in aboutDlg.EnumerateObject())
+    {
+        var clerkTwins = aboutSol.ValueKind == JsonValueKind.Object && aboutSol.TryGetProperty(c.Name, out var tw)
+            ? tw.EnumerateObject().Select(x => x.Value.ValueKind == JsonValueKind.String ? new SiteTwin(int.Parse(x.Name), x.Value.GetString()!, null)
+                : new SiteTwin(int.Parse(x.Name), x.Value.GetProperty("text").GetString()!, x.Value.TryGetProperty("unlessDone", out var ud) ? ud.GetString() : null)).ToList()
+            : new List<SiteTwin>();
+        RandomGroup(t, c.Name, "about", c.Value.EnumerateArray().Select(x => x.GetString()!),
+            new Condition[] { GlobalIs(gRegistered, CompareOperator.EqualTo, 1) }, twins: clerkTwins, twinBlock: 0x1F90);
+    }
 }
 if (clerkDlg.TryGetProperty("idles", out var idleDlg))
 {
@@ -2086,10 +2155,15 @@ if (File.Exists(staffPath) && StaffRecorded())
                     leave.Data.Add(days[w.Value.GetProperty("leaves").GetString()!.Split(' ')[0]]);
                 }
                 foreach (var c in hallCells) cells.Objects.Add(new ScriptObjectProperty { Object = new FormLink<ISkyrimMajorRecordGetter>(c) });
+                // everyone placed in the hall, whom the same timer frees from ambient scenes that never end (AGHallNative.StuckScenes)
+                var hallFolk = new ScriptObjectListProperty { Name = "HallFolk", Flags = ScriptProperty.Flag.Edited };
+                foreach (var r in cell.Persistent.OfType<PlacedNpc>().Where(r => (r.EditorID ?? "").StartsWith("AGHall") && r.EditorID!.EndsWith("Ref")))
+                    hallFolk.Objects.Add(new ScriptObjectProperty { Object = new FormLink<ISkyrimMajorRecordGetter>(r.FormKey) });
+                Console.WriteLine($"contracts away: {hallFolk.Objects.Count} hall people watched for stuck scenes");
                 var awayQ = new Quest(NewKey(), SkyrimRelease.SkyrimSE) { EditorID = "AGHallAwayQuest", Flags = Quest.Flag.StartGameEnabled, Priority = 10 };
                 awayQ.VirtualMachineAdapter = new QuestAdapter
                 {
-                    Scripts = { new ScriptEntry { Name = "AGHallAwayScript", Properties = { folk, globs, homes, leave, cells,
+                    Scripts = { new ScriptEntry { Name = "AGHallAwayScript", Properties = { folk, globs, homes, leave, cells, hallFolk,
                         new ScriptObjectProperty { Name = "GameHour", Object = new FormLink<ISkyrimMajorRecordGetter>(new FormKey(ModKey.FromFileName("Skyrim.esm"), 0x38)), Flags = ScriptProperty.Flag.Edited } } } },
                 };
                 mod.Quests.Add(awayQ);
@@ -2246,6 +2320,8 @@ void BuildTalk(string talkPath, uint block, string what, string linesName, bool 
                     }
                     info.Conditions.AddRange(Needs(n));
                     info.Conditions.AddRange(WhileOpen(n, info));
+                    // "site": a topic for one hall site only (2: Solitude), so its choice shows only there
+                    if (n.TryGetProperty("site", out var st)) info.Conditions.Add(AtSite(st.GetInt32()));
                     if (RankAt(n) is { } rank && !version.Name.StartsWith("opened:")) info.Conditions.Add(GlobalIs(gRank, CompareOperator.GreaterThanOrEqualTo, RankOf(rank)));
                     var node = n;
                     talkLinks.Add((info, withBack => withBack && hasBack ? Resolve(After(node)) : Offers(node).Select(o => topics[o]).ToList()));
@@ -3332,6 +3408,9 @@ if (File.Exists(banterPath))
                 node.Conditions.Add(Present(placed, new GetDeadConditionData(), 0));
                 var there = new GetInCellConditionData(); there.Cell.Link.SetTo(cell.FormKey);
                 node.Conditions.Add(Present(placed, there, 1));
+                // not while one of them travels with the player: the scene's packages replace the follow, and the pair's
+                // exchange holds whoever stays behind until the other is back
+                node.Conditions.Add(Present(placed, new GetPlayerTeammateConditionData(), 0));
             }
             foreach (var ex in pair.GetProperty("exchanges").EnumerateArray())
             {
@@ -3343,10 +3422,12 @@ if (File.Exists(banterPath))
                 foreach (var (id, name, data) in new[] { (0u, "Actor1", 12626), (1u, "Actor2", 12882) })   // the event's R1 and R2
                 {
                     var a = new QuestAlias { ID = id, Name = name, Type = QuestAlias.TypeEnum.Reference, Flags = 0, FindMatchingRefFromEvent = new FindMatchingRefFromEvent { FromEvent = new RecordType("ADIA"), EventData = (GetEventDataConditionData.EventMember)data } };
-                    foreach (var ed in who)
+                    // (is one OR the other: the OR flag on the first only, so the group closes there and "sitting" below is ANDed with
+                    // it; with the flag on both, the engine read "either of them OR anyone sitting")
+                    for (var w = 0; w < who.Length; w++)
                     {
-                        var isId = new GetIsIDConditionData(); isId.Object.Link.SetTo(Hall(ed).FormKey);
-                        a.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = isId, Flags = Condition.Flag.OR });
+                        var isId = new GetIsIDConditionData(); isId.Object.Link.SetTo(Hall(who[w]).FormKey);
+                        a.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = isId, Flags = w < who.Length - 1 ? Condition.Flag.OR : 0 });
                     }
                     // "sitting": both seated (Marius and Willem's chair: they sit together);
                     // GetSitting 3 = sitting
@@ -4050,6 +4131,59 @@ if (merge)
 }
 next = Math.Max(next, hairNext);
 next = Math.Max(next, topNext);
+// The lived-in pass (2026-11-17): each staff member's and resident's trunk holds a little of their own, from their bios, in a
+// container of its own (the hall's chest duplicated: never respawning, owned as the chest is); the guild's and the player's
+// chests (bunks 6-8) stay on the shared empty one. Caralion's keeps the Cloudrest set, lock, key and persistence, and gains a
+// few things after it (his ambush moves only the four Cloudrest pieces). Own IDs (0x2200 here, 0x9A00 merged), after every other
+// block, so no other record's ID moves.
+InIds(0x2200u, 0x2240u, "the trunks", () =>
+{
+    ContainerEntry E<T>(string ed, int n = 1) where T : class, IItemGetter, IMajorRecordGetter
+        => new ContainerEntry { Item = new ContainerItem { Item = new FormLink<IItemGetter>(Ed<T>(ed).FormKey), Count = n } };
+    var trunks = new (string Chest, string Ed, ContainerEntry[] Items)[] {
+        ("AGHallChestRoom3b", "AGHallTrunkNessa", new[] { E<IArmorGetter>("ClothesFarmClothes03"), E<IArmorGetter>("ClothesFarmBoots02"),
+            E<IAmmunitionGetter>("IronArrow", 24), E<IMiscItemGetter>("Gold001", 100) }),       // her first job's kit; the fee, saved
+        ("AGHallChestRoom3", "AGHallTrunkMargot", new[] { E<IArmorGetter>("ClothesFineClothes02"), E<IArmorGetter>("ClothesFineBoots01"),
+            E<IIngredientGetter>("Lavender", 3), E<IIngredientGetter>("ElvesEar", 2), E<IMiscItemGetter>("Gold001", 60) }),   // the good dress; her mother's herbs
+        ("AGHallChestRoom4", "AGHallTrunkMerila", new[] { E<IIngestibleGetter>("DLC2Sujamma"), E<IMiscItemGetter>("Quill01", 2),
+            E<IMiscItemGetter>("PaperRoll", 3), E<IArmorGetter>("ClothesFarmClothes01"), E<IMiscItemGetter>("Gold001", 40) }),   // sujamma for bad days
+        ("AGHallChestRoom7", "AGHallTrunkBrynja", new[] { E<IArmorGetter>("ClothesFarmClothes02"), E<IArmorGetter>("ClothesFineClothes01"),
+            E<IWeaponGetter>("IronDagger"), E<IMiscItemGetter>("Gold001", 75) }),            // two dresses, a farm knife, her savings
+        ("AGHallChestRoom6", "AGHallTrunkHenriette", new[] { E<IArmorGetter>("ClothesFarmClothes04"), E<IIngredientGetter>("SaltPile", 3),
+            E<IMiscItemGetter>("Gold001", 30) }),
+        ("AGHallChestBunk1", "AGHallTrunkGhrulek", new[] { E<IMiscItemGetter>("IngotOrichalcum", 3), E<IIngestibleGetter>("FoodMead", 3),
+            E<IMiscItemGetter>("Gold001", 50) }),
+        ("AGHallChestBunk2", "AGHallTrunkYlva", new[] { E<IAmmunitionGetter>("SteelArrow", 30), E<IMiscItemGetter>("WolfPelt", 2),
+            E<IMiscItemGetter>("Gold001", 150) }),                                           // so she never sleeps in the snow again
+        ("AGHallChestBunk3", "AGHallTrunkZhasim", new[] { E<IMiscItemGetter>("Lockpick", 6), E<IMiscItemGetter>("PaperRoll", 2),
+            E<IMiscItemGetter>("Gold001", 40) }),
+        ("AGHallChestBunk4", "AGHallTrunkMarius", new[] { E<IArmorGetter>("ArmorImperialShield"), E<IMiscItemGetter>("Gold001", 120) }),   // his card winnings
+        ("AGHallChestBunk5", "AGHallTrunkCassius", new[] { E<IIngestibleGetter>("WEDL03CyrodilicBrandy"), E<IMiscItemGetter>("Gold001", 70) }),
+    };
+    if (!merge) { Console.WriteLine("WARNING the trunks: only the merged build fills them; the spike plugin leaves the chests as they are"); return 0; }
+    // Henriette's: the kitchen key she kept the twenty-five years the hall stood shut (it opens nothing now; the doors were changed)
+    var kitchenKey = (Key)Ed<IKeyGetter>("RiftenSnowShodHouseKey").Duplicate(NewKey());
+    kitchenKey.EditorID = "AGHallHenrietteKitchenKey"; kitchenKey.Name = "Old Kitchen Key"; kitchenKey.VirtualMachineAdapter = null;
+    mod.Keys.Add(kitchenKey);
+    var hallObjs = mod.Cells.Records.SelectMany(b => b.SubBlocks).SelectMany(s => s.Cells).Where(c => hallCells.Contains(c.FormKey))
+        .SelectMany(c => c.Persistent.Concat(c.Temporary).OfType<PlacedObject>()).ToList();
+    foreach (var (chest, ed, items) in trunks)
+    {
+        if (!hallRefs.TryGetValue(chest, out var cr)) throw new Exception($"the trunks: no chest named {chest} in the hall");
+        var box = (Container)cache.Resolve<IContainerGetter>(cr.Base.FormKey).Duplicate(NewKey());
+        box.EditorID = ed; box.Flags &= ~Container.Flag.Respawns; box.Items = new(items);
+        if (ed == "AGHallTrunkHenriette")
+            box.Items.Add(new ContainerEntry { Item = new ContainerItem { Item = new FormLink<IItemGetter>(kitchenKey.FormKey), Count = 1 } });
+        mod.Containers.Add(box);
+        hallObjs.First(o => o.FormKey == cr.FormKey).Base.SetTo(box.FormKey);
+    }
+    // Caralion's: what his family's money buys, after the Cloudrest set
+    var cBox = mod.Containers.FirstOrDefault(c => c.EditorID == "AGHallCaralionChest");
+    if (cBox is null) throw new Exception("the trunks: Caralion's chest (AGHallCaralionChest) is not in this build");
+    cBox.Items!.Add(E<IArmorGetter>("ClothesFineClothes01")); cBox.Items.Add(E<IArmorGetter>("JewelryRingSilver"));
+    cBox.Items.Add(E<IMiscItemGetter>("Gold001", 200));
+    return 0;
+});
 // The header's next ID is past every record the plugin holds: sections in fixed blocks (InIds: the about questions at
 // merged 0x9000, the trials at 0x9800) reset `next` behind them, so `next` alone left it at 0x8FE7, inside those blocks,
 // where xEdit or the CK would hand out colliding IDs (AG Detail Work, 2026-11-05).
@@ -4071,6 +4205,106 @@ foreach (var (lqData, qed, info) in lateQuests)
     if (q != null) lqData.Quest.Link.SetTo(q.FormKey);
     else { info.Conditions.RemoveAll(c => c.Data == lqData); Console.WriteLine($"whileOpen: {qed} is not in this build; {info.EditorID} shows without it"); }
 }
+// Marius's idles while he watches practice (marius_training.json "watch"): said to himself at his post (within "near" of
+// AGHallTrainWatchMarker), and only while a trainee of that pool is at it: melee while one of the "train" packages runs
+// (the dummies), archery while one of the "archery" packages runs (the targets). Checking the trainee's package, not the
+// clock, keeps him quiet beside an empty stand (a resident away on a contract or out with the player). A practice block
+// whose stand or target the hall has not placed is leisure under its name, so it does not count. One RANDOM group per
+// pool, ahead of his first record in the idle topic, each line at its own chance ("chance"). Own IDs (0x2240 here, 0x9A40 merged), after
+// the trunks, so no other record's ID moves; held out until every voice file is in.
+var mtJson = JsonDocument.Parse(File.ReadAllText(Path.Combine(npcsDir, "marius_training.json"))).RootElement;
+if (mtJson.TryGetProperty("watch", out var mtWatch))
+InIds(0x2240u, 0x2280u, "Marius's practice idles", () =>
+{
+    const string vet = "AGHallResidentVeteran";
+    var idleT = mod.DialogTopics.FirstOrDefault(t => t.EditorID == "AGHallClerkTopicIdle");
+    var post = hallNamed.TryGetValue("AGHallTrainWatchMarker", out var pm) ? pm : (FormKey?)null;
+    var wLines = new List<(string Key, string Npc, uint Id, string Text, string Topic)>();
+    var groups = new List<List<DialogResponses>>();
+    var wIds = mtWatch.GetProperty("ids").EnumerateArray().Select(x => x.GetString()!).ToList();
+    foreach (var (pool, kind) in new[] { ("melee", "train"), ("archery", "archery") })
+    {
+        // the practice packages of this kind whose stand and target are both placed (as the walk down's own test)
+        var practice = new List<(string Npc, FormKey Pkg)>();
+        foreach (var n in sched.GetProperty("npcs").EnumerateObject())
+        {
+            var bi = 0;
+            foreach (var b in n.Value.GetProperty("blocks").EnumerateArray())
+            {
+                bi++;
+                if (b.GetProperty("do").GetString() != kind) continue;
+                if (!hallNamed.ContainsKey(b.GetProperty("where").GetString()!) || !b.TryGetProperty("target", out var tg) || !hallNamed.ContainsKey(tg.GetString()!)) continue;
+                var ed = $"{n.Name}Pkg{bi:00}{char.ToUpper(kind[0])}{kind[1..]}{b.GetProperty("at").GetInt32():00}";
+                practice.Add((n.Name, mod.Packages.First(p => p.EditorID == ed).FormKey));
+            }
+        }
+        var lines = mtWatch.GetProperty(pool).EnumerateObject().ToList();
+        var infos = new List<DialogResponses>();
+        for (var k = 0; k < lines.Count; k++)
+        {
+            // (each line's ID from its place in "ids", append-only: a line added to either pool moves no recorded line's ID,
+            // which names its voice file)
+            var at_ = wIds.IndexOf(lines[k].Name);
+            if (at_ < 0) throw new Exception($"marius_training.json: {lines[k].Name} is not in watch.ids");
+            var info = new DialogResponses(Key(0x2240u + (uint)at_), SkyrimRelease.SkyrimSE)
+            {
+                EditorID = $"AGHallInfo_{vet}_{lines[k].Name}",
+                Flags = new DialogResponseFlags { Flags = DialogResponses.Flag.Random | (k == lines.Count - 1 ? DialogResponses.Flag.RandomEnd : 0), ResetHours = (float)mtWatch.GetProperty("reset").GetDouble() },
+            };
+            info.Responses.Add(new DialogResponse { Text = lines[k].Value.GetString()!, Emotion = Emotion.Neutral, EmotionValue = 50, ResponseNumber = 1 });
+            infos.Add(info);
+            wLines.Add(($"{vet}:{lines[k].Name}", vet, info.FormKey.ID, lines[k].Value.GetString()!, "AGHallClerkTopicIdle"));
+        }
+        if (practice.Count == 0) { Console.WriteLine($"WARNING Marius's {pool} practice idles: no {kind} block has its stand and target placed; they never play"); continue; }
+        foreach (var info in infos)
+        {
+            foreach (var c in At(Hall(vet)).Concat(Idling(vet)))
+            {
+                var cc = (Condition)c.DeepCopy();
+                // the hall's idle rate is for pools that run all day; these run only while someone practises, so a rate of their own
+                if (cc.Data is GetRandomPercentConditionData && cc is ConditionFloat cf) cf.ComparisonValue = (float)mtWatch.GetProperty("chance").GetDouble();
+                info.Conditions.Add(cc);
+            }
+            if (post is { } p)
+            {
+                var wNear = new GetDistanceConditionData(); wNear.Target.Link.SetTo(p);
+                info.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.LessThan, ComparisonValue = (float)mtWatch.GetProperty("near").GetDouble(), Data = wNear });
+            }
+            // (one OR group, last: the engine joins a run of OR-flagged conditions with the one after it, then ANDs that with the rest)
+            for (var j = 0; j < practice.Count; j++)
+            {
+                var d = new GetIsCurrentPackageConditionData { RunOnType = Condition.RunOnType.Reference };
+                d.Reference.SetTo(cell.Persistent.OfType<PlacedNpc>().First(r => r.EditorID == practice[j].Npc + "Ref").FormKey);
+                d.Package.Link.SetTo(practice[j].Pkg);
+                info.Conditions.Add(new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 1, Data = d, Flags = j < practice.Count - 1 ? Condition.Flag.OR : 0 });
+            }
+        }
+        groups.Add(infos);
+    }
+    CheckTakes(wLines.Select(l => (l.Key, l.Id)));
+    var missing = wLines.Count(l => !File.Exists(Path.Combine(npcsDir, "build", "Sound", "Voice", "AdventurersGuild - Guild Hall.esp", VoiceOf(l.Npc),
+        $"{clerkQuest.EditorID![..Math.Min(clerkQuest.EditorID!.Length, 10)]}_{l.Topic[..Math.Min(l.Topic.Length, 15)]}_{(l.Id >= 0x8000 ? l.Id : idBase + l.Id):X8}_1.fuz".ToLowerInvariant())));
+    if (post == null || idleT == null)
+        Console.WriteLine($"WARNING Marius's practice idles held out: {(post == null ? "the hall has no AGHallTrainWatchMarker" : "the staff lines are not in this build")}");
+    else if (missing > 0 && Environment.GetEnvironmentVariable("AG_STAFF_BUILD") != "1")
+        Console.WriteLine($"WARNING Marius's practice idles held out of this build: {missing} of {wLines.Count} voice files not in build/Sound yet");
+    else
+    {
+        // ahead of his first record in the topic (his board idles, then his own), keeping the PreviousDialog chain
+        var made = groups.SelectMany(g => g).ToList();
+        var at = idleT.Responses.ToList().FindIndex(r => (r.EditorID ?? "").StartsWith($"AGHallInfo_{vet}_"));
+        if (at < 0) throw new Exception($"Marius's practice idles: he has no idle in {idleT.EditorID} to go ahead of");
+        var prev = at > 0 ? idleT.Responses[at - 1].FormKey : (FormKey?)null;
+        foreach (var i in made) { i.PreviousDialog = prev is { } pv ? new FormLinkNullable<IDialogResponsesGetter>(pv) : new FormLinkNullable<IDialogResponsesGetter>(); prev = i.FormKey; }
+        idleT.Responses[at].PreviousDialog = new FormLinkNullable<IDialogResponsesGetter>(prev!.Value);
+        for (var k = 0; k < made.Count; k++) idleT.Responses.Insert(at + k, made[k]);
+        Console.WriteLine($"Marius's practice idles: {string.Join(", ", groups.Select(g => g.Count))} (melee, archery)");
+    }
+    if (merge) File.WriteAllText(Path.Combine(npcsDir, "build", "marius_watch_lines.json"), JsonSerializer.Serialize(wLines.Select(l => new { key = l.Key, npc = l.Npc,
+        voice = VoiceOf(l.Npc), info = $"{l.Id:X8}", quest = clerkQuest.EditorID, topic = l.Topic, text = l.Text }), new JsonSerializerOptions { WriteIndented = true }));
+    return 0;
+});
+
 mod.WriteToBinary(outPath, new BinaryWriteParameters { ModKey = ModKeyOption.CorrectToPath, MastersListContent = MastersListContentOption.Iterate, MastersListOrdering = new MastersListOrderingByLoadOrder(loadOrder) });
 // Start-game-enabled quests that own dialogue must be listed in SEQ/<plugin>.seq or their topics can fail to appear
 // (AG's EspGen, the same format: uint32 FormIDs as stored in the plugin, the top byte the plugin's own index = its
@@ -4087,3 +4321,6 @@ using (var written = SkyrimMod.CreateFromBinaryOverlay(outPath, SkyrimRelease.Sk
 }
 File.WriteAllText(Path.Combine(outDir, "recipes.json"), JsonSerializer.Serialize(new { seed, recipes }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"wrote {outPath}{(merge ? " (merged into the hall's plugin)" : "")}: {mod.Npcs.Count} NPCs, {placed} placed (next ID {mod.ModHeader.Stats.NextFormID:X}); pools: Imperial women {Pool("ImperialRace", true).Count}, bearded Nord men {Pool("NordRace", false, true).Count}");
+
+// a clerk line's version for the Solitude site (RandomGroup)
+record SiteTwin(int Of, string Text, string? UnlessDone);

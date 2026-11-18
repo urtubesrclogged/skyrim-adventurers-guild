@@ -22,6 +22,7 @@
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <deque>
@@ -29,6 +30,9 @@
 #include <fstream>
 #include <functional>
 #include <map>
+#include <mutex>
+#include <optional>
+#include <queue>
 #include <set>
 #include <thread>
 
@@ -58,8 +62,11 @@ namespace
 	Ours g_ours;
 	bool g_infoLinks = true;   // step 4 (OutdoorSettings)
 
+	std::mutex g_oursLock;   // (Load runs on the main thread for the fit, and on a Papyrus thread for StairFoot)
+
 	void Load()
 	{
+		std::scoped_lock l(g_oursLock);
 		if (g_ours.ok) return;
 		std::ifstream in(kFile);
 		if (!in) { g_ours.why = std::format("no {}", kFile); return; }
@@ -992,6 +999,56 @@ namespace
 			SKSE::log::info("outdoor navmesh carve: {} ground triangle(s) carved, {} re-triangulated beside them; {} part(s) kept, {} dropped",
 				touched.size(), res.size() - touched.size(), keptParts, dropped);
 
+		// ---- 1c. the cell borders joined again. Where the carve re-cut the triangles on BOTH sides of a cell border (two navmeshes),
+		//      each side's portal named the other's old triangle, which the carve had replaced, and both were let go: the road under
+		//      site B's bridge crosses the border between 0009BA3F and 0009BA64 right under the deck, and lost its only link there, a
+		//      437-unit edge open on both sides (read from the running game 2026-11-17; followers went 4000 round). Every live ground
+		//      edge left open on a cell border is joined to the open edge in another navmesh with the same two ends.
+		{
+			constexpr float kTol = 2.0f;
+			auto onBorder = [](float v) { const float r = v - std::round(v / 4096.0f) * 4096.0f; return std::abs(r) < 0.5f; };
+			struct Open { Mesh* mm; std::uint16_t t; int e; RE::NiPoint3 a, b; bool used = false; };
+			std::vector<Open> open;
+			for (auto& mm : g_app.meshes) {
+				auto& m = *mm.m;
+				for (std::size_t i = 0; i < m.triangles.size(); ++i) {
+					const auto& t = m.triangles[i];
+					if (t.triangleFlags.any(TriFlag::kDeleted)) continue;
+					for (int e = 0; e < 3; ++e) {
+						if (t.triangles[e] != kNone) continue;
+						const auto& A = m.vertices[t.vertices[e]].location;
+						const auto& B = m.vertices[t.vertices[(e + 1) % 3]].location;
+						if (std::hypot(A.x - site.x, A.y - site.y) > 4500) continue;
+						const bool alongX = onBorder(A.y) && onBorder(B.y) && std::abs(A.y - B.y) < 0.5f;
+						const bool alongY = onBorder(A.x) && onBorder(B.x) && std::abs(A.x - B.x) < 0.5f;
+						if (!alongX && !alongY) continue;
+						open.push_back({ &mm, static_cast<std::uint16_t>(i), e, A, B });
+					}
+				}
+			}
+			auto same = [&](const RE::NiPoint3& p, const RE::NiPoint3& q) { return std::abs(p.x - q.x) < kTol && std::abs(p.y - q.y) < kTol && std::abs(p.z - q.z) < 48.0f; };
+			int rejoined = 0;
+			std::string left;
+			for (auto& o : open) {
+				if (o.used) continue;
+				for (auto& p : open) {
+					if (p.used || &p == &o || p.mm->id == o.mm->id) continue;
+					if (!same(o.a, p.b) || !same(o.b, p.a)) continue;
+					Touch(o.mm->nm, o.t); Touch(p.mm->nm, p.t);
+					linkTo(o.mm, o.t, o.e, p.mm, p.t, p.e);
+					linkTo(p.mm, p.t, p.e, o.mm, o.t, o.e);
+					o.used = p.used = true;
+					++rejoined;
+					break;
+				}
+			}
+			for (const auto& o : open)
+				if (!o.used && std::hypot(o.a.x - o.b.x, o.a.y - o.b.y) >= 32.0f && !blocked((o.a + o.b) * 0.5f))
+					left += std::format("{}{} #{} ({:.0f}, {:.0f})-({:.0f}, {:.0f})", left.empty() ? "" : "; ", Hex(o.mm->id), o.t, o.a.x, o.a.y, o.b.x, o.b.y);
+			SKSE::log::info("outdoor navmesh: {} cell-border edge pair(s) the carve had let go joined again{}", rejoined,
+				left.empty() ? std::string() : "; still open on a border outside the outline: " + left);
+		}
+
 		// ---- 2. hosts: one per cell
 		std::map<std::pair<int, int>, Mesh*> host;
 		for (auto& mm : g_app.meshes) {
@@ -1819,6 +1876,54 @@ namespace Nav
 		return std::format("outdoor navmesh: not in ({} triangles read; waiting for the hall's {} cells{})", g_ours.tris.size(), g_ours.cells.size(), g_swapGaveUp ? "; given up until the next cell load" : "");
 	}
 	void OutdoorSetInfoLinks(bool a_on) { g_infoLinks = a_on; }
+
+	// The stair foot a door's landing leads down to: our mesh walked from the triangle at the landing nearest a_out (the
+	// shortest path over our own links), the foot with the shortest path wins; none reached, the nearest foot. Read from the
+	// file only: nothing of the hall need be placed.
+	std::optional<std::array<float, 3>> StairFoot(const RE::NiPoint3& a_out, std::string& a_why)
+	{
+		Load();
+		if (!g_ours.ok) { a_why = "outdoor navmesh file: " + g_ours.why; return std::nullopt; }
+		if (g_ours.feet.empty() || g_ours.anchors.empty() || g_ours.tris.empty()) { a_why = "outdoor navmesh file: no stair feet or door landings"; return std::nullopt; }
+		std::vector<RE::NiPoint3> centre;
+		for (const auto& t : g_ours.tris) centre.push_back((g_ours.verts[t[0]] + g_ours.verts[t[1]] + g_ours.verts[t[2]]) / 3.0f);
+		auto nearest = [&](const RE::NiPoint3& p) {   // (a slope's height counts half: the landing's own triangle, not one under it)
+			std::size_t best = 0;
+			double      bd = 1e18;
+			for (std::size_t i = 0; i < centre.size(); ++i)
+				if (const double d = std::hypot(centre[i].x - p.x, centre[i].y - p.y) + std::abs(centre[i].z - p.z) * 0.5; d < bd) { bd = d; best = i; }
+			return best;
+		};
+		const auto& landing = *std::ranges::min_element(g_ours.anchors, {}, [&](const RE::NiPoint3& a) { return std::hypot(a.x - a_out.x, a.y - a_out.y); });
+		std::vector<double> dist(centre.size(), 1e18);
+		using Item = std::pair<double, std::size_t>;
+		std::priority_queue<Item, std::vector<Item>, std::greater<>> q;
+		const auto start = nearest(landing);
+		dist[start] = 0;
+		q.push({ 0.0, start });
+		while (!q.empty()) {
+			const auto [d, u] = q.top();
+			q.pop();
+			if (d > dist[u]) continue;
+			for (int e = 3; e < 6; ++e) {
+				const int v = g_ours.tris[u][e];
+				if (v < 0 || static_cast<std::size_t>(v) >= centre.size()) continue;
+				if (const double w = d + centre[u].GetDistance(centre[v]); w < dist[v]) { dist[v] = w; q.push({ w, static_cast<std::size_t>(v) }); }
+			}
+		}
+		std::size_t best = 0;
+		double      bestPath = 1e18, bestStraight = 1e18;
+		for (std::size_t f = 0; f < g_ours.feet.size(); ++f) {
+			const auto&        ft = g_ours.feet[f];
+			const RE::NiPoint3 F{ static_cast<float>(ft[0]), static_cast<float>(ft[1]), static_cast<float>(ft[2]) };
+			const double       path = dist[nearest(F)], straight = std::hypot(F.x - a_out.x, F.y - a_out.y);
+			if (path < bestPath || (bestPath >= 1e18 && path >= 1e18 && straight < bestStraight)) { best = f; bestPath = path; bestStraight = straight; }
+		}
+		const auto& ft = g_ours.feet[best];
+		SKSE::log::info("Hall: stair foot {} for the landing at ({:.0f}, {:.0f}): {}", best, landing.x, landing.y,
+			bestPath < 1e18 ? std::format("{:.0f} along our mesh", bestPath) : std::format("none reached, the nearest ({:.0f} away)", bestStraight));
+		return std::array<float, 3>{ static_cast<float>(ft[0]), static_cast<float>(ft[1]), static_cast<float>(ft[2]) };
+	}
 	// the diagnostic (AGHallNative.OutdoorNav): "status" (the swap, entry by entry) or "watch" (60 s of navmesh counts in the log),
 	// run on the main thread; "last" answers with the latest result. Nothing runs unless called.
 	std::string g_navLast = "nothing run yet";

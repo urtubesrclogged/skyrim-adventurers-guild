@@ -57,7 +57,7 @@ Keys stay the same (SkyrimNet syncs the pack by key); titles and text change.
 
 **ag_basics** ("The Adventurers Guild"): replace the sentence about having no guildhall with:
 
-> Its home in Skyrim is the Guild Hall on the road above Riverwood, the one hall the Guild keeps in the province, where
+> Its home in Skyrim is the Guild Hall on the road next to Riverwood, the one hall the Guild keeps in the province, where
 > its Guild Master grants promotions and its members eat, train and sleep between jobs. Every hold capital's inn keeps a
 > Guild counter too, where the innkeeper signs up newcomers, buys the trophies of a good hunt and takes reports, and the
 > Guild's jobs go up on the hold's missive board.
@@ -66,7 +66,7 @@ Keys stay the same (SkyrimNet syncs the pack by key); titles and text change.
 
 > Each province has one central hall of the Adventurers Guild. When the Guild came to Skyrim in 4E 168, under a charter from Titus Mede II in the year of his crowning, the Jarls would
 > grant no land inside their capitals to an Imperial-chartered guild, and the Companions claimed the cities' glory. High
-> King Istlod settled it: one hall, outside the hold capitals, on the road above Riverwood, and a counter in each
+> King Istlod settled it: one hall, outside the hold capitals, on the road next to Riverwood, and a counter in each
 > capital's inn. The hall's first company marched to the Great War as Legion auxiliaries and few came home; the hall stood
 > shut for twenty-five years while the counters kept the Guild alive. Willem, a retired A-rank and one of the six who came
 > back, reopened it in 4E 200.
@@ -80,7 +80,7 @@ The registration change in the hall's backlog (players register at the hall, not
 the innkeepers who keep a counter, and the hall folk themselves (the targets are settled at integration, when the hall
 has its own faction).
 
-> The Guild Hall above Riverwood is run by its Guild Master, Willem, a scarred Nord and retired A-rank who came home from
+> The Guild Hall next to Riverwood is run by its Guild Master, Willem, a scarred Nord and retired A-rank who came home from
 > the Great War with the hall's first company and reopened the hall a year ago. Merila Andalen, a Dunmer, is his
 > assistant and keeps the hall's records and library. Two Breton clerks keep the Guild counter: brisk Margot Belleau by
 > day and young Nessa in the evening, and after midnight the barkeeper, Cassius Varro, an Imperial who hears every
@@ -97,7 +97,7 @@ resolves editor IDs against the vanilla masters today, so it needs the hall's pl
 
 | npc | rank | registered | note (their SkyrimNet bio line) |
 |---|---|---|---|
-| Willem | A, retired | 4E 168 | Guild Master of the hall above Riverwood; a retired A-rank who reopened the hall |
+| Willem | A, retired | 4E 168 | Guild Master of the hall next to Riverwood; a retired A-rank who reopened the hall |
 | Marius Crassus | A, retired | 4E 168 | the first company's sergeant; retired, lives in the hall's attic |
 | Ylva | B | 4E 193 | the hall's ranger; takes the monster hunts no one else will |
 | Ghrulek | C | 4E 197 | Orc warrior, lives in the hall's attic; half his pay goes to his stronghold |

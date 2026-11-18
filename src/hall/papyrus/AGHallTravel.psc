@@ -22,11 +22,16 @@ Function Travel(ObjectReference akTarget)
 	Actor[] party = new Actor[16]
 	int n = 0
 	int k = 0
+	String moved = ""
+	String waiting = ""
 	While k < found.Length && n < 16
 		Actor a = found[k]
 		If a && a.GetActorValue("WaitingForPlayer") <= 0.0
 			party[n] = a
 			n += 1
+			moved += " " + a.GetDisplayName() + ";"
+		ElseIf a
+			waiting += " " + a.GetDisplayName() + ";"
 		EndIf
 		k += 1
 	EndWhile
@@ -42,7 +47,7 @@ Function Travel(ObjectReference akTarget)
 		party[j].MoveTo(akTarget, RotX(lx, ly, ang), RotY(lx, ly, ang), 0.0)
 		j += 1
 	EndWhile
-	Debug.Trace("AGHallTravel: moved the player and " + n + " teammate(s) to " + akTarget + " (" + found.Length + " found)")
+	Debug.Trace("AGHallTravel: moved the player and " + n + " teammate(s) to " + akTarget + " (" + found.Length + " found; moved:" + moved + " waiting:" + waiting + ")")
 EndFunction
 
 Function GoInTo(ObjectReference akTarget)
@@ -64,12 +69,22 @@ Function GoOut()
 EndFunction
 
 ; out through the outside door of record akDoorBase (the one the DLL placed): 120 in front of it, facing away, whichever
-; door the player came in by. The doors' outside is their local -y. None placed: as GoOut.
+; door the player came in by. The doors' outside is their local -y. None placed: as GoOut, and with no way back known either
+; (a save that never built the hall, the player brought in by a teleport) by the foot of that door's stair: the hall is
+; placed once its cells load round the player, and then they are moved on to its door.
 Function GoOutVia(Form akDoorBase)
 	ObjectReference d = AGHallNative.HallRef(akDoorBase)
-	If !d
+	If !d && OutMarker
 		GoOut()
 		Return
+	ElseIf !d
+		If !ToStairFoot(akDoorBase)
+			Return
+		EndIf
+		d = WaitForDoor(akDoorBase)
+		If !d
+			Return                                ; not placed in time: they stay on the land at the stair's foot
+		EndIf
 	EndIf
 	; (the first exit by the back door turned them round to face it, later ones did not) the first
 	; time, the marker comes from far off (the front door, where GoInTo left it), and the door's turn that MoveTo gave it
@@ -82,4 +97,41 @@ Function GoOutVia(Form akDoorBase)
 	OutMarker.MoveTo(d, RotX(0.0, -120.0, a), RotY(0.0, -120.0, a), 20.0, false)
 	OutMarker.SetAngle(0.0, 0.0, a + 180.0)
 	Travel(OutMarker)
+EndFunction
+
+; the foot of akDoorBase's stair, on the land, facing up it (the forecourt and steps are the hall's own pieces: nothing to stand
+; on before it is placed). The marker gets there by an offset from a persistent reference: the cell is not loaded yet
+bool Function ToStairFoot(Form akDoorBase)
+	float[] f = AGHallNative.HallWayOut(akDoorBase)
+	If f.Length < 4
+		Return false
+	EndIf
+	ObjectReference anchor = AGHallNative.HallAnchor(f[0], f[1])
+	If !anchor
+		Return false
+	EndIf
+	If !OutMarker
+		OutMarker = PlayerRef.PlaceAtMe(MarkerBase, 1, true, false)
+	EndIf
+	OutMarker.SetAngle(0.0, 0.0, f[3])
+	OutMarker.MoveTo(anchor, f[0] - anchor.GetPositionX(), f[1] - anchor.GetPositionY(), f[2] + 50.0 - anchor.GetPositionZ(), false)
+	OutMarker.SetAngle(0.0, 0.0, f[3])
+	Travel(OutMarker)
+	Return true
+EndFunction
+
+; the outside door, once the DLL has placed it and its model is in (up to 10 s of game time), or None
+ObjectReference Function WaitForDoor(Form akDoorBase)
+	int i = 0
+	While i < 40
+		ObjectReference d = AGHallNative.HallRef(akDoorBase)
+		If d && d.Is3DLoaded()
+			Utility.Wait(0.5)                     ; the stonework round it, placed in the same pass, settles too
+			Return d
+		EndIf
+		Utility.Wait(0.25)
+		i += 1
+	EndWhile
+	Debug.Trace("AGHallTravel: " + akDoorBase + " was not placed within 10 s of reaching its stair foot")
+	Return None
 EndFunction

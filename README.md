@@ -75,7 +75,7 @@ Works in Skyrim VR and in regular Skyrim Special Edition.
 - **4E 17**: Emperor Titus Mede I charters the Adventurers Guild in the Imperial City, the year he takes the Ruby
   Throne. Its records are kept at the Wayfarers' Hall, where the Registrar-General ranks adventurers.
 - **4E 168**: Titus Mede II, crowned that year, grants the Guild its charter in Skyrim. High King Istlod gives it one
-  hall, outside the hold capitals, on the road above Riverwood, and a counter in each hold capital's inn. The hall's
+  hall, outside the hold capitals, on the road next to Riverwood, and a counter in each hold capital's inn. The hall's
   first company, about forty strong, moves in that spring.
 - **4E 171**: The Great War begins.
 - **4E 174**: The Legion calls up the Guild as auxiliaries, and the hall's company marches out together.

@@ -1462,5 +1462,173 @@
 51.48,
 51.42
 ]
+},
+"meshes/clutter/dwemer/dwarvengear.nif": {
+"lo": [
+-9.24,
+-9.24,
+-0.35
+],
+"hi": [
+9.24,
+9.24,
+0.35
+]
+},
+"meshes/clutter/ingredients/sabrecattooth.nif": {
+"lo": [
+-5.47,
+-6.4,
+-1.61
+],
+"hi": [
+5.47,
+6.4,
+1.61
+]
+},
+"meshes/clutter/common/lockpick.nif": {
+"lo": [
+-10.71,
+-0.54,
+-0.81
+],
+"hi": [
+10.72,
+0.54,
+0.81
+]
+},
+"meshes/armor/imperial/helmetfullfacegnd.nif": {
+"lo": [
+-7.79,
+-13.25,
+-0.01
+],
+"hi": [
+7.79,
+13.25,
+30.87
+]
+},
+"meshes/clutter/quest/tgdrinkinghorn.nif": {
+"lo": [
+-2.93,
+-16.03,
+0.01
+],
+"hi": [
+2.93,
+11.91,
+21.05
+]
+},
+"meshes/plants/lavender01.nif": {
+"lo": [
+-23.86,
+-7.72,
+-6.22
+],
+"hi": [
+30.39,
+7.72,
+6.22
+]
+},
+"meshes/plants/mountainflower01blue.nif": {
+"lo": [
+-3.37,
+-3.32,
+-7.27
+],
+"hi": [
+3.38,
+3.29,
+7.27
+]
+},
+"meshes/plants/mountainflower01purple.nif": {
+"lo": [
+-3.37,
+-3.32,
+-7.27
+],
+"hi": [
+3.38,
+3.29,
+7.27
+]
+},
+"meshes/clutter/meadery/meadbarrel01.nif": {
+"lo": [
+-20.0,
+-30.98,
+0.0
+],
+"hi": [
+20.0,
+20.0,
+44.3
+]
+},
+"meshes/armor/iron/male/helmetgnd.nif": {
+"lo": [
+-15.75,
+-10.6,
+-0.39
+],
+"hi": [
+15.75,
+12.32,
+17.81
+]
+},
+"meshes/armor/iron/male/bootsgnd.nif": {
+"lo": [
+-12.7,
+-13.9,
+-0.32
+],
+"hi": [
+12.7,
+13.9,
+32.15
+]
+},
+"meshes/armor/iron/male/gauntletsgnd.nif": {
+"lo": [
+-11.22,
+-15.69,
+-1.78
+],
+"hi": [
+8.89,
+14.95,
+8.61
+]
+},
+"meshes/armor/hide/hideshield.nif": {
+"lo": [
+-22.28,
+-22.1,
+-6.21
+],
+"hi": [
+22.27,
+22.28,
+2.02
+]
+},
+"meshes/weapons/iron/longsword.nif": {
+"lo": [
+-6.32,
+-11.72,
+-1.58
+],
+"hi": [
+9.94,
+63.17,
+6.94
+]
 }
 }

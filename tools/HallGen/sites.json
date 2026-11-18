@@ -1,0 +1,35 @@
+{
+ "_doc": "The Guild Hall's sites: one hall build per site (HALL_SITE=riverwood | solitude; riverwood when unset), each an installer option. place: AG_GuildHallSiteGlobal's value for it. approach: the site file (blender/). site: AG_SITE (x, y, floor, yaw). map: the map data (hall-private/). navdumps: the test installs' ground navmesh dumps the outdoor navmesh is replayed on (hall-private/). marker: the map marker on the forecourt, where fast travel lands (x, y, z, facing). door: what the hall's inside doors say they lead to (vanilla's town name where the hall stands by a town, as at Riverwood; Skyrim, as vanilla's doors out to the open land say, where it stands out in the hold, as site B north of Solitude, which is not in the city). glow: the light region its windows' night glow follows (vanilla's per town). helios: the Helios sky region its windowed cells take when Helios is loaded (as Helios gives the nearest vanilla houses: Riverwood's pine forest; at site B, in the Embassy's snowy hills, its snow).",
+ "riverwood": {
+  "place": 1,
+  "approach": "variants/site5_v4/approach_curve.json",
+  "site": "16014,-49358,568,245",
+  "map": "site/mapdata.json",
+  "navdumps": "navdumps",
+  "marker": [
+   15834.0,
+   -48962.0,
+   568.4,
+   156.3
+  ],
+  "door": "Riverwood",
+  "glow": "Skyrim.esm|0x08277B",
+  "helios": "Helios.esp|0x000E4F"
+ },
+ "solitude": {
+  "place": 2,
+  "approach": "variants/solitude_b/approach_curve.json",
+  "site": "-85912,109992,-4168,207",
+  "map": "site/mapdata_solitude.json",
+  "navdumps": "navdumps/solitude_b",
+  "marker": [
+   -86297.7,
+   110193.2,
+   -4167.6,
+   118.3
+  ],
+  "door": "Skyrim",
+  "glow": "Skyrim.esm|0x05ED99",
+  "helios": "Helios.esp|0x000E53"
+ }
+}

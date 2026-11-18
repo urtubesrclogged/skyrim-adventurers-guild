@@ -18,6 +18,8 @@
 #include "GuildHall.h"
 #include "hall/hall.h"
 #include "MissiveWatch.h"
+#include "NoticeWatch.h"
+#include "QuestBoard.h"
 #include "Loc.h"
 #include "PrismaToast.h"
 #include "RankCore.h"
@@ -110,6 +112,15 @@ namespace AG::Guild
 		// for a game that levels faster or slower than the vanilla curve. Kept per save, like the level of rank S.
 		constexpr int                kRepScaleDefault = 100, kRepScaleMin = 50, kRepScaleMax = 200;
 		std::atomic<int>             g_repScale{ kRepScaleDefault };
+		// MCM > System > Work one rank above (1.6.3): missives, notices and dungeon intel one rank above the player's are
+		// open to them too. Kept per save; a save from before it, and a game with no MCM, take [System] TakeWorkAbove.
+		std::atomic<bool>            g_workAbove{ false };
+
+		bool WorkAboveIni()
+		{
+			CSimpleIniA ini;
+			return ini.LoadFile("Data/SKSE/Plugins/AdventurersGuild.ini") >= 0 && ini.GetBoolValue("System", "TakeWorkAbove", false);
+		}
 
 		// The Reputation rank a_rank asks for in this game: guild.json's, scaled by the MCM's percent
 		int RepNeeded(int a_rank)
@@ -632,6 +643,7 @@ namespace AG::Guild
 				j["merit"] = g_merit;
 				j["reputation"] = g_reputation;
 				j["repScale"] = g_repScale.load();
+				j["workAbove"] = g_workAbove.load();
 				j["repCarry"] = g_repCarry;
 				j["regMissive"] = g_regMissiveGiven;
 				j["registeredDay"] = g_registeredDay;
@@ -720,6 +732,7 @@ namespace AG::Guild
 			LeaderBoard::Revert();
 			SetSLevel(DefaultSLevel());  // a save this mod has never been in: as a new game
 			g_repScale = kRepScaleDefault;
+			g_workAbove = WorkAboveIni();
 			g_oldRankLevels = false;
 			g_saveData = SaveData::kNone;
 			std::uint32_t type, ver, len;
@@ -744,6 +757,7 @@ namespace AG::Guild
 						g_merit = j.value("merit", 0);
 						g_reputation = j.value("reputation", 0);
 						g_repScale = std::clamp(j.value("repScale", kRepScaleDefault), kRepScaleMin, kRepScaleMax);  // absent before 1.6.3: 100
+						g_workAbove = j.value("workAbove", g_workAbove.load());  // absent before 1.6.3: the ini's
 						g_repCarry = j.value("repCarry", 0.0f);
 						g_regMissiveGiven = j.value("regMissive", false);
 						g_registeredDay = j.value("registeredDay", -1.0f);
@@ -808,6 +822,7 @@ namespace AG::Guild
 					SKSE::log::error("Guild: co-save parse error: {}; this session takes no posted job down", e.what());
 				}
 			}
+			QuestBoard::SetGateOffset(g_workAbove ? 1 : 0);
 			SKSE::log::info("Guild: co-save loaded ({})", Dump());
 			if (const auto [changed, lost] = Adventurers::TakeKeyStats(); changed || lost)
 				SKSE::log::info("Guild: saved keys - {} corrected (written by a build before 1.1.0), {} no longer found (their mod is not loaded)", changed, lost);
@@ -827,6 +842,8 @@ namespace AG::Guild
 			LeaderBoard::Revert();
 			SetSLevel(DefaultSLevel());
 			g_repScale = kRepScaleDefault;
+			g_workAbove = WorkAboveIni();
+			QuestBoard::SetGateOffset(g_workAbove ? 1 : 0);
 			g_oldRankLevels = false;
 			g_saveData = SaveData::kNone;
 		}
@@ -1050,6 +1067,8 @@ namespace AG::Guild
 		s->SetRevertCallback(OnRevert);
 	}
 
+	void RevertState() { OnRevert(nullptr); }
+
 	void OnGameLoaded()
 	{
 		// Quiet re-sync: a player who was already eligible when they saved is not "newly" ready. Announcing here
@@ -1078,6 +1097,11 @@ namespace AG::Guild
 	SaveData SaveState() { return g_saveData.load(); }
 	bool Registered() { std::lock_guard l(g_lock); return g_registered; }
 	int  Rank() { std::lock_guard l(g_lock); return g_registered ? g_rank : -1; }
+	int  WorkRank()
+	{
+		std::lock_guard l(g_lock);
+		return g_registered ? std::min(g_rank + (g_workAbove ? 1 : 0), kRankCount - 1) : -1;
+	}
 	int  Merit() { std::lock_guard l(g_lock); return g_merit; }
 	int  Reputation() { std::lock_guard l(g_lock); return g_reputation; }
 	bool PromotionReady() { std::lock_guard l(g_lock); return ReadyLocked(); }
@@ -1935,6 +1959,14 @@ namespace AG::Guild
 		}
 		CallQuestFn("PointRegistrationQuest", GuildHall::OnlyAtHall(GuildHall::Only::kRegistration));
 	}
+	void MarkRegistrationHall()
+	{
+		{
+			std::lock_guard l(g_lock);
+			if (g_registered || !g_regMissiveGiven) return;  // no quest running
+		}
+		CallQuestFn("MarkRegistrationHall");  // (AG_QuestHelper checks that objective 20 is the one shown)
+	}
 	int StampDungeons() { return g_cfg.stampDungeons; }
 	int CardReturnReputation() { return g_cfg.memberCardRep; }
 	float CardReplaceDays() { return g_cfg.memberCardDays; }
@@ -1943,6 +1975,21 @@ namespace AG::Guild
 	int  RepScale() { return g_repScale.load(); }
 	int  RepScaleDefault() { return kRepScaleDefault; }
 	void SetRepScale(int a_percent) { g_repScale = std::clamp(a_percent, kRepScaleMin, kRepScaleMax); }
+
+	bool WorkAbove() { return g_workAbove.load(); }
+	bool WorkAboveDefault() { return WorkAboveIni(); }
+	void SetWorkAbove(bool a_on)
+	{
+		if (g_workAbove.exchange(a_on) == a_on) return;  // the MCM pushes every setting on each load: only a change acts
+		SKSE::log::info("Guild: work one rank above {}", a_on ? "on" : "off");
+		SKSE::GetTaskInterface()->AddTask([a_on] {
+			QuestBoard::SetGateOffset(a_on ? 1 : 0);
+			if (!a_on) {  // what went up under the setting and was never taken comes down, as on a promotion's boards
+				MissiveWatch::WithdrawAboveRank();
+				NoticeWatch::WithdrawAboveRank();
+			}
+		});
+	}
 
 	std::string CityName(const std::string& a_city)
 	{
@@ -1995,6 +2042,7 @@ namespace AG::Guild
 		j["merit"] = g_merit;
 		j["reputation"] = g_reputation;
 		j["promotionReady"] = ReadyLocked();
+		if (g_workAbove && g_rank < kRankCount - 1) j["workRank"] = LetterStr(g_rank + 1);  // work one rank above (MCM)
 		if (g_rank < kRankCount - 1) {
 			const int next = g_rank + 1;
 			j["next"] = { { "rank", LetterStr(next) }, { "reputationShort", std::max(0, RepNeeded(next) - g_reputation) },

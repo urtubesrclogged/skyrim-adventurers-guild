@@ -91,6 +91,60 @@ namespace
 		SKSE::log::info("tint sites {}: TINC {} TINI {} TIAS {} TINV {} init {} tint {} dataload {}", a_when,
 			Hex(s.tinc, 6), Hex(s.tini, 6), Hex(s.tias, 6), Hex(s.tinv, 6), Hex(s.init, 6), Hex(s.tint, 2), Hex(s.dataload, 16));
 	}
+
+	const std::uint8_t* At(std::uintptr_t a_at) { return reinterpret_cast<const std::uint8_t*>(a_at); }
+
+	// The data-load guard's room and where its jump lands, measured from the start of the room (Face Discoloration Fix's numbers)
+	std::size_t GuardRoom() { return REL::Module::IsAE() ? 0x21 : 0x20; }
+	std::size_t GuardTarget() { return REL::Module::IsAE() ? 0x10B : 0x106; }
+
+	// The game's own code at the sites, as SE 1.5.97 and VR 1.4.15 both have it (logged on each). AE's bytes are not on record, so
+	// on AE each site is checked by the instruction it must hold: the four tint-layer reads end in a jnz rel32, the init site is a
+	// jz rel32, the tint site a jnz rel8, and the data-load room reads the NPC's tint list ([r15+260h]) and holds a jz rel32 to the
+	// place the guard jumps to. The fixed offsets inside each function come from one game build; a build whose code moved fails here,
+	// and the fix writes nothing, instead of writing into the wrong instructions.
+	std::string Unexpected(const Sites& s)
+	{
+		if (!REL::Module::IsAE()) {
+			constexpr std::array<std::uint8_t, 6> tinc{ 0x0F, 0x85, 0x98, 0x13, 0x00, 0x00 }, tini{ 0x0F, 0x85, 0x69, 0x0E, 0x00, 0x00 },
+				tias{ 0x0F, 0x85, 0xA2, 0x04, 0x00, 0x00 }, tinv{ 0x0F, 0x85, 0xEF, 0x00, 0x00, 0x00 }, init{ 0x0F, 0x84, 0xB3, 0x00, 0x00, 0x00 };
+			constexpr std::array<std::uint8_t, 2> tint{ 0x75, 0x1A };
+			constexpr std::array<std::uint8_t, 16> load{ 0x49, 0x8B, 0x87, 0x60, 0x02, 0x00, 0x00, 0x48, 0x85, 0xC0, 0x0F, 0x84, 0xF6, 0x00, 0x00, 0x00 };
+			if (!Same(s.tinc, tinc)) return "TINC";
+			if (!Same(s.tini, tini)) return "TINI";
+			if (!Same(s.tias, tias)) return "TIAS";
+			if (!Same(s.tinv, tinv)) return "TINV";
+			if (!Same(s.init, init)) return "init";
+			if (!Same(s.tint, tint)) return "tint";
+			if (!Same(s.dataload, load)) return "dataload";
+			return {};
+		}
+		const auto jcc6 = [](std::uintptr_t a, std::uint8_t op) { return At(a)[0] == 0x0F && At(a)[1] == op; };
+		if (!jcc6(s.tinc, 0x85)) return "TINC";
+		if (!jcc6(s.tini, 0x85)) return "TINI";
+		if (!jcc6(s.tias, 0x85)) return "TIAS";
+		if (!jcc6(s.tinv, 0x85)) return "TINV";
+		if (!jcc6(s.init, 0x84)) return "init";
+		if (At(s.tint)[0] != 0x75) return "tint";
+		constexpr std::array<std::uint8_t, 7> list{ 0x49, 0x8B, 0x87, 0x60, 0x02, 0x00, 0x00 };  // mov rax, [r15+260h]
+		const auto* b = At(s.dataload);
+		bool reads = false, jumps = false;
+		for (std::size_t i = 0; i + list.size() <= GuardRoom(); ++i) reads |= std::memcmp(b + i, list.data(), list.size()) == 0;
+		for (std::size_t i = 0; i + 6 <= GuardRoom(); ++i)
+			if (b[i] == 0x0F && b[i + 1] == 0x84) {
+				std::int32_t rel;
+				std::memcpy(&rel, b + i + 2, 4);
+				jumps |= static_cast<std::int64_t>(i) + 6 + rel == static_cast<std::int64_t>(GuardTarget());
+			}
+		return reads && jumps ? std::string{} : "dataload";
+	}
+
+	// already patched the way this fix patches (Face Discoloration Fix writes the same bytes)
+	bool Patched(const Sites& s)
+	{
+		return Same(s.tinc, kNop6) && Same(s.tini, kNop6) && Same(s.tias, kNop6) && Same(s.tinv, kNop6) && Same(s.init, kJcc6ToJmp) &&
+		       Same(s.tint, kNop2);
+	}
 }
 
 namespace
@@ -140,19 +194,37 @@ namespace AG::Faces
 {
 	void InstallTint()
 	{
-		const auto sites = Find();
-		LogBytes(sites, "before");  // the original bytes, kept in the log so each runtime's are on record
+		// the original bytes, kept in the log so each runtime's are on record (other plugins may not have loaded yet)
+		LogBytes(Find(), "at load");
+		g_tint = "waiting for every SKSE plugin to load";
+	}
 
+	// After every SKSE plugin has loaded (Face Discoloration Fix patches inside its own load) and before the game reads any
+	// plugin. What is in the game's code decides, not which files are installed: an installed Face Discoloration Fix built for
+	// another game version patches nothing, and stepping aside for its file alone left the hall's people with dark faces.
+	void ApplyTint()
+	{
+		const auto sites = Find();
+		LogBytes(sites, "after every plugin loaded");
+		const auto ver = REL::Module::get().version().string(".");
 		std::error_code ec;
 		const bool fdfFile = std::filesystem::exists("Data/SKSE/Plugins/FaceGenFixes.dll", ec);
 		const bool fdfLoaded = GetModuleHandleW(L"FaceGenFixes.dll") != nullptr;
-		const bool patched = Same(sites.tinc, kNop6) && Same(sites.tint, kNop2);
-		if (fdfFile || fdfLoaded || patched) {
-			g_tint = std::format("stepped aside: Face Discoloration Fix {}{}", fdfLoaded ? "loaded" : fdfFile ? "installed" : "",
-				patched ? (fdfFile || fdfLoaded ? ", bytes already patched" : "bytes already patched") : "");
+		const auto fdf = fdfLoaded ? "Face Discoloration Fix loaded" : fdfFile ? "Face Discoloration Fix installed, not loaded" : "Face Discoloration Fix not installed";
+
+		if (Patched(sites)) {
+			g_tint = std::format("stepped aside: the game is already patched ({}) on {} {}", fdf, Runtime(), ver);
 			SKSE::log::info("tint fix {}", g_tint);
 			return;
 		}
+		if (const auto site = Unexpected(sites); !site.empty()) {
+			g_tint = std::format("NOT installed: the {} site does not hold the code the fix expects on {} {} ({}); nothing written. "
+			                     "The Guild Hall's people will have dark faces",
+				site, Runtime(), ver, fdf);
+			SKSE::log::critical("tint fix {}", g_tint);
+			return;
+		}
+		if (fdfFile || fdfLoaded) SKSE::log::warn("tint fix: {}, but the game is not patched: AG's own fix goes in", fdf);
 
 		REL::safe_write(sites.tias, kNop6.data(), kNop6.size());
 		REL::safe_write(sites.tinv, kNop6.data(), kNop6.size());
@@ -184,7 +256,7 @@ namespace AG::Faces
 		};
 		Patch patch{ reinterpret_cast<std::uintptr_t>(&CheckTint), ae };
 		patch.ready();
-		const std::size_t room = ae ? 0x21 : 0x20;
+		const std::size_t room = GuardRoom();
 		if (patch.getSize() > room) {
 			g_tint = std::format("partly installed: the data-load guard is {} bytes, room for {}", patch.getSize(), room);
 			SKSE::log::critical("tint fix {}", g_tint);
@@ -204,6 +276,23 @@ namespace AG::Faces
 		std::vector<RE::TESNPC*> ours;
 		for (auto* npc : dh->GetFormArray<RE::TESNPC>())
 			if (Ours(npc)) ours.push_back(npc);
+
+		// Whether the tint fix worked, read from the records themselves: without it the game drops an NPC's tint layers as it
+		// reads them, and a face built at run time comes out dark.
+		int kept = 0;
+		std::string each;
+		for (auto* npc : ours) {
+			const auto n = npc->tintLayers ? npc->tintLayers->size() : 0;
+			kept += n > 0;
+			const auto& q = npc->bodyTintColor;
+			each += std::format("{}{} {} (skin {},{},{})", each.empty() ? "" : "; ", npc->GetName(), n, q.red, q.green, q.blue);
+		}
+		if (!ours.empty()) {
+			if (kept) SKSE::log::info("tint layers kept by {} of {} hall NPC(s) (tint fix: {})", kept, ours.size(), g_tint);
+			else SKSE::log::critical("tint layers kept by NONE of {} hall NPC(s): their faces will be dark (tint fix: {})", ours.size(), g_tint);
+			SKSE::log::info("tint layers: {}", each);
+		}
+
 		if (!dh->LookupModByName(kHph)) {
 			g_heads = std::format("High Poly Head not loaded: {} NPC(s) keep vanilla heads", ours.size());
 			SKSE::log::info("heads: {}", g_heads);

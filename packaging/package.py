@@ -1,8 +1,9 @@
 """Builds the FOMOD archive from package.sh's staging folder (package.sh runs it; see there).
 
-  1. The hall: build/hall copied to "01 Guild Hall", less the build-only files (BUILD_ONLY).
-  2. The check against what was tested: "00 Core" + "01 Guild Hall" must not share a file, and together must equal the deployed
-     folder, byte for byte (its meta.ini and docs/ aside). Anything only in the deployed folder (a file an earlier build left there)
+  1. The halls: build/hall (Riverwood's) copied to "01 Guild Hall" and build/hall-solitude to "02 Guild Hall Solitude", less the
+     build-only files (BUILD_ONLY).
+  2. "00 Core" + each hall must not share a file; given a deployed folder (--deployed/--deployed2, optional: a release is built
+     fresh from its commit and has none), together they must equal it, byte for byte (its meta.ini and docs/ aside). Anything only in the deployed folder (a file an earlier build left there)
      or only in the package, or different, refuses: the archive would not be what was tested.
   3. Privacy: every compiled script's header (.pex) names where, by whom and on which computer it was compiled; each gets neutral
      names. Then every file but images, audio and fonts is searched for this machine's paths and the words in PRIVATE_WORDS
@@ -52,44 +53,58 @@ def scrub_pex(path):
 
 def main():
     a = argparse.ArgumentParser()
-    for k in ("stage", "hall", "deployed", "src", "fomod", "label", "version", "out"):
+    for k in ("stage", "hall", "hall2", "src", "fomod", "label", "version", "out"):
         a.add_argument("--" + k, required=True)
+    for k in ("deployed", "deployed2"):                    # (optional: a test install's folder to compare with, byte for byte)
+        a.add_argument("--" + k)
     a = a.parse_args()
-    core_dir, hall_dir = os.path.join(a.stage, "00 Core"), os.path.join(a.stage, "01 Guild Hall")
+    core_dir = os.path.join(a.stage, "00 Core")
+    HALLS = [("01 Guild Hall", a.hall, a.deployed, "Riverwood"), ("02 Guild Hall Solitude", a.hall2, a.deployed2, "Solitude")]
 
-    # 1. the hall
-    skipped = 0
-    for rel, p in files(a.hall).items():
-        if BUILD_ONLY.search(rel):
-            skipped += 1
-            continue
-        dst = os.path.join(hall_dir, rel)
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        shutil.copy2(p, dst)
-    core, hall = files(core_dir), files(hall_dir)
-    if not core or not hall:
-        sys.exit("REFUSED - the core or the hall staged nothing")
-    print(f"staged: core {len(core)} files, hall {len(hall)} files ({skipped} build-only files left out)")
+    # 1. the halls
+    core = files(core_dir)
+    if not core:
+        sys.exit("REFUSED - the core staged nothing")
+    halls = {}
+    for top, src, _, site in HALLS:
+        skipped = 0
+        for rel, p in files(src).items():
+            if BUILD_ONLY.search(rel):
+                skipped += 1
+                continue
+            dst = os.path.join(a.stage, top, rel)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy2(p, dst)
+        halls[top] = files(os.path.join(a.stage, top))
+        if not halls[top]:
+            sys.exit(f"REFUSED - the {site} hall staged nothing")
+        print(f"staged: the {site} hall {len(halls[top])} files ({skipped} build-only files left out)")
+    print(f"staged: core {len(core)} files")
 
-    # 2. against what was tested
+    # 2. against what was tested: the core with each hall, against that site's deployed folder
     bad = []
-    shared = sorted(set(k.lower() for k in core) & set(k.lower() for k in hall))
-    bad += [f"in both the core and the hall: {k}" for k in shared]
-    dep = {k: p for k, p in files(a.deployed).items() if k != "meta.ini" and not k.lower().startswith("docs/")}
-    pkg = {**core, **hall}
-    dl, pl = {k.lower(): k for k in dep}, {k.lower(): k for k in pkg}
-    bad += [f"deployed, not in the package (left by an earlier build?): {dl[k]}" for k in sorted(set(dl) - set(pl))]
-    bad += [f"in the package, not deployed: {pl[k]}" for k in sorted(set(pl) - set(dl))]
-    differ = [pl[k] for k in sorted(set(pl) & set(dl)) if digest(pkg[pl[k]]) != digest(dep[dl[k]])]
-    bad += [f"differs from the deployed file: {k}" for k in differ]
+    for top, _, deployed, site in HALLS:
+        hall = halls[top]
+        shared = sorted(set(k.lower() for k in core) & set(k.lower() for k in hall))
+        bad += [f"in both the core and the {site} hall: {k}" for k in shared]
+        if not deployed: continue                          # (a release built fresh from its commit: nothing deployed to compare with)
+        dep = {k: p for k, p in files(deployed).items() if k != "meta.ini" and not k.lower().startswith("docs/")}
+        pkg_ = {**core, **hall}
+        dl, pl = {k.lower(): k for k in dep}, {k.lower(): k for k in pkg_}
+        bad += [f"{site}: deployed, not in the package (left by an earlier build?): {dl[k]}" for k in sorted(set(dl) - set(pl))]
+        bad += [f"{site}: in the package, not deployed: {pl[k]}" for k in sorted(set(pl) - set(dl))]
+        differ = [pl[k] for k in sorted(set(pl) & set(dl)) if digest(pkg_[pl[k]]) != digest(dep[dl[k]])]
+        bad += [f"{site}: differs from the deployed file: {k}" for k in differ]
+    pkg = {**core, **{f"{top}/{k}": p for top, h in halls.items() for k, p in h.items()}}
     if bad:
         report = os.path.join(a.stage, "mismatch.txt")
         open(report, "w", encoding="utf-8").write("\n".join(bad) + "\n")
-        print(f"REFUSED - the package would not be what is deployed in {a.deployed} ({len(bad)}; all in {report}):", *bad[:40], sep="\n  ")
+        print(f"REFUSED - the package would not be what is deployed in {a.deployed} / {a.deployed2} ({len(bad)}; all in {report}):", *bad[:40], sep="\n  ")
         if len(bad) > 40:
             print(f"  ... and {len(bad) - 40} more")
         sys.exit(1)
-    print(f"matches the deployed folder: {len(pkg)} files, byte for byte")
+    print(f"matches the deployed folders: the core with each hall, {len(pkg)} files, byte for byte" if a.deployed else
+          f"the core and each hall share no file: {len(pkg)} files (built from the commit, compared with no deployed folder)")
 
     # 3. privacy
     pex = [p for k, p in pkg.items() if k.lower().endswith(".pex")]
@@ -125,10 +140,12 @@ def main():
         t = open(os.path.join(a.fomod, f), encoding="utf-8").read()
         t = t.replace("@VERSION@", a.label).replace("@MACHINE_VERSION@", a.version)
         open(os.path.join(fom, f), "w", encoding="utf-8", newline="\r\n").write(t)
+    if os.path.isdir(os.path.join(a.fomod, "images")):     # (the installer's preview images, one per choice: ModuleConfig.xml names them)
+        shutil.copytree(os.path.join(a.fomod, "images"), os.path.join(fom, "images"), dirs_exist_ok=True)
     n = 0
     tmp = a.out + ".part"
     with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
-        for top in ("fomod", "00 Core", "01 Guild Hall", "docs"):
+        for top in ("fomod", "00 Core", "01 Guild Hall", "02 Guild Hall Solitude", "docs"):
             for k, p in sorted(files(os.path.join(a.stage, top)).items()):
                 z.write(p, f"{top}/{k}")
                 n += 1

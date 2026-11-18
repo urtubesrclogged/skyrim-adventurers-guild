@@ -15,7 +15,7 @@
 namespace AG::GuildHall
 {
 	inline constexpr const char* kBranch = "Guild Hall";
-	inline constexpr float       kSiteX = 16014.0f, kSiteY = -49358.0f;  // where it stands in Tamriel (its cells have no location): Intel's bearings
+	// (where it stands in Tamriel is the installed hall's: Hall::SitePos(), from its layout)
 	bool IsBranch(const std::string& a_branch);
 	bool Loaded();  // the hall's plugin is in the load order
 
@@ -63,6 +63,8 @@ namespace AG::GuildHall
 	void TuneLighting();
 	void ApplyLux();     // with Lux.esp loaded: the hall's three cells on Lux's house template and image space
 	void ApplyHelios();  // with Helios.esp loaded: the hall's two windowed cells Show Sky + Use Sky Lighting on Helios_WeatherPineForest
+	void VanillaLighting();      // at kDataLoaded, after Lux and Helios: without Light Limit Fix, the hall's ambient raised
+	void SwitchVanillaLights();  // at every load: the lights that need Light Limit Fix on or off by their cells' switches
 	// The hall folk's own voice types joined to vanilla's voice lists (follower, favour, combat, marriage), at kDataLoaded, so
 	// vanilla's follower and marriage dialogue reaches them in their own voices. Only a voice of the hall's own is added (a
 	// follower still on a vanilla voice keeps vanilla's lists as they are). In the DLL, not a patch plugin (no master, no

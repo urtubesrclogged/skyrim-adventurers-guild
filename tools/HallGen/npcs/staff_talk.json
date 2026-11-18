@@ -80,6 +80,26 @@
      "lock": null
     },
     {
+     "id": "WP2b",
+     "parent": "WP2",
+     "prompt": "Why build it all the way up here?",
+     "rank": null,
+     "gate": [
+      "member"
+     ],
+     "needs": [],
+     "site": 2,
+     "ids": "1FB0",
+     "says": {
+      "AGHallGuildMaster": {
+       "": [
+        "The Guild originally wanted it down in Whiterun Hold, near Riverwood, but they never found a site that suited. So we ended up here. A little colder, but closer to the capital."
+       ]
+      }
+     },
+     "lock": null
+    },
+    {
      "id": "WP3",
      "parent": "WP0",
      "prompt": "You left out the Great War.",
@@ -837,7 +857,7 @@
      "says": {
       "AGHallCook": {
        "": [
-        "Not far. Down the hill, cooking for whoever would pay. Close enough to watch the snow pile up on this roof every winter."
+        "Not far. Just down the road, cooking for whoever would pay. Close enough to watch the snow pile up on this roof every winter."
        ]
       }
      },
@@ -846,7 +866,7 @@
     {
      "id": "HE2a",
      "parent": "HE2",
-     "prompt": "What brought you back up the hill?",
+     "prompt": "What brought you back?",
      "rank": "C",
      "gate": [
       "member"
@@ -855,7 +875,7 @@
      "says": {
       "AGHallCook": {
        "": [
-        "Nobody sent for me. I heard the doors were open, put on my good apron and walked up. Willem looked at me like he'd seen a ghost.",
+        "Nobody sent for me. I heard the doors were open, put on my good apron and walked back. Willem looked at me like he'd seen a ghost.",
         "Then he asked if I'd stay. As if I'd come for a visit."
        ]
       }
@@ -960,7 +980,7 @@
     {
      "id": "BR2",
      "parent": "BR0",
-     "prompt": "You talk about Solitude as if you've been.",
+     "prompt": "A place of your own, you said?",
      "rank": null,
      "gate": [
       "member"
@@ -969,7 +989,7 @@
      "says": {
       "AGHallServer": {
        "": [
-        "I haven't. I just like the sound of it. A city on an arch over the sea, and nobody there has ever smelled a goat. That's my kind of place."
+        "Someday. A little tavern on a good road, my own fire, and anyone who's rude to the girl with the tray drinks somewhere else."
        ]
       }
      },

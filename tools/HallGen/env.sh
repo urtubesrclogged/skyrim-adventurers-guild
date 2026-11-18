@@ -11,8 +11,22 @@ fi
 HALL_GEN="$AG_ROOT/tools/HallGen"
 HALL_PRIVATE="${HALL_PRIVATE:-$AG_ROOT/tools/hall-private}"   # (ignored: voice takes, research, the binaries made from the game's files)
 HALL_WORK="${HALL_WORK:-$AG_ROOT/build/hall-work}"              # (ignored: exports, the extracted data root, caches, logs)
-HALL_BUILD="${HALL_BUILD:-$AG_ROOT/build/hall}"                 # (ignored: the built hall, what the deploy copies)
+HALL_BUILD="${HALL_BUILD:-$AG_ROOT/build/hall}"                 # (ignored: the built hall, what the deploy copies; another site's below)
 BLENDER="${BLENDER:-blender}"
+# (2026-11-17) the site a hall build is for (sites.json): HALL_SITE=riverwood (when unset) | solitude, each an installer option.
+# Its values as HALL_SITE_*. Test installs get the Riverwood hall only; another site's is built by package.sh for the release and
+# never deployed (build.sh refuses it otherwise)
+HALL_SITE="${HALL_SITE:-riverwood}"
+eval "$(python -c "
+import json, sys
+d = json.load(open(r'$HALL_GEN/sites.json')).get('$HALL_SITE')
+if d is None: print('echo \"no site $HALL_SITE in sites.json\" >&2; exit 2'); sys.exit()
+print('HALL_SITE_PLACE=%d HALL_SITE_APPROACH=%s HALL_SITE_AG=%s HALL_SITE_MAP=%s HALL_SITE_NAVDUMPS=%s HALL_SITE_MARKER=%s HALL_SITE_DOOR=%s HALL_SITE_GLOW=%s HALL_SITE_HELIOS=%s' % (
+    d['place'], d['approach'], d['site'], d['map'], d['navdumps'], ','.join(str(v) for v in d['marker']), d['door'], repr(d['glow']), repr(d['helios'])))
+")"
+# each site's build its own folder (riverwood's build/hall, as before; solitude's build/hall-solitude), so package.sh has both
+[ "$HALL_SITE" != riverwood ] && [ "$HALL_BUILD" = "$AG_ROOT/build/hall" ] && HALL_BUILD="$AG_ROOT/build/hall-$HALL_SITE"
+[ "$HALL_SITE" != riverwood ] && { HALL_INSTALLS=""; HALL_INSTALLS_OPTIONAL=""; }   # (another site's hall: no installs at all)
 declare -A INSTALL_DIR INSTALL_EXE; INSTALL_NAMES=()
 _hall_installs() {
   local e n d x; IFS=';' read -ra _e <<< "$1"

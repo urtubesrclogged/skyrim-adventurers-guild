@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- The installer (FOMOD, schema 5.0). The core always installs; the Guild Hall page is a choice of exactly one:
-     the dedicated Guild Hall (the default), or no standalone hall, for players who have trouble with where it stands.
-     The second installs no files; it only sets the installer flag "GuildHall" to "None" (a plugin needs files or flags).
-     Nothing in the mod reads the choice: AG's DLL looks for the hall's plugin at run time.
-     package.sh builds the archive this describes: "00 Core", "01 Guild Hall" and "docs" beside this fomod folder;
-     packaging/fomod_check.py works out what each choice installs and checks it against the build. -->
+     the hall near Riverwood (the default), the hall near Solitude, or no standalone hall, for players who have trouble with
+     where it stands. Each hall is its own build of the same hall (tools/HallGen/sites.json): the same plugin and files, its
+     own site. The last installs no files; it only sets the installer flag "GuildHall" to "None" (a plugin needs files or flags).
+     Nothing in the mod reads the choice: AG's DLL finds the hall's plugin and its site in the installed files at run time, and
+     a game whose hall stood at the other site (or that has none now) has it taken down there.
+     package.sh builds the archive this describes: "00 Core", "01 Guild Hall", "02 Guild Hall Solitude" and "docs" beside this
+     fomod folder; packaging/fomod_check.py works out what each choice installs and checks it against the builds. -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
 	<moduleName>Adventurers Guild</moduleName>
 	<requiredInstallFiles>
@@ -16,20 +18,34 @@
 			<optionalFileGroups order="Explicit">
 				<group name="Guild Hall" type="SelectExactlyOne">
 					<plugins order="Explicit">
-						<plugin name="Dedicated Guild Hall">
-							<description>The Adventurers Guild's own hall next to Riverwood with its staff and residents, all voiced. Without it, the Guild works from the inn counters alone. To add it later, run this installer again.</description>
+						<plugin name="Riverwood Hall">
+							<description>A proper guild hall next to Riverwood with new NPCs, quests, and all the traditional adventure guild stuff you'd expect.&#10;&#10;To change your choice later, run this installer again.</description>
+							<image path="fomod\images\hall_riverwood.jpg" />
 							<files>
 								<folder source="01 Guild Hall" destination="" />
 							</files>
 							<conditionFlags>
-								<flag name="GuildHall">Dedicated</flag>
+								<flag name="GuildHall">Riverwood</flag>
 							</conditionFlags>
 							<typeDescriptor>
 								<type name="Recommended" />
 							</typeDescriptor>
 						</plugin>
-						<plugin name="No Standalone Guild Hall">
-							<description>For players who have issues with the guild hall's placement. The Guild works from the inn counters alone. To add the hall later, run this installer again.</description>
+						<plugin name="Solitude Hall">
+							<description>The same hall, but on the snowy hillside north of Solitude, on the road to the Thalmor Embassy. Use this if you have mod conflicts with the Riverwood location.&#10;&#10;To change your choice later, run this installer again.</description>
+							<image path="fomod\images\hall_solitude.jpg" />
+							<files>
+								<folder source="02 Guild Hall Solitude" destination="" />
+							</files>
+							<conditionFlags>
+								<flag name="GuildHall">Solitude</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional" />
+							</typeDescriptor>
+						</plugin>
+						<plugin name="No Hall">
+							<description>For players who have issues with both of the guild hall locations (or if you just prefer to roll without one). Visit an inn-keeper in one of the hold capitals for the guild counter.&#10;&#10;To change your choice later, run this installer again.</description>
 							<conditionFlags>
 								<flag name="GuildHall">None</flag>
 							</conditionFlags>

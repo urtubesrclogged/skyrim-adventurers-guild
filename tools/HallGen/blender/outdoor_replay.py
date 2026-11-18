@@ -238,13 +238,25 @@ def comp(src):
         for y in adj.get(x, ()):
             if y not in seen: seen.add(y); q.append(y)
     return seen
+# (O["cross"], the site file's nav_cross: true where the ground runs round the hall, so every foot reaches every door outside, as
+# at Riverwood; false where the hall stands across the only ground between its back and front, as at site B: each door is then
+# joined both ways to a foot of its own side, and each foot to a door)
+CROSS = O.get("cross", True); joined = set()
 for d, an in enumerate(O["anchors"]):
     door = {("o", i) for i in range(len(T)) if (c := centre(("o", i))) and math.hypot(c[0] - an[0], c[1] - an[1]) <= 60 and abs(c[2] - an[2]) < 120}
     out_ = comp(door)
     for f, F in enumerate(O["feet"]):
         ring = {n for n in ground_nodes if (c := centre(n)) and F[3] + 50 <= math.hypot(c[0] - F[0], c[1] - F[1]) <= F[3] + 400 and abs(c[2] - F[2]) < 150}
-        print(f"door {d} ({'rear' if an[2] > 800 else 'front'}) <- foot {f}: {bool(comp(ring) & door)}, -> {bool(out_ & ring)}   (ring {len(ring)})")
-        if not (comp(ring) & door and out_ & ring): FAILS.append(f"door {d} and foot {f} not joined both ways")
+        ok_ = bool(comp(ring) & door and out_ & ring)
+        print(f"door {d} ({'rear' if an[2] > SZ + 200 else 'front'}) <- foot {f}: {bool(comp(ring) & door)}, -> {bool(out_ & ring)}   (ring {len(ring)})")
+        if ok_: joined.add((d, f))
+        elif CROSS: FAILS.append(f"door {d} and foot {f} not joined both ways")
+if not CROSS:
+    for d in range(len(O["anchors"])):
+        if not any(d_ == d for d_, _ in joined): FAILS.append(f"door {d} joined both ways to no foot")
+    for f in range(len(O["feet"])):
+        if not any(f_ == f for _, f_ in joined): FAILS.append(f"foot {f} joined both ways to no door")
+    print(f"(nav_cross false: each door joined to a foot of its own, each foot to a door: {sorted(joined)})")
 json.dump(dict(parts={f"{k[0]}:{k[1]}": [v[0], v[1], v[2]] for k, v in parts.items()}, cut=[list(c) for c in cut], touched=[list(t) for t in touched]), open(OUT, "w"))
 if "--debug" in sys.argv:
     bad = collections.Counter(); ex = []

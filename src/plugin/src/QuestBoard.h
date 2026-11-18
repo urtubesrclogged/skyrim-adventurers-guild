@@ -57,6 +57,25 @@ namespace AG::QuestBoard
 		a_named->fullName = std::string(cur) + RankSuffix(a_tier);
 	}
 
+	// Every rank condition put on, with the rank it asks for. Work one rank above (MCM > System) lowers each by one,
+	// never below E, so nothing passes before registering (rank -1) either way. The "never" gate (99) is not moved.
+	// Game thread only: the gates go on at kDataLoaded, the offset changes on a load or in a task.
+	struct GateItem
+	{
+		RE::TESConditionItem* item;
+		int                   min;
+	};
+	inline std::vector<GateItem> g_gates;
+	inline int                   g_gateOffset = 0;
+
+	inline float GateValue(int a_min) { return static_cast<float>(a_min >= 99 ? a_min : std::max(0, a_min - g_gateOffset)); }
+
+	inline void SetGateOffset(int a_offset)
+	{
+		g_gateOffset = a_offset;
+		for (auto& g : g_gates) g.item->data.comparisonValue.f = GateValue(g.min);
+	}
+
 	// "AG_PlayerRankGlobal >= rank" as the FIRST condition, so it is ANDed with the whole existing list (a leading
 	// AND item forms its own group, whatever OR groups follow). Game heap (TESConditionItem redefines new).
 	inline void Gate(RE::TESCondition* a_cond, RE::TESGlobal* a_rank, int a_min)
@@ -67,9 +86,10 @@ namespace AG::QuestBoard
 		item->data.functionData.params[0] = a_rank;
 		item->data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kGreaterThanOrEqualTo;
 		item->data.flags.isOR = false;
-		item->data.comparisonValue.f = static_cast<float>(a_min);
+		item->data.comparisonValue.f = GateValue(a_min);
 		item->next = a_cond->head;
 		a_cond->head = item;
+		g_gates.push_back({ item, a_min });
 	}
 
 	inline int Count(const RE::TESCondition* a_cond)

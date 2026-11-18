@@ -17,7 +17,7 @@ for fn in ("hall2_body.json", "hall2_roof.json", "hall2_site_1.json"):
         V = sh["v"]
         for fi, f in enumerate(sh["f"]):
             P = [V[i] for i in f]
-            if key in ("moss", "mosswall", "wearcrack", "wearstain"):
+            if key in ("moss", "mosswall", "wearcrack", "wearstain", "spill"):
                 a = [P[1][k] - P[0][k] for k in range(3)]; b = [P[2][k] - P[0][k] for k in range(3)]
                 n = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
                 L = math.sqrt(sum(c * c for c in n)) or 1.0; n = [c / L for c in n]

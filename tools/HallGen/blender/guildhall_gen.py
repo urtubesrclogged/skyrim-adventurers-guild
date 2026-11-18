@@ -46,7 +46,7 @@ CLAYCOL = {"stone": (0.55, 0.55, 0.56), "base": (0.45, 0.45, 0.46), "trim": (0.6
            "wood": (0.25, 0.2, 0.16), "roof": (0.3, 0.33, 0.38), "tile": (0.45, 0.28, 0.2), "win1": (0.2, 0.22, 0.25),
            "win3": (0.2, 0.22, 0.25), "door": (0.3, 0.24, 0.18), "steps": (0.5, 0.5, 0.5), "floor": (0.5, 0.5, 0.5),
            "grass": (0.3, 0.38, 0.22), "cloth": (0.5, 0.1, 0.08), "metal": (0.3, 0.3, 0.3), "dirt": (0.32, 0.26, 0.2),
-           "planks": (0.3, 0.27, 0.22), "crest": (0.7, 0.6, 0.35), "moss": (0.3, 0.4, 0.2), "mosswall": (0.3, 0.4, 0.2), "wearcrack": (0.1, 0.1, 0.1), "wearstain": (0.12, 0.12, 0.1), "break": (0.6, 0.62, 0.62),
+           "planks": (0.3, 0.27, 0.22), "crest": (0.7, 0.6, 0.35), "moss": (0.3, 0.4, 0.2), "mosswall": (0.3, 0.4, 0.2), "wearcrack": (0.1, 0.1, 0.1), "wearstain": (0.12, 0.12, 0.1), "spill": (0.16, 0.1, 0.05), "break": (0.6, 0.62, 0.62),
            "pipe": (0.3, 0.3, 0.3), "crest3d": (0.7, 0.6, 0.35), "wood2": (0.3, 0.22, 0.16), "planks2": (0.33, 0.27, 0.2)}
 FILES = {"stone": "sstonewall02", "base": "sstonebase01", "trim": "strims01", "stucco": "sstuccowall", "wood": "swoodbeam01",
          "roof": "sroofslate01", "tile": "sdragontile01", "win1": "swindow01", "planks": "swoodplanks01", "crest": "../../adventurersguild/hall/AGHallCrest", "moss": "smoss01", "mosswall": "smoss02walls", "win3": "swindow03", "door": "sdoor02",
@@ -58,7 +58,7 @@ CLAYCOL.update({"painting1": (0.4, 0.4, 0.38), "painting2": (0.4, 0.4, 0.38)})
 _OWN = "../../adventurersguild/hall2/"
 FILES.update({"stone": _OWN + "AGH2XStone", "base": _OWN + "AGH2XBase", "trim": _OWN + "AGH2XTrim", "stucco": _OWN + "AGH2XStucco",
               "wood": _OWN + "AGH2XWood", "tile": _OWN + "AGH2XTile", "win1": _OWN + "AGH2XWin1", "planks": _OWN + "AGH2XPlanks",
-              "moss": _OWN + "AGH2XMoss", "mosswall": _OWN + "AGH2XMossWall", "wearcrack": _OWN + "AGH2XWearCrack", "wearstain": _OWN + "AGH2XWearStain", "break": _OWN + "AGH2XStoneBreak", "win3": _OWN + "AGH2XWin3", "door": _OWN + "AGH2XDoor",
+              "moss": _OWN + "AGH2XMoss", "mosswall": _OWN + "AGH2XMossWall", "wearcrack": _OWN + "AGH2XWearCrack", "wearstain": _OWN + "AGH2XWearStain", "spill": _OWN + "AGH2XSpill", "break": _OWN + "AGH2XStoneBreak", "win3": _OWN + "AGH2XWin3", "door": _OWN + "AGH2XDoor",
               "steps": _OWN + "AGH2XSteps", "floor": _OWN + "AGH2XFloor", "metal": _OWN + "AGH2XMetal", "dirt": _OWN + "AGH2XDirt",
               "pipe": _OWN + "AGH2XMetal"})
 
@@ -85,12 +85,13 @@ def material(key):
             nt.links.new(col, [i for i in mv.inputs if i.identifier == "A_Color"][0]); nt.links.new(va.outputs["Color"], [i for i in mv.inputs if i.identifier == "B_Color"][0])
             col = [o for o in mv.outputs if o.identifier == "Result_Color"][0]
         nt.links.new(col, b.inputs["Base Color"])
-        if key in ("moss", "mosswall", "wearcrack", "wearstain"):   # the decal: texture alpha x vertex alpha, alpha-tested at 19/255
+        if key in ("moss", "mosswall", "wearcrack", "wearstain", "spill"):   # the decal: texture alpha x vertex alpha, alpha-tested at 19/255
             vaa = nt.nodes.new("ShaderNodeAttribute"); vaa.attribute_name = "VERTEX_ALPHA"
             mul = nt.nodes.new("ShaderNodeMath"); mul.operation = "MULTIPLY"
             nt.links.new(t.outputs["Alpha"], mul.inputs[0]); nt.links.new(vaa.outputs["Fac"], mul.inputs[1])
             gt = nt.nodes.new("ShaderNodeMath"); gt.operation = "GREATER_THAN"; gt.inputs[1].default_value = 19 / 255
-            nt.links.new(mul.outputs[0], gt.inputs[0]); nt.links.new(gt.outputs[0], b.inputs["Alpha"])
+            nt.links.new(mul.outputs[0], gt.inputs[0])
+            nt.links.new((mul if key == "spill" else gt).outputs[0], b.inputs["Alpha"])   # (the spill blends, as hall_nif.py writes it for the game)
             try: m.surface_render_method = "DITHERED"
             except Exception: pass
         npath = os.path.join(TEX, FILES[key] + "_n.dds")
@@ -164,7 +165,7 @@ def coll_tri(a, b, c):
 # the havok material of each surface key: Skyrim's footstep and impact sounds come from it, and a triangle without one (0) is silent.
 # Every key that collides must be listed: an unlisted one stops the export rather than guess
 HAV_WOOD = ("wood", "wood2", "planks", "planks2", "wainframe", "wainpanel", "wframe", "door", "painting1", "painting2")
-HAV_STONE = ("stone", "base", "trim", "stucco", "floor", "break", "moss", "mosswall", "wearcrack", "wearstain", "roof", "tile",
+HAV_STONE = ("stone", "base", "trim", "stucco", "floor", "break", "moss", "mosswall", "wearcrack", "wearstain", "spill", "roof", "tile",
              "sframe", "crest3d")
 HAV_OF = dict([(k_, "WOOD") for k_ in HAV_WOOD] + [(k_, "STONE") for k_ in HAV_STONE] +
               [("steps", "STAIRS_STONE"), ("metal", "SOLID_METAL"), ("pipe", "SOLID_METAL"), ("iron", "SOLID_METAL"),
@@ -176,6 +177,7 @@ def hav_material(key):
     m_ = HAV_OF[base_]
     return ("STAIRS_WOOD" if m_ == "WOOD" else "STAIRS_STONE") if stair else m_
 def coll_quad(q): coll_tri(q[0], q[1], q[2]); coll_tri(q[0], q[2], q[3])
+SPANS = []        # (site B) each bridge's open span: the ground under it keeps its navmesh (outdoor_nav.py)
 RAMPS = []        # (2026-11-13) each outdoor stair's walking surface as rows across it, foot to top: [[(left xyz), (right xyz)], ...], for
                   # outdoor_nav.py, which lays each stair's navmesh as a ramp on them (as vanilla meshes a stair), not a region per tread
 FRAME = None                                                # (a rigid turn for what is drawn while it is set: the downpipe, drawn on the podium's north face, stands on the forecourt's side)
@@ -717,11 +719,16 @@ def board_shutters(W, uc, w, zb, h):
         out.append((a_ - 4, b_ + 4))
     return out
 
-def timber_storey(x0, y0, x1, y1, z0, z1, windows=None, braces=True, sides=("front", "right", "back", "left"), posts_at=None, name=""):
+def timber_storey(x0, y0, x1, y1, z0, z1, windows=None, braces=True, sides=("front", "right", "back", "left"), posts_at=None, name="",
+                  eaves=None):
     """Half-timbered storey: stucco infill, sill and wall plates, posts at the corners, at the bay posts given by hand
     (posts_at: {side: [u]}) and as jambs beside every opening, K-braces only in blank panels.
     windows: {side: [(u_centre, kind, w, h, sill[, opts])]}; opts {"shutters": True} hangs board shutters on its jambs.
-    A doorway stops the sill plate; a window rising past the wall plate (the great window) stops the wall plate."""
+    A doorway stops the sill plate; a window rising past the wall plate (the great window) stops the wall plate.
+    eaves: {side: pitch} for the sides a roof's eave rests on. A roof's top meets the wall at z1 (gable_roof), so a wall
+    plate at the storey's top, standing 10 proud of the wall, came up through the slope by 10 * tan(pitch) along its
+    whole length (8-14 units: a dark line along every eave). On those sides the plate sits that much lower, just under
+    the slope, and the posts and braces stop under it."""
     coll_box((x0, y0, z0), (x1, y1, z1))
     poly("wood", [(x0, y0, z0), (x0, y1, z0), (x1, y1, z0), (x1, y0, z0)])      # the soffit, facing down
     for side in ("front", "right", "back", "left"):
@@ -730,22 +737,29 @@ def timber_storey(x0, y0, x1, y1, z0, z1, windows=None, braces=True, sides=("fro
         u_off = (o.x + o.y) / S
         poly("stucco", pts, [(u_off, 0), (u_off + L / S, 0), (u_off + L / S, 1), (u_off, 1)])
     windows = windows or {}
+    eaves = eaves or {}
     def minus(runs, cuts):
         for a_, b_ in cuts: runs = [q for r0, r1 in runs for q in ((r0, min(r1, a_)), (max(r0, b_), r1)) if q[1] - q[0] > 1]
         return runs
     for side in sides:
         WHERE[0] = f"{name} {side}"
         W, L = walls_of(x0, y0, x1, y1)[side]
+        dz = 10 * math.tan(math.radians(eaves[side])) + 0.5 if side in eaves else 0.0   # under an eave: the plate below the slope
         e0, e1 = (-10, L + 10) if side in ("front", "back") else (0, L)  # the front and back plates cover the corners
+        if side in ("front", "back"):                         # (but not into an eave's roof: front u 0 is the left end, back's the right)
+            if ("left" if side == "front" else "right") in eaves: e0 = 0
+            if ("right" if side == "front" else "left") in eaves: e1 = L
         items = []
         for it in windows.get(side, []):
             uc, kind, w, h, sill = it[:5]; opts = it[5] if len(it) > 5 else {}
             if kind not in ("opening", "glazed_door", "blank"): h = w * RATIO[kind]
             items.append((uc, kind, w, h, sill, opts))
         doors = [(uc - w / 2, uc + w / 2) for uc, kind, w, h, sill, _ in items if kind in ("opening", "glazed_door") and sill < 20]   # (between the posts: they stand on the sill, so no gaps at the bottom)
-        tall = [(uc - w / 2 - 9, uc + w / 2 + 9) for uc, kind, w, h, sill, _ in items if z0 + sill + h > z1 - 20]
+        tall = [(uc - w / 2 - 9, uc + w / 2 + 9) for uc, kind, w, h, sill, _ in items if z0 + sill + h > z1 - 20
+                or (dz and kind != "blank" and z0 + sill + h + 16 > z1 - 20 - dz + 0.01)]   # (under an eave: a head reaching the lowered plate stops it)
         for r0, r1 in minus([(e0, e1)], doors): wall_beam(W, (r0, z0 + 10), (r1, z0 + 10), w=20, deep=10)    # sill plate
-        for r0, r1 in minus([(e0, e1)], tall): wall_beam(W, (r0, z1 - 10), (r1, z1 - 10), w=20, deep=10)     # wall plate
+        for r0, r1 in minus([(e0, e1)], tall): wall_beam(W, (r0, z1 - 10 - dz), (r1, z1 - 10 - dz), w=20, deep=10)     # wall plate
+
         posts = {9.0, L - 9.0} | set((posts_at or {}).get(side, []))
         busy = []                                          # u ranges no brace may cross: openings, jambs, shutter leaves
         for (uc, kind, w, h, sill, opts) in items:
@@ -773,7 +787,7 @@ def timber_storey(x0, y0, x1, y1, z0, z1, windows=None, braces=True, sides=("fro
                 wall_beam(W, (uc - w / 2 - 22, z0 + sill - 8), (uc + w / 2 + 22, z0 + sill - 8), w=16, deep=12)  # sill
             wall_beam(W, (uc - w / 2 - 22, z0 + sill + h + 8), (uc + w / 2 + 22, z0 + sill + h + 8), w=16, deep=11)  # lintel
         ps = sorted(posts)
-        for u in ps: wall_beam(W, (u, z0 + 18), (u, z1 - 18), w=18, deep=8)
+        for u in ps: wall_beam(W, (u, z0 + 18), (u, z1 - 18 - dz), w=18, deep=8)
         if braces:
             for a, b in zip(ps, ps[1:]):
                 if b - a < 150: continue
@@ -781,8 +795,8 @@ def timber_storey(x0, y0, x1, y1, z0, z1, windows=None, braces=True, sides=("fro
                 m = (a + b) / 2; zm = (z0 + z1) / 2  # braces meeting at mid-height: the Solitude chevron, mitred at the joint
                 wall_brace(W, (a + 9, z0 + 18), (m, zm), (a + 9, m, z0 + 18, zm))
                 wall_brace(W, (b - 9, z0 + 18), (m, zm), (m, b - 9, z0 + 18, zm))
-                wall_brace(W, (m, zm), (a + 9, z1 - 18), (a + 9, m, zm, z1 - 18))
-                wall_brace(W, (m, zm), (b - 9, z1 - 18), (m, b - 9, zm, z1 - 18))
+                wall_brace(W, (m, zm), (a + 9, z1 - 18 - dz), (a + 9, m, zm, z1 - 18 - dz))
+                wall_brace(W, (m, zm), (b - 9, z1 - 18 - dz), (m, b - 9, zm, z1 - 18 - dz))
 
 def jetty_joists(W, L, z, step=48, out=None):
     """Joist ends showing under an overhanging upper storey."""
@@ -797,13 +811,15 @@ def jetty_joists(W, L, z, step=48, out=None):
 ROOF_PLAN = []    # (plan polygon (x, y), lowest z of the roof's top): what each roof covers, for roof_cover_check.py
 ROOF_FILL = os.environ.get("AG_ROOF_FILL", "1") != "0"     # 0: the roofs as before the valley fill (roof_cover_check's own test)
 
-def gable_roof(x0, y0, x1, y1, z, pitch, axis, over=36, verge=30, th=14, key="roof", gable_ends=True, notch=()):
+def gable_roof(x0, y0, x1, y1, z, pitch, axis, over=36, verge=30, th=14, key="roof", gable_ends=True, notch=(), cap_to=None):
     """A pitched roof on the rectangle, ridge along axis ('x' or 'y'), eaves at z. Returns the ridge height.
     gable_ends: True, False, or the ends to close (("front", "back") for axis y, ("left", "right") for axis x).
     notch (axis x): [(slope -1 front / +1 back, x from, x to[, valleys])] where the eave stops at the wall line, because a
     gable breaks through the eave there (a cross gable, a porch) and its roof takes over. valleys (abut_valleys): where
     that roof meets this slope; wherever one runs below this slope's lower edge (near its eave corners it does), the
-    slope is carried down to it, so the two roofs meet with no sky between them."""
+    slope is carried down to it, so the two roofs meet with no sky between them.
+    The ridge cap runs verge to verge over gable ends; at an end that is not one it stops at the wall line, where the ridge
+    runs into the roof beyond (past that it stood up out of that roof). cap_to (axis y): where the cap's back end stops instead."""
     if axis == "y":
         half = (x1 - x0) / 2; h = half * math.tan(math.radians(pitch)); xm = (x0 + x1) / 2
         rise = over * math.tan(math.radians(pitch))
@@ -824,7 +840,10 @@ def gable_roof(x0, y0, x1, y1, z, pitch, axis, over=36, verge=30, th=14, key="ro
             for yy, nrm, nm in ((y0, -1, "front"), (y1, 1, "back")):
                 if gable_ends is not True and nm not in gable_ends: continue
                 poly("stucco", [(x0, yy, z), (x1, yy, z), (xm, yy, z + h)][::(1 if nrm < 0 else -1)]); coll_tri((x0, yy, z), (x1, yy, z), (xm, yy, z + h))
-        box("wood", (xm - 10, ya, z + h - 12), (xm + 10, yb, z + h + 10))  # ridge cap
+        ca, cb = ya, (cap_to if cap_to is not None else yb)
+        if gable_ends is not True and "front" not in gable_ends: ca = y0
+        if gable_ends is not True and "back" not in gable_ends and cap_to is None: cb = y1
+        box("wood", (xm - 10, ca, z + h - 12), (xm + 10, cb, z + h + 10))  # ridge cap
         return z + h
     else:
         half = (y1 - y0) / 2; h = half * math.tan(math.radians(pitch)); ym = (y0 + y1) / 2
@@ -872,7 +891,10 @@ def gable_roof(x0, y0, x1, y1, z, pitch, axis, over=36, verge=30, th=14, key="ro
             for xx, nrm in ((x0, -1), (x1, 1)):
                 if gable_ends is not True and ("left" if nrm < 0 else "right") not in gable_ends: continue
                 poly("stucco", [(xx, y1, z), (xx, y0, z), (xx, ym, z + h)][::(1 if nrm < 0 else -1)]); coll_tri((xx, y1, z), (xx, y0, z), (xx, ym, z + h))
-        box("wood", (xa, ym - 10, z + h - 12), (xb, ym + 10, z + h + 10))
+        ca, cb = xa, xb                                        # the ridge cap: to the wall line at an end with no gable
+        if gable_ends is not True and "left" not in gable_ends: ca = x0
+        if gable_ends is not True and "right" not in gable_ends: cb = x1
+        box("wood", (ca, ym - 10, z + h - 12), (cb, ym + 10, z + h + 10))
         return z + h
 
 def gable_frame(W, L, z, h, pair=None, skip=None, post_from=None, collar_at=None, struts=None):
@@ -881,7 +903,8 @@ def gable_frame(W, L, z, h, pair=None, skip=None, post_from=None, collar_at=None
     with a sill and a head, under a collar; nothing crosses them. skip = (u0, u1): the tie stops there (a great window
     rising into the gable); post_from: where the king post starts; collar_at / struts ((u_foot, u_top) pairs): by hand."""
     o, r, n = W; mid = L / 2
-    for a_, b_ in ([(0, skip[0]), (skip[1], L)] if skip else [(0, L)]): wall_beam(W, (a_, z + 10), (b_, z + 10), w=20, deep=10)
+    te = 20 * mid / h + 0.5                                    # the tie's ends: where the roof over the gable reaches its top
+    for a_, b_ in ([(te, skip[0]), (skip[1], L - te)] if skip else [(te, L - te)]): wall_beam(W, (a_, z + 10), (b_, z + 10), w=20, deep=10)
     rake = lambda zz: mid * (1 - (zz - z) / h)                 # half-width of the gable at height zz
     if not pair:
         zc = collar_at or z + h * 0.45
@@ -948,7 +971,8 @@ def gable_timbers(W, L, z, h, window=None):
     """Framing on a gable triangle: king post, collar, raking struts, and an optional window."""
     o, r, n = W
     mid = L / 2
-    wall_beam(W, (0, z + 10), (L, z + 10), w=20, deep=10)
+    te = 20 * mid / h + 0.5                                    # the tie's ends: where the roof over the gable reaches its top
+    wall_beam(W, (te, z + 10), (L - te, z + 10), w=20, deep=10)
     wall_beam(W, (mid, z + 16), (mid, z + h - 20), w=18, deep=8)
     zc = z + h * 0.45; half = mid * (1 - 0.45)
     wall_beam(W, (mid - half + 10, zc), (mid + half - 10, zc), w=16, deep=10)
@@ -991,8 +1015,10 @@ def dormer(xc, y_face, z_eave, pitch_main, w=170, h=150):
     wall_beam(W, (w / 2 - dw_ / 2 - 12, dz_ - 7), (w / 2 + dw_ / 2 + 12, dz_ - 7), w=14, deep=11)
     for s_ in (-1, 1): wall_beam(W, (w / 2 + s_ * (dw_ / 2 + 6), dz_ - 1), (w / 2 + s_ * (dw_ / 2 + 6), dz_ + dh_ + 1), w=12, deep=8)
     for u in (9, w - 9): wall_beam(W, (u, z0 - 50), (u, z0 + h - 9), w=18, deep=8)
-    wall_beam(W, (-4, z0 + h - 9), (w + 4, z0 + h - 9), w=18, deep=10)
-    r = gable_roof(x0, yf, x1, yf + 260, z0 + h, 52, "y", over=22, verge=24, gable_ends=True)
+    wall_beam(W, (0, z0 + h - 9), (w, z0 + h - 9), w=18, deep=10)   # (across its face only: past its sides it came up through its eaves)
+    zr_ = z0 + h + (w / 2) * math.tan(math.radians(52))       # its ridge, and where that meets the main slope: its cap ends there
+    r = gable_roof(x0, yf, x1, yf + 260, z0 + h, 52, "y", over=22, verge=24, gable_ends=True,
+                   cap_to=y_face + (zr_ - z_eave) / math.tan(math.radians(pitch_main)))
     gable_timbers(W, w, z0 + h, r - (z0 + h))
 
 def balcony(xc, y_face, z, w=420, d=140):
@@ -1093,7 +1119,7 @@ RZ = T1 + 20 + RR                                              # the roundel's c
 chord = lambda z: math.sqrt(max(0.0, RR * RR - (z - RZ) ** 2))   # the roundel's half-width at height z
 timber_storey(PX0 - J, PY0 - J, PX1 + J, PY1, T1, T2,
               {"front": [(PU, "blank", 2 * (chord(T2 - 10) - 9), 2 * RR, 20), (PU - PAX, "leaded", 90, 0, 40), (PU + PAX, "leaded", 90, 0, 40)],
-               "back": [(PU + dx, "leaded", 90, 0, 40) for dx in BACK_DX]}, name="pavilion second")
+               "back": [(PU + dx, "leaded", 90, 0, 40) for dx in BACK_DX]}, name="pavilion second", eaves={"left": 54, "right": 54})
 ridge = gable_roof(PX0 - J, PY0 - J, PX1 + J, PY1, T2, 54, "y", over=40, verge=40)
 gw = walls_of(PX0 - J, PY0 - J, PX1 + J, PY1)["front"][0]; gh_ = ridge - T2
 rake_z = lambda u: T2 + gh_ * (1 - abs(u - PU) / PU)
@@ -1205,7 +1231,8 @@ if glazed("pavilion gable gothic"): glaze(gw, PU, GB, GWW, GH - GB, "gothic", 2.
 else: quad_on(gw, PU - GWW / 2, GB, PU + GWW / 2, GH, 2.0, *ATLAS["gothic"], kind="gothic")
 WHERE[0] = "pavilion gable"; register("gothic", gw, PU - GWW / 2, GB, PU + GWW / 2, GH, 2.0)
 tc = chord(T2 + 10)                                            # the gable's tie, butting into the roundel's rim
-wall_beam(gw, (0, T2 + 10), (PU - tc, T2 + 10), w=20, deep=10); wall_beam(gw, (PU + tc, T2 + 10), (2 * PU, T2 + 10), w=20, deep=10)
+te_ = 20 * PU / gh_ + 0.5                                       # its ends: where the roof over the gable reaches its top
+wall_beam(gw, (te_, T2 + 10), (PU - tc, T2 + 10), w=20, deep=10); wall_beam(gw, (PU + tc, T2 + 10), (2 * PU - te_, T2 + 10), w=20, deep=10)
 wall_beam(gw, (PU - GWW / 2 - 22, GB - 8), (PU + GWW / 2 + 22, GB - 8), w=16, deep=12)  # its sill
 for u in (PU - GWW / 2 - 9, PU + GWW / 2 + 9): wall_beam(gw, (u, GB - 16), (u, GB + win_spring(GH - GB)), w=18, deep=8)
 for pts_, uvs_ in win_place(win_hood("gothic", GWW, GH - GB, 18, 8), gw, PU, GB, 0.0): poly("wframe", pts_, uvs_)   # (the jambs carried round the head, so the edge is even)
@@ -1257,7 +1284,7 @@ for sgn in (-1, 1):
     if sgn < 0: up["back"] = [(tx1 - x_, "grid", CW, 0, CS, SH) for x_ in WING_BACK_L]
     else: up["back"] = [(tx1 - REAR_X, "opening", 200, 196, 0), (tx1 - 1265, "grid", CW, 0, CS, SH)]   # its shutters clear the barrel in the patio's far corner
     bay = {"front": [sgn * x_ - tx0 for x_ in (416, 726, 1036)]}
-    timber_storey(tx0, wy_t, tx1, WY1, S1 + 18, T1, up, posts_at=bay, name=nm + " upper")
+    timber_storey(tx0, wy_t, tx1, WY1, S1 + 18, T1, up, posts_at=bay, name=nm + " upper", eaves={"front": 48, "back": 48})
     if sgn > 0: REAR_DOOR = (REAR_X, WY1, S1 + 18)
     fx0, fx1 = sorted((sgn * 380, sgn * 1036))                 # joist ends under the open part of the wing's jetty
     jetty_joists(walls_of(fx0, WY0, fx1, WY1)["front"][0], fx1 - fx0, S1 + 18)
@@ -1273,7 +1300,8 @@ for sgn in (-1, 1):
     stone_storey(sa, gy0 + J, sb, WY0 + 200, G, S1, {"front": [(GX - sa, "arched", 120, 0, 90)]}, name=nm + " cross gable ground",
                  plinth_y1=WY0 - 12)                           # behind that, the wing's plinth (their tops would share a plane)
     timber_storey(ta, gy0, tb, WY0 + 200, S1 + 18, T1, {"front": [(GX - ta, "grid", CW, 0, CS, SH)]},
-                  sides=("front", "right") if sgn < 0 else ("front", "left"), name=nm + " cross gable upper")
+                  sides=("front", "right") if sgn < 0 else ("front", "left"), name=nm + " cross gable upper",
+                  eaves={"left": 54, "right": 54})   # (its roof's eaves on both sides; its outer side wall is the wing's end)
     jetty_joists(walls_of(sa, gy0 + J, sb, WY1)["front"][0], sb - sa, S1 + 18)
     gr = abut_gable_roof(**cross, verge=36)
     gable_frame(walls_of(ga, gy0, gb, WY1)["front"][0], gb - ga, T1, gr - T1, pair=("small", 60, 40))
@@ -1975,10 +2003,27 @@ if SITE:
             print("COURT", C["x"], C["y"], "at", cz, "| ground inside up to", round(inside))
         courts = AP["courts"]
         for k in range(len(courts) - 1): courts[k]["_lower"] = [courts[k + 1]]
-        if "path" in AP:                                     # where the path arrives, the forecourt's front is open
-            PTH = _j.load(open(os.path.join(os.path.dirname(os.path.abspath(os.environ["AG_APPROACH"])), AP["path"]))); lt = PTH["treads"][-1]; Ex = PTH["route"][-1][0]
-            ext = (AP.get("route_w", 240) / 2 + 40) / max(0.3, lt["uy"])
-            courts[-1].setdefault("openings", {})["front"] = [[Ex - ext - 5, Ex + ext + 5]]
+        # the path stairs: AP["path"] (one, onto the forecourt's front: Riverwood's), or AP["stairs"]: [{"file", "edge": front | left |
+        # right | null (its top on a bridge's landing), "ztop" (its top's level, default the forecourt's), "dress" (the one stair that
+        # carries the signpost, the chipped pier, the satchel, the crack and the landing's leaves)}]
+        _apdir = os.path.dirname(os.path.abspath(os.environ["AG_APPROACH"]))
+        PATHS_ = []
+        if "path" in AP:
+            PATHS_.append(dict(PTH=_j.load(open(os.path.join(_apdir, AP["path"]))), edge="front", ztop=None, dress=True, tongue=0.0))
+        for P_ in AP.get("stairs", []):
+            PATHS_.append(dict(PTH=_j.load(open(os.path.join(_apdir, P_["file"]))), edge=P_.get("edge"), ztop=P_.get("ztop"), dress=P_.get("dress", False), tongue=40.0,
+                               opts=dict({"turn_fix": True}, **{k_: P_[k_] for k_ in ("pier_out", "pier_back", "satchel", "wear_shift", "turn_fix", "sign_back") if k_ in P_})))
+        for P_ in PATHS_:                                    # where a path arrives, its forecourt edge is open
+            PTH = P_["PTH"]; lt = PTH["treads"][-1]; Ex, Ey = PTH["route"][-1]; hw_ = AP.get("route_w", 240) / 2 + 40
+            if P_["edge"] == "front" and not P_.get("opts"):     # (AP["path"], Riverwood's: its opening is THE front's, in place of any
+                ext = hw_ / max(0.3, abs(lt["uy"])); courts[-1].setdefault("openings", {})["front"] = [[Ex - ext - 5, Ex + ext + 5]]   # the site file names)
+            elif P_["edge"] == "front":
+                ext = hw_ / max(0.3, abs(lt["uy"])); courts[-1].setdefault("openings", {}).setdefault("front", []).append([Ex - ext - 5, Ex + ext + 5])
+            elif P_["edge"] in ("left", "right"):
+                ext = hw_ / max(0.3, abs(lt["ux"])); courts[-1].setdefault("openings", {}).setdefault(P_["edge"], []).append([Ey - ext - 5, Ey + ext + 5])
+        for B_ in AP.get("bridges", []):                     # a bridge leaves the forecourt's front on its axis
+            hb_ = B_.get("w", 240) / 2 + 40
+            courts[-1].setdefault("openings", {}).setdefault("front", []).append([B_["x"] - hb_ - 5, B_["x"] + hb_ + 5])
         for C in courts: build_court(C)
         U = AP["upper"]; uw = U.get("w", 600)
         yb = flight_down(uw, -460, 0, courts[0]["z"], "UPPER stair")
@@ -1990,7 +2035,18 @@ if SITE:
             flight_down(courts[k].get("steps_w", 700), courts[k]["y"][0], courts[k]["z"], courts[k + 1]["z"], f"STEPS court {k + 1} -> {k + 2}")
         C = courts[-1]; cx0, cx1 = C["x"]; cy0, cy1 = C["y"]; cz = C["z"]
         # --- the grand stair: from the court's front edge down the bank, even risers that meet the ground at the foot
-        if "path" in AP:
+        def lay_path(PTH, edge, ztop, dress, tongue=0.0, opts=None):
+            global STAIR_LEAVES, STAIR_FOOT_R
+            opts = opts or {}
+            # (site B) "pier_out": the gate piers this much further out to each side (26: their shafts' inner faces flush with the
+            # parapets' inner faces, the stair's whole width between them), "pier_back": this much further up the stair, off the road
+            # (the signpost keeps its place along the road, beyond the left pier); "satchel": the tread whose left coping carries the
+            # satchel (17, Riverwood's landing); "wear_shift": the crack and the stain this many treads further up
+            PO_, PB_, ST_, WS_ = opts.get("pier_out", 0.0), opts.get("pier_back", 0.0), opts.get("satchel", 17), opts.get("wear_shift", 0)
+            # "turn_fix" (the "stairs" entries': on unless set false): the inner side clamped at sharp turns and the parapets mitred from
+            # their two faces. Off for AP["path"] (Riverwood's stair, as built and seen in game: its geometry stays exactly as it was)
+            TF_ = opts.get("turn_fix", False)
+            ztop = courts[-1]["z"] if ztop is None else ztop + DZ
             TR = PTH["treads"]; rr = PTH["r"]; zr = PTH["z_road"] + DZ
             for t in TR: t["z"] += DZ
             W2 = AP.get("route_w", 240); HW = W2 / 2; PH = 60      # walking width, parapet height above the nosings
@@ -2002,11 +2058,42 @@ if SITE:
                 BP.append(((Cn[i - 1] + U[i - 1] * TR[i - 1]["len"] / 2) + (Cn[i] - U[i] * TR[i]["len"] / 2)) / 2)
                 BU.append((U[i - 1] + U[i]).normalized())
             BP.append(V2(*PTH["route"][-1])); BU.append(U[-1])  # ... and the forecourt's front edge at the top
-            BA = [lft(u_) for u_ in BU]; BA[-1] = V2(-1, 0) if U[-1].y > 0 else V2(1, 0)
+            BA = [lft(u_) for u_ in BU]
+            if edge in ("front", "left", "right"):              # the top boundary lies along the forecourt's edge
+                ax_ = V2(1, 0) if edge == "front" else V2(0, 1); BA[-1] = ax_ if ax_.dot(lft(BU[-1])) > 0 else -ax_
+            # (site B, 2026-11-16) at a sharp turn the mitred boundaries' points on the inner side ran past the corner and folded back:
+            # the next flight's near wall and first treads stood across the top of the flight below. Each turn of the route (legs k,
+            # k + 1): on its inner side, a point of either leg past the corner where the two legs' offset lines meet is that corner.
+            RT_ = [V2(*q) for q in PTH["route"]]
+            TURNS_ = []
+            for k_ in range(len(RT_) - 2):
+                d0_, d1_ = (RT_[k_ + 1] - RT_[k_]).normalized(), (RT_[k_ + 2] - RT_[k_ + 1]).normalized()
+                cr_ = d0_.x * d1_.y - d0_.y * d1_.x
+                if TF_ and abs(cr_) > 1e-3: TURNS_.append((k_, RT_[k_ + 1], d0_, d1_, 1 if cr_ > 0 else -1, (lft(d0_) + lft(d1_)) / (1 + d0_.dot(d1_))))
+            LEGS_ = [(TR[i - 1]["leg"] if i > 0 else TR[0]["leg"], TR[i]["leg"] if i < n else TR[-1]["leg"]) for i in range(n + 1)]
+            CLAMPED_ = set()
             def side(i, off):                                    # off to the left (+) / right (-) of the walking line
-                return BP[i] + BA[i] * (off / BA[i].dot(lft(BU[i])))
+                p_ = BP[i] + BA[i] * (off / BA[i].dot(lft(BU[i])))
+                for k_, V_, d0_, d1_, in_, M_ in TURNS_:
+                    if off * in_ < 0 and tuple(LEGS_[i]) == (k_, k_ + 1):   # (the outer side, the boundary between the two flights: the
+                        return V_ + M_ * off                     # outer corner itself, so the outer wall turns square, 2026-11-17)
+                    if off * in_ <= 0 or not ({k_, k_ + 1} & set(LEGS_[i])): continue
+                    Q_ = V_ + M_ * off                           # (the offset lines' meeting point)
+                    if (k_ in LEGS_[i] and (p_ - Q_).dot(d0_) > 0.5) or (k_ + 1 in LEGS_[i] and (p_ - Q_).dot(d1_) < -0.5):
+                        CLAMPED_.add((i, round(off))); return Q_.copy()
+                return p_
+            def mitre(i, off, half):                             # a wall's centre and mitre at boundary i from its two faces
+                a_, b_ = side(i, off + half), side(i, off - half)
+                return (a_ + b_) / 2, (a_ - b_) / (2 * half)
+            def cq(q):                                           # a collision quad, a corner given twice dropped
+                q = [v for j_, v in enumerate(q) if (Vector(v) - Vector(q[j_ - 1])).length > 1e-3]
+                if len(q) == 4: coll_quad(q)
+                elif len(q) == 3: coll_tri(*q)
             for i, t in enumerate(TR):                           # treads: wedges on a curve, 10 into each wall
                 q = [side(i, HW + 10), side(i, -HW - 10), side(i + 1, -HW - 10), side(i + 1, HW + 10)]
+                if TF_:                                          # (a clamped corner given twice: dropped)
+                    q = [v for j_, v in enumerate(q) if (v - q[j_ - 1]).length > 1e-3]
+                    if len(q) < 3: continue
                 pts2 = [(v.x, v.y) for v in q]
                 prism("floor" if t["level"] else "steps", pts2, min(ground(*v) for v in pts2) - 40, t["z"], coll=False)
             # walking surface: a ramp over the treads (running up the lower steps could catch for a moment, like a collision
@@ -2021,7 +2108,7 @@ if SITE:
             # it ran through the risers' feet, up to a whole riser under the nosings, and no vanilla stair sinks its walking surface
             # below the drawn treads. At the foot it reaches out a tread's depth onto the road to meet it (the first nosing is a
             # riser up)
-            ZB = [t["z"] for t in TR] + [max(TR[-1]["z"], courts[-1]["z"])]   # (the top boundary: the forecourt's front edge)
+            ZB = [t["z"] for t in TR] + [max(TR[-1]["z"], ztop)]   # (the top boundary: the forecourt's edge, or a bridge's landing)
             TAN_ = math.tan(math.radians(40))
             def spread(off):
                 L_ = [(side(i + 1, off) - side(i, off)).length for i in range(n)]
@@ -2041,24 +2128,87 @@ if SITE:
             ZL, ZR = spread(HW), spread(-HW)
             for i, t in enumerate(TR):
                 a0, b0, b1, a1 = side(i, HW), side(i, -HW), side(i + 1, -HW), side(i + 1, HW)
-                coll_quad([(a0.x, a0.y, ZL[i]), (b0.x, b0.y, ZR[i]), (b1.x, b1.y, ZR[i + 1]), (a1.x, a1.y, ZL[i + 1])])
+                (cq if TF_ else coll_quad)([(a0.x, a0.y, ZL[i]), (b0.x, b0.y, ZR[i]), (b1.x, b1.y, ZR[i + 1]), (a1.x, a1.y, ZL[i + 1])])
             D_ = TR[0]["len"]; a0, b0 = side(0, HW), side(0, -HW); a1, b1 = a0 - BU[0] * D_, b0 - BU[0] * D_   # (the apron onto the road)
             coll_quad([(a1.x, a1.y, min(zr, ground(a1.x, a1.y)) - 1), (b1.x, b1.y, min(zr, ground(b1.x, b1.y)) - 1), (b0.x, b0.y, ZR[0]), (a0.x, a0.y, ZL[0])])
             RAMPS.append([[(a1.x, a1.y, min(zr, ground(a1.x, a1.y)) - 1), (b1.x, b1.y, min(zr, ground(b1.x, b1.y)) - 1)]] +
-                         [[(side(i, HW).x, side(i, HW).y, ZL[i]), (side(i, -HW).x, side(i, -HW).y, ZR[i])] for i in range(n + 1)])
+                         [[(side(i, HW).x, side(i, HW).y, ZL[i]), (side(i, -HW).x, side(i, -HW).y, ZR[i])] for i in range(n + 1)] +
+                         ([[((side(n, HW) + BU[n] * tongue).x, (side(n, HW) + BU[n] * tongue).y, ZL[n]),
+                            ((side(n, -HW) + BU[n] * tongue).x, (side(n, -HW) + BU[n] * tongue).y, ZR[n])]] if tongue else []))   # (40 onto the surface it arrives on)
             sl_ = [math.degrees(math.atan2(abs(z_[i + 1] - z_[i]), (side(i + 1, o) - side(i, o)).length)) for z_, o in ((ZL, HW), (ZR, -HW)) for i in range(n)]
             dv_ = [z_[k] - ZB[k] for z_ in (ZL, ZR) for k in range(n + 1)]   # (0 on the nosing; below it where a steep tread spread its rise)
             print("PATH ramp: steepest", round(max(sl_), 1), "degrees at its sides | off the nosings", round(min(dv_), 1), "..", round(max(dv_), 1), "(riser", rr, ")")
             for sd in (1, -1):                                   # parapets: mitred bands on the nosing line + PH
-                P = [side(i, sd * (HW + 20)) for i in range(n + 1)]
-                A_ = [BA[i] * (1 / BA[i].dot(lft(BU[i]))) for i in range(n + 1)]
+                if TF_:
+                    MP_ = [mitre(i, sd * (HW + 20), 20) for i in range(n + 1)]
+                    P = [m_[0] for m_ in MP_]; A_ = [m_[1] for m_ in MP_]
+                else:
+                    P = [side(i, sd * (HW + 20)) for i in range(n + 1)]
+                    A_ = [BA[i] * (1 / BA[i].dot(lft(BU[i]))) for i in range(n + 1)]
                 tops = [TR[min(i, n - 1)]["z"] + PH for i in range(n + 1)]
                 tops = [max(tp, ground(*(P[i] + BA[i] * sd * 40).to_2d()) + 16) for i, tp in enumerate(tops)]   # retaining where the bank is higher
                 gs = [ground(*v.to_2d()) for v in P]
                 bases = [min(gs[max(0, i - 1):i + 2]) - 40 for i in range(n + 1)]
-                band("stone", P, A_, 20, tops, bases)
-                band("trim", P, A_, 25, [tp + 10 for tp in tops], [tp - (0 if k_ in (0, n) else 2) for k_, tp in enumerate(tops)], coll=False)   # (sits on the wall
+                kp_ = [i for i in range(n + 1) if i == 0 or (P[i] - P[i - 1]).length > 1e-3 or (A_[i] - A_[i - 1]).length > 1e-6]
+                runs_p = [(P, A_, tops, bases)]
+                newels_ = []
+                inner_ = [t_ for t_ in TURNS_ if t_[4] == sd]
+                if TF_ and inner_:
+                    # (2026-11-17, site B's stair turn, seen in game: "make it a straighter intersection"; straight lines and realism over
+                    # a top that flows; then "a regular 90 degrees") the inner parapet ends at the turn's corner on each flight, square, and
+                    # a newel pier stands on the corner (the walls' centre lines' meeting point): each flight's parapet runs straight into
+                    # one face at its own height. The boundaries the inner side folds onto the corner are left out of both walls
+                    off_ = sd * (HW + 20)
+                    def folded_(i): return any((i, round(o_)) in CLAMPED_ for o_ in (off_ - 20, off_, off_ + 20))
+                    runs_p, prev_ = [], None
+                    for k_, V_, d0_, d1_, in_, M_ in inner_:
+                        Qc_ = V_ + M_ * off_
+                        bef_ = [i for i in range(n + 1) if max(LEGS_[i]) <= k_ and not folded_(i) and (prev_ is None or min(LEGS_[i]) >= prev_)]
+                        aft_ = [i for i in range(n + 1) if min(LEGS_[i]) >= k_ + 1 and not folded_(i)]
+                        if not bef_ or not aft_: continue
+                        if runs_p: runs_p.pop()                  # (a later turn re-splits the run after the previous one)
+                        runs_p.append(([P[i] for i in bef_] + [Qc_], [A_[i] for i in bef_] + [lft(d0_)], [tops[i] for i in bef_] + [tops[bef_[-1]]],
+                                       [bases[i] for i in bef_] + [min(bases[bef_[-1]], bases[aft_[0]])]))
+                        runs_p.append(([Qc_] + [P[i] for i in aft_], [lft(d1_)] + [A_[i] for i in aft_], [tops[aft_[0]]] + [tops[i] for i in aft_],
+                                       [min(bases[bef_[-1]], bases[aft_[0]])] + [bases[i] for i in aft_]))
+                        newels_.append((Qc_, d0_, min(bases[bef_[-1]], bases[aft_[0]]), max(tops[bef_[-1]], tops[aft_[0]])))
+                        prev_ = k_ + 1
+                    if not runs_p: runs_p = [(P, A_, tops, bases)]
+                elif TF_ and len(kp_) < n + 1:                   # (a corner given twice elsewhere: one point, its top the highest)
+                    grp_ = [[j_ for j_ in range(a_, (kp_ + [n + 1])[g_ + 1])] for g_, a_ in enumerate(kp_)]
+                    runs_p = [([P[g[0]] for g in grp_], [A_[g[0]] for g in grp_], [max(tops[j_] for j_ in g) for g in grp_], [min(bases[j_] for j_ in g) for g in grp_])]
+                for P_r, A_r, t_r, b_r in runs_p:
+                    if len(P_r) < 2: continue
+                    band("stone", P_r, A_r, 20, t_r, b_r)
+                    band("trim", P_r, A_r, 25, [tp + 10 for tp in t_r], [tp - (0 if k_ in (0, len(t_r) - 1) else 2) for k_, tp in enumerate(t_r)], coll=False)   # (sits on the wall
                                                                  # at its two ends, so their end faces do not share the wall's)
+                def run_top_at(P_r, t_r, from_end, dist):   # a run's coping top (wall top + 10) at dist along it from one end
+                    Q_, T_ = (P_r[::-1], t_r[::-1]) if from_end else (P_r, t_r)
+                    for k_ in range(len(Q_) - 1):
+                        L_ = (Q_[k_ + 1] - Q_[k_]).length
+                        if L_ >= dist or k_ == len(Q_) - 2:
+                            f_ = min(1.0, dist / L_) if L_ > 1e-6 else 1.0
+                            return T_[k_] + (T_[k_ + 1] - T_[k_]) * f_ + 10
+                        dist -= L_
+                    return T_[-1] + 10
+                for c_, d_, zb_, zt_ in newels_:                 # the newel: 58 square, 4 past the coping's 50 each side (70 stood too far into the treads). Its top: measured, the
+                    hw_ = 29                                     # coping's top where each flight's coping meets its faces (the face plus the
+                    faces_ = []                                  # slab's 4 overhang), the higher of the two; the slab sits on that (the upper
+                    for P_r, A_r, t_r, b_r in runs_p:            # flight's coping climbs away from the corner: set from the corner alone it
+                        if len(P_r) < 2: continue                # ran into the cap, 2026-11-17)
+                        if (P_r[0] - c_).length < 1e-3: faces_.append(run_top_at(P_r, t_r, False, hw_ + 4))
+                        if (P_r[-1] - c_).length < 1e-3: faces_.append(run_top_at(P_r, t_r, True, hw_ + 4))
+                    zt_ = max(faces_) if faces_ else zt_ + 10
+                    s_ = Vector((-d_.y, d_.x, 0))
+                    obox("stone", (c_ - d_ * hw_).to_2d(), (c_ + d_ * hw_).to_2d(), 2 * hw_, zb_, zt_, coll=False)
+                    obox("trim", (c_ - d_ * (hw_ + 4)).to_2d(), (c_ + d_ * (hw_ + 4)).to_2d(), 2 * hw_ + 8, zt_, zt_ + 9, coll=False)
+                    ap_ = Vector((c_.x, c_.y, zt_ + 9 + 2 * hw_ * 0.32))
+                    q_ = [Vector((v_.x, v_.y, zt_ + 9)) for v_ in (c_ - d_ * (hw_ + 3) - s_ * (hw_ + 3), c_ + d_ * (hw_ + 3) - s_ * (hw_ + 3),
+                                                                   c_ + d_ * (hw_ + 3) + s_ * (hw_ + 3), c_ - d_ * (hw_ + 3) + s_ * (hw_ + 3))]
+                    for k_ in range(4):
+                        a_, b_ = q_[k_], q_[(k_ + 1) % 4]; nn_ = (b_ - a_).cross(ap_ - a_)
+                        poly("trim", [a_, b_, ap_] if nn_.dot(Vector(((a_.x + b_.x) / 2 - c_.x, (a_.y + b_.y) / 2 - c_.y, 0))) > 0 else [b_, a_, ap_])
+                    print("PATH newel at the turn's inner corner", (round(c_.x), round(c_.y)), "from", round(zb_), "to", round(zt_), "| the copings' tops at its faces", [round(v) for v in faces_])
             # moss at the treads' edges against the parapets (feet keep the middle clean), broken: the width wanders and
             # some edges have none; the landings carry more
             for i, t in enumerate(TR):
@@ -2078,23 +2228,23 @@ if SITE:
             def wall_pt(sd_, s_, off_):
                 i_ = min(int(s_), n - 1); f_ = s_ - i_
                 return side(i_, sd_ * off_) * (1 - f_) + side(i_ + 1, sd_ * off_) * f_, (TR[min(i_, n - 1)]["z"] * (1 - f_) + TR[min(i_ + 1, n - 1)]["z"] * f_) + PH
-            if n > 14:
+            if n > 14 + WS_ and dress:
                 for j_ in range(8):
-                    s0_, s1_ = 11.3 + 1.6 * j_ / 8, 11.3 + 1.6 * (j_ + 1) / 8
+                    s0_, s1_ = 11.3 + WS_ + 1.6 * j_ / 8, 11.3 + WS_ + 1.6 * (j_ + 1) / 8
                     (a0_, t0_), (a1_, t1_) = wall_pt(-1, s0_, HW), wall_pt(-1, s1_, HW)
                     (b0_, _), (b1_, _) = wall_pt(-1, s0_, HW + 12), wall_pt(-1, s1_, HW + 12)
                     wear_quad("site", "wearcrack", [(a0_.x, a0_.y, t0_ + 10.6), (a1_.x, a1_.y, t1_ + 10.6), (b1_.x, b1_.y, t1_ + 10.6), (b0_.x, b0_.y, t0_ + 10.6)],
                               [(j_ / 8, 0.7), ((j_ + 1) / 8, 0.7), ((j_ + 1) / 8, 0.3), (j_ / 8, 0.3)], (0, 0, 1))
-                (e_, te_) = wall_pt(-1, 12.9, HW - 5.6); (e2_, _) = wall_pt(-1, 12.95, HW - 5.6); dd_ = (e2_ - e_).normalized()
-                (ea_, tea_) = wall_pt(-1, 12.9 - 4 / 34.15, HW - 5.6); (eb_, teb_) = wall_pt(-1, 12.9 + 4 / 34.15, HW - 5.6)   # (along the coping's slope)
+                (e_, te_) = wall_pt(-1, 12.9 + WS_, HW - 5.6); (e2_, _) = wall_pt(-1, 12.95 + WS_, HW - 5.6); dd_ = (e2_ - e_).normalized()
+                (ea_, tea_) = wall_pt(-1, 12.9 + WS_ - 4 / 34.15, HW - 5.6); (eb_, teb_) = wall_pt(-1, 12.9 + WS_ + 4 / 34.15, HW - 5.6)   # (along the coping's slope)
                 wear_quad("site", "wearcrack", [P3(ea_, tea_ + 9.5), P3(eb_, teb_ + 9.5), P3(eb_, teb_ - 1), P3(ea_, tea_ - 1)],
-                          [(0.95, 0.7), (0.95, 0.3), (1.0, 0.3), (1.0, 0.7)], P3(side(12, 0) - e_, 0))
-                (f_, tf_) = wall_pt(-1, 12.9, HW - 0.6); (fa_, ta_) = wall_pt(-1, 12.9 - 5 / 34.15, HW - 0.6); (fb_, tb_) = wall_pt(-1, 12.9 + 5 / 34.15, HW - 0.6)   # (its top 4 under the wall's, along its slope)
+                          [(0.95, 0.7), (0.95, 0.3), (1.0, 0.3), (1.0, 0.7)], P3(side(12 + WS_, 0) - e_, 0))
+                (f_, tf_) = wall_pt(-1, 12.9 + WS_, HW - 0.6); (fa_, ta_) = wall_pt(-1, 12.9 + WS_ - 5 / 34.15, HW - 0.6); (fb_, tb_) = wall_pt(-1, 12.9 + WS_ + 5 / 34.15, HW - 0.6)   # (its top 4 under the wall's, along its slope)
                 wear_quad("site", "wearcrack", [P3(fa_, ta_ - 4), P3(fb_, tb_ - 4), P3(f_ + dd_ * 3, tf_ - 34), P3(f_ - dd_ * 7, tf_ - 34)],
-                          [(0.0, 0.75), (0.0, 0.25), (0.06, 0.25), (0.06, 0.75)], P3(side(12, 0) - f_, 0))
-                (ga_, ta_) = wall_pt(1, 10.0 - 15 / 34.15, HW - 0.6); (gb_, tb_) = wall_pt(1, 10.0 + 15 / 34.15, HW - 0.6)   # (its top 4 under the wall's at each corner: the wall rises along it)
+                          [(0.0, 0.75), (0.0, 0.25), (0.06, 0.25), (0.06, 0.75)], P3(side(12 + WS_, 0) - f_, 0))
+                (ga_, ta_) = wall_pt(1, 10.0 + WS_ - 15 / 34.15, HW - 0.6); (gb_, tb_) = wall_pt(1, 10.0 + WS_ + 15 / 34.15, HW - 0.6)   # (its top 4 under the wall's at each corner: the wall rises along it)
                 wear_quad("site", "wearstain", [P3(ga_, ta_ - 4), P3(gb_, tb_ - 4), P3(gb_, tb_ - 114), P3(ga_, ta_ - 114)],
-                          [(0, 1), (1, 1), (1, 0), (0, 0)], P3(side(10, 0) - ga_, 0))
+                          [(0, 1), (1, 1), (1, 0), (0, 0)], P3(side(10 + WS_, 0) - ga_, 0))
             runs_, cur_ = [], []                                 # the longest landing: leaves against its outer parapet
             for i, t in enumerate(TR):
                 if t["level"]: cur_.append(i)
@@ -2102,22 +2252,25 @@ if SITE:
                     if cur_: runs_.append(cur_)
                     cur_ = []
             if cur_: runs_.append(cur_)
-            if runs_:
-                lr = max(runs_, key=len); iu = lr[-1] + 1             # the riser at the landing's uphill end
+            if runs_ and dress:
+                lr = max([r_ for r_ in runs_ if r_[-1] + 1 < n] or runs_, key=len); iu = min(lr[-1] + 1, n - 1)   # the riser at the landing's uphill end (one with a riser after it)
                 lp_ = side(iu, HW - 36) - U[iu] * 40; ld_ = U[iu]     # in the corner it makes with the outer parapet
                 STAIR_LEAVES = (lp_.x, lp_.y, TR[lr[0]]["z"] + 1.0, math.degrees(math.atan2(ld_.x, ld_.y)))
             ptop = zr + AP.get("pier_h", 230)                   # gate piers, square to the road, on the wall ends
+            # (turn_fix: moved out and back, site B's piers' faces lay in the parapets' planes: half a unit proud all round, so theirs is in
+            # front; Riverwood's, where they meet as built, unchanged)
+            PE_ = 0.5 if TF_ else 0.0
             for sd in (1, -1):
-                c_ = side(0, sd * (HW + 20)) - BU[0] * 20; pg = ground(c_.x, c_.y); u0 = BU[0]
-                a_, b_ = c_ - u0 * 58, c_ + u0 * 58
-                obox("base", (a_.x, a_.y), (b_.x, b_.y), 116, pg - 40, max(pg, zr) + 40)
-                a_, b_ = c_ - u0 * 46, c_ + u0 * 46
-                if sd > 0:   # (2026-11-03) the left one's stair-side front arris chipped (the mock-ups' spot E), its foot on a bed joint so the
+                c_ = side(0, sd * (HW + 20 + PO_)) - BU[0] * (20 - PB_); pg = ground(c_.x, c_.y); u0 = BU[0]
+                a_, b_ = c_ - u0 * (58 + PE_), c_ + u0 * (58 + PE_)
+                obox("base", (a_.x, a_.y), (b_.x, b_.y), 116 + 2 * PE_, pg - 40, max(pg, zr) + 40)
+                a_, b_ = c_ - u0 * (46 + PE_), c_ + u0 * (46 + PE_)
+                if sd > 0 and dress:   # (2026-11-03) the left one's stair-side front arris chipped (the mock-ups' spot E), its foot on a bed joint so the
                     # broken corner is one block's, never across a joint; (2026-11-04) a course lower than first built, ~115 over the road, clear of the
                     # broken quarter above
                     J_ = bed_under(zr + 118)
                     Jb_ = bed_under(ptop - 34); Jm_ = bed_under(ptop - 1)          # the broken quarter's two courses: Jb_..Jm_, Jm_..ptop
-                    notched_box("stone", (a_.x, a_.y), (b_.x, b_.y), 92, max(pg, zr) + 40, Jb_, [
+                    notched_box("stone", (a_.x, a_.y), (b_.x, b_.y), 92 + 2 * PE_, max(pg, zr) + 40, Jb_, [
                         # the knock: most of one block's corner, from the bed joint 32 up the arris (the course is 36) and at most 22 into a face, widest low
                         # on the front, higher on the side (26 by 11, the first remake, read too small to notice, 2026-11-04); its
                         # outline a lumpy sweep with small breaks in it (the second build's large zigzags stepped like a pagoda: a pattern, not a break)
@@ -2133,7 +2286,7 @@ if SITE:
                     for z_lo, z_hi, wu_, wv_, ju_, jv_, sd_ in ((Jb_, Jm_, 49, 30, True, False, "pier quarter 1"), (Jm_, ptop, 60, 38, False, True, "pier quarter 2")):
                         zm_ = (z_lo + z_hi) / 2
                         Uc_ = head_into(k0_, d0_, zm_, wu_) if ju_ else wu_; Vc_ = head_into(k0_, -s0_, zm_, -wv_) if jv_ else wv_
-                        broken_box("stone", (a_.x, a_.y), (b_.x, b_.y), 92, z_lo, z_hi, Uc_, Vc_, sd_, bottom=False, whole_u=ju_, whole_v=jv_)
+                        broken_box("stone", (a_.x, a_.y), (b_.x, b_.y), 92 + 2 * PE_, z_lo, z_hi, Uc_, Vc_, sd_, bottom=False, whole_u=ju_, whole_v=jv_)
                         print("PIER QUARTER", sd_, "course", round(z_lo, 1), round(z_hi, 1), "blocks gone to", round(Uc_, 1), "along,", round(Vc_, 1), "across")
                     # its hairline crack, from the chip's foot down the block below (spot F), 0.6 off the front face
                     P3 = lambda v_, z_: (v_.x, v_.y, z_)
@@ -2145,25 +2298,254 @@ if SITE:
                     a_, b_ = c_ - u0 * 36, c_ + u0 * 36
                     broken_box("trim", (a_.x, a_.y), (b_.x, b_.y), 72, ptop + 22, ptop + 46, 58, 42, "pier cap 2", coll=False)   # (20 in from the cap under it)
                     continue
-                obox("stone", (a_.x, a_.y), (b_.x, b_.y), 92, max(pg, zr) + 40, ptop)
+                obox("stone", (a_.x, a_.y), (b_.x, b_.y), 92 + 2 * PE_, max(pg, zr) + 40, ptop)
                 a_, b_ = c_ - u0 * 56, c_ + u0 * 56
                 obox("trim", (a_.x, a_.y), (b_.x, b_.y), 112, ptop, ptop + 22, coll=False)
                 a_, b_ = c_ - u0 * 36, c_ + u0 * 36
                 obox("trim", (a_.x, a_.y), (b_.x, b_.y), 72, ptop + 22, ptop + 46, coll=False)
-            lp = side(0, HW + 20) - BU[0] * 20                   # the signpost: beyond the left pier, along the road
-            AP["sign"] = {"pos": [(lp + BA[0] * 140).x, (lp + BA[0] * 140).y], "arm": [-BU[0].x, -BU[0].y]}
+            lp = side(0, HW + 20 + PO_) - BU[0] * (20 - opts.get("sign_back", 0.0))   # the signpost: beyond the left pier, along the road ("sign_back":
+                                                                 # this much further off the road; site B 50, its board hung ~35 over the cobbles, 2026-11-17)
+            if dress: AP["sign"] = {"pos": [(lp + BA[0] * 140).x, (lp + BA[0] * 140).y], "arm": [-BU[0].x, -BU[0].y]}
             xs = [side(i, sd * (HW + 80)).x for i in range(n + 1) for sd in (1, -1)]; ys = [side(i, sd * (HW + 80)).y for i in range(n + 1) for sd in (1, -1)]
             CLEAR.append((min(xs), max(xs), min(ys), max(ys)))  # trees and small pieces along it
+            if CLAMPED_: print("PATH turn: inner corner used at", len(CLAMPED_), "boundary points (boundaries", sorted({i_ for i_, _ in CLAMPED_}), ")")
             print("PATH stair", n, "treads,", sum(1 for t in TR if t["level"]), "level, risers of", rr, "| foot", [round(v) for v in PTH["route"][0]],
-                  "bearing", round(math.degrees(math.atan2(U[0].y, U[0].x))), "| top", TR[-1]["z"], "| forecourt opening", courts[-1]["openings"]["front"])
-            STAIR_FOOT_R = tuple((BP[0] - BU[0] * 250).to_2d()) + (ground(*(BP[0] - BU[0] * 250).to_2d()),)
+                  "bearing", round(math.degrees(math.atan2(U[0].y, U[0].x))), "| top", TR[-1]["z"], "| edge", edge, "| forecourt openings", courts[-1].get("openings"))
+            if dress: STAIR_FOOT_R = tuple((BP[0] - BU[0] * 250).to_2d()) + (ground(*(BP[0] - BU[0] * 250).to_2d()),)
             # (the long stair had no small details to break it up: one clutter object that makes sense there, a satchel,
             # openable, a little loot: Hall2.cs's AGHall2StairSatchel) a satchel someone set down on the
             # left wall's coping at the landing (tread 17, its top 10 over the wall's), as the mock-up placed it, a little off square
-            if n > 18 and TR[17]["level"]:
-                sm_ = (side(17, HW + 20) + side(18, HW + 20)) / 2 + U[17] * 8
-                EXTRA_PLACE.append(("meshes/clutter/containers/satchel.nif", (sm_.x, sm_.y, TR[17]["z"] + PH + 10),
-                                    math.degrees(math.atan2(U[17].x, U[17].y)) + 89, 1.0, "AGHall2StairSatchel"))
+            if n > ST_ + 1 and TR[ST_]["level"] and dress:
+                sm_ = (side(ST_, HW + 20) + side(ST_ + 1, HW + 20)) / 2 + U[ST_] * 8
+                EXTRA_PLACE.append(("meshes/clutter/containers/satchel.nif", (sm_.x, sm_.y, TR[ST_]["z"] + PH + 10),
+                                    math.degrees(math.atan2(U[ST_].x, U[ST_].y)) + 89, 1.0, "AGHall2StairSatchel"))
+        # ---- a bridge over the road: from the forecourt's front on its axis x (one step up, to deck level z), an abutment to the
+        # road's near edge, a shallow segmental arch over the road (the ground and its navmesh stay under it: d["spans"]), an abutment
+        # past its far edge, and a landing where a path stair leaves (stair_gap: its opening in the landing's west wall, y0..y1)
+        def lay_bridge(B_):
+            xc, y0, z = B_["x"], B_["y0"], B_["z"] + DZ; HWb = B_.get("w", 240) / 2; PHb = 60; WT = 40
+            n0, n1 = B_["near"]; f0, f1 = B_["far"]; zs, zc = B_["spring"] + DZ, B_["crown"] + DZ
+            lx0, lx1, ly0, ly1 = B_["landing"]                  # (y0 the landing's far end, y1 its near end, where the deck meets it)
+            xo0, xo1 = xc - HWb - WT, xc + HWb + WT             # the outer faces
+            gmin = lambda xa, xb, ya, yb: min(ground(x_, y_) for x_ in (xa, (xa + xb) / 2, xb) for y_ in (ya, (ya + yb) / 2, yb))
+            prism("floor", [(xc - HWb, y0), (xc + HWb, y0), (xc + HWb, y0 - 34), (xc - HWb, y0 - 34)], courts[-1]["z"] - 10, z)   # the step up
+            box("floor", (xc - HWb, ly1, z - 50), (xc + HWb, y0 - 34, z)); coll_box((xc - HWb, ly1, z - 50), (xc + HWb, y0 - 34, z))   # the deck
+            box("base", (xo0, n1, gmin(xo0, xo1, n1, n0) - 40), (xo1, n0, z - 50)); coll_box((xo0, n1, gmin(xo0, xo1, n1, n0) - 40), (xo1, n0, z - 50))   # near abutment
+            box("base", (xo0, f1, gmin(xo0, xo1, f1, f0) - 40), (xo1, f0, z - 50)); coll_box((xo0, f1, gmin(xo0, xo1, f1, f0) - 40), (xo1, f0, z - 50))   # far abutment
+            # the arch: a segmental soffit from n1 to f0, springing at zs, crown at zc; the spandrels' faces up to the deck's underside
+            N_ = 18; span = n1 - f0; R_ = (span ** 2 / 4 + (zc - zs) ** 2) / (2 * (zc - zs)); ym = (n1 + f0) / 2
+            za = lambda y_: zc - R_ + math.sqrt(max(0.0, R_ ** 2 - (y_ - ym) ** 2))
+            ys_ = [n1 - span * k / N_ for k in range(N_ + 1)]
+            for ya_, yb_ in zip(ys_, ys_[1:]):
+                poly("stone", [Vector((xo1, ya_, za(ya_))), Vector((xo1, yb_, za(yb_))), Vector((xo0, yb_, za(yb_))), Vector((xo0, ya_, za(ya_)))])   # soffit, facing down
+                for xf_, sg_ in ((xo0, -1), (xo1, 1)):        # spandrels, facing out
+                    q_ = [Vector((xf_, ya_, za(ya_))), Vector((xf_, ya_, z - 50)), Vector((xf_, yb_, z - 50)), Vector((xf_, yb_, za(yb_)))]
+                    poly("stone", q_[::-1] if sg_ < 0 else q_); coll_quad(q_)
+                    # the arch ring: dressed voussoirs, 3 proud of the face and 26 deep along the soffit's line
+                    if B_.get("ring"): continue                  # (site B: real arch stones instead, below)
+                    r_ = [Vector((xf_ + sg_ * 3, ya_, za(ya_))), Vector((xf_ + sg_ * 3, ya_, za(ya_) + 26)), Vector((xf_ + sg_ * 3, yb_, za(yb_) + 26)), Vector((xf_ + sg_ * 3, yb_, za(yb_)))]
+                    poly("trim", r_[::-1] if sg_ < 0 else r_)
+            # (site B, 2026-11-16) the passage dressed: a ring of arch stones on both faces, imposts where the arch springs, a
+            # kerb along both passage walls, and the bridge's pieces (its brazier, the landing's barrel)
+            RG_ = B_.get("ring")
+            if RG_:
+                # voussoirs: N_v wedges between the soffit's circle (radius R_, centre ym, zc - R_) and R_ + depth, their joints
+                # radial, each its own block 1.2 apart so the joints read; the keystone deeper and prouder. They stand from the
+                # face out (no part inside the wall: no face shares the soffit's or the spandrel's plane)
+                yO_, zO_ = ym, zc - R_; th0_ = math.asin((n1 - ym) / R_); Nv_ = RG_.get("n", 15); dp_ = RG_.get("depth", 40); pr_ = RG_.get("proud", 8)
+                gap_ = 0.6 / R_                                  # (half the joint, as an angle)
+                for xf_, sg_ in ((xo0, -1), (xo1, 1)):
+                    for k_ in range(Nv_):
+                        ta_ = th0_ - 2 * th0_ * k_ / Nv_ - gap_; tb_ = th0_ - 2 * th0_ * (k_ + 1) / Nv_ + gap_
+                        key_ = k_ == Nv_ // 2
+                        d_ = dp_ * (RG_.get("key", 1.3) if key_ else 1.0); pk_ = pr_ + (4 if key_ else 0)
+                        pt_ = lambda t_, r_, x_: Vector((x_, yO_ + r_ * math.sin(t_), zO_ + r_ * math.cos(t_)))
+                        x0_, x1_ = xf_, xf_ + sg_ * pk_
+                        ia_, ib_, ob_, oa_ = [(t_, r_) for t_, r_ in ((ta_, R_), (tb_, R_), (tb_, R_ + d_), (ta_, R_ + d_))]
+                        F_ = [pt_(*ia_, x1_), pt_(*ib_, x1_), pt_(*ob_, x1_), pt_(*oa_, x1_)]          # the face
+                        Bk_ = [pt_(*ia_, x0_), pt_(*ib_, x0_), pt_(*ob_, x0_), pt_(*oa_, x0_)]
+                        faces_ = [F_, [Bk_[0], Bk_[1], F_[1], F_[0]], [Bk_[1], Bk_[2], F_[2], F_[1]], [Bk_[2], Bk_[3], F_[3], F_[2]], [Bk_[3], Bk_[0], F_[0], F_[3]]]
+                        ctr_ = sum(F_ + Bk_, Vector()) / 8
+                        # (the face's texture runs along the arch, one stone's worth per block, each from its own part of the
+                        # texture: projected flat, the trim's grain smeared into streaks across the ring)
+                        w_ = R_ * (ta_ - tb_); ou_, ov_ = (k_ * 61.7) % 256, (k_ * 23.3) % 256
+                        UVF_ = [((ou_ + u_) / S, (ov_ + v_) / S) for u_, v_ in ((0, 0), (w_, 0), (w_, d_), (0, d_))]
+                        for j_, f_ in enumerate(faces_):          # wound to face out of the block
+                            nn_ = (f_[1] - f_[0]).cross(f_[2] - f_[0]); out_ = nn_.dot(sum(f_, Vector()) / 4 - ctr_) > 0
+                            if j_ == 0: poly("trim", f_ if out_ else f_[::-1], UVF_ if out_ else UVF_[::-1])
+                            else: poly("trim", f_ if out_ else f_[::-1])
+                # imposts: a band 16 high under the springing along each passage wall (6 out from it, 4 in), and its return on
+                # each face (out to the ring's projection, 30 along the abutment)
+                ip_, ih_ = 6, 16
+                for yw_, sy_ in ((n1, -1), (f0, 1)):             # (sy_: the passage's side of the wall)
+                    ya_, yb_ = sorted((yw_ + sy_ * ip_, yw_ - sy_ * 4))
+                    box("trim", (xo0 - pr_, ya_, zs - ih_), (xo1 + pr_, yb_, zs))
+                    for xf_, sg_ in ((xo0, -1), (xo1, 1)):
+                        xa_, xb_ = sorted((xf_ - sg_ * 4, xf_ + sg_ * pr_))
+                        yc_, yd_ = sorted((yw_ - sy_ * 4, yw_ - sy_ * 30))
+                        box("trim", (xa_, yc_, zs - ih_), (xb_, yd_, zs))
+            KB_ = B_.get("kerb")
+            if KB_:
+                # a kerb at the foot of both passage walls: blocks ~50 long, kw out from the wall, each level and kh over the
+                # ground at its middle (stepping with the road, as a kerb is laid), returned round the abutments' outer corners
+                # and along their faces (ret_ long)
+                kw_, kh_, kl_ = KB_.get("w", 30), KB_.get("h", 16), KB_.get("block", 50)
+                def kerb_run(a_, b_, out_):                      # a run from a_ to b_ (2D), out_ the side it stands out to
+                    a_, b_ = Vector((a_[0], a_[1], 0)), Vector((b_[0], b_[1], 0)); L_ = (b_ - a_).length; d_ = (b_ - a_) / L_
+                    o_ = Vector((out_[0], out_[1], 0)); nb_ = max(1, round(L_ / kl_))
+                    for k_ in range(nb_):
+                        p0_, p1_ = a_ + d_ * (L_ * k_ / nb_), a_ + d_ * (L_ * (k_ + 1) / nb_)
+                        m_ = (p0_ + p1_) / 2 + o_ * (kw_ / 2); gz_ = ground(m_.x, m_.y)
+                        q_ = [p0_, p1_, p1_ + o_ * kw_, p0_ + o_ * kw_]
+                        prism("trim", [(v.x, v.y) for v in q_], min(ground(v.x, v.y) for v in q_) - 20, gz_ + kh_)
+                for yw_, sy_, ret_ in ((n1, -1, n0 - n1), (f0, 1, f0 - f1)):   # (near: along the abutment to the forecourt's wall; far: its 30)
+                    kerb_run((xo0, yw_), (xo1, yw_), (0, sy_))
+                    for xf_, sg_ in ((xo0, -1), (xo1, 1)):       # the returns, from the passage's corner along the face, away from it
+                        kerb_run((xf_, yw_ + sy_ * kw_), (xf_, yw_ - sy_ * ret_), (sg_, 0))
+            for pc_ in B_.get("pieces", []):                     # [model, editor id, x, y, z ("ground" | "deck" | a number), yaw, scale, why]
+                m_, ed_, px_, py_, pz_, yaw_, sc_, why_ = pc_
+                if isinstance(pz_, str):                         # "ground" | "deck", optionally "+N"
+                    bz_, _, dz_ = pz_.partition("+")
+                    zz_ = (min(ground(px_ + dx_, py_ + dy_) for dx_ in (-25, 0, 25) for dy_ in (-25, 0, 25)) if bz_ == "ground" else z) + float(dz_ or 0)
+                else: zz_ = pz_ + DZ
+                EXTRA_PLACE.append((m_, (px_, py_, zz_), yaw_, sc_, ed_))
+                print("BRIDGE piece", ed_, (round(px_), round(py_), round(zz_)), "-", why_)
+            # the landing, on the far abutment and the rock: its slab down to the ground or rock under it
+            box("floor", (lx0, ly0, z - 50), (lx1, ly1, z)); coll_box((lx0, ly0, z - 50), (lx1, ly1, z))
+            box("base", (lx0, ly0, gmin(lx0, lx1, ly0, ly1) - 40), (lx1, ly1, z - 50)); coll_box((lx0, ly0, gmin(lx0, lx1, ly0, ly1) - 40), (lx1, ly1, z - 50))
+            # parapets: along the deck (both sides), round the landing (its open end at the stair, stair_gap)
+            g0, g1 = B_["stair_gap"]
+            TP_ = B_.get("top", {}); CO_ = TP_.get("coping", {}); cov_, coh_ = CO_.get("over", 5), CO_.get("h", 10)
+            # (2026-11-17, the coplanar gate's first run on the outside) boxes that meet or run on from one another shared faces in one
+            # plane (the copings' tops and undersides at every corner, two walls' faces where one runs on from the other, the end and
+            # panel piers' faces flush with the parapets'), and same-texture faces in one plane still shimmer where their shading differs
+            # (the pilaster beside the passage, seen in game). Each drawn piece is grown by its own fraction of a unit, so one face
+            # always lies just in front of the other; the collision stays as it was
+            EPS_ = {"wall": 0, "string": 0}
+            def eps(kind="wall"):                                # (0.35 a step: past the gate's quarter unit, so none reads as one plane;
+                EPS_[kind] += 1; return 0.35 * EPS_[kind]        # walls and string courses counted apart, 6 and 5 of them: 2.1 at the most)
+            def wall(xa, ya, xb, yb, e_):                        # (e_: its step, set per wall so walls that touch differ by 0.35 or more)
+                if abs(xb - xa) < 1 and abs(yb - ya) < 1: return
+                lo_ = (min(xa, xb), min(ya, yb), z - 50); hi_ = (max(xa, xb), max(ya, yb), z + PHb)
+                coll_box(lo_, hi_)
+                box("stone", (lo_[0] - e_, lo_[1] - e_, lo_[2]), (hi_[0] + e_, hi_[1] + e_, hi_[2]))
+                box("trim", (lo_[0] - cov_ - e_, lo_[1] - cov_ - e_, z + PHb - e_), (hi_[0] + cov_ + e_, hi_[1] + cov_ + e_, z + PHb + coh_ + e_))
+            wall(xo0, ly1, xc - HWb, y0 - 34, 0.35); wall(xc + HWb, ly0, xo1, y0 - 34, 0.35)           # the deck's sides (the east runs on round the landing)
+            wall(lx0, ly1 - WT, xc - HWb, ly1, 0.7)                                                  # the landing's near side, west of the deck
+            wall(lx0, ly0, xo1, ly0 + WT, 1.05)                                                      # its far end
+            wall(lx0, g0, lx0 + WT, ly1 - WT, 1.05); wall(lx0, ly0 + WT, lx0 + WT, g1, 0.7)           # its west side, open at the stair
+            # (site B, 2026-11-16) the top and the walls detailed, as stone bridges are (vanilla's Imperial road bridges: an
+            # overhanging coping, a string course, capped end piers; real ones: pilasters over the springings, panelled parapets)
+            ctop_ = z + PHb + coh_                               # the coping's top
+            def capped(x0_, x1_, y0_, y1_, zb_, zt_, key_="stone", coll=True):   # a pier: its shaft, a slab 4 over it, a low pyramid on that
+                if coll: coll_box((x0_, y0_, zb_), (x1_, y1_, zt_))
+                e_ = 2.5                                         # (its faces in front of the walls it stands in, past the walls' own steps: no two piers touch)
+                x0_, x1_, y0_, y1_ = x0_ - e_, x1_ + e_, y0_ - e_, y1_ + e_
+                box(key_, (x0_, y0_, zb_), (x1_, y1_, zt_))
+                box("trim", (x0_ - 4, y0_ - 4, zt_), (x1_ + 4, y1_ + 4, zt_ + 9))
+                cx_, cy_ = (x0_ + x1_) / 2, (y0_ + y1_) / 2; ap_ = Vector((cx_, cy_, zt_ + 9 + min(x1_ - x0_, y1_ - y0_) * 0.32))
+                q_ = [Vector((x0_ - 1, y0_ - 1, zt_ + 9)), Vector((x1_ + 1, y0_ - 1, zt_ + 9)), Vector((x1_ + 1, y1_ + 1, zt_ + 9)), Vector((x0_ - 1, y1_ + 1, zt_ + 9))]
+                for k_ in range(4):
+                    a_, b_ = q_[k_], q_[(k_ + 1) % 4]; nn_ = (b_ - a_).cross(ap_ - a_)
+                    poly("trim", [a_, b_, ap_] if nn_.dot(Vector(((a_.x + b_.x) / 2 - cx_, (a_.y + b_.y) / 2 - cy_, 0))) > 0 else [b_, a_, ap_])
+            ST_ = TP_.get("string")
+            if ST_:                                              # along the outer faces at the walking level (over the ring's keystone)
+                sh_, sp_ = ST_.get("h", 12), ST_.get("proud", 6); zs0_, zs1_ = z - sh_ / 2 - 4, z + sh_ / 2 - 4
+                def sbox_(lo_, hi_):                             # (each its own fraction of a unit, as the walls)
+                    e_ = eps("string"); box("trim", (lo_[0] - e_, lo_[1] - e_, lo_[2] - e_), (hi_[0] + e_, hi_[1] + e_, hi_[2] + e_))
+                for xf_, sg_, ya_, yb_ in ((xo0, -1, ly1, y0 - 34), (xo1, 1, ly0, y0 - 34)):
+                    xa_, xb_ = sorted((xf_, xf_ + sg_ * sp_)); sbox_((xa_, ya_, zs0_), (xb_, yb_, zs1_))
+                sbox_((lx0 - sp_, ly0, zs0_), (lx0, ly0 + WT, zs1_)); sbox_((lx0 - sp_, ly1 - WT, zs0_), (lx0, ly1, zs1_))   # the landing's west face, either side of the gap
+                sbox_((lx0 - sp_, ly0 - sp_, zs0_), (xo1 + sp_, ly0, zs1_))   # its far face
+            # the caps' layout (2026-11-17: small piers set close to the pilasters read as unevenly spaced): "layout" in the bridge's
+            # "top" (or AG_CAPS for renders): "A" small piers only over the arch, evenly between the pilasters; "B" no small piers;
+            # "C" the pilasters flat strips under the coping (no caps) and one even row of small piers between the end piers; unset:
+            # as first built (small piers from the landing to the forecourt's end pier, the pilasters' caps among them)
+            CL_ = os.environ.get("AG_CAPS") or TP_.get("layout")
+            PL_ = TP_.get("pilasters")
+            if PL_ and CL_ == "C":                               # flat strips on the outer faces, up to the coping's underside
+                pw_, pp_ = PL_.get("w", 60), PL_.get("proud", 12)
+                for xf_, sg_ in ((xo0, -1), (xo1, 1)):
+                    xa_, xb_ = sorted((xf_ - sg_ * 12, xf_ + sg_ * pp_))
+                    for ya_, yb_ in ((n1 + 2, n1 + pw_), (f0 - pw_, f0 - 2)):
+                        e_ = 2.5; box("stone", (xa_ - e_, ya_ - e_, gmin(xa_, xb_, ya_, yb_) - 20), (xb_ + e_, yb_ + e_, z + PHb - 1.5))
+                PL_ = None
+            if PL_:                                              # over the springings, on the abutments' side of each
+                pw_, pp_, pr_ = PL_.get("w", 60), PL_.get("proud", 12), PL_.get("rise", 34)
+                for xf_, sg_ in ((xo0, -1), (xo1, 1)):
+                    xa_, xb_ = sorted((xf_ - sg_ * 12, xf_ + sg_ * pp_))
+                    # (2 back from the passage wall: set 12 into the abutment, a pilaster's face on the passage's plane shared it with the
+                    # wall, and the two shimmered in a band by the corner, seen in game 2026-11-17)
+                    for ya_, yb_ in ((n1 + 2, n1 + pw_), (f0 - pw_, f0 - 2)):
+                        capped(xa_, xb_, ya_, yb_, gmin(xa_, xb_, ya_, yb_) - 20, ctop_ + pr_ + 0.5)   # (0.5 over the end piers' caps it meets at the stair's gap)
+            EN_ = TP_.get("ends")
+            if EN_:                                              # where the deck leaves the forecourt, and either side of the stair's gap
+                ew_, er_ = EN_.get("w", 56), EN_.get("rise", 34)
+                for xa_, xb_ in ((xc - HWb - ew_, xc - HWb), (xc + HWb, xc + HWb + ew_)):
+                    capped(xa_, xb_, y0 - 34 - ew_, y0 - 34, z - 50, ctop_ + er_, coll=False)   # (the parapet's collision is enough: a pier's own notched the walkway's navmesh)
+                for ya_, yb_ in ((ly1 - WT, ly1 - WT + ew_), (ly0 + WT - ew_, ly0 + WT)):   # (the opening runs ly0 + WT .. ly1 - WT)
+                    capped(lx0 + WT - ew_, lx0 + WT, ya_, yb_, z - 50, ctop_ + er_, coll=False)
+            PN_ = TP_.get("panels") if CL_ != "B" else None
+            if PN_:                                              # small piers through the deck's parapets, between the end piers and the landing
+                pe_, pw2_, prr_ = PN_.get("every", 116), PN_.get("w", 30), PN_.get("rise", 14)
+                ya_, yb_ = ly1, y0 - 34 - (EN_.get("w", 56) if EN_ else 0)
+                if CL_ == "A": ya_, yb_ = f0, n1                  # (A: over the arch only, between the pilasters' faces)
+                npn_ = max(1, round((yb_ - ya_) / pe_))
+                for k_ in range(1, npn_):
+                    yc_ = ya_ + (yb_ - ya_) * k_ / npn_
+                    for xw0_, xw1_ in ((xo0, xc - HWb), (xc + HWb, xo1)):
+                        # (5 proud of the outer face only: proud of the inner too, every one notched the walkway's navmesh)
+                        capped(xw0_ - (5 if xw0_ == xo0 else 0), xw1_ + (5 if xw1_ == xo1 else 0), yc_ - pw2_ / 2, yc_ + pw2_ / 2, z - 50, ctop_ + prr_, coll=False)
+            for bx_, by_, bface_, bv_ in TP_.get("banners", []):   # the guild's banners, their rods under the coping's drip
+                byaw_ = {"-y": 0, "+y": 180, "-x": 90, "+x": 270}[bface_]
+                EXTRA_PLACE.append((f"meshes/adventurersguild/hall2/aghall2banner330{bv_.lower()}.nif", (bx_, by_, z + PHb - 2), byaw_, 1.0, "AGHall2Banner330" + bv_))
+                print("BRIDGE banner", bv_, (bx_, by_), bface_)
+            for k_ in range(TP_.get("stains", 0)):               # run-off under the coping, down the outer faces, uneven
+                xf_, sg_ = ((xo0, -1), (xo1, 1))[k_ % 2]
+                yc_ = ly1 + (y0 - 34 - ly1) * ((k_ * 0.381 + 0.13) % 1.0); wd_ = 18 + (k_ * 7) % 14; ln_ = 70 + (k_ * 37) % 90
+                xs_ = xf_ + sg_ * 0.6; zt_ = z + PHb - 1
+                q_ = [(xs_, yc_ - wd_ / 2, zt_), (xs_, yc_ + wd_ / 2, zt_), (xs_, yc_ + wd_ / 2, zt_ - ln_), (xs_, yc_ - wd_ / 2, zt_ - ln_)]
+                wear_quad("site", "wearstain", q_ if sg_ > 0 else q_[::-1], [(0, 1), (1, 1), (1, 0), (0, 0)] if sg_ > 0 else [(0, 0), (1, 0), (1, 1), (0, 1)], (sg_, 0, 0))
+            CLEAR.append((xo0 - 80, xo1 + 80, ly0 - 40, y0))  # trees and small pieces along it
+            # the open span: the passage between the abutments, carried 80 past both faces along the road (2026-11-17: cut at the faces,
+            # the coping's overhang, the string course, the pilasters and the arch stones over the road were blocked strips across it
+            # on both sides, and the ground under the bridge an island no one could route into)
+            SPANS.append([(xo0 - 80, n1), (xo1 + 80, n1), (xo1 + 80, f0), (xo0 - 80, f0)])
+            print("BRIDGE on x", xc, "deck", round(z), "| span", round(span), "| arch springing", round(zs), "crown", round(zc), "| ground under its middle", round(ground(xc, ym)),
+                  "headroom", round(za(ym) - ground(xc, ym)), "| landing", (lx0, lx1, ly0, ly1))
+        if PATHS_ or AP.get("bridges"):
+            for B_ in AP.get("bridges", []): lay_bridge(B_)
+            for P_ in PATHS_: lay_path(**P_)
+            # (site B, 2026-11-16) snow left where the wind drops it, as vanilla scatters its flat patches (FXSnowDriftFlat01-05)
+            # on snowy floors and ledges: against the forecourt's walls, along the deck's parapets, in the landing's corners and
+            # the porch's back corners. Spaced at random, each turned and sized its own way; none in a walking line's middle,
+            # none on the delivery (the forecourt's left wall, its back half) or in the bridge's or the stair's mouths
+            if AP.get("snow", {}).get("patches"):
+                rs_ = random.Random("snow patches"); SP_ = []
+                C_ = courts[-1]; cx0_, cx1_ = C_["x"]; cy0_, cy1_ = C_["y"]; cz_ = C_["z"]
+                x_ = cx0_ + 70
+                while x_ < cx1_ - 60:                        # the front wall's inside foot, either side of the bridge's mouth
+                    if abs(x_) > 250: SP_.append((x_, cy0_ + 42 + rs_.uniform(-6, 14), cz_, "the forecourt's front wall"))
+                    x_ += rs_.uniform(150, 280)
+                y_ = cy0_ + 120
+                while y_ < cy1_ - 80:                        # its side walls' feet; the left one only before the delivery
+                    if y_ < -800: SP_.append((cx0_ + 42 + rs_.uniform(-6, 12), y_, cz_, "the forecourt's left wall"))
+                    SP_.append((cx1_ - 42 - rs_.uniform(-6, 12), y_ + rs_.uniform(-40, 40), cz_, "the forecourt's right wall"))
+                    y_ += rs_.uniform(170, 260)
+                for B_ in AP.get("bridges", []):
+                    hb_ = B_.get("w", 240) / 2; zb_ = B_["z"] + DZ; lx0_, lx1_, ly0_, ly1_ = B_["landing"]
+                    y_ = B_["y0"] - 34 - 90
+                    while y_ > ly1_ + 60:                    # the deck, against its parapets, the sides taking turns
+                        sd_ = rs_.choice((-1, 1)); SP_.append((B_["x"] + sd_ * (hb_ - 34 - rs_.uniform(0, 10)), y_, zb_, "the deck's parapet"))
+                        y_ -= rs_.uniform(140, 230)
+                    SP_.append((lx1_ - 40 - 34 - rs_.uniform(0, 12), ly1_ - 70 - rs_.uniform(0, 30), zb_, "the landing's near corner"))
+                    SP_.append((lx0_ + 40 + 50, ly0_ + 40 + 46, zb_, "the landing's far corner, by the stair"))
+                for sx_ in (-1, 1):                          # the porch: its back corners, beside the doors
+                    SP_.append((sx_ * (240 + rs_.uniform(-12, 12)), -48 - rs_.uniform(0, 14), 0.0, "the porch's back corner"))
+                for px_, py_, pz_, why_ in SP_:
+                    v_ = rs_.choice(("01", "02", "03", "04", "05"))
+                    EXTRA_PLACE.append((f"meshes/effects/fxsnowdriftflat{v_}.nif", (px_, py_, pz_ + 0.4), rs_.uniform(0, 360), round(rs_.uniform(0.6, 1.0), 2), f"FXSnowDriftFlat{v_}"))
+                print("SNOW patches", len(SP_), ":", "; ".join(sorted(set(w_ for *_, w_ in SP_))))
         elif "route" in AP:
             RT = _j.load(open(AP["route"])); TR = RT["treads"]; rr = RT["r"]; zr = RT["z_road"] + DZ
             for t in TR: t["z"] += DZ
@@ -2377,6 +2759,8 @@ if SITE:
             ("meshes/landscape/plants/swordfern01.nif", (1042, -494, ground(1042, -494) - 4), 205, 0.8, None, "fern: the front buttress's other inside angle"),
             ("meshes/landscape/plants/swordferncluster06.nif", (226, courts[0]["y"][0] - 60, ground(226, courts[0]["y"][0] - 60) - 4), 110, 0.8, None,
              "ferns: the north foot of the forecourt's front wall")]
+        if not globals().get("AP", {}).get("front_fern", True):   # (site B: that corner is the bridge brazier's)
+            AGE_PLACE[:] = [a_ for a_ in AGE_PLACE if a_[-1] != "ferns: the north foot of the forecourt's front wall"]
         if "STAIR_LEAVES" in globals():
             lx_, ly_, lz_, lyaw = STAIR_LEAVES
             AGE_PLACE.append(("meshes/architecture/riften/clutter/rtleavesflat02.nif", (lx_, ly_, lz_), lyaw + 90, 0.45, "RTLeavesFlat02", "leaves: the stair's long landing, its uphill corner against the parapet"))
@@ -2387,9 +2771,12 @@ if SITE:
             if abs(hx_) < 1:
                 AGE_PLACE.append(("meshes/effects/ambient/fxsmokechimney02.nif", (hx_, hy_, ht_ - 45), 0, 1.0, "FXSmokeChimney02",
                                   "smoke: the great hearth in the hall, its stack on the ridge"))
+        # (a site whose yard is not level sets "yard_props": false in its approach file: no chopping block and no woodpile, which
+        # stand on level ground only; site A's yard climbs ~100 every 400)
+        YARD_PROPS = globals().get("AP", {}).get("yard_props", True)
         cbx, cby = 600, 1500                                 # level yard, 330 left of the back stairs' foot, under the pine
         cbz = sum(ground(cbx + dx_, cby + dy_) for dx_ in (-100, 0, 100) for dy_ in (-80, 0, 80)) / 9 - 2
-        AGE_PLACE.append(("meshes/furniture/clutter/woodchoppingblock.nif", (cbx, cby, cbz), 0, 1.0, "WoodChoppingBlock",
+        if YARD_PROPS: AGE_PLACE.append(("meshes/furniture/clutter/woodchoppingblock.nif", (cbx, cby, cbz), 0, 1.0, "WoodChoppingBlock",
                           "chopping block: wood for the hearths is split here and carried up to the stack by the back door"))
         # (the outside was barren and needed more clutter, each piece placed by best practice and validated). What vanilla sets round its halls and houses (HallSpike `pairs` over the
         # worldspaces: Jorrvaskr's terraces carry a bench, a chair with a goblet, a sack and food; Breezehome food barrels and a
@@ -2446,8 +2833,9 @@ if SITE:
         # the yard: the woodpile one takes an armful from, beside the block (WoodPickUp: x -109..42, y 3..123 of its origin), as
         # Breezehome's yard has it; the block's split wood stacked against the patio's wall behind it (y 1160)
         wpx_, wpy_ = 400 + j_(5), 1478 + j_(5)                    # (left of the block: right of it the back stairs come down)
-        AGE_PLACE.append(("meshes/furniture/woodpickup.nif", (wpx_, wpy_, sum(ground(wpx_ + dx_, wpy_ + 60 + dy_) for dx_ in (-80, 0, 30) for dy_ in (-50, 0, 50)) / 9 - 2),
-                          j_(4), 1.0, "WoodPile", "a woodpile by the block: wood to split, or an armful to carry"))
+        wp_ = ("meshes/furniture/woodpickup.nif", (wpx_, wpy_, sum(ground(wpx_ + dx_, wpy_ + 60 + dy_) for dx_ in (-80, 0, 30) for dy_ in (-50, 0, 50)) / 9 - 2),
+               j_(4), 1.0, "WoodPile", "a woodpile by the block: wood to split, or an armful to carry")   # (its draws taken either way)
+        if YARD_PROPS: AGE_PLACE.append(wp_)
         fpx_ = 600 + j_(8)
         AGE_PLACE.append(("meshes/clutter/firewood/firewoodpilelarge01.nif", (fpx_, 1160 + 69 + 3, sum(ground(fpx_ + dx_, 1232 + dy_) for dx_ in (-80, 0, 100) for dy_ in (-60, 0, 60)) / 9 - 1),
                           j_(2), 1.0, "FirewoodPileLarge01", "the block's split wood, stacked against the patio's wall"))
@@ -2461,7 +2849,7 @@ if SITE:
                    ([TURRET_BOX] if "TURRET_BOX" in globals() else []) + \
                    [(C_["x"][0], C_["x"][1], C_["y"][0], C_["y"][1]) for C_ in courts] + ([REAR_BOX] if "REAR_BOX" in globals() else [])
             CLEAR[:] = keep + [(a_ - m_, b_ + m_, c_ - m_, d_ + m_) for a_, b_, c_, d_ in near]
-        STAIR_FOOT = STAIR_FOOT_R if ("route" in AP or "path" in AP) else (0, yfoot - 300, ground(0, yfoot - 300))
+        STAIR_FOOT = STAIR_FOOT_R if ("route" in AP or "path" in AP or "stairs" in AP) else (0, yfoot - 300, ground(0, yfoot - 300))
     if os.environ.get("AG_STAIR") == "legs":
         import json as _j
         legs = _j.load(open(os.environ["AG_STAIR_LEGS"]))
@@ -2578,12 +2966,13 @@ PLACE += [("meshes/architecture/solitude/doors/sdoubledoorint01.nif", (0, PY0, G
 PLACE += [("meshes/clutter/common/torchpermanent01.nif", (sx * PIL, PY0 - 34, G + 125), 180, 1.3, "TorchPermanantOn") for sx in (-1, 1)]
 # the guild's own banners on the wings' timber storey (sketch C, between the upper
 # storey's windows, its largest, in style A, one gold frame; blender/banner_nif.py, textures/make_banner_texture.py): 330 x 90, two
-# a wing, centred between the windows; their rods' tops at 620, 26 under the side gables' bargeboard ends (z 640..650, 43 out:
-# measured on the meshes); their brackets on the timber face, measured at y 110 on the outer columns and 116 on the inner (its
-# top rail); the cloth 20 out, in front of the overhang's beam (10 out) and the brackets under it (behind the face)
+# a wing, centred between the windows; their rods' tops at 602, all four alike: the wings' pair hung from the wall plate under
+# the eave, their brackets' backs 8 into it (its face at y 124; at 620 and y 116 their rods sat at the roof's edge, the brackets
+# back through the overhang); the cross gables' pair on the plaster (y 110), the inner bracket's back in the corner post as an
+# iron is fixed into a timber (at 102 the outer one stood 8 off the plaster); the cloth 20 out
 # (so they move with the wind like other banners: rigged, banner_nif.py; one variant each, its own loop, so no two move in step)
-PLACE += [(f"meshes/adventurersguild/hall2/aghall2banner330{v_.lower()}.nif", (bx_, by_, G + 620), 0, 1.0, "AGHall2Banner330" + v_)
-          for v_, bx_, by_ in (("A", -1076, 110), ("B", -726, 116), ("C", 726, 116), ("D", 1076, 110))]
+PLACE += [(f"meshes/adventurersguild/hall2/aghall2banner330{v_.lower()}.nif", (bx_, by_, G + 602), 0, 1.0, "AGHall2Banner330" + v_)
+          for v_, bx_, by_ in (("A", -1076, 110), ("B", -726, 132), ("C", 726, 132), ("D", 1076, 110))]
 
 # ground
 if not SITE:
@@ -3136,11 +3525,17 @@ if os.environ.get("AG_EXPORT"):
                       open(os.path.join(ex, "hall2_checks.json"), "w"))
             d["clear"] = [(-y1, -y0, x0, x1, 0) for x0, x1, y0, y1 in CLEAR] + [(-y1, -y0, x0, x1, 1) for x0, x1, y0, y1 in CLEAR_ALL]   # layout frame (lx0, lx1, ly0, ly1, kind)
             d["stair_foot"] = L(STAIR_FOOT); d["site"] = SITE
-            d["ramps"] = [[[list(L(a_)), list(L(b_))] for a_, b_ in rows_] for rows_ in RAMPS]   # (each stair's walking surface, rows foot to top)
+            d["ramps"] = [[[list(L(a_)), list(L(b_))] for a_, b_ in rows_] for rows_ in RAMPS]
+            d["spans"] = [[list(L((x_, y_, 0)))[:2] for x_, y_ in sp_] for sp_ in SPANS]
+            if "AP" in globals() and AP.get("snow"): d["snow"] = {k_: v_ for k_, v_ in AP["snow"].items() if k_ in ("body", "roof", "site", "roof_share")}   # (Hall2.cs: the statics' directional materials; build_hall.sh: the roof's split)
+            d["nav_cross"] = bool(AP.get("nav_cross", True)) if "AP" in globals() else True   # (the site file's: does ground run round the hall)   # (each stair's walking surface, rows foot to top)
             # (2026-11-05) the ground under the yard, as triangles every 32 (layout frame), for the site's placement check: the terrain
             # is not in the site's collision, so every yard piece read "nothing under it" and the check's exit was ignored
             if "ground" in globals() and PLACE:
                 xs_ = [pl[1][0] for pl in PLACE]; ys_ = [pl[1][1] for pl in PLACE]
+                # (and every stair's rows: the outdoor navmesh reads the land under each ramp's ends from this grid; a stair foot past
+                # the yard's pieces fell off it and lost its foot)
+                xs_ += [p_[0] for rows_ in RAMPS for r_ in rows_ for p_ in r_]; ys_ += [p_[1] for rows_ in RAMPS for r_ in rows_ for p_ in r_]
                 gx0, gx1, gy0, gy1 = min(xs_) - 160, max(xs_) + 160, min(ys_) - 160, max(ys_) + 160
                 nx_, ny_ = int((gx1 - gx0) / 32) + 1, int((gy1 - gy0) / 32) + 1
                 G_ = [[list(L((gx0 + i_ * 32, gy0 + j_ * 32, ground(gx0 + i_ * 32, gy0 + j_ * 32)))) for j_ in range(ny_ + 1)] for i_ in range(nx_ + 1)]

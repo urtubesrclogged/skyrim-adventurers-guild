@@ -38,7 +38,8 @@ cp "$W/materials/glass/"* "$TD/"; cp "$W/materials/glass/"* "$TX/"
 
 # ---- export
 rm -rf "$E"; mkdir -p "$E"
-COMMON=(AG_GLAZE=all AG_TAG=1 AG_STAIR=approach AG_APPROACH="$B/variants/site5_v4/approach_curve.json" AG_SITE=16014,-49358,568,245 AG_MAP="$PRIV/site/mapdata.json")
+COMMON=(AG_GLAZE=all AG_TAG=1 AG_STAIR=approach AG_APPROACH="$B/$HALL_SITE_APPROACH" AG_SITE=$HALL_SITE_AG AG_MAP="$PRIV/$HALL_SITE_MAP")   # (the site: env.sh, sites.json)
+echo "== hall site: $HALL_SITE (place $HALL_SITE_PLACE)"
 (cd "$B" && env AG_EXPORT="$E" "${COMMON[@]}" timeout 1800 "$BL" -b -P guildhall_gen.py -- "$C" "$E" > "$L/export.log" 2>&1) &
 (cd "$B" && env AG_INTERIOR=1 AG_STAIRS=W AG_EXPORT="$E" "${COMMON[@]}" timeout 1800 "$BL" -b -P guildhall_gen.py -- "$C" "$E" > "$L/export_int.log" 2>&1) &
 wait
@@ -85,8 +86,17 @@ for v_ in E F; do "$BL" -b --python-exit-code 1 -P banner_nif.py -- "$C" "$O/AGH
   cp "$O/AGHall2Banner160$v_.nif" "$C/meshes/adventurersguild/hall2/aghall2banner160$(echo $v_ | tr A-F a-f).nif"; done
 python sign_nif.py "$C" "$O/AGHall2Sign.nif" > "$L/sign.log" 2>&1 || fail "sign"; cp "$O/AGHall2Sign.nif" "$C/meshes/adventurersguild/hall2/aghall2sign.nif"
 nif "$E/hall2_site_1.json" "$O/AGHall2Site1.nif" || bad=1
-nif "$E/hall2_body.json" "$O/AGHall2Body.nif" & N1=$!; nif "$E/hall2_roof.json" "$O/AGHall2RoofSlate.nif" roof=slate & N2=$!; nif "$E/hall2_roof.json" "$O/AGHall2RoofTile.nif" roof=tile & N3=$!
-wait $N1 $N2 $N3   # (its own three only: a bare wait also waited on the export checks, GX, and reaped them before their own wait)
+# (2026-11-17) a site that asks for part of its roof under snow ("snow": {"roof_share": s}): the roof split into the snowed
+# part (AGHall2RoofSlate, which carries the snow material) and the bare part (AGHall2RoofSlateBare, its own record, none);
+# roof_snow_split.py fails the build when the two parts do not add up to the roof
+RS=$(python -c "import json; print(json.load(open(r'$E/hall2_site_1.json')).get('snow', {}).get('roof_share', ''))" 2>/dev/null)
+if [ -n "$RS" ]; then
+  python roof_snow_split.py "$E/hall2_roof.json" "$E/roofsplit_snow.json" "$E/roofsplit_bare.json" "$RS" > "$L/roof_snow_split.log" 2>&1 || fail "roof snow split (log: roof_snow_split.log)"
+  tail -1 "$L/roof_snow_split.log"; RJ="$E/roofsplit_snow.json"
+else rm -f "$E/roofsplit_snow.json" "$E/roofsplit_bare.json" "$O/AGHall2RoofSlateBare.nif"; RJ="$E/hall2_roof.json"; fi
+nif "$E/hall2_body.json" "$O/AGHall2Body.nif" & N1=$!; nif "$RJ" "$O/AGHall2RoofSlate.nif" roof=slate & N2=$!; nif "$E/hall2_roof.json" "$O/AGHall2RoofTile.nif" roof=tile & N3=$!
+N4=; [ -n "$RS" ] && { nif "$E/roofsplit_bare.json" "$O/AGHall2RoofSlateBare.nif" roof=slate & N4=$!; }
+wait $N1 $N2 $N3 $N4   # (its own only: a bare wait also waited on the export checks, GX, and reaped them before their own wait)
 nif "$E/hall2_lookout.json" "$O/AGHall2Lookout.nif" || bad=1
 grep -h -E "exit [1-9]" "$L"/nif_*.log 2>/dev/null | head -3
 [ $bad -eq 0 ] || fail "meshes (logs: nif_*, bake, banner_*, pool_seat)"
@@ -97,13 +107,19 @@ python door_nif_check.py "$O" > "$L/doors.log" 2>&1 || fail "the load doors' mes
 stamp meshes
 
 wait $GX || fail "the export checks could not make the gates' records and measures (log: gates_export.log)"
+# which lights burn without Light Limit Fix (Hall2.cs hangs the others off each cell's marker; the DLL switches them)
+python "$B/vanilla_lights.py" "$E" "$HG/textures/light_levels.json" > "$L/vanilla_lights.log" 2>&1 || { cat "$L/vanilla_lights.log"; fail "vanilla_lights"; }
 
 # ---- the plugin: navmeshes, the plugin (IDs carried by number from the ledger), the NPCs merged in, verified
-cd "$HG"; export HALL2_DIR="$E" HALL2_PREV_ESP="$W/ledger/$ESP"; unset EXTRA_PLUGINS
+cd "$HG"; export HALL2_DIR="$E" HALL2_PREV_ESP="$W/ledger/$ESP" HALL2_PLACE="$HALL_SITE_PLACE" HALL2_MARKER="$HALL_SITE_MARKER" HALL2_DOOR="$HALL_SITE_DOOR" HALL2_GLOW="$HALL_SITE_GLOW" HALL2_HELIOS="$HALL_SITE_HELIOS"; unset EXTRA_PLUGINS
 rm -f "$HALL_BUILD/$ESP" "$HALL_BUILD/$ESP.unmerged"
 for c_ in interior lookout basement; do python blender/navgen.py "$E/hall2_$c_.json" "$E/nav_$c_.json" --plot "$L/nav_$c_.png" --records "$E/records.json" > "$L/nav_$c_.log" 2>&1 || fail "navgen $c_"; done
 timeout 910 dotnet run -c Release --no-build -- build "$HALL_BUILD" blender/variants/hill.json > "$L/plugin.log" 2>&1 || { grep -E "rror|xception" "$L/plugin.log" | head -3; fail "plugin"; }
-timeout 600 dotnet run -c Release --no-build -- refdiff "$W/ledger/$ESP" "$HALL_BUILD/$ESP" --all > "$L/refdiff.log" 2>&1; tail -1 "$L/refdiff.log"
+# (2026-11-18) the renumbering gate: no ID the ledger (the last deployed hall, build.sh refreshes it) gave one piece may name another
+# now; a save holds the hall's pieces by ID (RefDiff.cs). Exit 3 is that; any other failure is the tool's
+timeout 600 dotnet run -c Release --no-build -- refdiff "$W/ledger/$ESP" "$HALL_BUILD/$ESP" --all > "$L/refdiff.log" 2>&1; rd_=$?; tail -1 "$L/refdiff.log"
+[ $rd_ -eq 3 ] && { grep -E "^(RENUMBERED|KIND)" "$L/refdiff.log" | head -5; fail "IDs: pieces the last deployed hall had are renumbered (log: refdiff.log)"; }
+[ $rd_ -eq 0 ] || fail "refdiff (log: refdiff.log)"
 rm -rf "$HALL_BUILD/Sound"; bash npcs/merge_npcs.sh "$HALL_BUILD" > "$L/merge.log" 2>&1 || { tail -5 "$L/merge.log"; fail "NPC merge"; }
 timeout 600 dotnet run -c Release --no-build -- verify "$HALL_BUILD/$ESP" > "$L/verify.log" 2>&1 || { tail -5 "$L/verify.log"; fail "verify"; }
 stamp plugin
@@ -113,8 +129,9 @@ mkdir -p "$HALL_BUILD/SKSE/Plugins/AdventurersGuild/Hall/outdoor"
 python blender/outdoor_nav.py "$E" "$HALL_BUILD/SKSE/Plugins/AdventurersGuild/Hall/outdoor/outdoor_nav.json" --plot "$L/nav_outdoor.png" > "$L/nav_outdoor.log" 2>&1 || { tail -3 "$L/nav_outdoor.log"; fail "outdoor navmesh"; }
 tail -1 "$L/nav_outdoor.log"
 # (2026-11-13) the fit replayed on each test install's ground (clean dumps in hall-private/navdumps): both feet joined to both doors, both
-# ways, and no ground left under the hall
-for d_ in "$PRIV"/navdumps/*_clean.json; do
+# ways, and no ground left under the hall. Site B: the ground of cells -21,26 and their neighbours, from each test install's
+# winning NAVM records (the in-game dumps are of Riverwood's cells)
+for d_ in "$PRIV/$HALL_SITE_NAVDUMPS"/*_clean.json; do
   python blender/outdoor_replay.py "$d_" "$HALL_BUILD/SKSE/Plugins/AdventurersGuild/Hall/outdoor/outdoor_nav.json" --out "$L/replay_$(basename "$d_")" > "$L/replay_$(basename "$d_" .json).log" 2>&1 || { tail -3 "$L/replay_$(basename "$d_" .json).log"; fail "outdoor navmesh replay on $(basename "$d_")"; }
 done
 

@@ -37,6 +37,9 @@ namespace Nav
 	void        OutdoorSetInfoLinks(bool a_on);
 	// The outdoor navmesh's diagnostic (AGHallNative.OutdoorNav): "status", "watch", "last"
 	std::string OutdoorNavStep(const std::string& a_step);
+	// The stair foot (world x y z, on the land) that the door landing nearest a_out leads down to, from outdoor_nav.json alone;
+	// none: a_why says what is missing
+	std::optional<std::array<float, 3>> StairFoot(const RE::NiPoint3& a_out, std::string& a_why);
 
 	// AG's DLL (main.cpp) hands these on: its messages, and its Papyrus registration (the AGHallNative class)
 	void OnMessage(SKSE::MessagingInterface::Message* a_msg);
@@ -51,5 +54,24 @@ namespace Hall
 	void OnDataLoaded();
 	void OnGameLoaded(bool a_newGame);                              // after a save loads, or a new game starts
 	bool Standing();                                                // the hall's pieces are placed in this game (not while g_lock is held)
-	bool RegisterPapyrus(RE::BSScript::IVirtualMachine* a_vm);      // HallStatus, HallRebuild, HallRemove, HallRef
+	// The installed hall's site, from its layout (read at data load): its place (AG_GuildHallSiteGlobal: 1 Riverwood, 2 Solitude; 0
+	// with no hall installed), where it stands, its map marker's spot and facing, its Helios sky region (0: none, or no Helios)
+	int                                           SitePlace();
+	std::optional<RE::NiPoint3>                   SitePos();
+	std::optional<std::pair<RE::NiPoint3, float>> MarkerSpot();
+	RE::FormID                                    HeliosRegion();
+
+	// No grass through the hall's ground (grass.cpp): the engine's hand-over of a cell's grass checked and hooked at kPostLoad, the
+	// hall's ground read at data load
+	void GrassInstall();
+	void GrassOnDataLoaded();
+	bool RegisterPapyrus(RE::BSScript::IVirtualMachine* a_vm);      // HallStatus, HallRebuild, HallRemove, HallRef, HallWayOut, HallAnchor
+
+	// The hall's map marker (marker.cpp): a run-time MapMarker reference on the forecourt, kept in the co-save's HMRK record
+	void               MarkerEnsure(const char* a_why);  // on the main thread: made, given its map data, on the player's list
+	RE::TESObjectREFR* MapMarker();                       // the marker, or none (no hall, or not made yet)
+	void               MarkerRemove();                    // HallRemove: taken down
+	void               MarkerSave(SKSE::SerializationInterface* a_intfc);
+	void               MarkerLoad(SKSE::SerializationInterface* a_intfc, std::uint32_t a_type, std::uint32_t a_version);
+	void               MarkerRevert();
 }

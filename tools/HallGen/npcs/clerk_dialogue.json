@@ -144,6 +144,21 @@
 			"Trolls and frostbite spiders in the hills, and giants out on the plains. I saw one from the road once. It was as big as a house!"
 		]
 	},
+	"_aboutSolitude": "The Solitude site's versions of the clerks' about lines, by the line number they stand in for: each plays only at site 2 (AG_GuildHallSiteGlobal), its Riverwood line then only elsewhere. unlessDone: a quest whose completion ends the line.",
+	"aboutSolitude": {
+		"AGHallClerkDay": {
+			"2": "Plenty. Bandits a stone's throw up the road, hagravens to the north, trolls in the snow.",
+			"3": {
+				"text": "Folk in Solitude talk about lights in Wolfskull Cave, just west of us. I'd love one of ours to look into it.",
+				"unlessDone": "MS06Start"
+			}
+		},
+		"AGHallClerkEvening": {
+			"1": "You can see the Thalmor Embassy from our door. I don't go near it. Please don't do anything brave up there.",
+			"2": "Hagravens at Ravenscar Hollow, north of here. Even the drawings frighten me. Please don't go alone.",
+			"3": "Trolls and sabre cats up in the snow. I saw a troll from the road once. Big as a cart!"
+		}
+	},
 	"_idles": "What each clerk says to herself when the player is in her line of sight, in her waking hours: one of six at random, each waiting four game hours, with a 1% chance a line so she speaks about every four minutes.",
 	"idles": {
 		"AGHallClerkDay": [

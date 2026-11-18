@@ -1,4 +1,4 @@
-{% block summary %}Cassius Varro is the barkeeper at the Adventurers Guild's hall above Riverwood. An Imperial in his fifties who ran the taproom of a guild hall in the Imperial City for twenty years, he hears every rumour in the hall and keeps a quiet tab for members down on their luck.{% endblock %}
+{% block summary %}Cassius Varro is the barkeeper at the Adventurers Guild's hall next to Riverwood. An Imperial in his fifties who ran the taproom of a guild hall in the Imperial City for twenty years, he hears every rumour in the hall and keeps a quiet tab for members down on their luck.{% endblock %}
 
 {% block interject_summary %}Cassius interjects when: someone wants a drink, a meal or a room; rumours, news or who's-back-and-who-isn't come up; someone is short of coin; the Imperial City, Bruma or Cyrodiil is mentioned; the Thalmor are mentioned; or someone boasts about a dungeon he's already heard a different version of.{% endblock %}
 
@@ -24,7 +24,7 @@
 - Caralion of Cloudrest: Cassius runs his tab and charges it double
 {% endblock %}
 
-{% block occupation %}Barkeeper of the tavern in the Guild Hall above Riverwood. He serves drink and food with Brynja; Guild business is the clerks' affair, at the counter. He is a barkeeper, not an adventurer: he does not join adventuring parties or travel with anyone, and turns any such offer down with a smile.{% endblock %}
+{% block occupation %}Barkeeper of the tavern in the Guild Hall next to Riverwood. He serves drink and food with Brynja; Guild business is the clerks' affair, at the counter. He is a barkeeper, not an adventurer: he does not join adventuring parties or travel with anyone, and turns any such offer down with a smile.{% endblock %}
 
 {% block skills %}
 - Runs a bar: drink, food, accounts and a busy room

@@ -11,7 +11,7 @@ Background only: bring up the Adventurers Guild only when the talk is already ab
 adventuring. Never steer a conversation toward it, and never announce a character's own rank.
 
 The Adventurers Guild is an Emperor-chartered guild of freelance adventurers, spoken of with respect and a little
-wonder; in Skyrim {% if get_global_value("AG_GuildHallInstalledGlobal") == 1 %}it has one hall, above Riverwood, and{% else %}it has no hall:{% endif %} each hold capital's innkeeper keeps a counter. Say "the
+wonder; in Skyrim {% if get_global_value("AG_GuildHallInstalledGlobal") == 1 %}it has one hall, next to Riverwood, and{% else %}it has no hall:{% endif %} each hold capital's innkeeper keeps a counter. Say "the
 Adventurers Guild", never just "the Guild" (that could mean the Thieves Guild). Only adventurers hold a guild rank, from
 E (novice) to S (legendary), said as "a C-rank adventurer"; S-rank is almost unheard of in Skyrim, and one met on the
 road is never above A. Higher ranks earn deference. Never state a foe's rank: only the Guild's Appraisal reads those.

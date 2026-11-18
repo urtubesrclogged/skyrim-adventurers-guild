@@ -9,6 +9,7 @@
 #include "Guild.h"
 #include "Loc.h"
 #include "MissiveWatch.h"
+#include "hall/hall.h"
 
 #include <array>
 #include <filesystem>
@@ -255,10 +256,10 @@ namespace AG::GuildHall
 		}
 		a_data["postings"] = std::move(posts);
 
-		// the hall posts no bounty above the player's rank, as the missives' gate does; the
+		// the hall posts no bounty above the rank of work the player may take, as the missives' gate does; the
 		// player's own (taken or slain) is always listed, as a town counter lists it
 		static constexpr std::string_view kRanks = "EDCBAS";
-		const int rank = Guild::Rank();
+		const int rank = Guild::WorkRank();
 		auto      bounties = nlohmann::json::array();
 		for (auto& b : BountyWatch::All()) {
 			const auto tier = b.value("tier", "E");
@@ -299,6 +300,64 @@ namespace AG::GuildHall
 		}
 
 		RE::Color Grey(std::uint8_t a_r, std::uint8_t a_g, std::uint8_t a_b) { return RE::Color(a_r, a_g, a_b, 0); }
+
+		// Community Shaders' Light Limit Fix, which lifts the vanilla renderer's few lights a shape: its DLL, its feature file,
+		// and not switched off at boot (the same test as the screen-space GI's)
+		bool LightLimitFixOn()
+		{
+			if (!REX::W32::GetModuleHandleW(L"CommunityShaders.dll") || !std::filesystem::exists("Data/Shaders/Features/LightLimitFix.ini")) return false;
+			std::ifstream in("Data/SKSE/Plugins/CommunityShaders/SettingsUser.json");
+			if (!in) return true;
+			const auto j = nlohmann::json::parse(in, nullptr, false);
+			if (j.is_discarded()) return true;
+			if (const auto boot = j.find("Disable at Boot"); boot != j.end() && boot->is_object() && boot->value("LightLimitFix", false)) return false;
+			return true;
+		}
+
+		bool vanillaLighting = false;   // set at data load: no Light Limit Fix, so only the hall's chandeliers burn
+
+		// the ambient raised where lights are switched off, so the rooms stay as easy to see: higher by day, when the window
+		// lights would have carried the daylight, than at night
+		constexpr float kNightAmbient = 2.0f, kDayAmbient = 2.4f;
+		constexpr float kDayFrom = 6.0f, kDayTo = 20.0f;   // game hours
+		RE::Color Scaled(RE::Color a_c, float a_f)
+		{
+			const auto up = [a_f](std::uint8_t v) { return static_cast<std::uint8_t>(std::min(255.0f, std::round(v * a_f))); };
+			return RE::Color(up(a_c.red), up(a_c.green), up(a_c.blue), a_c.alpha);
+		}
+		// what is raised: the ambient and directional ambient of the hall's own template, or of a cell's own lighting, each with
+		// its values as loaded, so every change scales from them
+		struct Ambient
+		{
+			RE::Color*                                ambient;
+			RE::BGSDirectionalAmbientLightingColors* dalc;
+			RE::Color                                 ambient0;
+			RE::BGSDirectionalAmbientLightingColors  dalc0;
+		};
+		std::vector<Ambient> ambients;
+		float                ambientNow = 0.0f;
+
+		void ApplyAmbient(float a_f)
+		{
+			if (a_f == ambientNow) return;
+			for (auto& a : ambients) {
+				*a.ambient = Scaled(a.ambient0, a_f);
+				*a.dalc = a.dalc0;
+				for (auto* mm : { &a.dalc->directional.x, &a.dalc->directional.y, &a.dalc->directional.z }) {
+					mm->max = Scaled(mm->max, a_f);
+					mm->min = Scaled(mm->min, a_f);
+				}
+			}
+			ambientNow = a_f;
+			SKSE::log::info("GuildHall: no Light Limit Fix: the hall's ambient x{}", a_f);
+		}
+
+		float WantedAmbient()
+		{
+			const auto* cal = RE::Calendar::GetSingleton();
+			const float h = cal ? cal->GetHour() : 12.0f;
+			return h >= kDayFrom && h < kDayTo ? kDayAmbient : kNightAmbient;
+		}
 	}
 
 	void TuneLighting()
@@ -414,16 +473,18 @@ namespace AG::GuildHall
 
 	// Helios (through the DLL, as Lux): Helios makes an interior's ambient follow the outside weather
 	// and hour by giving the cell Show Sky + Use Sky Lighting and a sky region of its own interior weathers (its Luma Utility files,
-	// one per vanilla cell). Riverwood's interiors take Helios_WeatherPineForest; the hall stands by Riverwood. The two cells with
+	// one per vanilla cell). The hall takes the region Helios gives the nearest vanilla houses: the installed site's (its layout,
+	// from sites.json: Helios_WeatherPineForest at Riverwood, Helios_WeatherSnow at site B by Solitude). The two cells with
 	// windows only (Helios is for interiors with windows; the basement keeps a steady cellar light).
 	void ApplyHelios()
 	{
 		auto* dh = RE::TESDataHandler::GetSingleton();
 		if (!dh || !dh->LookupModByName("Helios.esp")) return;
-		constexpr RE::FormID kPineForest = 0x000E4F;   // Helios_WeatherPineForest
-		auto* region = dh->LookupForm<RE::TESRegion>(kPineForest, "Helios.esp");
+		constexpr RE::FormID kPineForest = 0x000E4F;   // Helios_WeatherPineForest: a layout from before 2026-11-17 names none
+		const RE::FormID     site = Hall::HeliosRegion();
+		auto* region = site ? RE::TESForm::LookupByID<RE::TESRegion>(site) : dh->LookupForm<RE::TESRegion>(kPineForest, "Helios.esp");
 		if (!region) {
-			SKSE::log::warn("GuildHall: Helios is loaded but its PineForest region ({:06X}) is not where it was: the hall's ambient stays fixed", kPineForest);
+			SKSE::log::warn("GuildHall: Helios is loaded but the site's region ({:08X}) is not where it was: the hall's ambient stays fixed", site ? site : kPineForest);
 			return;
 		}
 		int n = 0;
@@ -435,7 +496,80 @@ namespace AG::GuildHall
 			else if (auto* nx = RE::BSExtraData::Create<RE::ExtraCellSkyRegion>()) { nx->skyRegion = region; cell->extraList.Add(nx); }
 			++n;
 		}
-		SKSE::log::info("GuildHall: Helios loaded: {} of the hall's cells follow the sky (Helios_WeatherPineForest)", n);
+		SKSE::log::info("GuildHall: Helios loaded: {} of the hall's cells follow the sky ({})", n, region->GetFormEditorID());
+	}
+
+	namespace
+	{
+		// each cell's switch for the lights that burn only with Light Limit Fix (the hall build's AGHall2VanillaLights* X markers, the
+		// enable parent of those lights)
+		constexpr std::array<RE::FormID, 3> kVanillaSwitches{ 0x007F26, 0x007F27, 0x007F28 };   // interior, basement, lookout
+	}
+
+	void VanillaLighting()
+	{
+		vanillaLighting = !LightLimitFixOn();
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		if (!dh || !Loaded()) return;
+		if (!vanillaLighting) {
+			SKSE::log::info("GuildHall: Light Limit Fix found: every hall light burns");
+			return;
+		}
+		// the ambient raised on the hall's own template, which only its cells use, or, where a cell is on another's (Lux's house
+		// template, shared with every house), on that cell's own lighting, the template's values copied to it first
+		std::vector<RE::BGSLightingTemplate*> seen;
+		int cells = 0;
+		for (const auto id : { kMainCell, kStrongroomCell, kBasementCell }) {
+			auto* cell = HallCell(dh, id);
+			auto* li = cell ? cell->GetLighting() : nullptr;
+			if (!li) continue;
+			auto* t = cell->GetRuntimeData().lightingTemplate;
+			const bool inherits = t && li->lightingTemplateInheritanceFlags.all(RE::INTERIOR_DATA::Inherit::kAmbientColor);
+			if (inherits && t->GetFile(0) && std::find(kPlugins.begin(), kPlugins.end(), std::string_view(t->GetFile(0)->GetFilename())) != kPlugins.end()) {
+				if (std::find(seen.begin(), seen.end(), t) == seen.end()) {
+					ambients.push_back({ &t->data.ambient, &t->directionalAmbientLightingColors, t->data.ambient, t->directionalAmbientLightingColors });
+					seen.push_back(t);
+				}
+			} else {
+				if (inherits) {
+					li->ambient = t->data.ambient;
+					li->directionalAmbientLightingColors = t->directionalAmbientLightingColors;
+					li->lightingTemplateInheritanceFlags.reset(RE::INTERIOR_DATA::Inherit::kAmbientColor);
+				}
+				ambients.push_back({ &li->ambient, &li->directionalAmbientLightingColors, li->ambient, li->directionalAmbientLightingColors });
+			}
+			++cells;
+		}
+		ApplyAmbient(kNightAmbient);
+		SKSE::log::info("GuildHall: no Light Limit Fix: only the hall's chandeliers burn; ambient x{} by day ({}:00-{}:00), x{} at night, in {} cells",
+			kDayAmbient, static_cast<int>(kDayFrom), static_cast<int>(kDayTo), kNightAmbient, cells);
+		// day or night, followed while the game runs: checked every few seconds on the game's own thread
+		std::thread([] {
+			for (;;) {
+				std::this_thread::sleep_for(std::chrono::seconds(5));
+				SKSE::GetTaskInterface()->AddTask([] {
+					if (RE::PlayerCharacter::GetSingleton() && RE::PlayerCharacter::GetSingleton()->Is3DLoaded()) ApplyAmbient(WantedAmbient());
+				});
+			}
+		}).detach();
+	}
+
+	void SwitchVanillaLights()
+	{
+		auto* dh = RE::TESDataHandler::GetSingleton();
+		if (!dh || !Loaded()) return;
+		int found = 0, changed = 0;
+		for (const auto id : kVanillaSwitches)
+			for (const auto name : kPlugins)
+				if (auto* r = dh->LookupForm<RE::TESObjectREFR>(id, name)) {
+					++found;
+					if (vanillaLighting && !r->IsDisabled()) r->Disable(), ++changed;
+					else if (!vanillaLighting && r->IsDisabled()) r->Enable(false), ++changed;
+				}
+		if (found != static_cast<int>(kVanillaSwitches.size()))
+			SKSE::log::warn("GuildHall: {} of the hall's {} light switches found", found, kVanillaSwitches.size());
+		if (changed) SKSE::log::info("GuildHall: the lights that need Light Limit Fix switched {}", vanillaLighting ? "off" : "on");
+		if (vanillaLighting) ApplyAmbient(WantedAmbient());
 	}
 
 	// Which vanilla lists each of the hall folk's voices joins (the followers Ghrulek, Ylva and

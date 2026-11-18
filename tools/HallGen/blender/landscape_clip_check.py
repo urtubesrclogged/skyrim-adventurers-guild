@@ -31,7 +31,7 @@ V, F, FK = [], [], []
 for fn in ("hall2_body.json", "hall2_roof.json", "hall2_site_1.json"):
     j = json.load(open(os.path.join(exdir, fn)))
     for key, sh in j["shapes"].items():
-        if key in ("moss", "mosswall", "wearcrack", "wearstain"): continue
+        if key in ("moss", "mosswall", "wearcrack", "wearstain", "spill"): continue
         for f in sh["f"]:
             F.append(list(range(len(V), len(V) + len(f)))); FK.append(key)
             V += [Vector((sh["v"][i][1], -sh["v"][i][0], sh["v"][i][2])) for i in f]

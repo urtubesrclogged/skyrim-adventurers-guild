@@ -8,7 +8,7 @@
       {
         "key": "ag_basics",
         "display_name": "The Adventurers Guild",
-        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. Its home in Skyrim is the Guild Hall on the road above Riverwood, the one hall the Guild keeps in the province, where its Guild Master keeps the Guild's records and its members eat, train and sleep between jobs. Every hold capital's inn keeps a Guild counter too, where the innkeeper buys the trophies of a good hunt, pays out the Guild's reports and hands out its work. It is spoken of with respect and a little wonder, and always as the Adventurers Guild, never just \"the Guild\", which could mean the Thieves Guild.",
+        "content": "The Adventurers Guild is an Emperor-chartered guild of freelance adventurers: monster-slayers, treasure-hunters, sellswords with a conscience. Anyone with the nerve can join, whatever their birth, and rise by their deeds from E-rank to the legendary S-rank. Its home in Skyrim is the Guild Hall on the road next to Riverwood, the one hall the Guild keeps in the province, where its Guild Master keeps the Guild's records and its members eat, train and sleep between jobs. Every hold capital's inn keeps a Guild counter too, where the innkeeper buys the trophies of a good hunt, pays out the Guild's reports and hands out its work. It is spoken of with respect and a little wonder, and always as the Adventurers Guild, never just \"the Guild\", which could mean the Thieves Guild.",
         "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
         "always_inject": false,
         "importance": 0.8,
@@ -48,7 +48,7 @@
       {
         "key": "ag_counters",
         "display_name": "Where the Guild keeps its counters",
-        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlehearth Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. Across the water, the Retching Netch in Raven Rock (Geldis Sadri) keeps the one counter on Solstheim. And the Guild Hall above Riverwood keeps a counter of its own, kept by its two clerks, Margot Belleau by day and Nessa in the evening: the one counter that hands out every hold's work.",
+        "content": "The Adventurers Guild keeps a counter at the inn of every hold capital, kept by the innkeeper: the Bannered Mare in Whiterun (Hulda), the Winking Skeever in Solitude (Corpulus Vinius), Candlehearth Hall in Windhelm (Elda Early-Dawn), the Bee and Barb in Riften (Keerava), the Silver-Blood Inn in Markarth (Kleppr), the Dead Man's Drink in Falkreath (Valga Vinicia), Moorside Inn in Morthal (Jonna), Windpeak Inn in Dawnstar (Thoring) and the Frozen Hearth in Winterhold (Dagur). Smaller inns have no counter and send adventurers to the nearest capital. Across the water, the Retching Netch in Raven Rock (Geldis Sadri) keeps the one counter on Solstheim. And the Guild Hall next to Riverwood keeps a counter of its own, kept by its two clerks, Margot Belleau by day and Nessa in the evening: the one counter that hands out every hold's work.",
         "condition_expr": "get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -76,7 +76,7 @@
       {
         "key": "ag_where_registration_hall",
         "display_name": "Joining the Adventurers Guild",
-        "content": "Newcomers join the Adventurers Guild only at the Guild Hall above Riverwood, where its clerks register them for a fee. The innkeepers who keep the Guild's counters no longer sign anyone up: they send a would-be adventurer to the hall. A member's followers are registered there too, each for the same fee.",
+        "content": "Newcomers join the Adventurers Guild only at the Guild Hall next to Riverwood, where its clerks register them for a fee. The innkeepers who keep the Guild's counters no longer sign anyone up: they send a would-be adventurer to the hall. A member's followers are registered there too, each for the same fee.",
         "condition_expr": "get_global_value(\"AG_HallRegistrationGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -89,7 +89,7 @@
       {
         "key": "ag_where_registration_inns",
         "display_name": "Joining the Adventurers Guild",
-        "content": "Newcomers join the Adventurers Guild at any Guild counter, for a fee: at the Guild Hall above Riverwood, or at the inn counter of a hold capital. A member's followers can be registered at any counter too, each for the same fee.",
+        "content": "Newcomers join the Adventurers Guild at any Guild counter, for a fee: at the Guild Hall next to Riverwood, or at the inn counter of a hold capital. A member's followers can be registered at any counter too, each for the same fee.",
         "condition_expr": "get_global_value(\"AG_HallRegistrationGlobal\") == 0",
         "always_inject": false,
         "importance": 0.6,
@@ -102,7 +102,7 @@
       {
         "key": "ag_where_promotion_hall",
         "display_name": "Guild promotions",
-        "content": "Cases for promotion are heard only at the Guild Hall above Riverwood, by its clerks. An innkeeper who keeps a Guild counter sends an adventurer who is due a promotion to the hall.",
+        "content": "Cases for promotion are heard only at the Guild Hall next to Riverwood, by its clerks. An innkeeper who keeps a Guild counter sends an adventurer who is due a promotion to the hall.",
         "condition_expr": "get_global_value(\"AG_HallPromotionGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -115,7 +115,7 @@
       {
         "key": "ag_where_promotion_inns",
         "display_name": "Guild promotions",
-        "content": "Any Guild counter hears a case for promotion: the clerks at the Guild Hall above Riverwood, or an innkeeper who keeps a hold's counter.",
+        "content": "Any Guild counter hears a case for promotion: the clerks at the Guild Hall next to Riverwood, or an innkeeper who keeps a hold's counter.",
         "condition_expr": "get_global_value(\"AG_HallPromotionGlobal\") == 0",
         "always_inject": false,
         "importance": 0.6,
@@ -128,7 +128,7 @@
       {
         "key": "ag_where_training_hall",
         "display_name": "Where the Guild trains",
-        "content": "The Guild's training, Appraisal and the drills and perk training alike, is given only at the Guild Hall above Riverwood.",
+        "content": "The Guild's training, Appraisal and the drills and perk training alike, is given only at the Guild Hall next to Riverwood.",
         "condition_expr": "get_global_value(\"AG_HallTrainingGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -141,7 +141,7 @@
       {
         "key": "ag_where_training_inns",
         "display_name": "Where the Guild trains",
-        "content": "The Guild's training, Appraisal and the drills and perk training alike, is given at every Guild counter: the inns' as well as the Guild Hall above Riverwood's.",
+        "content": "The Guild's training, Appraisal and the drills and perk training alike, is given at every Guild counter: the inns' as well as the Guild Hall next to Riverwood's.",
         "condition_expr": "get_global_value(\"AG_HallTrainingGlobal\") == 0",
         "always_inject": false,
         "importance": 0.6,
@@ -154,7 +154,7 @@
       {
         "key": "ag_where_boxes_hall",
         "display_name": "Where Guild Boxes are sold",
-        "content": "Guild Boxes are sold only at the Guild Hall above Riverwood, from the Guild's vaults.",
+        "content": "Guild Boxes are sold only at the Guild Hall next to Riverwood, from the Guild's vaults.",
         "condition_expr": "get_global_value(\"AG_HallBoxesGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -167,7 +167,7 @@
       {
         "key": "ag_where_boxes_inns",
         "display_name": "Where Guild Boxes are sold",
-        "content": "Guild Boxes are sold at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "content": "Guild Boxes are sold at every Guild counter, the inns' as well as the Guild Hall next to Riverwood's.",
         "condition_expr": "get_global_value(\"AG_HallBoxesGlobal\") == 0",
         "always_inject": false,
         "importance": 0.6,
@@ -180,7 +180,7 @@
       {
         "key": "ag_where_library_hall",
         "display_name": "The Guild Library",
-        "content": "The Guild Library's skill books are sold only at the Guild Hall above Riverwood.",
+        "content": "The Guild Library's skill books are sold only at the Guild Hall next to Riverwood.",
         "condition_expr": "get_global_value(\"AG_HallLibraryGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -193,7 +193,7 @@
       {
         "key": "ag_where_library_inns",
         "display_name": "The Guild Library",
-        "content": "The Guild Library's skill books are sold at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "content": "The Guild Library's skill books are sold at every Guild counter, the inns' as well as the Guild Hall next to Riverwood's.",
         "condition_expr": "get_global_value(\"AG_HallLibraryGlobal\") == 0",
         "always_inject": false,
         "importance": 0.6,
@@ -206,7 +206,7 @@
       {
         "key": "ag_where_tomes_hall",
         "display_name": "Guild spell tomes",
-        "content": "The Guild sells its spell tomes only at the Guild Hall above Riverwood.",
+        "content": "The Guild sells its spell tomes only at the Guild Hall next to Riverwood.",
         "condition_expr": "get_global_value(\"AG_HallTomesGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -219,7 +219,7 @@
       {
         "key": "ag_where_tomes_inns",
         "display_name": "Guild spell tomes",
-        "content": "The Guild sells its spell tomes at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "content": "The Guild sells its spell tomes at every Guild counter, the inns' as well as the Guild Hall next to Riverwood's.",
         "condition_expr": "get_global_value(\"AG_HallTomesGlobal\") == 0",
         "always_inject": false,
         "importance": 0.6,
@@ -232,7 +232,7 @@
       {
         "key": "ag_where_augments_hall",
         "display_name": "Where Guild Augments are sold",
-        "content": "Guild Augments are sold only at the Guild Hall above Riverwood.",
+        "content": "Guild Augments are sold only at the Guild Hall next to Riverwood.",
         "condition_expr": "get_global_value(\"AG_HallAugmentsGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -245,7 +245,7 @@
       {
         "key": "ag_where_augments_inns",
         "display_name": "Where Guild Augments are sold",
-        "content": "Guild Augments are sold at every Guild counter, the inns' as well as the Guild Hall above Riverwood's.",
+        "content": "Guild Augments are sold at every Guild counter, the inns' as well as the Guild Hall next to Riverwood's.",
         "condition_expr": "get_global_value(\"AG_HallAugmentsGlobal\") == 0",
         "always_inject": false,
         "importance": 0.6,
@@ -258,7 +258,7 @@
       {
         "key": "ag_where_parties_hall",
         "display_name": "Founding a party",
-        "content": "A party is founded, renamed or disbanded only at the Guild Hall above Riverwood, where the Guild keeps its ledger of parties. Members join and leave a party at any Guild counter.",
+        "content": "A party is founded, renamed or disbanded only at the Guild Hall next to Riverwood, where the Guild keeps its ledger of parties. Members join and leave a party at any Guild counter.",
         "condition_expr": "get_global_value(\"AG_HallPartiesGlobal\") == 1",
         "always_inject": false,
         "importance": 0.6,
@@ -313,7 +313,7 @@
       {
         "key": "ag_missives",
         "display_name": "Guild Missives",
-        "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. An adventurer may take missives up to their own rank, and each one done is reported at a Guild counter for gold and standing. A missive board posts new work every few days, when someone next walks up to it, and right after an adventurer is registered or promoted. A Guild counter lists what is posted on its own town's board and hands those jobs out too.",
+        "content": "Guild Missives are the Adventurers Guild's paid jobs, posted on each hold's missive board: beasts to hunt, bandits to rout, relics to recover, people to find. An adventurer may take missives up to the rank the Guild allows them, as a rule their own, and each one done is reported at a Guild counter for gold and standing. A missive board posts new work every few days, when someone next walks up to it, and right after an adventurer is registered or promoted. A Guild counter lists what is posted on its own town's board and hands those jobs out too.",
         "condition_expr": "is_plugin_loaded(\"Missives.esp\")",
         "always_inject": false,
         "importance": 0.5,
@@ -342,7 +342,7 @@
       {
         "key": "ag_notices",
         "display_name": "The Guild's notices",
-        "content": "Besides the missive boards, the Adventurers Guild posts its notices on the notice boards found across the province, the same notices wherever one stands. An adventurer takes them up to their own rank and reports them at a Guild counter like any other Guild work.",
+        "content": "Besides the missive boards, the Adventurers Guild posts its notices on the notice boards found across the province, the same notices wherever one stands. An adventurer takes them up to the rank the Guild allows them, as a rule their own, and reports them at a Guild counter like any other Guild work.",
         "condition_expr": "is_plugin_loaded(\"notice board.esp\")",
         "always_inject": false,
         "importance": 0.4,
@@ -444,7 +444,7 @@
           "riverwood",
           "willem"
         ],
-        "content": "The Guild Hall above Riverwood is run by its Guild Master, Willem, a scarred Nord and retired A-rank who came home from the Great War with the hall's first company and reopened the hall a year ago. Merila Andalen, a Dunmer, is his assistant and keeps the hall's records and library. Two Breton clerks keep the Guild counter: brisk Margot Belleau from early morning and young Nessa from midday into the evening. Cassius Varro, an Imperial who hears every rumour, keeps the tavern's bar. The hall's counter is the one Guild counter in Skyrim that sees every hold's work, where an inn's counter knows only its own hold's. Brynja, a Nord farm girl, serves the tavern, and Old Henriette, who cooked for the first company, runs the kitchen. Four members live in the attic: Ghrulek, a loud Orc warrior of C-rank; Ylva, a quiet B-rank ranger from the Pale; Zhasim, a Khajiit scout who stays D-rank on purpose; and Marius Crassus, the old company's sergeant, a retired A-rank. The best room belongs to Caralion of Cloudrest, a rich young Altmer of C-rank whom nobody likes and whose gold keeps the roof up."
+        "content": "The Guild Hall next to Riverwood is run by its Guild Master, Willem, a scarred Nord and retired A-rank who came home from the Great War with the hall's first company and reopened the hall a year ago. Merila Andalen, a Dunmer, is his assistant and keeps the hall's records and library. Two Breton clerks keep the Guild counter: brisk Margot Belleau from early morning and young Nessa from midday into the evening. Cassius Varro, an Imperial who hears every rumour, keeps the tavern's bar. The hall's counter is the one Guild counter in Skyrim that sees every hold's work, where an inn's counter knows only its own hold's. Brynja, a Nord farm girl, serves the tavern, and Old Henriette, who cooked for the first company, runs the kitchen. Four members live in the attic: Ghrulek, a loud Orc warrior of C-rank; Ylva, a quiet B-rank ranger from the Pale; Zhasim, a Khajiit scout who stays D-rank on purpose; and Marius Crassus, the old company's sergeant, a retired A-rank. The best room belongs to Caralion of Cloudrest, a rich young Altmer of C-rank whom nobody likes and whose gold keeps the roof up."
       },
       {
         "key": "ag_guild_board",
@@ -459,7 +459,7 @@
           "board",
           "work"
         ],
-        "content": "In the great hall of the Guild Hall above Riverwood hangs the Guild Board, where the Guild posts the work of every hold in Skyrim at once: the missives on the hold capitals' boards, each Jarl's bounty, and the notices passed from town to town. A member reads a posting there and takes it on the spot, as long as it suits their rank. The clerks at the hall's counter keep the same list and will hand out any hold's work across the counter. The inns' counters only know their own hold's. The hall posts each hold's missives itself every few days, and at once when a member is registered or promoted, and a hold's own board adds more when someone stops there to read it; a Jarl's bounty reaches the hall once a steward or innkeeper has put it up, and an adventurer's own bounty, taken and not yet paid, stays on the clerks' list until it is. The hall can also put up a Jarl's bounty itself, for a hold that has none posted: a member who asks for a new bounty is handed the Jarl's letter, and only the letter says which hold, which target and where. The clerks do not know the target before it is read, and the bounty is paid by that hold's Jarl or steward, as any Jarl's bounty is."
+        "content": "In the great hall of the Guild Hall next to Riverwood hangs the Guild Board, where the Guild posts the work of every hold in Skyrim at once: the missives on the hold capitals' boards, each Jarl's bounty, and the notices passed from town to town. A member reads a posting there and takes it on the spot, as long as it suits their rank. The clerks at the hall's counter keep the same list and will hand out any hold's work across the counter. The inns' counters only know their own hold's. The hall posts each hold's missives itself every few days, and at once when a member is registered or promoted, and a hold's own board adds more when someone stops there to read it; a Jarl's bounty reaches the hall once a steward or innkeeper has put it up, and an adventurer's own bounty, taken and not yet paid, stays on the clerks' list until it is. The hall can also put up a Jarl's bounty itself, for a hold that has none posted: a member who asks for a new bounty is handed the Jarl's letter, and only the letter says which hold, which target and where. The clerks do not know the target before it is read, and the bounty is paid by that hold's Jarl or steward, as any Jarl's bounty is."
       },
       {
         "key": "ag_leader_board",
@@ -475,7 +475,7 @@
           "board",
           "renown"
         ],
-        "content": "In Services at the Guild Hall above Riverwood, on the wall between the two front windows, hangs the parties' leader board: one sheet kept by hand by the clerk Merila Andalen and brought up to date as word comes in. It lists every adventuring party the Adventurers Guild's ledger in Skyrim holds, active and disbanded together, ranked by renown, which is how far a party's name has travelled through its deeds: cleared barrows and missives, great beasts, and days on the road together. Active parties are written with their leader and the year they were founded, disbanded ones with the years they were active and how they ended; the first three are written in red. At the top stand three parties of the hall's first company, the Frostbitten first of all; they disbanded when the company marched to the Great War in 4E 174 and were never formed again. Two newer parties, Stendarr's Mercenaries and the Winterhold Four, broke up over the civil war this year. The Grey Lanterns and Stormbringers are active parties that work far from Riverwood. The Golden Hand is Caralion of Cloudrest's party, founded in 4E 200, and it is climbing the sheet faster than any party in the field. A member's own party is written in as soon as it is founded."
+        "content": "In Services at the Guild Hall next to Riverwood, on the wall between the two front windows, hangs the parties' leader board: one sheet kept by hand by the clerk Merila Andalen and brought up to date as word comes in. It lists every adventuring party the Adventurers Guild's ledger in Skyrim holds, active and disbanded together, ranked by renown, which is how far a party's name has travelled through its deeds: cleared barrows and missives, great beasts, and days on the road together. Active parties are written with their leader and the year they were founded, disbanded ones with the years they were active and how they ended; the first three are written in red. At the top stand three parties of the hall's first company, the Frostbitten first of all; they disbanded when the company marched to the Great War in 4E 174 and were never formed again. Two newer parties, Stendarr's Mercenaries and the Winterhold Four, broke up over the civil war this year. The Grey Lanterns and Stormbringers are active parties that work far from Riverwood. The Golden Hand is Caralion of Cloudrest's party, founded in 4E 200, and it is climbing the sheet faster than any party in the field. A member's own party is written in as soon as it is founded."
       },
       {
         "key": "ag_rumor_thalmor",
@@ -523,7 +523,7 @@
       {
         "key": "ag_compromise",
         "display_name": "Skyrim's Guild Hall",
-        "content": "Each province has one central hall of the Adventurers Guild. When the Guild came to Skyrim in 4E 168, under a charter from Titus Mede II in the year of his crowning, the Jarls would grant no land inside their capitals to an Imperial-chartered guild, and the Companions claimed the cities' glory. High King Istlod settled it: one hall, outside the hold capitals, on the road above Riverwood, and a counter in the inn of each hold capital, where the innkeepers serve as the Guild's reps. The hall's first company marched to the Great War as Legion auxiliaries and few came home; the hall stood shut for twenty-five years while the counters kept the Guild alive. Willem, a retired A-rank and one of the six who came back, reopened it in 4E 200.",
+        "content": "Each province has one central hall of the Adventurers Guild. When the Guild came to Skyrim in 4E 168, under a charter from Titus Mede II in the year of his crowning, the Jarls would grant no land inside their capitals to an Imperial-chartered guild, and the Companions claimed the cities' glory. High King Istlod settled it: one hall, outside the hold capitals, on the road next to Riverwood, and a counter in the inn of each hold capital, where the innkeepers serve as the Guild's reps. The hall's first company marched to the Great War as Legion auxiliaries and few came home; the hall stood shut for twenty-five years while the counters kept the Guild alive. Willem, a retired A-rank and one of the six who came back, reopened it in 4E 200.",
         "condition_expr": "(is_in_faction(actorUUID, \"CollegeofWinterholdFaction\") or is_in_faction(actorUUID, \"BardSingerFaction\") or is_in_faction(actorUUID, \"JobJarlFaction\") or is_in_faction(actorUUID, \"JobStewardFaction\") or is_in_faction(actorUUID, \"JobInnkeeperFaction\") or is_in_faction(actorUUID, \"CompanionsFaction\")) and get_global_value(\"AG_GuildHallInstalledGlobal\") == 1",
         "always_inject": false,
         "importance": 0.7,

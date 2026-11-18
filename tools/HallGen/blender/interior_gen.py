@@ -545,6 +545,17 @@ def niche_dress(T_):
     # (2026-10-29, the rule from the kitchen's: herbs hung high out of anyone's reach go to a wall-mounted
     # shelf within reach, or are removed: these hung from the niche's ceiling (236); under its shelf they would hang into the
     # kegs, so they are gone. herbs() is kept for a reachable place)
+    # a broom stood in the niche's corner against the pier's stone side (its face x -340, from y 886 to the back wall at 906),
+    # out of the lane: leaning 3 toward the stone, its head against it and its handle's top 2 off it. Placed by its Havok hull
+    # (one convex body, a loose item): the hull and its 2.0 skin 0.5 short of the stone and of the back wall: in the corner, so
+    # nothing pushes it on load
+    sit("meshes/clutter/common/broom.nif", "Broom01", -332.1, 897.6, 0, 270 + random.Random("tavern broom").uniform(-3, 3), rx=3)
+    # the first company's tankards: a second shelf high in the niche (its board 214.6, 25 under the chamber's ceiling), a few
+    # left up there and never taken down, set as hands leave things (a row of eight, set straight, read as staged)
+    piece("meshes/architecture/whiterun/wrinteriors/wrwallshelf01.nif", "WRWallShelf01", (XB - 4 - 19.7 * 0.9, 837, 200), 270, 0.9)
+    strew((XB - 4 - 17, 776), (XB - 4 - 17, 888), 200 + 16.23 * 0.9,
+          ((T_ + "dining set/basictankard01.nif", "BasicTankard01", 2), (T_ + "dining set/basictankard01.nif", "BasicTankard01", 1)),
+          "first company", depth=5, lie=0)
 
 def poly_n(key, pts, nrm):
     """poly(), wound to face nrm"""
@@ -2894,6 +2905,7 @@ if TAVERN_OPEN:
         # 70-90 apart (pairs WoodenBarStool, every inn); four 70 apart keep every seat and way green, the sandbox stools4.py)
         for x_ in (-657, -587, -517, -447):                   # the bar's stools
             piece("meshes/furniture/woodenbarstool.nif", "WoodenBarStool", (x_, BY_ - 58, 0), 0); SEAT.append(("stool", x_, BY_ - 58))
+        # (2026-11-18: no drink stain before the bar for now: the AGH2XSpill decal read badly in VR; its texture and key are kept)
         # (2026-11-12, after the décor renders: the corner curio shelf, ivy on the wall that may still hang from under the
         # gallery, and an urn with a plant) the south-east corner's curio, a noble corner
         # shelf of jobs brought home (jars, troll fat, a giant's toes, a daedra heart, a sabre cat's tooth, a mammoth tusk on top), 5 out of
@@ -3394,6 +3406,9 @@ if HEARTH:
         # the counter: a clerk's writing things at each clerk's spot, a candlestick between them (as the Arcanaeum's counter)
         for y_ in (250, 460): writing(872, y_ - 18, CTOP + 0.2)
         ware("meshes/clutter/silver/silvercandlestick02.nif", "SilverCandleStick02", (880, 355, CTOP + 0.2), 90)
+        # (the lived-in pass, 2026-11-17) the cards of members found dead, which the counter takes in, kept in a locked box on the
+        # clerks' side between the day clerk and the candlestick (empty: a card in it could be taken and handed in again)
+        piece("meshes/clutter/common/strongbox01.nif", "AGHall2CardBox", (878, 320, CTOP + 0.2), 266, owner="guild", lock="Expert")   # (as the back counter's)
         # the back counter (its top x 992..1054): the business ledger, its strongbox and a purse,
         # as Windhelm's offices keep them
         piece("meshes/clutter/quest/tgrbusinessledger.nif", "TGRFOBusinessLedger", (1007, 522, 78 + 3.2), 90)
@@ -3604,6 +3619,9 @@ if HEARTH:
     for k_, bk_ in enumerate(("BookLarge", "Book06", "Book03a")):
         piece(f"meshes/clutter/books/{LIB_BOOKS[bk_]}.nif", "AGHall2" + bk_, (-1302, 312, DZG + (3.4 if k_ == 0 else 6.9 + 4.15 * (k_ - 1) + 2.1)), 90 + (k_ * 7) % 9, exact=True, bake="gm")
     piece("meshes/plants/coinbagsmall.nif", "CoinPurseSmall", (-1336, 440, DZG), 30, owner="gm", settled=True)
+    # (the lived-in pass, 2026-11-17) three sealed letters between the books and the well: the letters he still writes to families
+    for k_ in range(3):
+        piece("meshes/clutter/books/note03.nif", "AGHall2Note03", (-1300 + k_ * 0.7, 362 + k_ * 0.5, DZG + 0.35 + 0.3 * k_), 100 + k_ * 7, exact=True, bake="gm")
     sit("meshes/clutter/silver/silvergoblet01.nif", "SilverGoblet01", -1336, 304, DZG, 0)
     shelf_books((-1126, 432), (-1126, 542), ZG + 107, 0, "GM2", room=40, fill=0.85, bake="gm")
     for k_ in range(3):
@@ -3694,22 +3712,62 @@ if HEARTH:
     CT_ = "meshes/clutter/candles/candlehorntable01.nif"
     # (the nightstand's top is 34 x 30: a small candlestick and one thing beside it)
     # (the walk of 2026-11-01: the rings hung over rooms 4 and 6 went; a single candle lantern is enough there: on the nightstand, where the candlestick stood, not on the chest, whose lid opens)
-    STAFF_NT = (((450, 295), ("books/journallowpoly01", "AGHall2Journal"), True),          # Merila (room 6 since 2026-11-06: the clerks next door)
+    STAFF_NT = (((450, 295), None, True),                                                     # Merila (room 6 since 2026-11-06: the clerks next door; her book since the lived-in pass)
                 ((450, 515), ("ingredients/mead01", "FoodMead"), False),                  # Brynja
-                ((1418, B4_ - 75), ("books/note01", "AGHall2Note01"), None),             # Margot, her lists (room 4; no lantern, 2026-11-06)
-                ((1418, B3_ - 75), None, None))                                           # Nessa (room 3; no lantern, 2026-11-06)
+                ((1418, B4_ - 75), ("books/note01", "AGHall2Note01"), "candle"),         # Margot, her lists and a candle (room 4)
+                ((1418, B3_ - 75), None, "candle"))                                       # Nessa, a candle (room 3; its wall sconce stood on the window)
+    # (lit_: True a candle lantern, "candle" vanilla's single candle (ImpCandle01, 10 across: the horn candle's 37 is longer than
+    # this top's 34) at the top's back left, False a candlestick)
+    def nt_light(nx_, ny_, lit_): return (nx_ - 12, ny_ + 3) if lit_ == "candle" else (nx_ - 8, ny_ + 6)
     for (nx_, ny_), it_, lit_ in STAFF_NT:
-        if it_ is None:
-            piece("meshes/clutter/upperclass/uppernightstand01.nif", "UpperNightstand01", (nx_, ny_, ZG), 0)
-            continue
-        m_, e_ = it_
         piece("meshes/clutter/upperclass/uppernightstand01.nif", "UpperNightstand01", (nx_, ny_, ZG), 0)
-        if lit_: sit("meshes/clutter/common/candlelanternwithcandle01.nif", "CandleLanternwithCandle01", nx_ - 8, ny_ + 6, ZG + 31.6, 0)
+        if lit_ is True: sit("meshes/clutter/common/candlelanternwithcandle01.nif", "CandleLanternwithCandle01", nx_ - 8, ny_ + 6, ZG + 31.6, 0)
+        elif lit_ == "candle": sit("meshes/clutter/imperial/impcandle01.nif", "ImpCandle01", *nt_light(nx_, ny_, lit_), ZG + 30, 0)
         elif lit_ is False: sit("meshes/clutter/silver/silvercandlestick03.nif", "SilverCandleStick03", nx_ - 8, ny_ + 6, ZG + 30, 0)
+        if it_ is None: continue
+        m_, e_ = it_
         if e_.startswith("AGHall2"):
             piece(f"meshes/clutter/{m_}.nif", e_, (nx_ + 10, ny_ - 6, ZG + 30 + 1.0), 0, exact=True, bake="staff")
         else:
             sit(f"meshes/clutter/{m_}.nif", e_, nx_ + 9, ny_ - 6, ZG + 30, 0)
+    # the lived-in pass (2026-11-17: the staff rooms all alike, the trunks empty, the cellar bare): a little more of each owner, from
+    # their bios, as vanilla's kept rooms carry it (Jorrvaskr's and the College's bedrooms: 15 to 25 pieces of their own each: books
+    # picked for the owner, a purse, food and drink, a keepsake). Small rooms: on the nightstands and on one wall shelf each, nothing
+    # on a chest's lid or in a bed's side. Each piece its room's (the export's room groups); real books, so they can be read
+    NT_ = ZG + 30                                             # (the nightstands' tops: 34 x 30, x +-17.3, y +-15.4)
+    WS_ = "meshes/furniture/noble/noblewallshelf01.nif"       # (its board's top 131.4 over its origin, its back at local y 0 on the wall,
+    WSZ = ZG + 131.4                                          # 96 long, 34.5 deep; turned 0 its front faces -y, 180 +y, 270 +x)
+    # Nessa (room 3, her nightstand at (1418, B3_ - 75)): the pick-your-path adventure she grew up on, and a Dwarven gear from the
+    # barrow outside Markarth she means to go back into, set down on the book
+    # (2026-11-17: both at the top's right, clear of her candle at its back left)
+    sit("meshes/clutter/books/basicbook06.nif", "Book1CheapKolbAndTheDragon", 1424, B3_ - 75, NT_, 7)
+    sit("meshes/clutter/dwemer/dwarvengear.nif", "DwarvenGear", 1425, B3_ - 73, NT_ + 3.91 + 0.15, 31)   # (on the book's top: it is 3.91 thick)
+    # Margot (room 4): a wall shelf on her wall with room 5 (y Y45, the room on its -y side), over the bed's middle: two of the
+    # adventure stories she loves, a small jug and a few mountain flowers laid by it (no vase among vanilla's pieces)
+    piece(WS_, "NobleWallShelf01", (1300, Y45 - 0.5, ZG), 0)
+    sit("meshes/clutter/books/basicbook03.nif", "Book2CommonLegendofRedEagle", 1271, Y45 - 17, WSZ, 84)
+    sit("meshes/clutter/books/basicbook03.nif", "Book3ValuableLostLegends", 1272, Y45 - 18, WSZ + 4.0, 97)
+    sit("meshes/clutter/glazedjugsmall01.nif", "GlazedJugSmall01", 1318, Y45 - 15, WSZ, 40)
+    sit("meshes/plants/mountainflower01blue.nif", "MountainFlower01Blue", 1334, Y45 - 21, WSZ, 72, rx=90)
+    sit("meshes/plants/mountainflower01purple.nif", "MountainFlower01Purple", 1337, Y45 - 16, WSZ, 101, rx=90)
+    # Merila (room 6): A Dance in Fire on her nightstand, three volumes stacked and the fifth on them askew (she is rereading it);
+    # her dungeon map taken upstairs: a wall shelf on the hall's wall (x 416) over the nightstand, clear of the bed's head (y 172..268)
+    for k_, (m_, e_) in enumerate((("basicbook05", "Book0DanceInFireV1"), ("basicbook05", "Book0DanceInFireV3"), ("basicbook05", "Book0DanceInFireV4"))):
+        sit(f"meshes/clutter/books/{m_}.nif", e_, 458 + 0.4 * k_, 290 - 0.3 * k_, NT_ + 4.1 * k_, 4 + 5 * k_)
+    sit("meshes/clutter/books/basicbook04a.nif", "Book4RareADanceInFireV5", 459, 291, NT_ + 4.1 * 3 + 0.1, 27)
+    piece(WS_, "NobleWallShelf01", (416.5, 316, ZG), 270)
+    sit("meshes/clutter/quest/tgparchment01.nif", "PaperRoll", 431, 300, WSZ, 92)        # (54 long: along the shelf)
+    sit("meshes/clutter/quest/tgparchment01.nif", "PaperRoll", 437, 304, WSZ + 2.2, 265)
+    sit("meshes/clutter/common/inkwell01.nif", "Inkwell01", 432, 334, WSZ, 0)
+    sit("meshes/clutter/common/quill01.nif", "Quill01", 437, 343, WSZ, 0, rx=90)
+    # Brynja (room 7): the night's tips by her mead; wildflowers from an admirer on a wall shelf over the bed, on the wall she shares
+    # with room 6 (y 378, the room on its +y side)
+    sit("meshes/plants/coinbagmed.nif", "CoinPurseMedium", 458, 524, NT_, 0)
+    piece(WS_, "NobleWallShelf01", (566, 378.5, ZG), 180)
+    sit("meshes/plants/lavender01.nif", "Lavender", 552, 396, WSZ, 8)
+    sit("meshes/plants/mountainflower01blue.nif", "MountainFlower01Blue", 560, 392, WSZ + 1.0, 340, rx=90)
+    sit("meshes/plants/mountainflower01purple.nif", "MountainFlower01Purple", 556, 400, WSZ + 1.0, 21, rx=90)
+    sit("meshes/clutter/glazedjugsmall01.nif", "GlazedJugSmall01", 588, 394, WSZ, 60)
     # the common room's round table (UpperTableRound01, its top 62, radius 39): a candle, two tankards, bread on a plate
     sit("meshes/clutter/wine/winebottle02b.nif", "FoodWineBottle02", 916, 388, ZG + 62, 90)   # (the walk of 2026-11-06: the candle under the chandelier out, a wine bottle instead)
     sit("meshes/clutter/dining set/basictankard01.nif", "BasicTankard01", 896, 360, ZG + 62, 30)
@@ -3741,6 +3799,9 @@ if HEARTH:
     piece("meshes/furniture/noble/noblenighttable01.nif", "NobleNightTable01", (NTX_, NTY_, ZG), 90)
     piece("meshes/clutter/silver/silvercandlestick01.nif", "SilverCandleStick01", (NTX_ - 3.5, NTY_ - 8.4, ZG + 63.3), 0, owner="guild", settled=True)
     piece("meshes/clutter/silver/silvergoblet01.nif", "SilverGoblet01", (NTX_ + 4.5, NTY_ + 8.6, ZG + 63.3), 40, owner="guild", settled=True)
+    # (the lived-in pass, 2026-11-17) two good wines by them: he drinks alone more than he admits
+    sit("meshes/clutter/wine/winebottle01b.nif", "FoodWineAlto", NTX_ - 6, NTY_ + 17, ZG + 63.3, 0)
+    sit("meshes/clutter/wine/winebottle02b.nif", "FoodWineBottle02", NTX_ + 7, NTY_ - 17, ZG + 63.3, 0)
     # the chest (Caralion's things stay and become the player's), 60 along the back wall from under the window so
     # the double's foot leaves its lid free
     # (2026-11-06, the room plan) the chest in the back corner beside the bed's head, against the end wall, its lid (local +y) to
@@ -3748,8 +3809,8 @@ if HEARTH:
     # clear of the door's swing, the chest and the hearth
     piece("meshes/clutter/upperclass/upperchest01.nif", "AGHall2Chest", (1452 - 9 - 49, 906 - 9 - 23, ZG), 180, name="AGHallChestRoom5")   # along the back wall, lid to the bed; 9 off both walls (the rail)
     piece("meshes/clutter/common/rug02.nif", "Rug02", (1258, 812, ZG + 0.3), 90)
-    NEW_LIGHTS += [(916, 373, ZG + 200, 1.5e6, (1.0, 0.78, 0.55), "lamp")] + [(x_, y_, ZG + 72, 1.0e6, (1.0, 0.78, 0.55), "candle", 122, 0.0)
-                                                                            for x_, y_ in [(nx_ - 8, ny_ + 6) for (nx_, ny_), it_, lit_ in STAFF_NT if lit_]]   # (each lit lantern's own, plan D)   # (the two lanterns: 250, the room's length from its corner)
+    NEW_LIGHTS += [(916, 373, ZG + 200, 1.5e6, (1.0, 0.78, 0.55), "lamp")] + [(x_, y_, ZG + z_, 1.0e6, (1.0, 0.78, 0.55), "candle", 122, f_)
+                                                                            for x_, y_, z_, f_ in [(*nt_light(nx_, ny_, lit_), 72 if lit_ is True else 52, 0.0 if lit_ is True else -1.1) for (nx_, ny_), it_, lit_ in STAFF_NT if lit_]]   # (a lantern's flame 42 up, a candle's 18)   # (each lit lantern's own, plan D)   # (the two lanterns: 250, the room's length from its corner)
     for nm_, r_ in (("room 6", [416, 158, 760, 366]), ("room 7", [416, 378, 760, 588]), ("common room", [772, 158, 1060, 588]),
                     ("room 3", [1072, 134, 1452, Y34]), ("room 4", [1072, Y34 + 12, 1452, Y45]), ("room 5", [1072, Y45 + 12, 1452, 906])):
         PLAN.append({"t": "room", "level": 1, "name": nm_, "r": r_})
@@ -3932,22 +3993,37 @@ if HEARTH:
     # half home, Ylva says little, Zhasim sells the Guild its caves, Marius was the Great War company's sergeant)
     NZ = ZA + 30
     piece("meshes/clutter/upperclass/uppernightstand01.nif", "UpperNightstand01", (810, 270, ZA), 0)        # the guild's bunk's
-    sit("meshes/clutter/candles/candlehorntable01.nif", "CandleHornTable01", 810, 268, NZ, 90)            # (a candle, for whoever)
+    # (the horn candles here and below: 37 long, so along the nightstands' long side (34) give or take a little; neighbours
+    # point opposite ways (base), and each one's turn and place come from the seed, so none sits square or like the next)
+    ha_ = random.Random("attic horns")
+    def horn(x, y, z, base=90, spread=10, **kw):
+        sit("meshes/clutter/candles/candlehorntable01.nif", "CandleHornTable01", x + ha_.uniform(-1.5, 1.5), y + ha_.uniform(-1.5, 1.5), z,
+            base + ha_.uniform(-spread, spread), **kw)
+    horn(810, 268, NZ, base=270)                                                                          # (a candle, for whoever)
     # (2026-11-03: 7 along with its bunk, now at 737 off the rafters, whose mesh reaches 788: it stood 4..7 into the headboard)
     sit("meshes/clutter/ingredients/mead01.nif", "Ale", 1093, 781, NZ, 0, group="bunk1")                  # Ghrulek's, on the
-    sit("meshes/clutter/dining set/basictankard01.nif", "BasicTankard01", 1107, 779, NZ, 220, group="bunk1")   # back row's
+    sit("meshes/clutter/common/flagon01.nif", "Flagon", 1107, 779, NZ, 220, group="bunk1")              # back row's (his flagon, the lived-in pass)
                                                                                                          # nightstand by his bunk at 1210
-    sit("meshes/clutter/candles/candlehorntable01.nif", "CandleHornTable01", 1071, 262, NZ, 90)            # Ylva's and Zhasim's
+    horn(1071, 262, NZ, spread=5)                                                                         # Ylva's and Zhasim's
     sit("meshes/clutter/glazedcup01.nif", "GlazedCup01", 1074, 279, NZ, 0, group="bunk2")
     piece("meshes/clutter/upperclass/uppernightstand01.nif", "UpperNightstand01", (1407, 270, ZA), 0)       # Marius's
     sit("meshes/clutter/books/basicbook01.nif", "Book1CheapBriefHistoryoftheEmpirev1", 1399, 270, NZ, 5, group="bunk4")
-    sit("meshes/clutter/glazedgoblet01.nif", "GlazedGoblet01", 1416, 262, NZ, 0, group="bunk4")
-    sit("meshes/clutter/candles/candlehorntable01.nif", "CandleHornTable01", 1100, 799, NZ, 90)            # (Ghrulek's nightstand's
+    # (the lived-in pass, 2026-11-17) the residents' own: Marius's Legion helmet, kept polished and set dead straight (his goblet gave
+    # way to it); Ylva's sabre cat tooth (the beast she is still hunting) and Zhasim's lockpicks (he pretends he doesn't) on their
+    # shared nightstand, each on their own side; Ghrulek's keg under the back eave by his nightstand, its spout to the room;
+    # Cassius's brandy from Bruma on the floor by his bunk's head (his bunk has no nightstand); a fur over the foot of Ylva's bunk
+    piece("meshes/armor/imperial/helmetfullfacegnd.nif", "ArmorImperialHelmet", (1416, 270, NZ + 0.15), 0, group="bunk4", owner="guild", settled=True, square=True)
+    sit("meshes/clutter/ingredients/sabrecattooth.nif", "SabrecatTooth", 1060, 276, NZ, 38, group="bunk2")
+    sit("meshes/clutter/common/lockpick.nif", "Lockpick", 1083, 268, NZ, 61, group="bunk3")
+    sit("meshes/clutter/common/lockpick.nif", "Lockpick", 1084, 271, NZ + 1.0, 74, group="bunk3")
+    piece("meshes/clutter/meadery/meadbarrel01.nif", "MeadBarrel01", (1060, 795, ZA), 0, group="bunk1")
+    sit("meshes/clutter/wine/winebottle02a.nif", "WEDL03CyrodilicBrandy", 842, 798, ZA, 0, group="bunk5")
+    horn(1100, 799, NZ, base=270, spread=6)                                                               # (Ghrulek's nightstand's
                                                                                                          # candle, at its back)
     # the round table (top 62.2, radius 39; its chairs at -y, +y and -x): a candle, the flagon and two cups, bread on a
     # plate; Zhasim's Explorer's Guide and a rolled map on the aisle side
     TZ = ZA + 62.2
-    sit("meshes/clutter/candles/candlehorntable01.nif", "CandleHornTable01", 512, 480, TZ, 90)
+    horn(512, 480, TZ, base=300, spread=15)                                                               # (the round table's: room all round)
     sit("meshes/clutter/common/flagon01.nif", "Flagon", 503, 461, TZ, 20)
     sit("meshes/clutter/glazedcup01.nif", "GlazedCup01", 488, 474, TZ, 0)
     sit("meshes/clutter/glazedcup01.nif", "GlazedCup01", 546, 494, TZ, 0)
@@ -3976,6 +4052,20 @@ if HEARTH:
     # The galleries' walls (Jorrvaskr's banners on the side galleries' outer walls until 2026-11-02, then removed): the map of Skyrim on the front
     # gallery's (the library's wall, left of its door); the lobby's long wall a map
     piece("meshes/clutter/upperclass/upperbench01.nif", "UpperBench01", (-XG + 26, 170, 0), 90, exact=True)
+    # the lost and found: vanilla's open crate (CommonCrate02: 73 x 46, its floor at 12, x -30..30, y -13..20, its walls to
+    # 26..31) pushed into the front right corner, its back to the side wall and its end by the front wall, filling the nook
+    # between the bear and the front wall (the crate under the window left that nook a dead end through a 64 gap: the pinch
+    # gate); in it a helmet and a pair of gauntlets, side by side on its floor; the shield (44 across, the crate's inside
+    # 33) stood on the floor against the crate's long side, leaning on its rim, its face to the hall
+    lf_ = random.Random("lost and found"); LFX, LFY, LFA = 340 - 19.4 - 3, 40 + 36.6 + 4, 270 + 3 + lf_.uniform(0, 2)
+    def lf_at(lx, ly):                                       # (the crate's frame to the hall's: yaw clockwise)
+        c_, s_ = math.cos(math.radians(LFA)), math.sin(math.radians(LFA))
+        return LFX + lx * c_ + ly * s_, LFY - lx * s_ + ly * c_
+    piece("meshes/clutter/common/commoncrate02.nif", "CommonCrate02", (LFX, LFY, 0), LFA, exact=True)
+    sit("meshes/armor/iron/male/helmetgnd.nif", "ArmorIronHelmet", *lf_at(-12.5, 3.5), 12, LFA + lf_.uniform(-3, 3))
+    sit("meshes/armor/iron/male/gauntletsgnd.nif", "ArmorIronGauntlets", *lf_at(17.5, 3.5), 12, LFA + lf_.uniform(-3, 3))
+    # (tilted 75: its back touches the long side's rim (y 24.1, 26 up) 7.2 behind its origin)
+    sit("meshes/armor/hide/hideshield.nif", "ArmorHideShield", *lf_at(-4, 24.1 + 0.3 + 7.2), 0, LFA + lf_.uniform(-4, 4), rx=75)
     sit("meshes/clutter/containers/miscsack02small.nif", "MiscSack02Small", -XG + 22, 272, 0, 15)
     sit("meshes/clutter/dining set/basictankard01.nif", "BasicTankard01", -XG + 30, 104, 30, 70)
     # (no sconces on the piers: each carries a gallery bracket's leg and turned pendant down its face to 160, and the pier is
@@ -4096,7 +4186,7 @@ if HEARTH:
     # was rejected), but C of four on a plan, the wall behind the strip, across from the painting (unproven against the flip).
     # (2026-11-03, C flipped too; through the textures session, moved off the failing spot to location A, the wall
     # facing room 5: the wing's left wall, mid-face and mid-height, out of the strip)
-    for x_, y_, z_, n_, l_ in ((720, 819, ZG + 150, (1, 0), 300), (416, 483, ZG + 150, (1, 0), 200), (1230, 143, ZG + 150, (0, 1), 200), (1394, 906, ZG + 150, (0, -1), 200)):   # (room 5's: the test walk of 2026-11-06, it blocked the way along the far side of the bed: option A, the back wall over the chest)   # (plan D: rooms 3 and 5's along their front walls, 130 from their windows' daylight)
+    for x_, y_, z_, n_, l_ in ((720, 819, ZG + 150, (1, 0), 300), (416, 483, ZG + 150, (1, 0), 200), (1394, 906, ZG + 150, (0, -1), 200)):   # (room 3's, at (1230, 143), went 2026-11-17: it stood on the window)   # (room 5's: the test walk of 2026-11-06, it blocked the way along the far side of the bed: option A, the back wall over the chest)   # (plan D: rooms 3 and 5's along their front walls, 130 from their windows' daylight)
         wall_sconce(x_, y_, z_, n_, l_)
     # the kitchen's, off the wall and out of the corner (the walk: wrong both in height and in nearness to a wall): over the middle of its floor, 150 tall, clear of a head
     piece("meshes/clutter/candles/candlehornchandelier01.nif", "CandleHornChandelier01", (-1250, 470, 400 - 220 * 0.6), 0, 0.6, exact=True)

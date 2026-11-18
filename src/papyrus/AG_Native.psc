@@ -81,6 +81,11 @@ Int Function GetRepScale() Global Native
 Int Function GetDefaultRepScale() Global Native
 Function SetRepScale(Int aiPercent) Global Native
 Int Function GetRankReputation(Int aiRank) Global Native
+; Work one rank above (1.6.3): missives, notices and dungeon intel one rank above the player's are open to them. Per save;
+; the default is [System] TakeWorkAbove in the ini.
+Bool Function GetWorkAbove() Global Native
+Bool Function GetDefaultWorkAbove() Global Native
+Function SetWorkAbove(Bool abOn) Global Native
 Bool Function GetAudioOption(Int aiWhich) Global Native      ; MCM > Audio: 1 NPC greetings, 2 NPC interactions, 3 the representatives' own lines, 4 follower comments
 Function SetAudioOption(Int aiWhich, Bool abOn) Global Native
 ; MCM > Guild Hall (2.0): 0 registration, 1 promotion, 2 training, 3 Guild Boxes, 4 library, 5 spell tomes, 6 augments,
@@ -91,6 +96,7 @@ Function SetPromotionTrials(Bool abOn) Global Native        ; MCM > Guild Hall >
 Bool Function GetPromotionTrialsLoaded() Global Native     ; the hall's trial quests are in the load order
 Function TrialPromote() Global Native                      ; the promotion trial's end: promoted, no fee (AGHallTrialQuestScript)
 Function SetFollowersByHand(Bool abOn) Global Native         ; MCM > Guild Hall: followers who are not members are registered at a counter
+ObjectReference Function HallMapMarker() Global Native      ; the Guild Hall's map marker on its forecourt (None without the hall)
 Int Function GetNoticeSoundSet() Global Native              ; MCM > Audio > Notification sounds: 0 Guild Drums, 1 Skyrim, 2 none
 Function SetNoticeSoundSet(Int aiSet) Global Native
 Int Function GetNoticeVolume() Global Native                ; MCM > Audio > Notification volume: -1 quieter, 0 default, 1 louder

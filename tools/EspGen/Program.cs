@@ -5,6 +5,7 @@
 // FormIDs are FIXED once released (saves reference them): never renumber, only append.
 //   0x800-0x81F  globals, quests, dialogue branches/topics (0x812/0x813 About, 0x814/0x815 fee globals, 0x816-0x819 fee choice topics);
 //                0x807 AG_GuildHallInstalledGlobal (2.0: never used by any release before it, checked against 1.0.0-1.6.2)
+//                0x80E AG_GuildHallSiteGlobal (2.0: which hall, 0 none / 1 Riverwood / 2 Solitude; in no release 1.0.0-2.0.0-alpha.3)
 //   0x900-0x9FF  Missives note variants per rank (MissivesPatch.cs)
 //   0xA00-0xBFF  dialogue INFOs, pinned per key in config/dialogue.ids.json; full since 1.4.0, they go on in 0xD00-0xFFF
 //   0x81F the party-member faction
@@ -250,6 +251,9 @@ Global(0xFDB, "AG_MissivesInstalledGlobal", 0);
 // 1 while the Guild Hall's plugin is loaded (the DLL sets it on every load, so a hall taken out flips it for an old save): SkyrimNet's
 // lore and the dialogue that only holds with or without the hall read it. 0 by default: the no-hall version
 var gHallInstalled = Global(0x807, "AG_GuildHallInstalledGlobal", 0);
+// which hall is installed, for the lines and the lore that name its place (the DLL sets it on every load, from the installed
+// hall's layout): 0 none, 1 Riverwood, 2 Solitude. AG_GuildHallInstalledGlobal above stays 0/1 for every condition that only asks "a hall?"
+var gHallSite = Global(0x80E, "AG_GuildHallSiteGlobal", 0);
 Global(0xFDC, "AG_NoticeBoardInstalledGlobal", 0);
 // 1 while a Missives add-on is loaded (the DLL sets it on every load): dialogue that depends on its board reads it
 var addonGlobals = new Dictionary<string, GlobalShort> { ["AG_MissivesSolstheimGlobal"] = Global(0xC90, "AG_MissivesSolstheimGlobal", 0) };
@@ -397,6 +401,7 @@ ConditionFloat GlobalIs(GlobalShort g, float v)
     d.Global.Link.SetTo(g.FormKey);
     return new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = v, Data = d };
 }
+ConditionFloat GlobalIsNot(GlobalShort g, float v) { var c = GlobalIs(g, v); c.CompareOperator = CompareOperator.NotEqualTo; return c; }
 
 // All innkeeper dialogue comes from config/dialogue.json. INFO FormIDs are pinned in config/dialogue.ids.json
 // (voice files are named after them): existing keys keep their ID, new keys get the next free ID >= 0xA00. That block ends at 0xBFF (0xC00-0xCFF is
@@ -728,12 +733,13 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             }
             // a second line for the same people (after their innkeeper's death) needs its own key
             var gk = $"{role}:{kind}:{g["npcs"]![0]!.GetValue<string>()}" + (g["whenDead"] is JsonNode dd ? ":after" + dd.GetValue<string>() : "");
-            // (2.0) 'lineHall': what they say instead while the Guild Hall is installed, when the
-            // line is about where Guild business is done; the plain line then plays only without the hall
+            // (2.0) 'lineHall': what they say instead while the Guild Hall stands at Riverwood (AG_GuildHallSiteGlobal 1), when
+            // the line is about where Guild business is done and names that hall's place; the plain line plays at any other site
+            // and without the hall
             if (g["lineHall"] is JsonNode lh)
             {
-                Info(topic, gk + ":hall", new[] { lh.GetValue<string>() }, false, conds.Append(GlobalIs(gHallInstalled, 1)).ToList());
-                conds.Add(GlobalIs(gHallInstalled, 0));
+                Info(topic, gk + ":hall", new[] { lh.GetValue<string>() }, false, conds.Append(GlobalIs(gHallSite, 1)).ToList());
+                conds.Add(GlobalIsNot(gHallSite, 1));
             }
             Info(topic, gk, new[] { g["line"]!.GetValue<string>() }, false, conds);
         }
@@ -747,10 +753,10 @@ void MakeTopic(uint branchId, uint topicId, string stem, string role, bool goodb
             InFaction(Skyrim.Faction.JobInnkeeperFaction.FormKey),
             new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = 0, Data = new GetPlayerTeammateConditionData() },
             notFollowing };
-        if (dlg["genericHall"] is JsonNode gh)   // (2.0) with the Guild Hall installed, the hall is named too
+        if (dlg["genericHall"] is JsonNode gh)   // (2.0) with the Guild Hall at Riverwood (site 1), the hall is named too
         {
-            Info(topic, $"{role}:generic:hall", new[] { gh.GetValue<string>() }, false, genericWho.Append(GlobalIs(gHallInstalled, 1)).ToList());
-            genericWho.Add(GlobalIs(gHallInstalled, 0));
+            Info(topic, $"{role}:generic:hall", new[] { gh.GetValue<string>() }, false, genericWho.Append(GlobalIs(gHallSite, 1)).ToList());
+            genericWho.Add(GlobalIsNot(gHallSite, 1));
         }
         Info(topic, $"{role}:generic", new[] { dlg["generic"]!.GetValue<string>() }, false, genericWho);
     }
@@ -1574,12 +1580,18 @@ var regQuest = new Quest(FK(0x810), Rel)
         },
     },
     // 10 the inns, 20 the Guild Hall while registration is the hall's alone (2.0, MCM > Guild Hall): the DLL shows the one
-    // that applies, and swaps them if the setting changes while the quest runs (AG_QuestHelper.PointRegistrationQuest)
+    // that applies, and swaps them if the setting changes while the quest runs (AG_QuestHelper.PointRegistrationQuest).
+    // 20 points at the hall's map marker, made at run time by the DLL (the hall installed) and forced into alias 0 by
+    // AG_QuestHelper.MarkRegistrationHall; without the hall the alias stays empty and the objective has no marker.
     Objectives =
     {
         new QuestObjective { Index = 10, DisplayText = "Register with the Adventurers Guild at an inn in any hold capital" },
-        new QuestObjective { Index = 20, DisplayText = "Register with the Adventurers Guild at the Guild Hall above Riverwood" },
+        new QuestObjective { Index = 20, DisplayText = "Register with the Adventurers Guild at the Guild Hall next to Riverwood",
+            Targets = { new QuestObjectiveTarget { AliasID = 0 } } },
     },
+    // ANAM before any alias (Wrye Bash reads aliases only after it, see the MCM quest)
+    NextAliasID = 1,
+    Aliases = { new QuestAlias { ID = 0, Name = "HallMarker", Type = QuestAlias.TypeEnum.Reference, Flags = QuestAlias.Flag.Optional | QuestAlias.Flag.AllowReserved } },
 };
 mod.Quests.Add(regQuest);
 
@@ -1626,7 +1638,7 @@ noteHall.BookText =
     "<p align=\"center\">Notice to all who would take work from this board</p><br>" +
     "<p>The missives posted here are Guild Missives. They are offered only to registered adventurers, " +
     "and only at a rank the Guild judges you fit for.</p><br>" +
-    "<p>Registration is taken at the Guild Hall, on the hill above Riverwood in Whiterun Hold. Speak to the clerks at its counter. The fee is fifty septims.</p><br>" +
+    "<p>Registration is taken at the Guild Hall, next to Riverwood in Whiterun Hold. Speak to the clerks at its counter. The fee is fifty septims.</p><br>" +
     "<p>Those with experience will be assessed and placed accordingly. Everything above that is earned: " +
     "trophies, cleared dungeons and completed missives build your standing with the Guild, and the Guild will hear " +
     "your case for promotion once you have earned it.</p><br>" +

@@ -66,7 +66,7 @@
 	"dungeonRep":   { "E": 8, "D": 15, "C": 30, "B": 55, "A": 65, "S": 100 },
 	"_dungeonGold": "Gold the Guild pays for the same report.",
 	"dungeonGold": { "E": 50, "D": 100, "C": 175, "B": 275, "A": 400, "S": 600 },
-	"_intelMerit": "Merit to buy a dungeon's location at the counter (Services > Intel), by its threat rank. Only dungeons at or below the player's guild rank are listed.",
+	"_intelMerit": "Merit to buy a dungeon's location at the counter (Services > Intel), by its threat rank. Only dungeons at or below the player's guild rank are listed (one rank above too with MCM > System > Work one rank above).",
 	"intelMerit": { "E": 5, "D": 8, "C": 12, "B": 18, "A": 25, "S": 35 },
 
 	"_kills": "Reputation credited the moment a hostile foe dies, by its threat rank (level band plus the creature adjustment in AdventurersGuild.ini [Threat]). Big game pays more, by the engine's race size class (mods set it for their creatures too): Large (centurions, cave bears, atronachs) largeMultiplier, Extra Large (dragons, giants, mammoths) extraLargeMultiplier. A foe placed as a dungeon Boss pays bossMultiplier. The highest multiplier applies, never the product. Your kill pays in full; a follower's or your summon's kill pays followerShare; if someone else (a guard, a bystander) finishes a foe your side hit in the last assistSeconds, that assist pays assistShare. Never paid twice. Summoned or reanimated foes pay nothing. Silent: no HUD line per kill.",

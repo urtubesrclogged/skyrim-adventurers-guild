@@ -188,7 +188,7 @@ namespace AG::NoticeWatch
 	{
 		if (!g_active) return;
 		if (Guild::SaveState() == Guild::SaveData::kBroken) return;  // the rank is not known this session: nothing comes down on a guess
-		const int rank = Guild::Rank();  // -1 before registering: every gated notice is above it
+		const int rank = Guild::WorkRank();  // -1 before registering: every gated notice is above it
 		std::vector<std::pair<RE::TESQuest*, std::string>> stale;
 		{
 			std::lock_guard l(g_lock);
@@ -206,7 +206,7 @@ namespace AG::NoticeWatch
 			vm->DispatchStaticCall("AG_QuestHelper", "WithdrawNotice",
 				RE::MakeFunctionArguments(static_cast<RE::TESQuest*>(q), RE::BSFixedString(alias), static_cast<RE::TESObjectREFR*>(board)), cb);
 		}
-		if (!stale.empty()) SKSE::log::info("NoticeWatch: took down {} posted notice(s) above guild rank {}", stale.size(), rank);
+		if (!stale.empty()) SKSE::log::info("NoticeWatch: took down {} posted notice(s) above work rank {}", stale.size(), rank);
 	}
 
 	// A board only starts its quests when its cell loads, so after a promotion nothing new is posted until the player

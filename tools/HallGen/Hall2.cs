@@ -37,6 +37,20 @@ static partial class Build
         var roofB = BoundsOf(J("hall2_roof.json"));
         var slate = Own("AGHall2RoofSlate", @"AdventurersGuild\Hall2\AGHall2RoofSlate.nif", roofB);
         var tile = Own("AGHall2RoofTile", @"AdventurersGuild\Hall2\AGHall2RoofTile.nif", roofB);
+        // (2026-11-17) the bare part of a roof split for snow (build_hall.sh, roof_snow_split.py): its own record, no snow
+        // material, placed with the roof. A fixed FormID, so the records after it keep theirs. (Its export is roofsplit_*, not
+        // hall2_*: fresh_check.py dates the export by its newest hall2_ file, and the split is written after the first meshes)
+        Static? slateBare = null;
+        if (File.Exists(J("roofsplit_bare.json")))
+        {
+            var bb_ = BoundsOf(J("roofsplit_bare.json"));
+            slateBare = new Static(new FormKey(mod.ModKey, 0x7F31), SkyrimRelease.SkyrimSE)
+            {
+                EditorID = "AGHall2RoofSlateBare", Model = new Model { File = @"AdventurersGuild\Hall2\AGHall2RoofSlateBare.nif" },
+                ObjectBounds = new ObjectBounds { First = new P3Int16(bb_.lo[0], bb_.lo[1], bb_.lo[2]), Second = new P3Int16(bb_.hi[0], bb_.hi[1], bb_.hi[2]) },
+            };
+            mod.Statics.Add(slateBare);
+        }
         var door = Own("AGHall2Door", @"AdventurersGuild\Hall2\AGH2Csdoubledoorint01.nif", (new short[] { -91, -8, 0 }, new short[] { 91, 0, 175 }));
 
         var byModel = new Dictionary<string, FormKey>(StringComparer.OrdinalIgnoreCase);
@@ -158,6 +172,39 @@ static partial class Build
                 P.Add((b, (float)wx, (float)wy, (float)(o[2] + lz), (float)(((o[3] + yaw) % 360 + 360) % 360), (float)sc, k));
             }
             Add(body.FormKey, 0, 0, 0, 0, 1); Add(slate.FormKey, 0, 0, 0, 0, 1); Add(site.FormKey, 0, 0, 0, 0, 1);
+            if (slateBare != null) Add(slateBare.FormKey, 0, 0, 0, 0, 1);
+            // (2026-11-16) a snowy site's snow, as vanilla puts it on its _LightSN / _HeavySN statics: the record's directional
+            // material (DNAM: a snow MATO, up to a surface angle), on the same mesh. The body and roofs are shared by every site,
+            // so site 1's choice holds for them; each site's own part takes its own
+            if (d.RootElement.TryGetProperty("snow", out var snow_) && snow_.ValueKind == JsonValueKind.Object)
+            {
+                var snowCopies_ = new Dictionary<string, FormKey>();
+                void Snow(Static st_, string key_)
+                {
+                    if (!snow_.TryGetProperty(key_, out var e_)) return;
+                    var ed_ = e_[0].GetString()!;
+                    var mato_ = mods.SelectMany(m => m.MaterialObjects).Last(x_ => x_.EditorID == ed_);
+                    var mk_ = mato_.FormKey;
+                    // (2026-11-17) an own copy of a vanilla snow: [ed, angle, {"copy": editor id, "id": fixed FormID, "bias": b}].
+                    // Its falloff bias is how upright a face must be to hold the snow (the up-dot it starts at): one just under a
+                    // roof's slopes leaves the snow's noise breaking it up, the slate showing through
+                    if (e_.GetArrayLength() > 2)
+                    {
+                        var cp_ = e_[2]; var ced_ = cp_.GetProperty("copy").GetString()!;
+                        if (!snowCopies_.TryGetValue(ced_, out mk_))
+                        {
+                            var m_ = mato_.Duplicate(new FormKey(mod.ModKey, Convert.ToUInt32(cp_.GetProperty("id").GetString()!, 16)));
+                            m_.EditorID = ced_; m_.FalloffBias = (float)cp_.GetProperty("bias").GetDouble();
+                            mod.MaterialObjects.Add(m_); snowCopies_[ced_] = mk_ = m_.FormKey;
+                            Console.WriteLine($"SNOW material {ced_}: {ed_} with falloff bias {m_.FalloffBias}");
+                        }
+                    }
+                    st_.Material.SetTo(mk_); st_.MaxAngle = (float)e_[1].GetDouble();
+                    Console.WriteLine($"SNOW {st_.EditorID}: {ed_} up to {st_.MaxAngle} degrees");
+                }
+                if (k == 1) { Snow(body, "body"); Snow(slate, "roof"); Snow(tile, "roof"); }
+                Snow(site, "site");
+            }
             foreach (var p in d.RootElement.GetProperty("pieces").EnumerateArray())
             {
                 var model = Norm(p.GetProperty("model").GetString()!);
@@ -263,7 +310,7 @@ static partial class Build
             var a = new Mutagen.Bethesda.Skyrim.Activator(key ?? newKey(), SkyrimRelease.SkyrimSE)
             {
                 // (an inside door names where it leads, as vanilla's do: Riverwood, to match the front door)
-                EditorID = ed, Name = inside ? "Riverwood" : "Adventurers Guild Hall", ActivateTextOverride = "Open",
+                EditorID = ed, Name = inside ? (Environment.GetEnvironmentVariable("HALL2_DOOR") is { Length: > 0 } dn_ ? dn_ : "Riverwood") : "Adventurers Guild Hall",   // (the site's: sites.json "door") ActivateTextOverride = "Open",
                 ObjectBounds = new ObjectBounds { First = new P3Int16(-91, -8, 0), Second = new P3Int16(91, 0, 175) },
                 Model = new Model { File = @"AdventurersGuild\Hall2\AGH2Csdoubledoorint01.nif" },
                 VirtualMachineAdapter = new VirtualMachineAdapter { Scripts = { new ScriptEntry { Name = "AGHallDoor", Properties = {
@@ -369,7 +416,7 @@ static partial class Build
         // NPC session's block (0x8000-0x97FF, merged in after this build; 0x9000 on is its second block, 2026-11-05; 0x9800-0x99FF the promotion trials' block, AG Detail Work, 2026-11-05) is never the ledger's
         ModKey prevKey = mod.ModKey; bool renamed = false;
         FormKey Tr(FormKey k) => k.ModKey == prevKey ? new FormKey(mod.ModKey, k.ID) : k;
-        static bool Npc(uint id) => id >= 0x8000 && id <= 0x99FF;
+        static bool Npc(uint id) => id >= 0x8000 && id <= 0x9A7F;   // (0x9A00-0x9A3F: the NPC build's trunks, the lived-in pass; 0x9A40-0x9A7F: Marius's practice idles, 2026-11-17)
         var lightBases = new HashSet<FormKey>(mods.SelectMany(m => m.Lights).Select(l => l.FormKey));
         if (!string.IsNullOrEmpty(prevPath))
         {
@@ -433,6 +480,8 @@ static partial class Build
             // the strongroom's ledger (2026-10-27): the mesh of TGR's business ledger, vanilla's one open ledger, as dressing (the record
             // itself is a Thieves Guild quest item)
             ("AGHall2Ledger", @"Clutter\Quest\TGRBusinessLedger.nif", (-31, -19, -3), (31, 19, 3)),
+            // (the lived-in pass, 2026-11-17) Henriette's horn cup: the mesh of the drinking horn, whose record is a Thieves Guild quest item
+            ("AGHall2DrinkingHorn", @"Clutter\Quest\TGDrinkingHorn.nif", (-3, -16, 0), (3, 12, 21)),
             // the library's shelves (2026-10-27): the other covers of the same book, not to be taken from the shelves
             ("AGHall2Book03a", @"Clutter\Books\BasicBook03a.nif", (-9, -12, -2), (9, 12, 2)), ("AGHall2Book04", @"Clutter\Books\BasicBook04.nif", (-9, -12, -2), (9, 12, 2)),
             ("AGHall2Book04a", @"Clutter\Books\BasicBook04a.nif", (-9, -12, -2), (9, 12, 2)), ("AGHall2Book05", @"Clutter\Books\BasicBook05.nif", (-9, -12, -2), (9, 12, 2)),
@@ -525,6 +574,13 @@ static partial class Build
         hallChest.Flags &= ~Container.Flag.Respawns; hallChest.Items = null;
         mod.Containers.Add(hallChest);
         byEd["AGHall2Chest"] = hallChest.FormKey;
+        // (the lived-in pass, 2026-11-17) the counter's box for the cards of members found dead: vanilla's strongbox, empty and never
+        // respawning (a card kept in it could be taken and handed in again)
+        var cardBox = mods.SelectMany(m => m.Containers).Last(c => c.EditorID == "StrongBox").Duplicate(Rec("AGHall2CardBox"));
+        cardBox.EditorID = "AGHall2CardBox"; cardBox.Name = "Strongbox";
+        cardBox.Flags &= ~Container.Flag.Respawns; cardBox.Items = null;
+        mod.Containers.Add(cardBox);
+        byEd["AGHall2CardBox"] = cardBox.FormKey;
         // the loft's chest (a chest with a valuable item, owned by the general guild faction so players can take it: a
         // decent enchanted piece of armor, with a letter explaining it, written as a former adventurer who left it; the
         // armor a tier higher than the leveled lists give at the time; until hall2bd a leveled roll from vanilla's enchanted cuirass lists, each entry 6 levels sooner) and a
@@ -654,6 +710,11 @@ static partial class Build
         // each light's level by Lux's measure, its peak on visible plaster 0.45 or less (fires 0.84), by position: blender/plaster_check.py
         // gates the result on the plugin. The list's own values are the final radius and fade; an entry that meets no light stops the build, for a moved light has to be measured again
         var levels_ = JsonDocument.Parse(File.ReadAllText("textures/light_levels.json")).RootElement.EnumerateArray().ToList(); var levelsUsed_ = new HashSet<int>();
+        // the lights switched off in a game without Light Limit Fix, by cell and position (blender/vanilla_lights.py, by priority:
+        // chandeliers, lamps, fires, then the rest, none taking a shape past the vanilla renderer's few lights); each must meet a light
+        var vanillaOff_ = JsonDocument.Parse(File.ReadAllText(Path.Combine(dir, "vanilla_lights.json"))).RootElement.GetProperty("cells").EnumerateObject()
+            .ToDictionary(c_ => c_.Name, c_ => c_.Value.GetProperty("off").EnumerateArray().Select(Arr).ToList());
+        var vanillaOffUsed_ = new HashSet<(string, int)>();
         void Lights(string cellEd, JsonElement lights)
         {
             foreach (var l in lights.EnumerateArray())
@@ -666,6 +727,12 @@ static partial class Build
                 var lv_ = levels_.FindIndex(e_ => { var q_ = Arr(e_.GetProperty("pos")); return Math.Abs(q_[0] - p[0]) <= 1 && Math.Abs(q_[1] - p[1]) <= 1 && Math.Abs(q_[2] - p[2]) <= 1; });
                 if (lv_ >= 0 && levels_[lv_].GetProperty("kind").GetString() == "chandelier") b = lightOf["chandelier"];
                 var pl_ = Add(new Plan(cellEd, b, p[0], p[1], p[2], 0, 1, true) { Kind = kind });
+                if (vanillaOff_.TryGetValue(cellEd, out var vo_))
+                {
+                    var vi_ = vo_.FindIndex(q_ => Math.Abs(q_[0] - p[0]) <= 1 && Math.Abs(q_[1] - p[1]) <= 1 && Math.Abs(q_[2] - p[2]) <= 1);
+                    if (vi_ >= 0 && !vanillaOffUsed_.Add((cellEd, vi_))) throw new Exception($"vanilla_lights.json: two lights at one entry in {cellEd}");
+                    pl_.VanillaOff = vi_ >= 0;
+                }
                 // (the kitchen was far too bright) a light trimmed in place as vanilla trims its own:
                 // the reference's radius offset (XRDS) and fade offset (XLIG), e.g. Breezehome's hearth, WRFireLightShadow01
                 // at -322 and -0.51; the export's fifth and sixth entries
@@ -865,6 +932,19 @@ static partial class Build
                 }
         }
 
+        // (2026-11-16) each cell's switch for the lights that burn only with Light Limit Fix: an X marker, the enable parent of
+        // those lights, which AG's DLL disables at every load when Light Limit Fix is missing (AG::GuildHall::VanillaLights), as
+        // vanilla's homes switch their lights; at fixed IDs, which the DLL names
+        foreach (var (ce_, id_, nm_) in new[] { ("AGHall2InteriorCell", 0x7F26u, "AGHall2VanillaLightsInterior"), ("AGHall2BasementCell", 0x7F27u, "AGHall2VanillaLightsBasement"),
+                                                ("AGHall2LookoutCell", 0x7F28u, "AGHall2VanillaLightsLookout") })
+        {
+            var at_ = plans.FirstOrDefault(p_ => p_.Cell == ce_ && p_.IsLight);
+            if (at_ is null) { if (vanillaOff_.GetValueOrDefault(ce_)?.Count > 0) throw new Exception($"vanilla_lights.json: lights to switch in {ce_}, which has none"); continue; }
+            Add(new Plan(ce_, V(0x00003B), at_.X, at_.Y, at_.Z, 0, 1, false) { Name = nm_, Persistent = true, FixedKey = new FormKey(mod.ModKey, id_) });   // XMarker
+            if (vanillaOffUsed_.Count(u_ => u_.Item1 == ce_) != (vanillaOff_.GetValueOrDefault(ce_)?.Count ?? 0))
+                throw new Exception($"vanilla_lights.json: {(vanillaOff_.GetValueOrDefault(ce_)?.Count ?? 0) - vanillaOffUsed_.Count(u_ => u_.Item1 == ce_)} entries in {ce_} met no light");
+        }
+
         // the match, cell by cell: every (plan, ledger ref) pair of the same kind, nearest first, a shared name before all
         foreach (var (cellEd, prevs) in prevByCell)
         {
@@ -872,8 +952,12 @@ static partial class Build
             foreach (var p in plans.Where(p => p.Cell == cellEd))
                 foreach (var r in prevs)
                 {
-                    bool same = p.IsLight ? lightBases.Contains(r.Base) : r.Base == p.Base || (OwnCopyOf.TryGetValue(r.Base, out var nb_) && nb_ == p.Base);
+                    bool same = p.IsLight ? lightBases.Contains(r.Base) : r.Base == p.Base || (OwnCopyOf.TryGetValue(r.Base, out var nb_) && nb_ == p.Base)
+                        // (2026-11-18) a ledger that is a deployed, merged plugin: the NPC merge re-bases some of the hall's refs onto its own
+                        // records (a trunk's container, Caralion's chest), which this build does not write; the piece of the same name is that ref
+                        || (p.Name is not null && r.Ed == p.Name && r.Base.ModKey == mod.ModKey && Npc(r.Base.ID));
                     if (!same) continue;
+                    if (p.FixedKey is { } fk_ && Fixed(fk_.ID) && r.Key != fk_) continue;   // a fixed ID (one the DLL names) only its own
                     if (p.J is { } jf && jf.TryGetProperty("fresh", out _) && r.Ed != p.Name) continue;   // fresh: only its own name
                     if (p.Name is not null && r.Ed is not null && r.Ed != p.Name) continue;   // (a name is an identity: 2026-10-28, the
                                                                              // day/night markers took the retired board rotator's ref)
@@ -1177,6 +1261,15 @@ static partial class Build
             if (p.J.Value.TryGetProperty("opposite", out var op_) && op_.GetBoolean()) ep_.Flags = EnableParent.Flag.SetEnableStateToOppositeOfParent;
             p.Ref!.EnableParent = ep_;
         }
+        // the lights that burn only with Light Limit Fix, on their cell's switch (above)
+        var vanillaSwitch_ = plans.Where(p => p.Name is { } n_ && n_.StartsWith("AGHall2VanillaLights")).ToDictionary(p => p.Cell, p => p.Ref!.FormKey);
+        foreach (var p in plans.Where(p => p.VanillaOff))
+        {
+            if (p.Ref!.EnableParent is not null) throw new Exception($"a light in {p.Cell} has an enable parent already");
+            var ep_ = new EnableParent(); ep_.Reference.SetTo(vanillaSwitch_[p.Cell]);
+            p.Ref.EnableParent = ep_;
+        }
+        Console.WriteLine($"interior: without Light Limit Fix: {string.Join(", ", vanillaSwitch_.Keys.Select(c_ => $"{c_} {plans.Count(p => p.Cell == c_ && p.VanillaOff)} of {plans.Count(p => p.Cell == c_ && p.IsLight)} lights off ({vanillaSwitch_[c_].ID:X})"))}");
         // (2026-10-28) a locked door: "key" is the basement's secret room (big, obvious and locked: the secret is what lies
         // behind that door): it needs its key, which no one has until the quest that gives it
         // (the upstairs display case, locked at Expert as Jorrvaskr's cases; the GM has its key) any level
@@ -1308,6 +1401,7 @@ static partial class Build
         { Cell = cell; Base = b; X = x; Y = y; Z = z; Yaw = yaw; Scale = scale; IsLight = isLight; }
         public string Cell; public FormKey Base; public double X, Y, Z, Yaw, Scale, RX; public bool IsLight, Persistent; public P3Float? GA;
         public float? LightRadius, LightFade;
+        public bool VanillaOff;   // a light that burns only with Light Limit Fix (blender/vanilla_lights.py): it hangs off its cell's marker
         public string? Name, Role, Pair, Kind; public JsonElement? J; public PrevRef? Prev; public PlacedObject? Ref; public FormKey? FixedKey;
     }
 
@@ -1320,9 +1414,20 @@ static partial class Build
     {
         static string Rec(FormKey k) => $"{k.ModKey.FileName}|0x{k.ID:X6}";
         static double R(float v) => Math.Round(v, 2);
+        static int Place() => int.Parse(Environment.GetEnvironmentVariable("HALL2_PLACE") is { Length: > 0 } p_ ? p_ : throw new Exception("HALL2_PLACE is not set (build_hall.sh: the site's place)"));
+        static double[] Marker()
+        {
+            var m_ = (Environment.GetEnvironmentVariable("HALL2_MARKER") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(v_ => double.Parse(v_, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+            return m_.Length == 4 ? m_ : throw new Exception("HALL2_MARKER must be x,y,z,facing (build_hall.sh: the site's map marker)");
+        }
         var body = new
         {
-            sites = sx.Select((x, i) => new { site = i + 1, x = R(x), y = R(sy[i]), yaw = R(syaw[i]) }),
+            // (2026-11-17) which site this build is for (build_hall.sh, sites.json): its place (AG_GuildHallSiteGlobal: 1 Riverwood,
+            // 2 Solitude), its map marker's spot (x, y, z, facing), the light region its windows' glow follows and the Helios sky region
+            // for its windowed cells ("plugin|0xID"), so the DLL takes them from the installed hall, not from constants
+            sites = sx.Select((x, i) => new { site = i + 1, x = R(x), y = R(sy[i]), yaw = R(syaw[i]), place = Place(), marker = Marker(),
+                glow = Environment.GetEnvironmentVariable("HALL2_GLOW") ?? "", helios = Environment.GetEnvironmentVariable("HALL2_HELIOS") ?? "" }),
             pieces = P.Select(p => new { b = Rec(p.b), x = R(p.x), y = R(p.y), z = R(p.z), a = R(p.a), s = R(p.s), site = p.site }),
             clear = clear.Select(c => new { x0 = R(c.x0), x1 = R(c.x1), y0 = R(c.y0), y1 = R(c.y1), site = c.site, kind = c.kind }),
             roof = Rec(slate),

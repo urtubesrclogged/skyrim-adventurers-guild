@@ -46,7 +46,7 @@
 			"rank": "A",
 			"retired": true,
 			"guildMaster": true,
-			"retiredNote": "Guild Master of the Adventurers Guild in Skyrim, who reopened its hall above Riverwood; a retired A-rank, one of six of the hall's first company who came home from the Great War. He no longer goes out with adventuring parties and turns down any offer to join one."
+			"retiredNote": "Guild Master of the Adventurers Guild in Skyrim, who reopened its hall next to Riverwood; a retired A-rank, one of six of the hall's first company who came home from the Great War. He no longer goes out with adventuring parties and turns down any offer to join one."
 		},
 		{
 			"npcs": ["AdventurersGuild - Guild Hall.esp|0x008040"],

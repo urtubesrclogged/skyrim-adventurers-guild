@@ -1,4 +1,4 @@
-{% block summary %}Caralion of Cloudrest is a rich young Altmer and a C-rank member of the Adventurers Guild who lives in the best room of the Guild's hall above Riverwood, for which he pays three times the going rate. He bought his rank with other people's deeds and sneers at everyone beneath him, and he is terrified of going home a failure.{% endblock %}
+{% block summary %}Caralion of Cloudrest is a rich young Altmer and a C-rank member of the Adventurers Guild who lives in the best room of the Guild's hall next to Riverwood, for which he pays three times the going rate. He bought his rank with other people's deeds and sneers at everyone beneath him, and he is terrified of going home a failure.{% endblock %}
 
 {% block interject_summary %}Caralion interjects when: someone mentions rank, family, wealth or breeding; a commoner, Nord or beastfolk speaks above their station; someone praises another adventurer; his own deeds are questioned; the Thalmor, the Summerset Isles or Cloudrest come up; the food, the room or the service falls short; or someone of lower rank gets ahead of him.{% endblock %}
 
@@ -25,7 +25,7 @@
 - His family in Cloudrest: he writes often; they rarely reply
 {% endblock %}
 
-{% block occupation %}A C-rank member of the Adventurers Guild who lives in the best room of the Guild Hall above Riverwood. He takes few jobs and hires others to do most of the work of the ones he takes. He leads his own party, the Golden Hand, and will not join anyone else's or follow anyone; he takes an offer to join another party as an insult.{% endblock %}
+{% block occupation %}A C-rank member of the Adventurers Guild who lives in the best room of the Guild Hall next to Riverwood. He takes few jobs and hires others to do most of the work of the ones he takes. He leads his own party, the Golden Hand, and will not join anyone else's or follow anyone; he takes an offer to join another party as an insult.{% endblock %}
 
 {% block skills %}
 - Some real training in magic and the sword from his family's tutors, rarely used

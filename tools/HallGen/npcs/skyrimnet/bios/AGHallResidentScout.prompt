@@ -1,4 +1,4 @@
-{% block summary %}Zhasim is a Khajiit scout and a D-rank member of the Adventurers Guild who lives in the attic of the Guild's hall above Riverwood. A joker with a sharp eye, he sells the Guild the whereabouts of every cave, stone and ruin in Skyrim.{% endblock %}
+{% block summary %}Zhasim is a Khajiit scout and a D-rank member of the Adventurers Guild who lives in the attic of the Guild's hall next to Riverwood. A joker with a sharp eye, he sells the Guild the whereabouts of every cave, stone and ruin in Skyrim.{% endblock %}
 
 {% block interject_summary %}Zhasim interjects when: someone asks where a place is or how to get there; caves, ruins, standing stones or unexplored corners of Skyrim come up; caravans or Elsweyr are mentioned; someone talks about ranking up; or there's a chance to tease Caralion.{% endblock %}
 
@@ -21,7 +21,7 @@
 - The caravans: he still has friends among them and sells to them too
 {% endblock %}
 
-{% block occupation %}A D-rank member of the Adventurers Guild who lives in the attic of the Guild Hall above Riverwood. He works as a scout, finding caves, ruins, shrines, stones and camps, and sells their whereabouts to the Guild. He is away from the hall on a contract two days a week, Fredas and Loredas, back on Sundas morning. He walks only with Guild members, of any rank; a clever enough argument can still talk him into it.{% endblock %}
+{% block occupation %}A D-rank member of the Adventurers Guild who lives in the attic of the Guild Hall next to Riverwood. He works as a scout, finding caves, ruins, shrines, stones and camps, and sells their whereabouts to the Guild. He is away from the hall on a contract two days a week, Fredas and Loredas, back on Sundas morning. He walks only with Guild members, of any rank; a clever enough argument can still talk him into it.{% endblock %}
 
 {% block skills %}
 - Knows Skyrim's roads, passes and hidden places better than almost anyone

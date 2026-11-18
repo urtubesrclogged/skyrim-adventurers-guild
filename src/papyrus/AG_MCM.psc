@@ -56,6 +56,9 @@ Bool bTrialsOff = False
 ; Reputation for ranks (1.6.3): percent of guild.json's promotion Reputation, 50..200. A save from before it starts at
 ; 100 (and anything out of range reads as 100), which is what every game asked before
 Int iRepScale = 100
+; Work one rank above (1.6.3: version 7 there, 8 here, after the Guild Hall's 7). A save from before it takes the DLL's value once (the ini's), in OnVersionUpdate
+Bool bWorkAbove = False
+Bool bWorkAboveCarried = False
 
 ; The MCM's text, in the game's language: SkyUI only reads the translation file of that language, with no English
 ; fallback, so the DLL gives the text (the translation's line, else English) and SkyUI shows it as it is
@@ -64,7 +67,7 @@ String Function T(String asKey)
 EndFunction
 
 Int Function GetVersion()
-	Return 7
+	Return 8
 EndFunction
 
 Event OnConfigInit()
@@ -81,12 +84,20 @@ Event OnConfigInit()
 	iSLevel = AG_Native.GetDefaultSLevel()
 	bSLevelSet = True
 	iRepScale = AG_Native.GetDefaultRepScale()
+	bWorkAbove = AG_Native.GetDefaultWorkAbove()
+	bWorkAboveCarried = True
 	Apply()
 	RegisterCardAction()
 EndEvent
 
 Event OnVersionUpdate(Int a_version)
 	SetPages()
+	; version 8 (7 in 1.6.3): work one rank above. A save from before it starts from what the DLL holds (the ini's default). Once only.
+	If !bWorkAboveCarried
+		bWorkAboveCarried = True
+		bWorkAbove = AG_Native.GetWorkAbove()
+		Apply()
+	EndIf
 	; version 6: the notices' sounds are a choice of three. Sounds that had been turned off stay off. Once only.
 	If !bSoundSetCarried
 		bSoundSetCarried = True
@@ -177,6 +188,7 @@ Function Apply()
 		iRepScale = 100
 	EndIf
 	AG_Native.SetRepScale(iRepScale)
+	AG_Native.SetWorkAbove(bWorkAbove)
 EndFunction
 
 Event OnPageReset(String a_page)
@@ -198,6 +210,7 @@ Event OnPageReset(String a_page)
 		AddHeaderOption(T("$AG_MCM_System_Ranks_Header"), OPTION_FLAG_NONE)
 		AddSliderOptionST("SLevel", T("$AG_MCM_System_iSLevel_Text"), iSLevel, "{0}", OPTION_FLAG_NONE)
 		AddSliderOptionST("RepScale", T("$AG_MCM_System_iRepScale_Text"), iRepScale, "{0}%", OPTION_FLAG_NONE)
+		AddToggleOptionST("WorkAbove", T("$AG_MCM_System_bWorkAbove_Text"), bWorkAbove, OPTION_FLAG_NONE)
 		AddEmptyOption()
 		AddHeaderOption(T("$AG_MCM_System_RankLevels_Header"), OPTION_FLAG_NONE)
 		AddTextOption(T("$AG_MCM_System_RankD_Text"), AG_Native.GetRankLevel(1), OPTION_FLAG_NONE)
@@ -663,6 +676,23 @@ State RepScale
 	EndEvent
 	Event OnHighlightST()
 		SetInfoText(T("$AG_MCM_System_iRepScale_Help"))
+	EndEvent
+EndState
+
+; ---- System: missives, notices and dungeon intel one rank above the player's (1.6.3) ----
+State WorkAbove
+	Event OnSelectST()
+		bWorkAbove = !bWorkAbove
+		SetToggleOptionValueST(bWorkAbove, False, "")
+		Apply()
+	EndEvent
+	Event OnDefaultST()
+		bWorkAbove = AG_Native.GetDefaultWorkAbove()
+		SetToggleOptionValueST(bWorkAbove, False, "")
+		Apply()
+	EndEvent
+	Event OnHighlightST()
+		SetInfoText(T("$AG_MCM_System_bWorkAbove_Help"))
 	EndEvent
 EndState
 

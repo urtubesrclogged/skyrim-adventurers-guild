@@ -2,6 +2,8 @@
 # and deploys to the same installs, so two at once would mix their files. The lock is a folder (made atomically) holding who has it;
 # a second caller waits its turn, listed in build/build.queue so the status page shows it, and takes over a lock whose holder died.
 #   source lock.sh; build_lock "<what>"      (released when the script exits; BUILD_LOCK_HELD=1 tells a script build.sh runs not to wait)
+#   build_running                            0, printing its holder, when a live build that deploys everything holds the lock (build.sh:
+#                                            a plain call then leaves its commit to that build, which deploys the newest before it ends)
 _bl_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && { pwd -W 2>/dev/null || pwd; })"
 BUILD_LOCK="$_bl_root/build/build.lock"; BUILD_QUEUE="$_bl_root/build/build.queue"
 _bl_st() { python "$_bl_root/tools/HallGen/status/status.py" render > /dev/null 2>&1 || true; }
@@ -23,6 +25,14 @@ build_lock() {
   echo "$line" > "$BUILD_LOCK/owner.json"
   [ -f "$BUILD_QUEUE" ] && { grep -v "\"pid\": $$," "$BUILD_QUEUE" > "$BUILD_QUEUE.tmp" || true; mv "$BUILD_QUEUE.tmp" "$BUILD_QUEUE"; }
   export BUILD_LOCK_HELD=1; _bl_st
+}
+build_running() {
+  [ -f "$BUILD_LOCK/owner.json" ] || return 1
+  local o hp; o="$(cat "$BUILD_LOCK/owner.json" 2>/dev/null)"
+  hp="$(python -c "import json,sys; print(json.loads(sys.argv[1]).get('winpid', 0))" "$o" 2>/dev/null | tr -d '\015')"
+  [ -n "$hp" ] && [ "$hp" != 0 ] && tasklist //FI "PID eq $hp" //NH 2>/dev/null | grep -q " $hp " || return 1
+  python -c "import json,sys; w = json.loads(sys.argv[1]).get('what', '').split(); sys.exit(0 if w[:1] == ['build.sh'] and set(w[1:]) <= {'--package', '--force'} else 1)" "$o" || return 1
+  echo "$o"
 }
 build_unlock() {
   [ -f "$BUILD_LOCK/owner.json" ] && grep -q "\"pid\": $$," "$BUILD_LOCK/owner.json" && rm -rf "$BUILD_LOCK"

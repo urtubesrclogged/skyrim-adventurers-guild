@@ -23,7 +23,7 @@ MAP = {"stone": ("sstonewall", OWN + "AGH2XStone"), "base": ("sstonebase01", OWN
        "floor": ("sfloorhouse01", OWN + "AGH2XFloor"), "metal": ("strims01", OWN + "AGH2XMetal"), "pipe": ("strims01", OWN + "AGH2XMetal"),
        # (2026-11-03) the stonework's wear decals, wearcrack and wearstain: moss's decal shader (alpha test, vertex alpha) on their own textures;
        # break, a chip's broken face: the stone's shader on freshly split stone (make_hall_textures' AGH2XStoneBreak)
-       "crest3d": ("sstonewall", OWN + "agcrest"), "planks": ("swoodbeam01", OWN + "AGH2XPlanks"), "crest": ("sstonewall", "textures" + BS + "adventurersguild" + BS + "hall" + BS + "aghallcrest"), "moss": ("smoss01", OWN + "AGH2XMoss"), "mosswall": ("smoss01", OWN + "AGH2XMossWall"), "wearcrack": ("smoss01", OWN + "AGH2XWearCrack"), "wearstain": ("smoss01", OWN + "AGH2XWearStain"), "break": ("sstonewall", OWN + "AGH2XStoneBreak"), "tile": ("sdragontile01", OWN + "AGH2XTile"), "dirt": ("sdirt01", OWN + "AGH2XDirt"),
+       "crest3d": ("sstonewall", OWN + "agcrest"), "planks": ("swoodbeam01", OWN + "AGH2XPlanks"), "crest": ("sstonewall", "textures" + BS + "adventurersguild" + BS + "hall" + BS + "aghallcrest"), "moss": ("smoss01", OWN + "AGH2XMoss"), "mosswall": ("smoss01", OWN + "AGH2XMossWall"), "wearcrack": ("smoss01", OWN + "AGH2XWearCrack"), "wearstain": ("smoss01", OWN + "AGH2XWearStain"), "spill": ("smoss01", OWN + "AGH2XSpill"), "break": ("sstonewall", OWN + "AGH2XStoneBreak"), "tile": ("sdragontile01", OWN + "AGH2XTile"), "dirt": ("sdirt01", OWN + "AGH2XDirt"),
        "roof": ("sroofslate01", OWN + "AGH2XTile") if ROOF == "tile" else ("sroofslate01", "OWN"),
        # the interior's (interior_gen.py): its iron work and the candle stand-ins until the real fittings (phase 7)
        "iron": ("strims01", OWN + "AGH2XMetal"), "candle": ("strims01", OWN + "AGH2XTrim"), "cork": ("swoodbeam01", OWN + "AGH2XWood"), "paper": ("strims01", OWN + "AGH2XTrim")}
@@ -139,7 +139,7 @@ for name_, sh in D["shapes"].items():
         props, mat = protos[proto_stem]
         if new == "OWN": mat = retex(mat, None, own_diffuse=True)
         elif new: mat = retex(mat, new)
-        if key in ("wearcrack", "wearstain"):          # (2026-11-03) the wear decals blend: moss's shader only tests its alpha, which drew the stain's
+        if key in ("wearcrack", "wearstain", "spill"):  # (2026-11-03) the wear decals blend: moss's shader only tests its alpha, which drew the stain's
             for n_ in mat.node_tree.nodes:                  # soft run and the crack's grime halo solid (their own copy of the material: retex's)
                 if "Alpha Blend" in n_.inputs: n_.inputs["Alpha Blend"].default_value = True
     bm = bmesh.new(); uvl = bm.loops.layers.uv.new("UVMap")

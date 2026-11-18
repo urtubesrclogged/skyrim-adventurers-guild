@@ -3,7 +3,7 @@ project(AdventurersGuild VERSION 2.0.0 LANGUAGES CXX)  # the mod's version: the 
 # The pre-release label, part of the version wherever it is shown (AG's log, CHIM's data, package.sh's zip and installer):
 # "-alpha.N" until 2.0.0 is published, then "" (bumped per published alpha). The
 # environment variable AG_VERSION_LABEL, if set when CMake configures, overrides it for that build.
-set(AG_VERSION_LABEL "-alpha.3")
+set(AG_VERSION_LABEL "-alpha.4")
 if(DEFINED ENV{AG_VERSION_LABEL})
 	set(AG_VERSION_LABEL "$ENV{AG_VERSION_LABEL}")
 endif()
@@ -27,7 +27,8 @@ endif()
 add_subdirectory(${COMMONLIB_DIR} CommonLibSSE EXCLUDE_FROM_ALL)
 
 add_library(AdventurersGuild SHARED src/main.cpp src/RankCore.cpp src/Adventurers.cpp src/Guild.cpp src/Counter.cpp src/SteamVRAim.cpp src/GuildCard.cpp src/Diag.cpp src/ControlsGuard.cpp src/Shop.cpp src/Papyrus.cpp src/NameHook.cpp src/LevelDisplay.cpp src/PrismaToast.cpp src/MissiveWatch.cpp src/NoticeWatch.cpp src/BountyWatch.cpp src/Dungeons.cpp src/Kills.cpp src/Loc.cpp src/Party.cpp src/ChoiceSwap.cpp src/MemberCards.cpp src/SkyrimNetData.cpp src/ChimData.cpp src/Wares.cpp src/Faces.cpp src/GuildHall.cpp src/GuildBoard.cpp src/LeaderBoard.cpp src/UiHost.cpp
-	src/hall/navmesh.cpp src/hall/hall.cpp src/hall/outdoor.cpp)  # the Guild Hall's outside: idle without the hall's plugin
+	src/hall/navmesh.cpp src/hall/hall.cpp src/hall/outdoor.cpp src/hall/marker.cpp
+	src/hall/grass.cpp)  # the Guild Hall's outside: idle without the hall's plugin
 # the hall's outdoor navmesh clips and fills polygons (src/hall/outdoor.cpp)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(Clipper2 CONFIG REQUIRED)

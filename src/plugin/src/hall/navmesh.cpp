@@ -13,6 +13,7 @@
 #include <mutex>
 #include <optional>
 #include <set>
+#include <unordered_map>
 
 namespace
 {
@@ -502,6 +503,43 @@ namespace
 		return out;
 	}
 
+	// The ambient conversations (quests started by the Actor Dialogue event, any plugin's: the hall's banter, other mods' town
+	// scenes) that have held one of a_folk for half a game hour. Such a scene lasts seconds; one that outlives that waits
+	// for a partner who left (a follower who went on with the player, someone in another cell) and never ends, and while
+	// it holds them its packages replace their schedule. The caller stops what this returns. Each person's scene is noted
+	// at the first call that finds them in it and returned once the same scene still holds them half an hour later.
+	std::vector<RE::BGSScene*> StuckScenes(Tag*, std::vector<RE::Actor*> a_folk)
+	{
+		constexpr float kStuckHours = 0.4f;   // (the away quest asks every half hour: a margin under it)
+		static std::mutex                                                    lock;
+		static std::unordered_map<RE::FormID, std::pair<RE::FormID, float>> since;   // person -> (scene, game hour first seen in it)
+		std::lock_guard l(lock);
+		std::vector<RE::BGSScene*> out;
+		auto* cal = RE::Calendar::GetSingleton();
+		if (!cal) return out;
+		const float now = cal->GetHoursPassed();
+		for (auto* a : a_folk) {
+			if (!a) continue;
+			auto* scene = a->GetCurrentScene();
+			auto* quest = scene ? scene->parentQuest : nullptr;
+			if (!quest || quest->eventID != RE::QuestEvent::kActorDialogue) {
+				since.erase(a->GetFormID());
+				continue;
+			}
+			auto [it, fresh] = since.try_emplace(a->GetFormID(), scene->GetFormID(), now);
+			if (!fresh && it->second.first != scene->GetFormID()) {
+				it->second = { scene->GetFormID(), now };
+				continue;
+			}
+			if (fresh || now - it->second.second < kStuckHours) continue;
+			SKSE::log::info("Hall: {} held {:.1f} game hours by the scene {:08X} (quest {} {:08X}): stopped", a->GetName(),
+				now - it->second.second, scene->GetFormID(), quest->GetFormEditorID(), quest->GetFormID());
+			since.erase(it);
+			if (std::find(out.begin(), out.end(), scene) == out.end()) out.push_back(scene);
+		}
+		return out;
+	}
+
 	// ---------------------------------------------------------------- stage 2: a patch stitched in, and taken out
 
 	struct Backup
@@ -777,6 +815,7 @@ namespace
 		a_vm->RegisterFunction("Here", kClass, Here);
 		a_vm->RegisterFunction("Followers", kClass, Followers);
 		a_vm->RegisterFunction("Teammates", kClass, Teammates);
+		a_vm->RegisterFunction("StuckScenes", kClass, StuckScenes);
 		a_vm->RegisterFunction("Inject", kClass, Inject);
 		a_vm->RegisterFunction("Revert", kClass, Revert);
 		a_vm->RegisterFunction("EngineAt", kClass, EngineAt);

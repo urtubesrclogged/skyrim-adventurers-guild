@@ -8,11 +8,12 @@
 // The Guild Hall's people ship no FaceGen files: the game builds their faces at run time from their records. Two things
 // make that work (proven in the hall's NPC spike, tools/HallSpike/npcs/facespike, 2026-10-26):
 //  - the tint fix: a face built at run time keeps its skin tint (Face Discoloration Fix's method; it steps aside when
-//    that mod is installed);
+//    the game is already patched, and writes nothing where the game's code is not what it expects);
 //  - High Poly Head: when it is loaded, the hall's NPCs are given its twin of their face, brows and beard, in memory.
 namespace AG::Faces
 {
-	void InstallTint();   // at plugin load, before the game reads any plugin
+	void InstallTint();   // at plugin load: logs the sites' original bytes
+	void ApplyTint();     // at kPostPostLoad (every SKSE plugin loaded, no game plugin read yet): the patch
 	void OnDataLoaded();  // High Poly Head's heads on the hall's NPCs
 	std::string Status();
 	std::string Parts(RE::TESNPC* a_npc);  // the head parts the engine will build a face from, by editor ID (diagnostics)

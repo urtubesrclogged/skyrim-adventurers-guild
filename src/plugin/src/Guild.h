@@ -19,9 +19,11 @@ namespace AG::Guild
 	void Register();            // at kDataLoaded: resolve our forms, register event sinks
 	void SetupSerialization();  // at plugin load
 	void OnGameLoaded();        // kPostLoadGame / kNewGame
+	void RevertState();         // what the co-save's revert does, for a game begun with no SKSE message (coc at the main menu)
 
 	bool Registered();
 	int  Rank();                // 0..5, -1 when not registered
+	int  WorkRank();            // the highest rank of work the player may take: Rank(), one above with WorkAbove(); -1 when not registered
 	int  Merit();
 	int  Reputation();
 	bool PromotionReady();
@@ -130,6 +132,7 @@ namespace AG::Guild
 	int   CardFee();                            // gold for a replacement guild card
 	int   RegistrationFee();                    // gold to register (the player, or a follower registered by hand)
 	void  RegistrationRouteChanged();           // MCM > Guild Hall > Registration changed: the running quest's objective follows
+	void  MarkRegistrationHall();               // the Guild Hall's map marker: on the map and objective 20's target, if the quest sends the player there
 	// Hold stamps: the two marks dialogue conditions read, set again for the liaisons and stamp keepers that are loaded.
 	// Cheap; run on the five-second beat and whenever what it depends on has just changed.
 	void  SyncStampMarks();
@@ -137,6 +140,9 @@ namespace AG::Guild
 	int   RepScale();                           // MCM > System > Reputation for ranks: percent, 50..200 (per save)
 	int   RepScaleDefault();
 	void  SetRepScale(int a_percent);
+	bool  WorkAbove();                          // MCM > System > Work one rank above (per save)
+	bool  WorkAboveDefault();                   // [System] TakeWorkAbove in the ini: a new game's, and a save's from before it
+	void  SetWorkAbove(bool a_on);              // the rank gates follow at once; turned off, postings above the rank come down
 	int   CardReturnReputation();               // Reputation for another adventurer's card brought back (guild.json)
 	float CardReplaceDays();                    // game days until a member whose card is gone has a replacement
 	int   StampDungeons();                      // dungeons to clear in a hold for its stamp on the Guild Card (guild.json)

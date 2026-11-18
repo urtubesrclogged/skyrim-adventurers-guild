@@ -205,6 +205,9 @@ function agChimRecordLines(array $state, string $player): array
     } else {
         $line .= '; the highest rank the Guild grants';
     }
+    if (!empty($led['workRank'])) {
+        $line .= "; the Guild lets $player take work up to " . $led['workRank'] . '-rank, one rank above their own';
+    }
     $lines = [$line];
     $appraisal = (string)($led['appraisal'] ?? 'none');
     $lines[] = "$player's Appraisal: " . ($appraisal === 'none' ? 'not learned (they cannot read ranks at all; the first level is sold at the counter for Merit)' : "level $appraisal of III");

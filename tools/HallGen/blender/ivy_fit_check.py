@@ -19,7 +19,7 @@ V, F = [], []
 for part in ((ex,) if CELL else ("hall2_body", "hall2_roof", "hall2_site_1")):
     d = json.load(open(part if CELL else os.path.join(ex, part + ".json")))
     for key, sh in d["shapes"].items():
-        if key.split("@")[0] in ("moss", "mosswall", "wearcrack", "wearstain", "gpane", "gcoat", "glead"): continue
+        if key.split("@")[0] in ("moss", "mosswall", "wearcrack", "wearstain", "spill", "gpane", "gcoat", "glead"): continue
         for f in sh["f"]:
             b0 = len(V); V += [H(sh["v"][i]) for i in f]; F.append(list(range(b0, b0 + len(f))))
 bvh = BVHTree.FromPolygons(V, F)

@@ -253,6 +253,55 @@ if NEWEL and os.environ.get("AG_BASEMENT", "1") == "1":
         bplace(f"meshes/clutter/{m_}.nif", ed_, (bx_ + jit(1.5), by_ + jit(1.5), F0), rc_.uniform(0, 360), sc_,
                **(G_ if "Food" in ed_ else {}))
     bplace("meshes/clutter/bucket01.nif", "Bucket01", (-1298 + jit(3), 914 + jit(2), F0), rc_.uniform(0, 360), settled=True, **G_)
+    # Henriette's larder, as vanilla's inn and palace cellars keep theirs (Nightgate's 67 pieces, the Bee and Barb's and the
+    # Blue Palace's stores: potatoes, cabbages, carrots, leeks and apples in open baskets, cheese wheels stacked, salted meat and
+    # fish in barrels, sacks of grain, herbs hung up to dry). Nothing over the way from the hallway's door to the ladder.
+    def bsit(m, ed, x, y, z, yaw, rx=0.0, **kw):          # (sit(), for the basement: lifted by its mesh's measured base)
+        foot_(m); b_ = _CB.get(m); lo_ = 0.0
+        if b_:
+            r_ = math.radians(rx)
+            lo_ = min(-yy * math.sin(r_) + zz * math.cos(r_) for yy in (b_["lo"][1], b_["hi"][1]) for zz in (b_["lo"][2], b_["hi"][2]))
+        bplace(m, ed, (x, y, z - lo_ + 0.15), yaw, rx=rx, owner="guild", settled=True, **kw)
+    rl_ = random.Random("larder")
+    # (no herbs hung up to dry: from the ceiling's ribs they hang 220 over the floor, out of a hand's reach (160), and under the
+    # shelf's top they hang into its kegs; the cellar has no other wall for them)
+    # (no second shelf: the cellar's walls are taken: the hallway's door and its swing, the ladder, Henriette's doorway in the
+    # south wall, the three sconces) cheese on the long crate's free end, as vanilla's stores stack it on crates
+    C_ = "meshes/clutter/food/"
+    CT_ = F0 + 24.3 + 24.26                                # (the long crate's top; the small crate on its far end, y 650..714)
+    for k_ in range(2):
+        bsit(C_ + "cheesewheel01a.nif", "FoodCheeseWheel01A", cr_[0] + rl_.uniform(-2, 2), 606 + rl_.uniform(-2, 2), CT_ + 0.7 + 15.3 * k_, rl_.uniform(0, 360))
+    bsit(C_ + "cheesewedge01.nif", "FoodCheeseWedge01", cr_[0] + 9, 634, CT_ + 0.7, rl_.uniform(0, 360))
+    # salted meat and fish in barrels, rolled in north of the shelf by the food barrel's corner (Dragonborn's own, never refilling)
+    for (bx_, by_), ed_ in (((-1430, 735), "BarrelMeat01_NoRespawn"), ((-1366, 764), "BarrelFish01_NoRespawn")):
+        # (round: its turn shows nothing, so square-on within 3, its box no wider than the barrel for the placement gate)
+        bplace("meshes/clutter/barrel01.nif", ed_, (bx_ + rl_.uniform(-1, 1), by_ + rl_.uniform(-1, 1), F0), rl_.choice((0, 90, 180, 270)) + rl_.uniform(-3, 3), owner="guild")
+    # open baskets of the week's vegetables, on the floor where nobody walks: by the south wall between Henriette's doorway and
+    # the casks, beside the kegs, by the north-west barrels and beside the long crate; each basket's few things on its floor
+    # (0.8), set apart so none rests on another (the gates: produce stacked in a basket floats). No sacks: no floor left for them
+    P_ = "meshes/plants/"
+    def basket(x, y, m, ed, spots, thing, lying=False, tops=()):
+        """a basket, its floor (0.8) covered as vanilla's are (the Bee and Barb's Basket05: eight apples), and heaped as its
+        potatoes are (up to 26 over the floor) only where the game's own settle sets them (settle_check.py): tops, a second
+        layer on the floor's (by index), unused until then (the placement gate reads produce on produce as floating); spots:
+        (lx, ly) in the basket's own turn; lying: long things laid side by side"""
+        yb_ = rl_.uniform(0, 360); a_ = math.radians(yb_)
+        bplace(f"meshes/clutter/{m}.nif", ed, (x, y, F0), yb_, owner="guild", settled=True)
+        foot_(thing[0]); h_ = _CB[thing[0]]["hi"][2] - _CB[thing[0]]["lo"][2]
+        at_ = []
+        for lx, ly in spots:
+            wx_, wy_ = x + lx * math.cos(a_) + ly * math.sin(a_), y - lx * math.sin(a_) + ly * math.cos(a_)
+            wx_, wy_ = wx_ + rl_.uniform(-0.6, 0.6), wy_ + rl_.uniform(-0.6, 0.6); at_.append((wx_, wy_))
+            bsit(thing[0], thing[1], wx_, wy_, F0 + 0.8, (yb_ + rl_.uniform(-8, 8)) if lying else rl_.uniform(0, 360), rx=90 if lying else 0)
+        for i_ in tops:
+            bsit(thing[0], thing[1], at_[i_][0], at_[i_][1], F0 + 0.8 + h_, rl_.uniform(0, 360))
+    ring = lambda r, n, t0=0.0: [(r * math.cos(t0 + 2 * math.pi * k / n), r * math.sin(t0 + 2 * math.pi * k / n)) for k in range(n)]
+    # (2026-11-18: the baskets of loose produce were knocked about in game, their contents' Havok hulls inside the baskets'
+    # (Basket01's is one solid hull): none for now) their draws kept, so the rest of the larder keeps its places: potatoes 22,
+    # carrots 16, leeks 13, cabbages 7, apples 16
+    for _ in range(22 + 16 + 13 + 7 + 16): rl_.random()
+    # a salt pile on the shelf's lowest board by the jug (its mesh 2.7 under its origin)
+    on_shelf("meshes/clutter/ingredients/saltpile.nif", "SaltPile", -8 + rl_.uniform(-2, 2), rl_.uniform(-3, 3), 17 + 2.9, rl_.uniform(0, 360), settled=True, **G_)
     # (the cellar's lights made no sense: two sconces bunched on one wall) spread for the room, 365
     # by 740: by the door on the east wall, across on the west, and on the south wall at the casks' end
     bsconce(-1100, 640, F0 + 150, (-1, 0), lamp=290); bsconce(-1465, 790, F0 + 150, (1, 0), lamp=290); bsconce(-1300, 200, F0 + 150, (0, 1), lamp=290)
@@ -294,6 +343,9 @@ if NEWEL and os.environ.get("AG_BASEMENT", "1") == "1":
     SH_ = HF + 62
     bplace("meshes/clutter/glazedjugsmall01.nif", "GlazedJugSmall01", (-1437, -36, SH_), 23, settled=True)
     bplace("meshes/clutter/dining set/basicwoodenbowl01.nif", "BasicWoodenBowl01", (-1423, 6, SH_), 0, settled=True)
+    # (the lived-in pass, 2026-11-17) by the bowl, a horn cup: the two belonged to people of the first company who did not come
+    # home (vanilla's drinking horn mesh as our own static: its record is a Thieves Guild quest item)
+    bplace("meshes/clutter/quest/tgdrinkinghorn.nif", "AGHall2DrinkingHorn", (-1418, -18, SH_ + 0.1), 205)
     bplace("meshes/clutter/books/basicbook01.nif", "Book1CheapBriefHistoryoftheEmpirev1", (-1432, 48, SH_ + 2.01), 97, settled=True)
     bplace("meshes/clutter/books/basicbook04a.nif", "Book2CommonExplorersGuideToSkyrim", (-1430, 50, SH_ + 2.01 + 4.13), 81, settled=True)
     bplace("meshes/clutter/basket01.nif", "Basket01", (-1426, 26, HF + 10.5), 17, settled=True)
@@ -412,8 +464,16 @@ if NEWEL and os.environ.get("AG_BASEMENT", "1") == "1":
                              (1290, 494, "hayscatter04", "HayScatter04")):
         bplace(f"meshes/clutter/hay/{m_}.nif", e_, (hx_ + rtr_.uniform(-8, 8), hy_ + rtr_.uniform(-8, 8), F1 + 0.3), rtr_.uniform(0, 360))
     bplace("meshes/clutter/barrel02.nif", "Barrel02Static", (293 + rtr_.uniform(-2, 2), 87 + rtr_.uniform(-2, 2), F1), rtr_.uniform(0, 360))
-    bplace("meshes/clutter/bucket01.nif", "Bucket01", (298 + rtr_.uniform(-3, 3), 152 + rtr_.uniform(-3, 3), F1), rtr_.uniform(0, 360),
-           owner="guild", settled=True)
+    BK_ = (298 + rtr_.uniform(-3, 3), 152 + rtr_.uniform(-3, 3), F1)
+    bplace("meshes/clutter/bucket01.nif", "Bucket01", BK_, rtr_.uniform(0, 360), owner="guild", settled=True)
+    # (the lived-in pass, 2026-11-17) the water bucket's ladle laid across its rim (the bucket's rim at 30, its radius 17.6; the
+    # ladle's bowl at its origin, its handle along -x, 3.5 under its origin); two practice swords leaned on the south wall behind
+    # the dummies, between the middle and the east one, out of anyone's swing (the swords' blades along +y to 63, the pommel at
+    # -11.7: tilted 72..78 so the tip stands on the floor and the hilt rests against the wall)
+    bplace("meshes/clutter/kitchen/woodenladle01.nif", "WoodenLadle01", (BK_[0] + 7, BK_[1] + 1.5, F1 + 30 + 3.6), 14, owner="guild", settled=True)
+    for sx_, tilt_, yw_ in ((106, 74, 3), (124, 77, 351)):
+        bplace("meshes/weapons/iron/longsword.nif", "IronSword", (sx_, 51 + 7, F1 + 63.2 * math.sin(math.radians(tilt_)) + 0.3), yw_, rx=tilt_,
+               owner="guild", settled=True)
     # the targets at the range's end (their painted face, local -x, to the shooters), the dummies along the main area's front
     rt_ = random.Random("range targets")                       # (not ruled out: the clutter audit, 2026-10-28)
     TARGETS_ = []

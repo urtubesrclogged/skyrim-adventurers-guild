@@ -17,7 +17,7 @@ switch (args.FirstOrDefault())
     case "interiors": Interiors.Run(mods, args[1]); break;
     case "lightsurvey": LightSurvey.Run(mods, args[1]); break;
     case "links": Links.Run(mods, args[1], args[2]); break;
-    case "refdiff": RefDiff.Run(mods, args[1], args[2], args.Contains("--all")); break;
+    case "refdiff": if (RefDiff.Run(mods, args[1], args[2], args.Contains("--all")) > 0) Environment.Exit(3); break;
     case "reflect":   // the properties of Mutagen getter interfaces, to see what a record exposes
         foreach (var tn in args.Skip(1))
         {
@@ -55,6 +55,7 @@ switch (args.FirstOrDefault())
     case "navdoorw": NavDoorW.Run(mods, args.Length > 1 && !args[1].StartsWith("--") ? args[1] : ".", args.Contains("--list")); break;
     case "isinfo": IsInfo.Run(mods, args[1]); break;
     case "pluginlights": PluginLights.Run(mods); break;
+    case "navoverlap": NavOverlap.Run(mods); break;
     case "navflagbits": foreach (var v in Enum.GetValues(typeof(NavmeshTriangle.Flag))) Console.WriteLine($"{v} = 0x{(int)v:X}"); break;
     case "furnmarkers":   // a furniture record's markers (entry points, disabled ones), and how many of vanilla's disable any
         { int dis = 0, all = 0;

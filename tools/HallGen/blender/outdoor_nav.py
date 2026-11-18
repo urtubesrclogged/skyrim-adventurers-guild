@@ -233,6 +233,32 @@ for rp in ramps:
             newT.append(tri); nramp += 1
 print(f"RAMPS laid: {nramp} triangles over {len(ramps)} stairs")
 
+# ---- 2b. weld: vertices within WELD across (and 30 up or down) are one, so a stair's end row and the surface it meets share
+#      their seam (their vertices can stand a unit or two apart, which the tenth-rounded key above misses); a triangle that
+#      collapses is dropped
+WELD = 1.5
+_rep = list(range(len(newV)))
+def _root(i):
+    while _rep[i] != i: _rep[i] = _rep[_rep[i]]; i = _rep[i]
+    return i
+_grid = defaultdict(list)
+for i, v in enumerate(newV): _grid[(int(v[0] // 4), int(v[1] // 4))].append(i)
+nweld = 0
+for (gx_, gy_), ids_ in list(_grid.items()):
+    cand = [j for dx_ in (-1, 0, 1) for dy_ in (-1, 0, 1) for j in _grid.get((gx_ + dx_, gy_ + dy_), [])]
+    for i in ids_:
+        for j in cand:
+            if j <= i: continue
+            a_, b_ = newV[i], newV[j]
+            if math.hypot(a_[0] - b_[0], a_[1] - b_[1]) < WELD and abs(a_[2] - b_[2]) < 30:
+                ri, rj = _root(i), _root(j)
+                if ri != rj: _rep[max(ri, rj)] = min(ri, rj); nweld += 1
+_T2 = []
+for t in newT:
+    q = [_root(i) for i in t]
+    if len(set(q)) == 3 and abs(area2(*(newV[k] for k in q))) >= 0.5: _T2.append(q)
+print(f"WELD: {nweld} vertices joined to a neighbour within {WELD}; {len(newT) - len(_T2)} triangles collapsed")
+newT = _T2
 # ---- 3. the pieces that hold an anchor: each door's outside landing (60 out from the door, on its outer side)
 def adjacency(T):
     em = defaultdict(list)
@@ -265,6 +291,14 @@ for x, y, z, yaw in DOORS:
 if len(keep_roots) < len(DOORS): sys.exit(f"outdoor navmesh: {len(keep_roots)} of {len(DOORS)} doors have our mesh at their outside landing")
 K = [t for i, t in enumerate(newT) if f(i) in keep_roots]
 print(f"kept {len(K)} of {len(newT)} triangles ({len(set(f(i) for i in range(len(newT))))} pieces, {len(keep_roots)} with a door)")
+# a stair whose foot row is not in a kept piece is loose: nothing joins it to a door's landing (an obstacle at its top, a seam that
+# did not close). Said by name; its foot is not offered to the DLL to join (it would join the ground to nothing)
+_kv = {i for t in K for i in t}
+for rp in ramps:
+    ids_ = {_root(vadd(rp["rows"][k][s_])) for k in (0, len(rp["rows"]) - 1) for s_ in (0, 1) if rp["foot"][0 if k == 0 else 1]}
+    rp["kept"] = not ids_ or bool(ids_ & _kv)
+    if not rp["kept"]:
+        m_ = rp["rows"][0][0]; print(f"LOOSE STAIR: the stair whose foot is at export ({m_[0]:.0f}, {m_[1]:.0f}, {m_[2]:.0f}) is joined to no door's landing: left out")
 
 # ---- 3b. clean-up, as a mesh is cleaned before it ships: each edge under MIN_EDGE collapsed into one of its ends (one on the outline
 #      only along the outline, a foot's corners never moved, never where a triangle would turn over or fold), then on level ground
@@ -430,7 +464,19 @@ for rp in ramps:                                                # (in front of a
         out_ = (l + r_) / 2 - inn; out_ = out_ / np.linalg.norm(out_)
         hall_fp = hall_fp.difference(Polygon([l, r_, r_ + out_ * 96, l + out_ * 96]))
 ours_fp = unary_union([Polygon([newV[i][:2] for i in t]) for t in K if abs(area2(*(newV[i] for i in t))) > 1e-6]).buffer(0.5, join_style=2).buffer(-0.5, join_style=2)
+SPANS = [Polygon(sp) for sp in S.get("spans", [])]           # a bridge's open span (guildhall_gen's d["spans"]): the ground under it
+if SPANS:                                                    # keeps its navmesh, so the road under a bridge stays walkable
+    sp_ = unary_union(SPANS); hall_fp = hall_fp.difference(sp_); ours_fp = ours_fp.difference(sp_)
+    print(f"SPANS: {len(SPANS)} open span(s) left to the ground, {sp_.area:.0f} square")
 blocked = unary_union([hall_fp, ours_fp]).simplify(2)
+# (2026-11-17) the road under a bridge must join the road outside it: an open span left as a hole in the blocked area is an island
+# of ground navmesh that pathing can reach from nowhere (followers could not route under site B's bridge)
+for sp_ in SPANS:
+    for g_ in getattr(blocked, "geoms", [blocked]):
+        for h_ in getattr(g_, "interiors", []):
+            if Polygon(h_).buffer(1).intersects(sp_):
+                sys.exit(f"FAIL BRIDGE SPAN SHUT IN: the ground under a bridge ({sp_.bounds[0]:.0f}, {sp_.bounds[1]:.0f})-({sp_.bounds[2]:.0f}, {sp_.bounds[3]:.0f}) "
+                         f"is a hole in the blocked area, cut off from the road outside: the span must reach past what overhangs it")
 polys = []
 for g in getattr(blocked, "geoms", [blocked]):
     if g.geom_type != "Polygon" or g.area < 64: continue
@@ -442,12 +488,13 @@ print(f"BLOCKED: {len(polys)} outline polygon(s), {nbv} vertices (the hall's foo
 # ---- 6. the stair feet (world): each ramp's end on the land, the middle of its end row, its reach half the row + 80
 feet = []
 for rp in ramps:
+    if not rp.get("kept", True): continue
     for k, isfoot in zip((0, len(rp["rows"]) - 1), rp["foot"]):
         if not isfoot: continue
         l, r_ = rp["rows"][k]; m = [(l[c] + r_[c]) / 2 for c in range(3)]
         feet.append([round(c, 1) for c in e2w(m)] + [round(max(200.0, math.hypot(l[0] - r_[0], l[1] - r_[1]) / 2 + 80), 1)])
 
-out = dict(version=2, site=S["site"], verts=verts, tris=tris, preferred=True, blocked=polys, feet=feet,
+out = dict(version=2, site=S["site"], cross=S.get("nav_cross", True), verts=verts, tris=tris, preferred=True, blocked=polys, feet=feet,
            anchors=[[round(c, 1) for c in e2w(a)] for a in anchors])
 json.dump(out, open(OUT, "w"))
 
@@ -491,7 +538,14 @@ def reach(t0):
 door_t = [tri_at(e2w(a_)) for a_ in anchors]
 unreached = []
 for ft in feet:
-    t0 = min(range(len(tris)), key=lambda ti: math.dist(ft[:2], [sum(verts[i][k] for i in tris[ti][:3]) / 3 for k in range(2)]))
+    # (the foot's own triangle, under it within 60: the nearest one by its middle passed a stair that had no mesh at all)
+    t0 = None                                                  # (a foot lies on its strip's outer edge: within a hundredth of it)
+    for ti, t in enumerate(tris):
+        a, b, c = (verts[i] for i in t[:3]); d = area2(a, b, c)
+        if abs(d) < 1e-9: continue
+        l1 = area2(ft[:3], b, c) / d; l2 = area2(a, ft[:3], c) / d
+        if min(l1, l2, 1 - l1 - l2) >= -1e-2 and abs(l1 * a[2] + l2 * b[2] + (1 - l1 - l2) * c[2] - ft[2]) < 60: t0 = ti; break
+    if t0 is None: unreached.append(ft[:3]); continue
     R_ = reach(t0)
     if not any(dt in R_ for dt in door_t if dt is not None): unreached.append(ft[:3])
 print(f"REACH: {len(feet) - len(unreached)} of {len(feet)} feet reach a door's landing over our mesh; door landings found {sum(d is not None for d in door_t)} of {len(door_t)}")

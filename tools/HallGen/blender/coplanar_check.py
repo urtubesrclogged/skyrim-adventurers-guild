@@ -31,7 +31,7 @@ faces, tris = [], []
 for path in args:
     d = json.load(open(path)); part = path.replace("\\", "/").split("/")[-1].replace(".json", "").replace("hall2_", "")
     for key, sh in d["shapes"].items():
-        if key in ("moss", "mosswall", "wearcrack", "wearstain"): continue                          # a decal: its Decal shader flags keep it off the paving's depth
+        if key in ("moss", "mosswall", "wearcrack", "wearstain", "spill"): continue                          # a decal: its Decal shader flags keep it off the paving's depth
         V = sh["v"]
         for fi, f in enumerate(sh["f"]):
             P = [V[i] for i in f]

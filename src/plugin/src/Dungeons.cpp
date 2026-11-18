@@ -11,6 +11,7 @@
 #include "Guild.h"
 #include "GuildCard.h"
 #include "GuildHall.h"
+#include "hall/hall.h"
 #include "Party.h"
 #include "Loc.h"
 #include "PrismaToast.h"
@@ -235,7 +236,9 @@ namespace AG::Dungeons
 			RE::NiPoint3       start;
 			if (a_fromHall) {   // the hall's cells have no location: measured from where it stands
 				world = RE::TESForm::LookupByID<RE::TESWorldSpace>(0x3C);   // Tamriel
-				start = { GuildHall::kSiteX, GuildHall::kSiteY, 0.0f };
+				const auto site = Hall::SitePos();   // (the installed hall's site: Riverwood's or Solitude's)
+				if (!site) return {};
+				start = { site->x, site->y, 0.0f };
 			} else {
 				auto* pc = RE::PlayerCharacter::GetSingleton();
 				auto* here = pc ? pc->GetCurrentLocation() : nullptr;
@@ -597,7 +600,7 @@ namespace AG::Dungeons
 	nlohmann::json IntelServices(int a_merit, bool a_registered, bool a_everyHold)
 	{
 		auto rows = nlohmann::json::array();
-		const int guild = Guild::Rank();   // like missives: only work at or below the player's rank (none before registering)
+		const int guild = Guild::WorkRank();   // like missives: only work the player may take (none before registering)
 		for (auto& lead : Leads(a_everyHold)) {
 			if (lead.rank > guild) continue;
 			const auto city = a_everyHold ? CounterCityOf(lead.loc) : std::string();
@@ -830,7 +833,7 @@ namespace AG::Dungeons
 		BuildZones();
 		auto z = g_zoneOf.find(loc);
 		const int rank = FromLevel(LevelFor(z != g_zoneOf.end() ? z->second : nullptr));
-		if (rank > Guild::Rank()) return Loc::F("$AG_Intel_RankGate", "The Guild only shares Rank {0} intel with Rank {0} adventurers.", Letter(rank));
+		if (rank > Guild::WorkRank()) return Loc::F("$AG_Intel_RankGate", "The Guild only shares Rank {0} intel with Rank {0} adventurers.", Letter(rank));
 		const int cost = Guild::IntelMerit(rank);
 		const auto name = Name(loc);
 		if (!Guild::TrySpendMerit(cost, Loc::F("$AG_Log_Intel", "Bought intel on {} (Threat Rank {}) for {} Merit.", name, Letter(rank), cost))) {

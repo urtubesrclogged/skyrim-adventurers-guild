@@ -11,7 +11,7 @@ HG="$(cd "$(dirname "$0")" && { pwd -W 2>/dev/null || pwd; })"; source "$HG/env.
 B="$HG/blender"; BL="$BLENDER"; W="$HALL_WORK"; C="$W/data-root"; PRIV="$HALL_PRIVATE"
 E="$W/place-check/export"; L="$W/place-check/logs"; rm -rf "$E"; mkdir -p "$E" "$L"
 t0=$SECONDS; stamp() { echo "-- $1, $((SECONDS - t0))s"; }
-COMMON=(AG_GLAZE=all AG_TAG=1 AG_STAIR=approach AG_APPROACH="$B/variants/site5_v4/approach_curve.json" AG_SITE=16014,-49358,568,245 AG_MAP="$PRIV/site/mapdata.json")
+COMMON=(AG_GLAZE=all AG_TAG=1 AG_STAIR=approach AG_APPROACH="$B/$HALL_SITE_APPROACH" AG_SITE=$HALL_SITE_AG AG_MAP="$PRIV/$HALL_SITE_MAP")   # (the site: env.sh, sites.json)
 (cd "$B" && env AG_EXPORT="$E" "${COMMON[@]}" timeout 1800 "$BL" -b -P guildhall_gen.py -- "$C" "$E" > "$L/export.log" 2>&1) &
 (cd "$B" && env AG_INTERIOR=1 AG_STAIRS=W AG_EXPORT="$E" "${COMMON[@]}" timeout 1800 "$BL" -b -P guildhall_gen.py -- "$C" "$E" > "$L/export_int.log" 2>&1) &
 wait

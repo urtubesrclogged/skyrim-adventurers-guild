@@ -12,12 +12,14 @@ caprica="$(get CAPRICA)"; flags="$(get PAPYRUS_FLAGS)"
 out="${1:-$here/build/Scripts}"; mkdir -p "$out"
 # (each set compiled from a folder of its own: Caprica also searches the compiled file's folder and below, where one set's header
 # stubs would shadow the other's)
-stage="$(mktemp -d)"; trap 'rm -rf "${stage:?}"' EXIT; mkdir -p "$stage/npcs" "$stage/caralion"
+stage="$(mktemp -d)"; trap 'rm -rf "${stage:?}"' EXIT; mkdir -p "$stage/npcs" "$stage/caralion" "$stage/natives"
 cp "$pap"/PF_*.psc "$pap"/AG_TIF_*.psc "$stage/npcs/"; cp "$pap"/AGHallCaralion*.psc "$pap"/AGHallTrial*.psc "$pap"/AGHallTrainer*.psc "$pap"/AGHallBarter*.psc "$pap"/AGHallWelcomeTIF.psc "$pap"/AGHallBedroomDoor.psc "$pap"/AGHallAway*.psc "$pap"/AGHallFollower*.psc "$stage/caralion/"
+# (the hall's natives, compiled by build_hall.sh, only declared here: the away quest stops stuck scenes through AGHallNative)
+cp "$pap"/AGHallNative.psc "$stage/natives/"
 (cd "$stage/npcs" && "$caprica" --game skyrim --import "$pap/headers-npcs" --flags "$flags" --output "$out" *.psc)
 # Caralion's quest (2026-11-04) and the promotion trials (2026-11-05): against headers-full (tools/hall-private: SKSE's and the game's own sources, not ours to publish) with AG's and these headers filling the gaps, and AG's
 # AG_Native; the small stubs in headers/ lack most of Quest, ReferenceAlias and Scene
-(cd "$stage/caralion" && "$caprica" --game skyrim --import "$full" --import "$ag/src/papyrus" --flags "$flags" --output "$out" *.psc)
+(cd "$stage/caralion" && "$caprica" --game skyrim --import "$full" --import "$ag/src/papyrus" --import "$stage/natives" --flags "$flags" --output "$out" *.psc)
 python - "$out" <<'PY'
 import os, struct, sys
 for f in os.listdir(sys.argv[1]):

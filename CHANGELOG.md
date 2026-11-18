@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.0-alpha.4
+
+**New**
+- Second optional location for the guild hall. The same hall on the snowy hillside on the road to the Thalmor Embassy north of Solitude.
+- Rerun the FOMOD to switch. Switching the hall's location on an existing save takes the old hall down and puts the new one up.
+- The Guild Hall has a map marker.
+- New MCM toggle (System > Work one rank above): take missives, notices and dungeon intel one rank above your own. Off by default.
+- Various improvements to the hall.
+- Hall residents walk to the training room before practice, and Marius coaches them at the dummies and targets.
+- Marius finally looks his age.
+
+**Fixes**
+- Better hall lighting for vanilla setups without Light Limit Fix.
+- Followers path more reliably on the hall's outside stairs.
+- Fixed the hall's timber frame poking up through the roof at the eaves.
+- Hall folk no longer get stuck in a conversation that never ends (e.g. when the other speaker walked off).
+- Followers no longer get pulled into hall banter, and seated banter waits until both are sitting.
+- Misc. fixes for coc and the doors.
+
 ## 2.0.0-alpha.3
 
 **Fixes**
@@ -38,6 +57,14 @@
 
 **Improvements & QoL**
 - New MCM slider (System > Reputation for ranks): scale the Reputation each rank needs, 50% to 200%, for games that level faster or slower.
+- New MCM toggle (System > Work one rank above): take missives, notices and dungeon intel one rank above your own. Off by default.
+
+**Changes**
+- Innkeepers and NPCs across Skyrim re-voiced, each in a voice cloned from their own lines.
+- Fewer NPC lines: about 350 of the weaker and repetitive ones are cut, so what is left comes up less often and sounds fresher.
+
+**Fixes/Bugs**
+- Fixed Elda's inn being called Candlelight Hall instead of Candlehearth Hall.
 
 ## 1.6.2
 

@@ -122,6 +122,21 @@ ACCEPTED = [("ground floor", -280, 984, "inside the mirror mass, behind the nich
 # use spots accepted as they are (level, editor ID, x, y within 30, why)
 ACCEPTED_USE = [("first floor", "NobleChestDrawers01", -1299, 904, "GM bedroom, under the back window: opened from beside the bed")]
 EXTRA = {"FarmTableBench02": [(-59, 71, 60, 102), (-59, -102, 60, -71)]}       # two benches either side of the table's axis
+# (the lived-in pass, 2026-11-17) its pieces: things on tables, shelves and nightstands none; what stands on a floor, its mesh's
+FP.update({k_: v_ for k_, v_ in {
+    "Book0DanceInFireV1": None, "Book0DanceInFireV3": None, "Book0DanceInFireV4": None, "Book4RareADanceInFireV5": None,
+    "Book1CheapKolbAndTheDragon": None, "Book2CommonLegendofRedEagle": None, "Book3ValuableLostLegends": None, "CoinPurseMedium": None,
+    "DwarvenGear": None, "ArmorImperialHelmet": None, "Lockpick": None, "SabrecatTooth": None, "MountainFlower01Blue": None,
+    "MountainFlower01Purple": None, "Lavender": None, "FoodWineAlto": None, "FoodWineBottle02": None, "NobleWallShelf01": None,
+    "AGHall2CardBox": None, "AGHall2DrinkingHorn": None, "WoodenLadle01": None, "IronSword": None, "ArmorHideShield": None,
+    "ArmorIronGauntlets": None, "FoodCheeseWheel01A": None, "FoodCheeseWedge01": None, "FoodApple": None, "FoodPotato": None,
+    "FoodCabbage": None, "FoodCarrot": None, "FoodLeek": None, "SaltPile": None, "HangingGarlicBraid": None, "HangingElvesEar01": None,
+    "HangingFrostMirriam": None, "BasicTankard01": None,
+    "WEDL03CyrodilicBrandy": ((-9, -8, 9, 8), []), "ArmorIronHelmet": None,
+    "MeadBarrel01": ((-20, -31, 20, 20), []), "Basket05": ((-25, -25, 25, 25), []),
+    "BarrelMeat01_NoRespawn": ((-28, -28, 28, 28), []), "BarrelFish01_NoRespawn": ((-28, -28, 28, 28), []),
+}.items() if k_ not in FP})
+FP.update({k_: v_ for k_, v_ in {"ImpCandle01": None, "Broom01": ((-8, -18, 8, 18), [])}.items() if k_ not in FP})   # (2026-11-17: a candle on a nightstand; the tavern's broom on the floor, leaning)
 BYMODEL = {"impwallsconce02candleon01.nif": None, "fireplacewood01burning.nif": None, "byohhousetrophydragon01.nif": None,
            "sdoubledoorint01.nif": None, "trapdoorladder02.nif": None, "winterholdtrapdoor01.nif": None}
 

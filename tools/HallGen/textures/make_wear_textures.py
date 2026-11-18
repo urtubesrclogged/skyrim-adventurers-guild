@@ -7,6 +7,9 @@ wrplasterdecals, Windhelm's whbrickdecal1): no vanilla picture is a hairline cra
                    a short branch; a thin dark core in a faint grime halo; its normal a shallow groove
   AGH2XWearStain   128 x 512: a run-off stain down v from a coping joint, darker and wider under it, narrowing and fading as it runs; a
                    little bolder than the mock-up as rendered; its normal flat
+  AGH2XSpill       256 x 256: a drink spilled on the tavern's floorboards long ago and never scrubbed: a dark amber-brown pool soaked into the
+                   wood, its outline uneven, darker at its dried rim (what dries last leaves its ring), a few splash drops off one side;
+                   its normal flat
 Diffuse BC3 (its alpha the decal's), normals BC7, full mip chains, texconv from the toolkit.
     python make_wear_textures.py <out dir> [<copy to> ...]        (the build's textures/AdventurersGuild/Hall2, then the render root's)"""
 import math, os, random, shutil, subprocess, sys, tempfile
@@ -50,10 +53,36 @@ def stain():
     return img, Image.new("RGB", (SW, SH), (128, 128, 255))
 
 
+def spill():
+    R = random.Random("spill 2026-11-17"); N = 256; c = N / 2
+    yy, xx = np.mgrid[0:N, 0:N].astype(float)
+    # the pool: a few overlapping lobes, its outline wobbled by low harmonics of the angle
+    ang = np.arctan2(yy - c, xx - c)
+    wob = sum(R.uniform(0.03, 0.09) * np.cos(k * ang + R.uniform(0, 2 * math.pi)) for k in (2, 3, 5, 7))
+    pool = np.zeros((N, N))
+    for _ in range(4):
+        ox, oy, r = c + R.uniform(-22, 22), c + R.uniform(-16, 16), R.uniform(38, 62)
+        pool = np.maximum(pool, 1 - np.hypot(xx - ox, (yy - oy) * 1.15) / (r * (1 + wob)))
+    inside = np.clip(pool * 6, 0, 1)                                 # (a soft edge a few pixels wide)
+    rim = np.clip(1 - np.abs(pool - 0.07) / 0.07, 0, 1) * 0.45       # (the dried ring just inside the edge)
+    soak = np.asarray(Image.fromarray((np.array([[R.random() for _ in range(N)] for _ in range(N)]) * 255).astype(np.uint8))
+                      .filter(ImageFilter.GaussianBlur(9)), float) / 255.0
+    soak = (soak - soak.min()) / max(1e-6, soak.max() - soak.min())  # (soaked in unevenly: blotches lighter and darker)
+    a = inside * (0.36 + 0.3 * soak) + rim
+    for _ in range(5):                                               # splash drops off one side, smaller as they go
+        d_ = R.uniform(70, 108); t_ = R.uniform(-0.6, 0.6) + 0.4; r_ = R.uniform(4, 8) * (1.3 - d_ / 140)
+        dx_, dy_ = c + d_ * math.cos(t_), c + d_ * math.sin(t_)
+        a = np.maximum(a, np.clip(1 - np.hypot(xx - dx_, yy - dy_) / r_, 0, 1) ** 0.5 * 0.6)
+    a = np.clip(a, 0, 1) * 255
+    rgb = np.dstack([26 + 12 * soak, 15 + 7 * soak, 8 + 3 * soak])  # (dark amber, browner where it soaked deepest)
+    img = Image.fromarray(np.dstack([rgb, a]).astype(np.uint8), "RGBA").filter(ImageFilter.GaussianBlur(0.8))
+    return img, Image.new("RGB", (N, N), (128, 128, 255))
+
+
 def main():
     out = sys.argv[1]; copies = sys.argv[2:]; os.makedirs(out, exist_ok=True); work = tempfile.mkdtemp()
     made = []
-    for name, (dif, nrm) in (("AGH2XWearCrack", crack()), ("AGH2XWearStain", stain())):
+    for name, (dif, nrm) in (("AGH2XWearCrack", crack()), ("AGH2XWearStain", stain()), ("AGH2XSpill", spill())):
         for suf, im, fmt in (("", dif, "BC3_UNORM"), ("_n", nrm, "BC7_UNORM")):
             png = os.path.join(work, name + suf + ".png"); im.save(png)
             subprocess.run([TEXCONV, "-nologo", "-y", "-f", fmt, "-m", "0", "-o", out, png], check=True, capture_output=True)

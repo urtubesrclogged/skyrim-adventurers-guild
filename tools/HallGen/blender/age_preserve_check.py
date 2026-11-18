@@ -10,7 +10,7 @@ def load(d):
     for fn in ("hall2_body.json", "hall2_roof.json", "hall2_site_1.json"):
         j = json.load(open(os.path.join(d, fn)))
         for key, sh in j["shapes"].items():
-            if key in ("moss", "mosswall", "wearcrack", "wearstain"): continue                       # decals: checked by decal_support_check.py
+            if key in ("moss", "mosswall", "wearcrack", "wearstain", "spill"): continue                       # decals: checked by decal_support_check.py
             out[(fn, key)] = [[sh["v"][i] for i in f] for f in sh["f"]]
     return out
 

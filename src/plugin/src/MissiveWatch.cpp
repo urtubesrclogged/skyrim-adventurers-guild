@@ -338,21 +338,6 @@ namespace AG::MissiveWatch
 				if (auto* msg = RE::TESForm::LookupByID<RE::BGSMessage>(id); msg && *msg->GetFullName()) Label(msg, tier);
 		}
 
-		// "AG_PlayerRankGlobal >= rank" as the FIRST condition, so it is ANDed with the whole existing list (a leading
-		// AND item forms its own group, whatever OR groups follow). Game heap (TESConditionItem redefines new).
-		void Gate(RE::TESCondition* a_cond, RE::TESGlobal* a_rank, int a_min)
-		{
-			auto* item = new RE::TESConditionItem();
-			item->data.object = RE::CONDITIONITEMOBJECT::kSelf;
-			item->data.functionData.function = RE::FUNCTION_DATA::FunctionID::kGetGlobalValue;
-			item->data.functionData.params[0] = a_rank;
-			item->data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kGreaterThanOrEqualTo;
-			item->data.flags.isOR = false;
-			item->data.comparisonValue.f = static_cast<float>(a_min);
-			item->next = a_cond->head;
-			a_cond->head = item;
-		}
-
 		int Count(const RE::TESCondition* a_cond)
 		{
 			int n = 0;
@@ -380,7 +365,7 @@ namespace AG::MissiveWatch
 						auto* alias = static_cast<RE::BGSRefAlias*>(base);
 						if (alias->conditions && alias->conditions->head) best = alias;
 					}
-			if (best) Gate(best->conditions, a_rank, a_min);
+			if (best) QuestBoard::Gate(best->conditions, a_rank, a_min);
 			return best != nullptr;
 		}
 
@@ -410,7 +395,7 @@ namespace AG::MissiveWatch
 			for (auto* base : a_quest->aliases)
 				if (base && base->GetVMTypeID() == RE::BGSRefAlias::VMTYPEID && base->aliasName == "Player") {
 					auto* alias = static_cast<RE::BGSRefAlias*>(base);
-					if (alias->conditions) Gate(alias->conditions, a_rank, 99);
+					if (alias->conditions) QuestBoard::Gate(alias->conditions, a_rank, 99);
 				}
 			g_broken.insert(a_quest->GetFormID());
 			SKSE::log::warn("MissiveWatch: {} ({:08X}) can never be finished - its Player alias is not the player - kept off the boards",
@@ -549,7 +534,7 @@ namespace AG::MissiveWatch
 					if (!best || Count(alias->conditions) > Count(best->conditions)) best = alias;
 				}
 				if (best) {
-					Gate(best->conditions, rankGlobal, FromLetter(tier[0]));
+					QuestBoard::Gate(best->conditions, rankGlobal, FromLetter(tier[0]));
 					++gated;
 				} else {
 					++ungated;
@@ -962,7 +947,7 @@ namespace AG::MissiveWatch
 		{
 			if (!g_active || g_hallRoll.empty() || !GuildHall::PlayerInHall()) return;
 			if (Guild::SaveState() == Guild::SaveData::kBroken) return;  // the rank is not known this session
-			const int rank = Guild::Rank();
+			const int rank = Guild::WorkRank();
 			if (rank < 0) return;  // missives are for registered adventurers
 			auto* anchor = GuildBoardHere();
 			if (!anchor) return;  // the cellars or the strongroom: rolled on coming up into the great hall
@@ -1187,7 +1172,7 @@ namespace AG::MissiveWatch
 	{
 		if (!g_active) return;
 		if (Guild::SaveState() == Guild::SaveData::kBroken) return;  // the rank is not known this session: nothing comes down on a guess
-		const int rank = Guild::Rank();  // -1 before registering: every posting is above it
+		const int rank = Guild::WorkRank();  // -1 before registering: every posting is above it
 		std::vector<RE::TESQuest*> stale;
 		{
 			std::lock_guard l(g_lock);
@@ -1203,7 +1188,7 @@ namespace AG::MissiveWatch
 			RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> cb;
 			vm->DispatchStaticCall("AG_QuestHelper", "WithdrawMissive", RE::MakeFunctionArguments(static_cast<RE::TESQuest*>(q)), cb);
 		}
-		if (!stale.empty()) SKSE::log::info("MissiveWatch: withdrew {} posted missive(s) above guild rank {}", stale.size(), rank);
+		if (!stale.empty()) SKSE::log::info("MissiveWatch: withdrew {} posted missive(s) above work rank {}", stale.size(), rank);
 	}
 
 	int InProgress()
@@ -1223,7 +1208,7 @@ namespace AG::MissiveWatch
 		auto out = nlohmann::json::array();
 		const auto hold = HoldOf(a_city);
 		if (!g_active || hold.empty()) return out;
-		const int rank = Guild::Rank();
+		const int rank = Guild::WorkRank();
 		auto* player = RE::PlayerCharacter::GetSingleton();
 		const auto* area = SettlementOf(player ? player->GetCurrentLocation() : nullptr);
 		std::vector<std::pair<RE::TESQuest*, char>> posted;
@@ -1250,7 +1235,7 @@ namespace AG::MissiveWatch
 	{
 		auto out = nlohmann::json::array();
 		if (!g_active) return out;
-		const int rank = Guild::Rank();
+		const int rank = Guild::WorkRank();
 		struct Row { RE::TESQuest* q; char tier; std::string hold, city; };
 		std::vector<Row> posted;
 		{

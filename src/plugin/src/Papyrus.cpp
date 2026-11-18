@@ -15,6 +15,7 @@
 #include "GuildBoard.h"
 #include "LeaderBoard.h"
 #include "GuildHall.h"
+#include "hall/hall.h"
 #include "Loc.h"
 #include "Party.h"
 #include "Kills.h"
@@ -116,6 +117,10 @@ namespace AG
 		std::int32_t GetDefaultRepScale(Tag*) { return Guild::RepScaleDefault(); }
 		void         SetRepScale(Tag*, std::int32_t a_percent) { Guild::SetRepScale(a_percent); Guild::OnBandsChanged(); }
 		std::int32_t GetRankReputation(Tag*, std::int32_t a_rank) { return Guild::ReputationFor(a_rank); }
+		// MCM > System > Work one rank above (1.6.3), per save
+		bool         GetWorkAbove(Tag*) { return Guild::WorkAbove(); }
+		bool         GetDefaultWorkAbove(Tag*) { return Guild::WorkAboveDefault(); }
+		void         SetWorkAbove(Tag*, bool a_on) { Guild::SetWorkAbove(a_on); }
 		std::string CancelUninstall(Tag*) { return Guild::CancelUninstall(); }
 		std::string UninstallText(Tag*, std::int32_t a_which)
 		{
@@ -276,7 +281,7 @@ namespace AG
 			auto* ws = pc ? pc->GetWorldspace() : nullptr;
 			auto* base = RE::TESForm::LookupByID<RE::TESBoundObject>(0x10);  // MapMarker
 			if (!ws || !ws->persistentCell || !dh || !base) return "no worldspace";
-			auto& markers = pc->GetPlayerRuntimeData().currentMapMarkers;
+			auto& markers = REL::Module::IsVR() ? pc->GetVRPlayerRuntimeData()->currentMapMarkers : pc->GetPlayerRuntimeData().currentMapMarkers;  // (VR keeps it in its own block)
 			RE::MapMarkerData* from = nullptr;
 			for (auto& h : markers) {
 				const auto r = h.get();
@@ -303,6 +308,8 @@ namespace AG
 			SKSE::log::info("DebugMapMarker: {:08X} '{}' at ({:.0f}, {:.0f}, {:.0f}), {} markers", ref->GetFormID(), a_name, a_x, a_y, a_z, markers.size());
 			return std::format("{:08X}", ref->GetFormID());
 		}
+		// the Guild Hall's map marker (AG_QuestHelper.MarkRegistrationHall): None without the hall, or before a game is loaded
+		RE::TESObjectREFR* HallMapMarker(Tag*) { return Hall::MapMarker(); }
 		// Caralion's quest (2026-11-04, plans/caralion-quest.md in the hall's notes): a persistent reference of a_base at x, y, z
 		// in Tamriel (angle in game degrees, 0 north, clockwise), made in the worldspace's persistent cell, so it exists while
 		// its cell is unloaded and an actor can MoveTo it there, as vanilla moves actors to persistent markers. The quest's
@@ -459,6 +466,9 @@ namespace AG
 		REG(GetDefaultRepScale);
 		REG(SetRepScale);
 		REG(GetRankReputation);
+		REG(GetWorkAbove);
+		REG(GetDefaultWorkAbove);
+		REG(SetWorkAbove);
 		REG(IsSaveFromBefore140);
 		REG(CancelUninstall);
 		REG(UninstallText);
@@ -518,6 +528,7 @@ namespace AG
 		REG(DebugDump);
 		REG(DebugMapMarker);
 		REG(PlaceInTamriel);
+		REG(HallMapMarker);
 		REG(DebugRefInfo);
 		REG(SetUniqueLevel);
 		REG(PayGuildContract);

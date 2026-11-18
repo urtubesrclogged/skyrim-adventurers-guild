@@ -71,6 +71,8 @@
  "$AG_MCM_System_iRepScale_Text": "Reputation for ranks",
  "$AG_MCM_System_iRepScale_Help": "How much Reputation each promotion asks for, as a share of the usual amounts (shown below). Lower it if your game levels faster than the vanilla curve (an XP curve mod, for one), raise it if it levels slower. Changing it never changes the rank you hold. Default: 100%.",
  "$AG_MCM_System_RankRep_Header": "Reputation each rank needs",
+ "$AG_MCM_System_bWorkAbove_Text": "Work one rank above",
+ "$AG_MCM_System_bWorkAbove_Help": "Lets you take missives, notices and dungeon intel one rank above your own, as well as your own rank and below. Your rank, its promotions and the pay for each job stay as they are. Turned off, postings above your rank that you have not taken come down; work you already took stays yours. Default: off.",
  "$AG_MCM_System_RankD_Text": "Rank D",
  "$AG_MCM_System_RankC_Text": "Rank C",
  "$AG_MCM_System_RankB_Text": "Rank B",

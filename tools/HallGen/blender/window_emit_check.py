@@ -36,7 +36,9 @@ for f, (t, fl, s) in rec.items():
     if b_ in fills:
         n_fill += 1
         if xe != REGION: fail(f"{ed(b_)} reference {f:#x} has no region: {xe}")
-        if b"XESP" in s: fail(f"{ed(b_)} reference {f:#x} still has an enable parent")
+        # (the only enable parent a fill may have: its cell's switch for the lights that burn only with Light Limit Fix, vanilla_lights.py)
+        if b"XESP" in s and not ed(struct.unpack("<I", s[b"XESP"][:4])[0]).startswith("AGHall2VanillaLights"):
+            fail(f"{ed(b_)} reference {f:#x} still has an enable parent")
 for f, (t, fl, s) in rec.items():
     if ed(f) in ("AGHall2DaylightMarker", "AGHall2DayNightControl", "AGHall2WindowsDay", "AGHall2LightWindowTestRed"): fail(f"{ed(f)} is still in the plugin")
 if b"AGHallDayNight" in data: fail("AGHallDayNight is still named in the plugin")
